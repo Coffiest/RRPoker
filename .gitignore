@@ -10,6 +10,10 @@
 !.yarn/releases
 !.yarn/versions
 
+# functions
+/functions/lib
+/functions/node_modules
+
 # testing
 /coverage
 

@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
-const repo = "RRPoker";
-
 const nextConfig = {
   output: "export",
-  images: { unoptimized: true },
-  basePath: `/${repo}`,
-  assetPrefix: `/${repo}/`,
-  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
 };
 
 module.exports = nextConfig;

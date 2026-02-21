@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isStoreOwner(storeId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (
+        request.auth.uid == userId
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentStoreId'])
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendRequests'])
+          && request.resource.data.friendRequests is list
+          && (!(resource.data.friendRequests is list) || request.resource.data.friendRequests.size() >= resource.data.friendRequests.size())
+        )
+        || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+          && request.resource.data.friends is list
+          && (!(resource.data.friends is list) || request.resource.data.friends.size() >= resource.data.friends.size())
+        )
+      );
+      match /storeBalances/{storeId} {
+        allow read, write: if isSignedIn()
+          && (request.auth.uid == userId || isStoreOwner(storeId));
+      }
+    }
+
+    match /stores/{storeId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.code == storeId;
+      allow write: if isStoreOwner(storeId);
+
+      match /publicRanking/{rankingId} {
+        allow read: if isSignedIn();
+        allow write: if isStoreOwner(storeId);
+      }
+
+      match /notices/{noticeId} {
+        allow read: if isStoreOwner(storeId);
+        allow write: if isStoreOwner(storeId);
+      }
+
+      match /rakeEntries/{entryId} {
+        allow read, write: if isSignedIn() && isStoreOwner(storeId);
+      }
+    }
+
+    match /depositRequests/{requestId} {
+      allow create: if isSignedIn() && request.resource.data.playerId == request.auth.uid;
+      allow read: if isSignedIn()
+        && (resource.data.playerId == request.auth.uid || isStoreOwner(resource.data.storeId));
+      allow update: if isSignedIn() && isStoreOwner(resource.data.storeId);
+    }
+
+    match /withdrawals/{withdrawalId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /transactions/{transactionId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /friendRequests/{requestId} {
+      allow create: if isSignedIn() && request.resource.data.fromUid == request.auth.uid;
+      allow update: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+      allow read: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+      allow delete: if isSignedIn() && (
+        resource.data.fromUid == request.auth.uid ||
+        resource.data.toUid == request.auth.uid
+      );
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow write: if isSignedIn();
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

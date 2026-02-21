@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    match /users/{userId}/avatar {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    match /stores/{storeId}/avatar {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

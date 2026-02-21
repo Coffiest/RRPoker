@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -23,4 +24,91 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.font-display {
+  font-family: "Playfair Display", serif;
+}
+
+.font-ui {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+.page-slide-in {
+  animation: pageSlideIn 280ms ease-out;
+}
+
+.page-slide-out {
+  animation: pageSlideOut 240ms ease-in;
+}
+
+.flip-amount-bottom {
+  display: inline-block;
+  animation: flipAmountInvert 900ms linear forwards;
+  transform-origin: center;
+}
+
+.favorite-sparkle-strong {
+  animation: favoriteSparkleStrong 900ms ease-out;
+}
+
+.store-mypage input,
+.store-mypage textarea,
+.store-mypage select {
+  color: #111;
+}
+
+.store-mypage input::placeholder,
+.store-mypage textarea::placeholder {
+  color: #9ca3af;
+}
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pageSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+}
+
+@keyframes flipAmountInvert {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes favoriteSparkleStrong {
+  0% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 0 rgba(244, 215, 124, 0);
+  }
+  35% {
+    transform: scale(1.25) rotate(-10deg);
+    box-shadow: 0 0 18px rgba(244, 215, 124, 0.8);
+  }
+  60% {
+    transform: scale(1.08) rotate(6deg);
+    box-shadow: 0 0 12px rgba(244, 215, 124, 0.65);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 0 0 0 rgba(244, 215, 124, 0);
+  }
 }
