@@ -316,7 +316,7 @@ export default function MyPage() {
           <div className="mt-5 flex gap-2">
             <button
               type="button"
-              onClick={() => setShowPasswordModal(true)}
+              onClick={() => router.push("/home/mypage/password")}
               className="flex-1 h-[36px] rounded-xl bg-gray-900 text-[14px] font-semibold text-white flex items-center justify-center gap-2"
             >
               <FiLock className="h-4 w-4" />
@@ -351,13 +351,7 @@ export default function MyPage() {
             ログアウト
           </button>
 
-          <button
-            type="button"
-            onClick={() => router.push("/home/mypage/password")}
-            className="h-[52px] w-full rounded-2xl bg-white border border-gray-200 text-[15px] font-medium text-gray-900 shadow-sm"
-          >
-            アカウント連携
-          </button>
+          {/* アカウント連携ボタン削除済み */}
 
           <button
             type="button"
