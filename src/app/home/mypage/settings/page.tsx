@@ -101,8 +101,18 @@ export default function UserSettingsPage() {
 
         <button
           type="button"
+          onClick={() => router.push('/home/mypage/password')}
+          className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+        >
+          パスワード変更
+        </button>
+
+        {/* アカウント連携ボタン削除済み */}
+
+        <button
+          type="button"
           onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
+          className="mt-4 text-[13px] text-gray-500"
         >
           戻る
         </button>

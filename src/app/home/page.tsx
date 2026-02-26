@@ -84,6 +84,8 @@ export default function HomePage() {
   const [rrRankingLoading, setRrRankingLoading] = useState(true)
   const [displayBalance, setDisplayBalance] = useState(0)
   const [displayNetGain, setDisplayNetGain] = useState(0)
+  // チップ/BB表記切り替え用
+  const [showBB, setShowBB] = useState(false)
   const balanceRef = useRef(0)
   const netGainRef = useRef(0)
 
@@ -289,15 +291,16 @@ export default function HomePage() {
     return rounded.toLocaleString()
   }
 
+  // チップ/BB表記切り替え対応
   const formatChipValue = (value: number) => {
-    if (useBb) return `${formatBbValue(value)}BB`
+    if (showBB && useBb) return `${formatBbValue(value)}BB`
     return `${unitLabel}${value.toLocaleString()}`
   }
 
   const formatSignedChipValue = (value: number) => {
     const sign = value > 0 ? "+" : value < 0 ? "-" : ""
     const absValue = Math.abs(value)
-    if (useBb) return `${sign}${formatBbValue(absValue)}BB`
+    if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`
     return `${sign}${unitLabel}${absValue.toLocaleString()}`
   }
 
@@ -1123,7 +1126,7 @@ export default function HomePage() {
         {currentStoreId && currentStore && (
           <>
             <div className="mt-6">
-              <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
+              <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}> 
                 <div className="bank-card-inner">
                   <div className="bank-card-face bank-card-front">
                     <div className="relative z-10">
@@ -1131,10 +1134,32 @@ export default function HomePage() {
                         <FiCreditCard className="text-[16px]" />
                         <span className="text-[12px] tracking-[0.25em]">BANK ROLL</span>
                       </div>
-                      <p className="mt-2 text-[13px] text-white/70">{currentStore.name}</p>
+                      <p className="mt-2 text-[13px] text-white/70">
+                        {currentStore.name}
+                        {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
+                          <span className="ml-2 text-[11px] text-white/50">(レート: {currentStore.ringBlindSb} - {currentStore.ringBlindBb})</span>
+                        )}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsHistoryFlipped(true)}
+                        className="absolute top-0 right-0 mt-1 mr-1 inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-[11px] text-white/80 hover:border-white/50 hover:text-white bg-black/30"
+                        style={{ zIndex: 20 }}
+                      >
+                        <FiClock className="text-[12px]" />
+                        履歴
+                      </button>
                     </div>
                     <div className="relative z-10 mt-6 text-center">
-                      <div className="ticker text-[30px] font-semibold text-white">
+                      <div className="mb-1 flex justify-center">
+                        <span
+                          className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white/60 cursor-pointer select-none"
+                          style={{ fontSize: '10px', letterSpacing: '0.05em' }}
+                        >
+                          タップで{showBB ? 'チップ' : 'BB'}表記に変更！
+                        </span>
+                      </div>
+                      <div className="ticker text-[30px] font-semibold text-white cursor-pointer select-none" onClick={() => setShowBB(v => !v)}>
                         <span key={balance} className="ticker-animate">
                           {formatChipValue(displayBalance)}
                         </span>
@@ -1143,7 +1168,8 @@ export default function HomePage() {
                         <div
                           className={`ticker mt-2 text-[15px] font-semibold ${
                             displayNetGain > 0 ? "text-emerald-200" : "text-rose-200"
-                          }`}
+                          } cursor-pointer select-none`}
+                          onClick={() => setShowBB(v => !v)}
                         >
                           <span key={netGain} className="ticker-animate">
                             {formatSignedChipValue(displayNetGain)}
@@ -1151,16 +1177,8 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
-                    <div className="relative z-10 mt-6 flex items-center justify-between text-[11px] text-white/80">
-                      <button
-                        type="button"
-                        onClick={() => setIsHistoryFlipped(true)}
-                        className="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-[11px] text-white/80 hover:border-white/50 hover:text-white"
-                      >
-                        <FiClock className="text-[12px]" />
-                        履歴
-                      </button>
-                      <span className="text-[12px] font-semibold tracking-[0.18em]">RRPoker</span>
+                    <div className="relative z-10 mt-6 flex items-center justify-end text-[11px] text-white/80">
+                      {/* RRPoker表記削除 */}
                     </div>
                   </div>
                   <div className="bank-card-face bank-card-back">

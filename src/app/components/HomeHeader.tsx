@@ -157,11 +157,10 @@ return (
       <button
         type="button"
         onClick={() => router.push(homePath)}
-        className="flex items-center gap-2 text-[18px] font-semibold text-gray-900"
+        className="flex items-center gap-0 text-[18px] font-semibold text-gray-900"
       >
         <img src="/icon-192x192.png" alt="RRPoker logo" className="h-[60px] w-[60px]" />
-        <span>RR</span>
-        <span>Poker</span>
+        <span>RRPOKER</span>
       </button>
 
       <div className="flex items-center gap-2">

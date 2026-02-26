@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { getDocs } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/app/components/HomeHeader"
@@ -55,8 +56,43 @@ export default function StorePage() {
   const [adjustError, setAdjustError] = useState("")
   const [showAdjustmentConfirm, setShowAdjustmentConfirm] = useState(false)
   const [showNetGainConfirm, setShowNetGainConfirm] = useState(false)
-  const [pendingAdjustment, setPendingAdjustment] =
-    useState<{ direction: "add" | "subtract"; amount: string } | null>(null)
+  const [pendingAdjustment, setPendingAdjustment] = useState<{ direction: "add" | "subtract"; amount: string } | null>(null)
+
+  // 入店履歴プレイヤーリスト
+  const [storePlayers, setStorePlayers] = useState<any[]>([])
+  const [storePlayersPage, setStorePlayersPage] = useState(1)
+  const pageSize = 10
+
+  useEffect(() => {
+    if (!storeId) return
+    const fetchStorePlayers = async () => {
+      const usersSnap = await getDocs(collection(db, "users"))
+      const players: any[] = []
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data()
+        const balanceSnap = await getDoc(doc(db, "users", userDoc.id, "storeBalances", storeId))
+        if (balanceSnap.exists()) {
+          const balanceData = balanceSnap.data()
+          players.push({
+            id: userDoc.id,
+            name: userData.name,
+            iconUrl: userData.iconUrl,
+            playerId: userData.playerId,
+            balance: balanceData.balance ?? 0,
+            netGain: balanceData.netGain ?? 0,
+            lastVisitedAt: balanceData.lastVisitedAt?.toDate?.() ?? null,
+          })
+        }
+      }
+      players.sort((a, b) => {
+        const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
+        const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
+        return atB - atA
+      })
+      setStorePlayers(players)
+    }
+    fetchStorePlayers()
+  }, [storeId])
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -490,102 +526,147 @@ export default function StorePage() {
         </div>
 
         <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-          <p className="text-[14px] font-semibold text-gray-900">
-            手動調整
-          </p>
-
+          <p className="text-[14px] font-semibold text-gray-900">手動調整</p>
           <div className="mt-3 relative">
+            <label className="block mb-1 text-[13px] font-semibold text-gray-900" style={{color:'#111'}}>プレイヤー名で検索</label>
             <input
               type="text"
               value={playerSearchInput}
-              onChange={e =>
-                setPlayerSearchInput(e.target.value)
-              }
+              onChange={e => setPlayerSearchInput(e.target.value)}
               placeholder="プレイヤー名で検索"
-              className="h-11 w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 text-[14px]"
+              className="h-11 w-full rounded-2xl border border-gray-200 bg-gray-50 px-3 text-[14px] text-gray-900"
+              style={{color:'#111'}}
             />
-
-            {playerSearchInput &&
-              filteredPlayers.length > 0 && (
-                <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg">
-                  {filteredPlayers.map(player => (
-                    <button
-                      key={player.id}
-                      type="button"
-                      onClick={() =>
-                        selectPlayer(player.id)
-                      }
-                      className="block w-full border-b border-gray-100 px-3 py-2 text-left text-[14px] text-gray-900 hover:bg-gray-50"
-                    >
-                      {player.name ?? player.id}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {playerSearchInput && filteredPlayers.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-10 mt-1 max-h-48 overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-lg">
+                {filteredPlayers.map(player => (
+                  <button
+                    key={player.id}
+                    type="button"
+                    onClick={() => selectPlayer(player.id)}
+                    className="block w-full border-b border-gray-100 px-3 py-2 text-left text-[14px] text-gray-900 hover:bg-gray-50"
+                  >
+                    {player.name ?? player.id}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-
           {selectedPlayerId && (
             <div className="mt-3 rounded-lg bg-gray-50 p-3 text-[12px] text-gray-600">
               <p>
-                残高:{" "}
-                <span className="font-semibold text-gray-900">
-                  {selectedPlayerBalance}
-                </span>
+                残高: <span className="font-semibold text-gray-900">{selectedPlayerBalance}</span>
               </p>
               <p className="mt-1">
-                純増:{" "}
-                <span className="font-semibold text-gray-900">
-                  {selectedPlayerNetGain}
-                </span>
+                純増: <span className="font-semibold text-gray-900">{selectedPlayerNetGain}</span>
               </p>
             </div>
           )}
-
+          <label className="block mt-4 mb-1 text-[13px] font-semibold text-gray-900" style={{color:'#111'}}>金額</label>
           <input
             type="number"
             min={1}
             value={adjustAmount}
-            onChange={e =>
-              setAdjustAmount(e.target.value)
-            }
+            onChange={e => setAdjustAmount(e.target.value)}
             placeholder="金額"
-            className="mt-3 h-11 w-full rounded-2xl border border-gray-200 px-3 text-[14px]"
+            className="h-11 w-full rounded-2xl border border-gray-200 px-3 text-[14px] text-gray-900"
+            style={{color:'#111'}}
           />
-
           {adjustError && (
-            <p className="mt-2 text-[12px] text-red-500">
-              {adjustError}
-            </p>
+            <p className="mt-2 text-[12px] text-red-500">{adjustError}</p>
           )}
-
           <div className="mt-3 flex gap-2">
             <button
               type="button"
               onClick={() => {
-                setPendingAdjustment({
-                  direction: "add",
-                  amount: adjustAmount,
-                })
+                setPendingAdjustment({ direction: "add", amount: adjustAmount })
                 setShowAdjustmentConfirm(true)
               }}
               className="flex-1 rounded-2xl bg-green-500 py-2 text-[13px] font-semibold text-white"
             >
               +加算
             </button>
-
             <button
               type="button"
               onClick={() => {
-                setPendingAdjustment({
-                  direction: "subtract",
-                  amount: adjustAmount,
-                })
+                setPendingAdjustment({ direction: "subtract", amount: adjustAmount })
                 setShowAdjustmentConfirm(true)
               }}
               className="flex-1 rounded-2xl bg-red-500 py-2 text-[13px] font-semibold text-white"
             >
               −減算
             </button>
+          </div>
+
+          {/* 確認ダイアログ（ポップアップ形式） */}
+          {showAdjustmentConfirm && pendingAdjustment && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-transparent">
+              <div className="bg-white rounded-2xl px-7 py-8 max-w-sm w-[90vw] text-center shadow-2xl border border-gray-200 animate-fadeIn">
+                <p className="text-lg font-bold text-gray-900 mb-5 whitespace-pre-line">
+                  {`純増値も同時に\n${pendingAdjustment.direction === "add" ? "加算" : "減算"}しますか？`}
+                </p>
+                <div className="flex flex-col gap-3 mt-2">
+                  <button
+                    className="w-full rounded-xl bg-blue-500 hover:bg-blue-600 text-white py-2.5 font-semibold text-base transition"
+                    onClick={async () => {
+                      setShowAdjustmentConfirm(false)
+                      await runAdjustment(pendingAdjustment.direction, true)
+                      setPendingAdjustment(null)
+                    }}
+                  >はい（純増も変更）</button>
+                  <button
+                    className="w-full rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2.5 font-semibold text-base transition"
+                    onClick={async () => {
+                      setShowAdjustmentConfirm(false)
+                      await runAdjustment(pendingAdjustment.direction, false)
+                      setPendingAdjustment(null)
+                    }}
+                  >いいえ（チップのみ）</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 入店履歴プレイヤーリスト */}
+          <div className="mt-6">
+            <p className="text-[13px] font-semibold text-gray-900 mb-2">入店履歴プレイヤー</p>
+            {storePlayers.length === 0 ? (
+              <p className="text-[13px] text-gray-500">履歴がありません</p>
+            ) : (
+              <div>
+                {storePlayers.slice(0, storePlayersPage * pageSize).map(player => (
+                  <button
+                    key={player.id}
+                    type="button"
+                    onClick={() => selectPlayer(player.id)}
+                    className={`w-full text-left rounded-lg border border-gray-200 px-3 py-2 mb-2 hover:bg-gray-50 ${selectedPlayerId === player.id ? "bg-gray-100" : ""}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {player.iconUrl ? (
+                        <img src={player.iconUrl} alt={player.name} className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-500">P</div>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-[13px] text-gray-900">{player.name || player.id}</span>
+                        <span className="text-[12px] text-gray-500">{player.playerId}</span>
+                      </div>
+                      <div className="ml-auto text-right text-[12px]">
+                        <span className="text-gray-900">チップ: <span className="font-semibold text-gray-900">{player.balance}</span></span>
+                        <span className="ml-2 text-gray-900">({player.netGain >= 0 ? "+" : ""}{player.netGain})</span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                {storePlayers.length > storePlayersPage * pageSize && (
+                  <button
+                    type="button"
+                    className="w-full mt-2 rounded-xl border border-gray-300 py-2 text-[13px] text-gray-700 hover:bg-gray-50"
+                    onClick={() => setStorePlayersPage(p => p + 1)}
+                  >もっと見る</button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
