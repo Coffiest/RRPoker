@@ -11,8 +11,13 @@ export type MenuItem = {
  * variant: 'user' | 'store' で分岐可能。
  */
 export function getCommonMenuItems(router: ReturnType<typeof useRouter>, variant: 'user' | 'store' = 'user'): MenuItem[] {
-  const items: MenuItem[] = [
-    // 必要に応じて他の共通項目を追加
-  ]
+  const items: MenuItem[] = []
+  if (variant === 'store') {
+    items.push({
+      label: '設定',
+      onClick: () => router.push('/home/store/settings'),
+    })
+  }
+  // 必要に応じて他の共通項目を追加
   return items
 }

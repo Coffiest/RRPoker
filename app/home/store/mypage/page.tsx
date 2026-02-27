@@ -506,12 +506,43 @@ export default function StoreMyPage() {
           >
             ログアウト
           </button>
-          {showDeleteConfirm && (
-            <div style={{color: "red", marginTop: "10px"}}>
-              DEBUG: showDeleteConfirm = true
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="h-[52px] w-full rounded-[24px] border border-red-400 text-[15px] font-semibold text-red-500"
+          >
+            アカウント削除
+          </button>
         </div>
+
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+            <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
+              <h2 className="text-[16px] font-semibold text-gray-900">アカウント削除</h2>
+              <p className="mt-3 text-[13px] text-gray-600">本当にアカウントを削除しますか？</p>
+              <p className="mt-2 text-[12px] text-gray-500">削除すると復元できません。</p>
+              <p className="mt-1 text-[12px] text-gray-500">保持チップやレートも失われます。</p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-2xl border border-gray-200 py-2 text-[13px] font-semibold text-gray-800 disabled:opacity-60"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="button"
+                  onClick={deleteAccount}
+                  disabled={isDeleting}
+                  className="flex-1 rounded-2xl bg-red-500 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                >
+                  {isDeleting ? "削除中..." : "はい"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
