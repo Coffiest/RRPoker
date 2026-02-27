@@ -253,6 +253,15 @@ export default function UserProfileOnboardingPage() {
             />
           </div>
         </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => router.push('/onboarding')}
+            className="text-[15px] text-gray-500 underline hover:text-gray-700 transition-colors"
+          >
+            ← もどる（ロール再選択）
+          </button>
+        </div>
 
         <div className="mt-8 rounded-[24px] border border-gray-200 p-4">
           {/* Name Field */}

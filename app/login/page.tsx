@@ -28,7 +28,6 @@ export default function LoginPage() {
       const userDocRef = doc(db, "users", user.uid)
       const userDocSnap = await getDoc(userDocRef)
 
-      // ドキュメントが存在しない → onboarding
       if (!userDocSnap.exists()) {
         router.replace("/onboarding")
         return
@@ -36,13 +35,16 @@ export default function LoginPage() {
 
       const role = userDocSnap.data()?.role
 
-      // 有効な role のみ home
-      if (role === "player" || role === "store") {
+      if (role === "player") {
         router.replace("/home")
         return
       }
 
-      // role 未設定 or 不正値 → onboarding
+      if (role === "store") {
+        router.replace("/home/store")
+        return
+      }
+
       router.replace("/onboarding")
       return
       // ===== 追加ロジックここまで =====
@@ -51,6 +53,7 @@ export default function LoginPage() {
       console.log("LOGIN ERROR CODE:", e.code)
       console.log("LOGIN ERROR MESSAGE:", e.message)
 
+      // 新規登録に回すのは user-not-found のみ
       if (e.code === "auth/user-not-found") {
         try {
           const credential = await createUserWithEmailAndPassword(auth, email, password)
@@ -64,12 +67,11 @@ export default function LoginPage() {
             { merge: true }
           )
 
-          console.log("sending verification...")
           await sendEmailVerification(credential.user)
-          console.log("verification sent")
           await signOut(auth)
           router.replace("/verify-email")
           return
+
         } catch (e2: any) {
           console.log(e2)
           setError(e2.message)
@@ -83,7 +85,6 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-white px-5">
       <div className="mx-auto max-w-sm">
-        {/* Header */}
         <div className="pt-[72px] text-center">
           <h1 className="text-[28px] font-semibold leading-tight text-gray-900">
             RRPoker
@@ -91,7 +92,6 @@ export default function LoginPage() {
           <p className="mt-2 text-[14px] text-gray-500">サインイン</p>
         </div>
 
-        {/* Form Card */}
         <div className="mt-7 rounded-[24px] border border-gray-200 p-4">
           <label className="text-[12px] text-gray-500">メールアドレス</label>
           <input
@@ -120,14 +120,12 @@ export default function LoginPage() {
             ログイン / 新規登録
           </button>
 
-          {/* Divider */}
           <div className="my-4 flex items-center">
             <div className="flex-1 border-t border-gray-200" />
             <span className="mx-3 text-[13px] text-gray-400">または</span>
             <div className="flex-1 border-t border-gray-200" />
           </div>
 
-          {/* Google sign-in button */}
           <div className="flex justify-center">
             <button
               type="button"
@@ -149,7 +147,6 @@ export default function LoginPage() {
           {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
         </div>
 
-        {/* Bottom links */}
         <div className="mt-6 flex items-center justify-center pb-7 text-[13px] text-gray-500">
           <button 
             type="button" 

@@ -236,20 +236,39 @@ export default function StoreMyPage() {
   }
 
   const deleteAccount = async () => {
+    console.log("DELETE CLICKED")
+
     const user = auth.currentUser
-    if (!user) return
-    setIsDeleting(true)
-    setError("")
+    console.log("CURRENT USER:", user)
+
+    if (!user) {
+      console.log("USER IS NULL")
+      alert("ユーザー情報が取得できません。再ログインしてください。")
+      return
+    }
 
     try {
-      const name = profile.name || "店舗"
-      await setDoc(doc(db, "users", user.uid), { deletedAt: new Date() }, { merge: true })
+      console.log("TRY START")
+      setIsDeleting(true)
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        { deletedAt: new Date() },
+        { merge: true }
+      )
+      console.log("FIRESTORE UPDATED")
+
       await user.delete()
-      setShowDeleteConfirm(false)
-      alert(`さようなら、またね。\n${name}さん。`)
+      console.log("AUTH DELETE DONE")
+
+      alert("削除完了")
       router.replace("/login")
-    } catch (e: any) {
-      setError(e.message || "アカウント削除に失敗しました")
+
+    } catch (e) {
+      console.error("DELETE ERROR:", e)
+      alert("削除エラー")
+    } finally {
+      console.log("FINALLY")
       setIsDeleting(false)
     }
   }
@@ -487,13 +506,11 @@ export default function StoreMyPage() {
           >
             ログアウト
           </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="h-10 w-full text-[12px] font-semibold text-red-500 hover:text-red-600"
-          >
-            アカウントを削除
-          </button>
+          {showDeleteConfirm && (
+            <div style={{color: "red", marginTop: "10px"}}>
+              DEBUG: showDeleteConfirm = true
+            </div>
+          )}
         </div>
 
         {showDeleteConfirm && (

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { signOut } from "firebase/auth"
+import { signOut, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
@@ -179,18 +179,44 @@ export default function MyPage() {
 
   const deleteAccount = async () => {
     const user = auth.currentUser
-    if (!user) return
-    setIsDeleting(true)
-    setError("")
+    if (!user) {
+      setError("再ログインしてください")
+      return
+    }
+
     try {
-      const name = profile.name || "ユーザー"
-      await setDoc(doc(db, "users", user.uid), { deletedAt: new Date() }, { merge: true })
+      setIsDeleting(true)
+      setError("")
+
+      const inputPassword = prompt("安全のためパスワードを再入力してください")
+      if (!inputPassword) {
+        setIsDeleting(false)
+        return
+      }
+
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        inputPassword
+      )
+
+      await reauthenticateWithCredential(user, credential)
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        { deletedAt: new Date() },
+        { merge: true }
+      )
+
       await user.delete()
+
       setShowDeleteConfirm(false)
-      alert(`さようなら、またね。\n${name}さん。`)
+      alert("アカウントを削除しました")
       router.replace("/login")
-    } catch (e: any) {
-      setError(e.message || "アカウント削除に失敗しました")
+
+    } catch (e) {
+      console.error("DELETE ERROR:", e)
+      setError("削除に失敗しました")
+    } finally {
       setIsDeleting(false)
     }
   }
@@ -360,6 +386,35 @@ export default function MyPage() {
           >
             アカウントを削除
           </button>
+
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+              <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
+                <h2 className="text-[16px] font-semibold text-gray-900">アカウント削除</h2>
+                <p className="mt-3 text-[13px] text-gray-600">本当にアカウントを削除しますか？</p>
+                <p className="mt-2 text-[12px] text-gray-500">削除すると復元できません。</p>
+                <p className="mt-1 text-[12px] text-gray-500">保持チップやレートも失われます。</p>
+                <div className="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="flex-1 rounded-2xl border border-gray-200 py-2 text-[13px] font-semibold text-gray-800 disabled:opacity-60"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    onClick={deleteAccount}
+                    disabled={isDeleting}
+                    className="flex-1 rounded-2xl bg-red-500 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                  >
+                    {isDeleting ? "削除中..." : "はい"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

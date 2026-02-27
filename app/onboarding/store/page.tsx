@@ -199,6 +199,15 @@ export default function StoreOnboardingPage() {
           <p className="text-[20px] font-semibold text-gray-900">ようこそ</p>
           <p className="mt-2 text-[14px] text-gray-500">店舗情報を入力してください</p>
         </div>
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => router.push('/onboarding')}
+            className="text-[15px] text-gray-500 underline hover:text-gray-700 transition-colors"
+          >
+            ← もどる（ロール再選択）
+          </button>
+        </div>
 
         <div className="mt-6">
           <div className="mx-auto h-20 w-20">
