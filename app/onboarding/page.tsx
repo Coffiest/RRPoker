@@ -27,29 +27,6 @@ export default function OnboardingPage() {
         return
       }
 
-      if (role === 'player') {
-        // Check if playerId exists, if not send to profile page to set it
-        if (!data?.playerId) {
-          router.replace('/onboarding/user/profile')
-          return
-        }
-        if (!data?.name || !data?.iconUrl) {
-          router.replace('/onboarding/user/profile')
-          return
-        }
-        router.replace('/home')
-        return
-      }
-
-      if (role === 'store') {
-        if (!data?.name || !data?.storeId || !data?.postalCode || !data?.addressLine || !data?.addressDetail) {
-          router.replace('/onboarding/store')
-          return
-        }
-        router.replace('/home/store')
-        return
-      }
-
       setCheckingRole(false)
     }
 
@@ -61,18 +38,16 @@ export default function OnboardingPage() {
     if (!user) return
 
     const userRef = doc(db, 'users', user.uid)
+    await setDoc(
+      userRef,
+      { role },
+      { merge: true }
+    )
+
     const snap = await getDoc(userRef)
     const data = snap.data()
     const existingRole = data?.role === 'user' ? 'player' : data?.role
     const nextRole = existingRole ?? role
-
-    if (!existingRole) {
-      await setDoc(
-        userRef,
-        { role },
-        { merge: true }
-      )
-    }
 
     if (nextRole === 'player') {
       router.replace('/onboarding/user/profile')

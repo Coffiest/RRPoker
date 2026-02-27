@@ -53,8 +53,11 @@ export default function LoginPage() {
       console.log("LOGIN ERROR CODE:", e.code)
       console.log("LOGIN ERROR MESSAGE:", e.message)
 
-      // 新規登録に回すのは user-not-found のみ
-      if (e.code === "auth/user-not-found") {
+      // 新規登録に回すのは user-not-found または invalid-credential
+      if (
+        e.code === "auth/user-not-found" ||
+        e.code === "auth/invalid-credential"
+      ) {
         try {
           const credential = await createUserWithEmailAndPassword(auth, email, password)
 
