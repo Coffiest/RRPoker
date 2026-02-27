@@ -256,7 +256,7 @@ export default function HomePage() {
 
       setRankingLoading(true)
       try {
-        const rankingData = await getNetGainRanking(currentStoreId)
+　        const rankingData = await getNetGainRanking(currentStoreId)
         setRanking(rankingData)
         if (userId) {
           const uRank = getUserRank(userId, rankingData)

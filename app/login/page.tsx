@@ -14,22 +14,46 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password);
-      const user = credential.user;
+      const credential = await signInWithEmailAndPassword(auth, email, password)
+      const user = credential.user
 
+      // 未認証ユーザーは verify-email へ
       if (!user.emailVerified) {
-        await sendEmailVerification(user);
-        router.replace("/verify-email");
-        return;
+        await sendEmailVerification(user)
+        router.replace("/verify-email")
+        return
       }
 
-      router.replace("/home");
+      // ===== ここから追加ロジック（role 判定） =====
+      const userDocRef = doc(db, "users", user.uid)
+      const userDocSnap = await getDoc(userDocRef)
+
+      // ドキュメントが存在しない → onboarding
+      if (!userDocSnap.exists()) {
+        router.replace("/onboarding")
+        return
+      }
+
+      const role = userDocSnap.data()?.role
+
+      // 有効な role のみ home
+      if (role === "player" || role === "store") {
+        router.replace("/home")
+        return
+      }
+
+      // role 未設定 or 不正値 → onboarding
+      router.replace("/onboarding")
+      return
+      // ===== 追加ロジックここまで =====
+
     } catch (e: any) {
-      console.log("LOGIN ERROR CODE:", e.code);
-      console.log("LOGIN ERROR MESSAGE:", e.message);
+      console.log("LOGIN ERROR CODE:", e.code)
+      console.log("LOGIN ERROR MESSAGE:", e.message)
+
       if (e.code === "auth/user-not-found") {
         try {
-          const credential = await createUserWithEmailAndPassword(auth, email, password);
+          const credential = await createUserWithEmailAndPassword(auth, email, password)
 
           await setDoc(
             doc(db, "users", credential.user.uid),
@@ -38,23 +62,23 @@ export default function LoginPage() {
               createdAt: serverTimestamp(),
             },
             { merge: true }
-          );
+          )
 
-          console.log("sending verification...");
-          await sendEmailVerification(credential.user);
-          console.log("verification sent");
-          await signOut(auth);
-          router.replace("/verify-email");
-          return;
+          console.log("sending verification...")
+          await sendEmailVerification(credential.user)
+          console.log("verification sent")
+          await signOut(auth)
+          router.replace("/verify-email")
+          return
         } catch (e2: any) {
-          console.log(e2);
-          setError(e2.message);
+          console.log(e2)
+          setError(e2.message)
         }
       } else {
-        setError(e.message);
+        setError(e.message)
       }
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-white px-5">
@@ -103,25 +127,20 @@ export default function LoginPage() {
             <div className="flex-1 border-t border-gray-200" />
           </div>
 
-          {/* Google sign-in button with icon and text */}
+          {/* Google sign-in button */}
           <div className="flex justify-center">
             <button
               type="button"
               aria-label="Googleでログイン"
               className="flex items-center gap-2 h-11 px-4 rounded-full border border-gray-200 bg-white shadow-sm transition-transform active:scale-[0.99]"
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g clipPath="url(#clip0_17_40)">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <g>
                   <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
                   <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
                   <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
                   <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
                 </g>
-                <defs>
-                  <clipPath id="clip0_17_40">
-                    <rect width="20" height="20" fill="white"/>
-                  </clipPath>
-                </defs>
               </svg>
               <span className="text-[15px] font-semibold text-gray-900">Googleでサインイン</span>
             </button>
