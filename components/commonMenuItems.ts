@@ -12,16 +12,6 @@ export type MenuItem = {
  */
 export function getCommonMenuItems(router: ReturnType<typeof useRouter>, variant: 'user' | 'store' = 'user'): MenuItem[] {
   const items: MenuItem[] = [
-    {
-      label: '設定',
-      onClick: () => {
-        if (variant === 'store') {
-          router.push('/home/store/settings')
-        } else {
-          router.push('/home/mypage/settings')
-        }
-      },
-    },
     // 必要に応じて他の共通項目を追加
   ]
   return items
