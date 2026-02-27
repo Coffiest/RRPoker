@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+import { useSearchParams } from "next/navigation"
 
 type UserProfile = {
   name?: string
@@ -29,6 +30,8 @@ type UserProfile = {
 
 export default function MyPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const shouldDelete = searchParams.get("delete")
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [profile, setProfile] = useState<UserProfile>({})
@@ -62,6 +65,12 @@ export default function MyPage() {
     }
     fetchProfile()
   }, [])
+
+  useEffect(() => {
+    if (shouldDelete === "1") {
+      deleteAccount()
+    }
+  }, [shouldDelete])
 
   useEffect(() => {
     return () => {
@@ -180,44 +189,19 @@ export default function MyPage() {
   const deleteAccount = async () => {
     const user = auth.currentUser
     if (!user) {
-      setError("再ログインしてください")
+      setError("ユーザーが見つかりません")
       return
     }
 
     try {
-      setIsDeleting(true)
-      setError("")
-
-      const inputPassword = prompt("安全のためパスワードを再入力してください")
-      if (!inputPassword) {
-        setIsDeleting(false)
+      await user.delete()
+      router.replace("/")
+    } catch (e: any) {
+      if (e.code === "auth/requires-recent-login") {
+        router.replace("/login?redirect=delete")
         return
       }
-
-      const credential = EmailAuthProvider.credential(
-        user.email!,
-        inputPassword
-      )
-
-      await reauthenticateWithCredential(user, credential)
-
-      await setDoc(
-        doc(db, "users", user.uid),
-        { deletedAt: new Date() },
-        { merge: true }
-      )
-
-      await user.delete()
-
-      setShowDeleteConfirm(false)
-      alert("アカウントを削除しました")
-      router.replace("/login")
-
-    } catch (e) {
-      console.error("DELETE ERROR:", e)
-      setError("削除に失敗しました")
-    } finally {
-      setIsDeleting(false)
+      setError(e.message || "アカウント削除に失敗しました")
     }
   }
 

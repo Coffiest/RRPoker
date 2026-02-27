@@ -1,13 +1,17 @@
 'use client'
 
 import { useState } from "react"
-import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendEmailVerification, reauthenticateWithPopup } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
+import { useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -16,6 +20,12 @@ export default function LoginPage() {
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password)
       const user = credential.user
+
+      // recent login redirect
+      if (redirect === "delete") {
+        router.replace("/home/mypage?delete=1")
+        return
+      }
 
       // 未認証ユーザーは verify-email へ
       if (!user.emailVerified) {
@@ -85,6 +95,76 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+
+      // recent login redirect
+      if (redirect === "delete") {
+        router.replace("/home/mypage?delete=1")
+        return
+      }
+
+      const userDocRef = doc(db, "users", user.uid)
+      const userDocSnap = await getDoc(userDocRef)
+
+      // Firestore未登録 → 自動作成してonboardingへ
+      if (!userDocSnap.exists()) {
+        await setDoc(
+          doc(db, "users", user.uid),
+          {
+            email: user.email,
+            createdAt: serverTimestamp(),
+            provider: "google"
+          },
+          { merge: true }
+        )
+        router.replace("/onboarding")
+        return
+      }
+
+      const role = userDocSnap.data()?.role
+
+      if (role === "player") {
+        router.replace("/home")
+        return
+      }
+
+      if (role === "store") {
+        router.replace("/home/store")
+        return
+      }
+
+      router.replace("/onboarding")
+    } catch (e: any) {
+      console.log("GOOGLE LOGIN ERROR:", e)
+      setError(e.message || "Googleログインに失敗しました")
+    }
+  }
+
+  const deleteAccount = async () => {
+    try {
+      const user = auth.currentUser
+      if (!user) throw new Error("ユーザーが見つかりません")
+      const providerId = user.providerData[0]?.providerId
+      if (providerId === "google.com") {
+        const provider = new GoogleAuthProvider()
+        await reauthenticateWithPopup(user, provider)
+      } else if (providerId === "password") {
+        router.replace("/login?reauth=true")
+        return
+      } else {
+        throw new Error("未対応の認証プロバイダです")
+      }
+      await user.delete()
+      // ...既存の削除後処理...
+    } catch (e: any) {
+      setError(e.message || "アカウント削除に失敗しました")
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white px-5">
       <div className="mx-auto max-w-sm">
@@ -134,6 +214,7 @@ export default function LoginPage() {
               type="button"
               aria-label="Googleでログイン"
               className="flex items-center gap-2 h-11 px-4 rounded-full border border-gray-200 bg-white shadow-sm transition-transform active:scale-[0.99]"
+              onClick={handleGoogleLogin}
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <g>
