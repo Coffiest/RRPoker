@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
@@ -37,7 +37,9 @@ export default function RegisterPage() {
         { merge: true }
       )
 
-      router.replace("/onboarding")
+      await sendEmailVerification(credential.user);
+      await signOut(auth);
+      router.replace("/verify-email");
     } catch (e: any) {
       setError(e.message)
     } finally {

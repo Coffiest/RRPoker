@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
@@ -12,54 +12,49 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const login = async () => {
+  const handleLogin = async () => {
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password)
-      const user = credential.user
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const user = credential.user;
 
-      const userRef = doc(db, "users", user.uid)
-      const snap = await getDoc(userRef)
-
-      if (!snap.exists()) {
-        await setDoc(
-          userRef,
-          {
-            email: user.email,
-            createdAt: serverTimestamp(),
-          },
-          { merge: true }
-        )
-        router.replace("/onboarding")
-        return
+      if (!user.emailVerified) {
+        await sendEmailVerification(user);
+        router.replace("/verify-email");
+        return;
       }
 
-      const data = snap.data()
-      if (!data?.role) {
-        router.replace("/onboarding")
-        return
-      }
-
-      const role = data.role === "user" ? "player" : data.role
-
-      if (role === "player") {
-        router.replace("/home")
-        return
-      }
-
-      if (role === "store") {
-        if (!data.name || !data.storeId || !data.postalCode || !data.addressLine || !data.addressDetail) {
-          router.replace("/onboarding/store")
-          return
-        }
-        router.replace("/home/store")
-        return
-      }
-
-      router.replace("/onboarding")
+      router.replace("/home");
     } catch (e: any) {
-      setError(e.message)
+      console.log("LOGIN ERROR CODE:", e.code);
+      console.log("LOGIN ERROR MESSAGE:", e.message);
+      if (e.code === "auth/user-not-found") {
+        try {
+          const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+          await setDoc(
+            doc(db, "users", credential.user.uid),
+            {
+              email: credential.user.email,
+              createdAt: serverTimestamp(),
+            },
+            { merge: true }
+          );
+
+          console.log("sending verification...");
+          await sendEmailVerification(credential.user);
+          console.log("verification sent");
+          await signOut(auth);
+          router.replace("/verify-email");
+          return;
+        } catch (e2: any) {
+          console.log(e2);
+          setError(e2.message);
+        }
+      } else {
+        setError(e.message);
+      }
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-white px-5">
@@ -95,7 +90,7 @@ export default function LoginPage() {
 
           <button
             type="button"
-            onClick={login}
+            onClick={handleLogin}
             className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-gray-900 shadow-sm transition-transform active:scale-[0.99]"
           >
             ログイン / 新規登録
