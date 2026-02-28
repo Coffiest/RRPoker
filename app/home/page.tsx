@@ -643,11 +643,16 @@ export default function HomePage() {
         .bank-card-inner {
           position: relative;
           height: 220px;
+          transform: rotateY(0deg);
+          -webkit-transform: rotateY(0deg);
           transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
           transition: transform 0.8s cubic-bezier(0.3, 0.7, 0.2, 1);
+          will-change: transform;
         }
         .bank-card.is-flipped .bank-card-inner {
           transform: rotateY(180deg);
+          -webkit-transform: rotateY(180deg);
         }
         .bank-card.is-flipped .bank-card-front {
           pointer-events: none;
@@ -659,9 +664,12 @@ export default function HomePage() {
           position: absolute;
           inset: 0;
           backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
           border-radius: 24px;
           padding: 20px;
           overflow: hidden;
+          transform: rotateY(0deg) translateZ(0);
+          -webkit-transform: rotateY(0deg) translateZ(0);
         }
         .bank-card-front {
           background: linear-gradient(135deg, #1f1b16 0%, #3b2f22 45%, #1c1510 100%);
@@ -678,7 +686,8 @@ export default function HomePage() {
         .bank-card-back {
           background: linear-gradient(135deg, #0f172a 0%, #1f2937 55%, #111827 100%);
           box-shadow: 0 18px 40px rgba(17, 24, 39, 0.35);
-          transform: rotateY(180deg);
+          transform: rotateY(180deg) translateZ(0);
+          -webkit-transform: rotateY(180deg) translateZ(0);
         }
         .bank-card-history {
           max-height: 130px;
