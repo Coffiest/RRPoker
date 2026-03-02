@@ -1,6 +1,26 @@
 
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap");
 @import "tailwindcss";
+
+/* Android Chromeの100vh/fixed対策・横スクロール根本防止 */
+html, body {
+  width: 100%;
+  overflow-x: clip;
+}
+@supports not (overflow-x: clip) {
+  html, body {
+    overflow-x: hidden;
+  }
+}
+
+/* 100dvh/100svh基準のCSS変数（JS補強用） */
+:root {
+  --app-height: 100dvh;
+}
+@supports (height: 100svh) {
+  :root {
+    --app-height: 100svh;
+  }
+}
 
 /* fadeInアニメーション for ポップアップ */
 .animate-fadeIn {
