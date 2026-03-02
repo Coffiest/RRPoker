@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="RRPoker" />
       </head>
-      <body className={`${playfair.variable} ${jakarta.variable} min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip bg-white flex flex-col`}>
+      <body className={`${playfair.className} ${jakarta.className} min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip bg-white flex flex-col`}>
         <AuthGuard>
           <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">
             <div className="flex-1">{children}</div>
