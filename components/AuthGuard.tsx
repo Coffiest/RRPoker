@@ -11,7 +11,15 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsub = watchAuthState((user) => {
       // 公開ページのリスト
-      const publicPaths = ['/login', '/register', '/forgot-password', '/verify-code', '/password-reset-verify', '/']
+      const publicPaths = [
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/verify-code',
+        '/password-reset-verify',
+        '/verify-email',
+        '/'
+      ]
       
       if (!user && !publicPaths.includes(pathname)) {
         router.replace('/login')
