@@ -56,8 +56,16 @@ export default function TopPage() {
           cursor: 'pointer',
         }}
       >
-        ログイン / 新規登録
+        OPEN
       </button>
+
+       <div className="pt-[50px] text-center">
+    
+               <p className="mt-2 text-[10px] text-gray-500">ver 1.0.0</p>
+                <p className="mt-2 text-[10px] text-gray-500">RRPoker by "Runner Runner"</p>
+                <p className="mt-2 text-[10px] text-gray-500">製作者 : なおゆき</p>
+        </div>
+        
     </main>
   )
 }

@@ -7,6 +7,7 @@ import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { useSearchParams } from "next/navigation"
+import { getAuthErrorMessage } from "src/lib/auth-error"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -170,7 +171,7 @@ export default function LoginPage() {
               onClick={handleLogin}
               className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-gray-900 shadow-sm transition-transform active:scale-[0.99]"
             >
-              ログイン
+              Log in
             </button>
 
             <div className="mt-4 text-center text-sm text-gray-500">

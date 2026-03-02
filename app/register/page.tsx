@@ -5,6 +5,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification, signOut, GoogleA
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
+import { getAuthErrorMessage } from "src/lib/auth-error"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -44,7 +45,7 @@ export default function RegisterPage() {
       console.log("REDIRECTING")
       router.replace("/verify-email");
     } catch (e: any) {
-      setError(e.message)
+      setError(getAuthErrorMessage(e.code))
     } finally {
       setIsLoading(false)
     }
@@ -68,7 +69,7 @@ export default function RegisterPage() {
 
       router.replace("/")
     } catch (e: any) {
-      setError(e.message)
+      setError(getAuthErrorMessage(e.code))
     } finally {
       setIsLoading(false)
     }
@@ -124,7 +125,7 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-gray-900 shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
           >
-            {isLoading ? "処理中..." : "登録する"}
+            {isLoading ? "処理中..." : "Start !"}
           </button>
 
           <div className="my-4 flex items-center">
@@ -168,6 +169,14 @@ export default function RegisterPage() {
           </button>
         </div>
       </div>
+
+ <div className="pt-[50px] text-center">
+    
+               <p className="mt-2 text-[10px] text-gray-500">ver 1.0.0</p>
+                <p className="mt-2 text-[10px] text-gray-500">RRPoker by "Runner Runner"</p>
+                <p className="mt-2 text-[10px] text-gray-500">製作者 : ターンデットくん</p>
+        </div>
+
     </main>
   )
 }
