@@ -1,4 +1,14 @@
 
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+* {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @import "tailwindcss";
 
 /* Android Chromeの100vh/fixed対策・横スクロール根本防止 */
