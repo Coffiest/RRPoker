@@ -43,6 +43,29 @@ type PlayerInfo = {
 
 export default function StorePage() {
   const router = useRouter()
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        router.replace("/")
+        return
+      }
+
+      const snap = await getDoc(doc(db, "users", user.uid))
+      const data = snap.data()
+      const userRole = data?.role ?? null
+
+      setRole(userRole)
+
+      if (userRole !== "store") {
+        router.replace("/home")
+      }
+    })
+
+    return () => unsub()
+  }, [router])
+
 
   const [storeId, setStoreId] = useState<string | null>(null)
   const [store, setStore] = useState<StoreInfo | null>(null)
@@ -359,6 +382,14 @@ export default function StorePage() {
         document.body.removeChild(textarea)
       }
     } catch {}
+  }
+
+  if (role === null) {
+    return <div className="p-6">Loading...</div>
+  }
+
+  if (role !== "store") {
+    return null
   }
 
   return (
