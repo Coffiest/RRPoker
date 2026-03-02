@@ -88,6 +88,7 @@ export default function HomePage() {
   const [showBB, setShowBB] = useState(false)
   const balanceRef = useRef(0)
   const netGainRef = useRef(0)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(user => {
@@ -101,6 +102,14 @@ export default function HomePage() {
       if (!userId) return
       const snap = await getDoc(doc(db, "users", userId))
       const data = snap.data()
+      // role取得
+      const userRole = data?.role ?? null
+      setRole(userRole)
+      // roleがstoreなら即リダイレクト
+      if (userRole === "store") {
+        router.replace("/home/store")
+        return
+      }
       setCurrentStoreId(data?.currentStoreId ?? null)
       setJoinedStores(Array.isArray(data?.joinedStores) ? data.joinedStores : [])
       setFavoriteStores(Array.isArray(data?.favoriteStores) ? data.favoriteStores : [])
@@ -112,8 +121,10 @@ export default function HomePage() {
       }
     }
 
+    // role未取得時は何もせず待機
+    if (!userId) return
     fetchUser()
-  }, [userId])
+  }, [userId, router])
 
   useEffect(() => {
     const fetchStores = async () => {
