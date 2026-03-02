@@ -471,8 +471,8 @@ export default function StorePage() {
       <div className="mx-auto max-w-sm px-5">
         {/* ...existing code... */}
       </div>
-      <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
+      <nav className="fixed bottom-0 inset-x-0 z-[80] border-t border-gray-200 bg-white flex justify-center">
+        <div className="relative flex w-full max-w-sm items-center justify-between px-8 py-3">
           <button
             type="button"
             onClick={() => router.push("/home/store")}
