@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { getDocs } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
@@ -14,7 +13,6 @@ import {
   deleteField,
   getDoc,
   increment,
-  limit,
   onSnapshot,
   query,
   serverTimestamp,
@@ -70,59 +68,45 @@ export default function StorePage() {
 
 
   const [storeId, setStoreId] = useState<string | null>(null)
-  // STEP2: 本日のトナメ
-  const [todayTournaments, setTodayTournaments] = useState<any[]>([])
+  // 開催中トナメ
+  const [activeTournaments, setActiveTournaments] = useState<any[]>([])
   // 仮モーダル用state（フック順序エラー根本修正: useState群の一番上に移動）
   const [showPlayerModal, setShowPlayerModal] = useState<string|null>(null)
   const [showPrizeModal, setShowPrizeModal] = useState<string|null>(null)
 
   useEffect(() => {
     if (!storeId) return
-    // 今日の日付（yyyy-mm-dd）
-    const today = new Date()
-    today.setHours(0,0,0,0)
-    const yyyy = today.getFullYear()
-    const mm = String(today.getMonth() + 1).padStart(2, '0')
-    const dd = String(today.getDate()).padStart(2, '0')
-    const todayStr = `${yyyy}-${mm}-${dd}`
-
     const tournamentsRef = collection(db, "stores", storeId, "tournaments")
     const q = query(tournamentsRef, where("status", "==", "active"))
     const unsub = onSnapshot(q, (snap) => {
       const list: any[] = []
       for (const docSnap of snap.docs) {
         const data = docSnap.data()
-        if (typeof data.date !== "string") continue
-        if (data.date !== todayStr) continue
-
         const entry = (data.totalEntry ?? 0) as number
         const reentry = (data.totalReentry ?? 0) as number
         const addon = (data.totalAddon ?? 0) as number
         const bustCount = (data.bustCount ?? 0) as number
-
         const entryStack = (data.entryStack ?? 0) as number
         const reentryStack = (data.reentryStack ?? 0) as number
         const addonStack = (data.addonStack ?? 0) as number
-
         const totalEntries = entry + reentry
         const alive = totalEntries - bustCount
-
-          list.push({
-            id: docSnap.id,
-            name: data.name,
-            entry,
-            reentry,
-            addon,
-            bustCount,
-            entryStack,
-            reentryStack,
-            addonStack,
-            totalEntries,
-            alive,
-            status: data.status ?? "active",
-          })
+        list.push({
+          id: docSnap.id,
+          name: data.name,
+          entry,
+          reentry,
+          addon,
+          bustCount,
+          entryStack,
+          reentryStack,
+          addonStack,
+          totalEntries,
+          alive,
+          status: data.status ?? "scheduled",
+        })
       }
-      setTodayTournaments(list)
+      setActiveTournaments(list)
     })
     return () => unsub()
   }, [storeId])
@@ -526,12 +510,11 @@ export default function StorePage() {
         <div className="mt-4">
           <section>
             <h2 className="text-[22px] font-semibold text-gray-900 mt-6">Today's Tournaments</h2>
-            {todayTournaments.length === 0 ? (
-              <p className="text-gray-500 text-sm">本日のトーナメントはありません</p>
+            {activeTournaments.length === 0 ? (
+              <p className="text-gray-500 text-sm">開催中のトーナメントはありません</p>
             ) : (
               <div>
-                {todayTournaments.map(t => {
-                  // 必要なstack値はt.entryStack, t.reentryStack, t.addonStackとして渡されている前提
+                {activeTournaments.map(t => {
                   const totalEntry = t.entry ?? 0
                   const totalReentry = t.reentry ?? 0
                   const totalAddon = t.addon ?? 0
@@ -566,7 +549,7 @@ export default function StorePage() {
                         <button
                           className="text-[13px] px-3 py-1 rounded-full bg-red-600 text-white font-medium ml-4 mt-2 disabled:opacity-50"
                           onClick={() => setShowPrizeModal(t.id)}
-                          disabled={t.status === "finished"}
+                          disabled={t.status !== "active"}
                         >
                            Finish !
                         </button>

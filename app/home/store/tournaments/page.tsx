@@ -1,4 +1,8 @@
-"use client"
+  "use client"
+  
+  
+
+
 
 import { useEffect, useState } from "react"
 import {
@@ -21,7 +25,7 @@ import {
 import { FiPlus, FiSettings, FiTrash2, FiX, FiCamera, FiHome, FiUser } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 
-const storage = getStorage()
+
 
 export default function TournamentsPage() {
   const router = useRouter()
@@ -45,6 +49,24 @@ export default function TournamentsPage() {
     addonStack: "",
     flyerUrl: ""
   })
+
+  const storage = getStorage()
+
+  // Startボタンのローディング管理
+  const [startingId, setStartingId] = useState<string|null>(null)
+
+  const handleStartTournament = async (id: string) => {
+    if (!storeId) return
+    setStartingId(id)
+    try {
+      await updateDoc(doc(db, "stores", storeId, "tournaments", id), {
+        status: "active",
+        startedAt: new Date(),
+      })
+    } finally {
+      setStartingId(null)
+    }
+  }
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
@@ -113,7 +135,7 @@ export default function TournamentsPage() {
       addonStack: Number(form.addonStack) || 0,
       flyerUrl,
       bustCount: editData?.bustCount ?? 0,
-      status: editData?.status ?? "active",
+      status: editData ? (editData.status ?? "scheduled") : "scheduled",
       createdAt: editData?.createdAt ?? new Date()
     }
 
@@ -223,13 +245,22 @@ export default function TournamentsPage() {
                   {t.startTime || ""}
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
                 <button onClick={() => handleEdit(t)}>
                   <FiSettings size={18} />
                 </button>
                 <button onClick={() => handleDelete(t.id)}>
                   <FiTrash2 size={18} />
                 </button>
+                {t.status === "scheduled" && (
+                  <button
+                    className="text-[13px] px-3 py-1 rounded-full bg-gray-900 text-white font-medium ml-2 disabled:opacity-50"
+                    onClick={() => handleStartTournament(t.id)}
+                    disabled={!!startingId}
+                  >
+                    {startingId === t.id ? "Starting..." : "Start !"}
+                  </button>
+                )}
               </div>
             </div>
           ))}
