@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+import PlayerManageModal from "./PlayerManageModal"
 import {
   collection,
   doc,
@@ -89,20 +90,9 @@ export default function StorePage() {
       const list: any[] = []
       for (const docSnap of snap.docs) {
         const data = docSnap.data()
-        // 日付判定（date型 or Timestamp型）
-        let dateObj = null
-        if (data.date && typeof data.date.toDate === 'function') {
-          dateObj = data.date.toDate()
-        } else if (data.date instanceof Date) {
-          dateObj = data.date
-        }
-        if (!dateObj) continue
-        dateObj.setHours(0,0,0,0)
-        const yyyy = dateObj.getFullYear()
-        const mm = String(dateObj.getMonth() + 1).padStart(2, '0')
-        const dd = String(dateObj.getDate()).padStart(2, '0')
-        const dateStr = `${yyyy}-${mm}-${dd}`
-        if (dateStr !== todayStr) continue
+        // dateフィールドはstring（yyyy-mm-dd）であることを前提
+        if (typeof data.date !== "string") continue
+        if (data.date !== todayStr) continue
         // playersサブコレクション取得
         const playersRef = collection(db, "stores", storeId, "tournaments", docSnap.id, "players")
         const playersSnap = await getDocs(playersRef)
@@ -463,6 +453,14 @@ export default function StorePage() {
       />
 
       <div className="mx-auto max-w-sm px-5">
+        {/* Player管理モーダル */}
+        {showPlayerModal && (
+          <PlayerManageModal
+            tournamentId={showPlayerModal}
+            storeId={storeId}
+            onClose={() => setShowPlayerModal(null)}
+          />
+        )}
         {/* 店舗名・コードセクション */}
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <div className="flex items-center gap-3">
@@ -528,7 +526,7 @@ export default function StorePage() {
                         <div className="flex flex-col gap-1 mt-2">
                           <div className="text-[14px] text-gray-800">Player : {alive} / {totalEntries}</div>
                           <div className="text-[14px] text-gray-800">add on : {totalAddon}</div>
-                          <div className="text-[14px] text-gray-800">Ave. : {average.toLocaleString()}</div>
+                          <div className="text-[14px] text-gray-800">Ave : {average.toLocaleString()}</div>
                         </div>
                       </div>
                       <button

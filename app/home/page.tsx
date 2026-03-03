@@ -181,16 +181,6 @@ export default function HomePage() {
   }, [userId, currentStoreId])
 
   useEffect(() => {
-    if (!userId || !currentStoreId) return
-    const balanceRef = doc(db, "users", userId, "storeBalances", currentStoreId)
-    void setDoc(
-      balanceRef,
-      { lastVisitedAt: serverTimestamp(), storeId: currentStoreId },
-      { merge: true }
-    )
-  }, [userId, currentStoreId])
-
-  useEffect(() => {
     const fetchHistoryData = async () => {
       if (!userId || !currentStoreId) {
         setHistoryItems([])
@@ -567,26 +557,42 @@ export default function HomePage() {
     setTimeout(() => setFavoritePulse(""), 700)
   }
 
-  const openPlayersPreview = async (store: StoreInfo) => {
-    setPlayersPreviewStore(store)
-    setPlayersPreview([])
-    setPlayersPreviewLoading(true)
-    setIsPlayersModalOpen(true)
+  const openPlayersPreview = async (storeId: string) => {
     try {
-      const snap = await getDocs(
-        query(
-          collection(db, "users"),
-          where("currentStoreId", "==", store.id)
-        )
+      console.log("QUERY storeId:", storeId)
+
+      const q = query(
+        collection(db, "users"),
+        where("currentStoreId", "==", storeId)
       )
+
+      const snap = await getDocs(q)
+
+      console.log("SNAP SIZE:", snap.size)
+
+      if (snap.empty) {
+        console.warn("No players found for storeId:", storeId)
+      }
+
       const list: StorePlayer[] = []
+
       snap.forEach(docSnap => {
         const data = docSnap.data()
-        list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl })
+
+        if (typeof data.currentStoreId === "string") {
+          list.push({
+            id: docSnap.id,
+            name: data.name,
+            iconUrl: data.iconUrl,
+          })
+        }
       })
+
+      console.log("playersPreview:", list)
+
       setPlayersPreview(list)
     } catch (error) {
-      console.error("Failed to fetch store players:", error)
+      console.error("playersPreview error:", error)
       setPlayersPreview([])
     } finally {
       setPlayersPreviewLoading(false)
@@ -1286,7 +1292,7 @@ export default function HomePage() {
       </div>
 
       {isJoinModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">店舗検索</h2>
@@ -1340,7 +1346,7 @@ export default function HomePage() {
       )}
 
       {selectedStore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="relative flex min-h-[32px] items-center justify-center">
               <button
@@ -1402,8 +1408,15 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!selectedStore) return
+
+                  setPlayersPreviewStore(selectedStore)
+                  setIsPlayersModalOpen(true)
+                  setPlayersPreviewLoading(true)
+
+                  void openPlayersPreview(selectedStore.id)
+
                   setSelectedStore(null)
-                  void openPlayersPreview(selectedStore)
                 }}
                 className="h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-800"
               >
@@ -1421,7 +1434,7 @@ export default function HomePage() {
       )}
 
       {isPlayersModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">入店中プレイヤー</h2>
@@ -1462,7 +1475,7 @@ export default function HomePage() {
       )}
 
       {isDetailedRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
           <div className="mx-auto w-full max-w-sm rounded-[24px] bg-white p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">チップ純増ランキング（上位50）</h2>
@@ -1487,7 +1500,7 @@ export default function HomePage() {
       )}
 
       {isRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">RR Rating Ranking（上位100）</h2>

@@ -187,7 +187,7 @@ export default function TournamentsPage() {
       <div className="max-w-xl mx-auto px-4 pt-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900">
-            トーナメント管理
+            Tournament
           </h2>
           <button
             onClick={() => {
