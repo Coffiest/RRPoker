@@ -1292,7 +1292,7 @@ export default function HomePage() {
       </div>
 
       {isJoinModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">店舗検索</h2>
@@ -1346,7 +1346,7 @@ export default function HomePage() {
       )}
 
       {selectedStore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="relative flex min-h-[32px] items-center justify-center">
               <button
@@ -1434,7 +1434,7 @@ export default function HomePage() {
       )}
 
       {isPlayersModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">入店中プレイヤー</h2>
@@ -1475,7 +1475,7 @@ export default function HomePage() {
       )}
 
       {isDetailedRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
           <div className="mx-auto w-full max-w-sm rounded-[24px] bg-white p-6 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">チップ純増ランキング（上位50）</h2>
@@ -1500,7 +1500,7 @@ export default function HomePage() {
       )}
 
       {isRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
           <div className="w-full max-w-sm rounded-[24px] bg-white p-5 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-[16px] font-semibold text-gray-900">RR Rating Ranking（上位100）</h2>

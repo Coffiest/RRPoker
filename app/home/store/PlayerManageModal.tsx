@@ -64,17 +64,22 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-2xl px-7 py-8 max-w-sm w-[90vw] text-center shadow-2xl border border-gray-200 animate-fadeIn">
-        <h2 className="text-lg font-bold text-gray-900 mb-5">プレイヤー管理</h2>
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-transparent px-5">
+      <div className="w-full max-w-sm rounded-[24px] bg-white p-5 shadow-2xl border border-gray-200 animate-fadeIn">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-[16px] font-semibold text-gray-900">プレイヤー管理</h2>
+          <button type="button" onClick={onClose} className="text-gray-500 text-[22px] p-1 hover:bg-gray-100 rounded-full">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L14 14M14 6L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </button>
+        </div>
         {loading ? (
-          <p className="text-gray-500">読み込み中...</p>
+          <p className="text-gray-500 text-center">読み込み中...</p>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500 text-center">{error}</p>
         ) : (
           <div className="space-y-3">
             {players.length === 0 ? (
-              <p className="text-gray-500">プレイヤーがいません</p>
+              <p className="text-gray-500 text-center">プレイヤーがいません</p>
             ) : (
               players.map(player => (
                 <div key={player.id} className="flex items-center justify-between border-b py-2">
