@@ -182,7 +182,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                 <p className="text-gray-500 text-center">プレイヤーがいません</p>
               ) : (
                 players.map(player => (
-                  <div key={player.id} className="border-b border-gray-100 py-3">
+                  <div key={player.id} className="rounded-xl bg-gray-50 border border-gray-100 py-3 px-3">
                     <div className="font-medium text-[14px] text-gray-900 mb-2">
                       {player.name}
                     </div>
