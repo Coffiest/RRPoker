@@ -20,7 +20,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore"
-import { FiClock, FiCopy, FiHome, FiUser } from "react-icons/fi"
+import { FiPlus, FiCopy, FiHome, FiUser } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -68,6 +68,65 @@ export default function StorePage() {
 
 
   const [storeId, setStoreId] = useState<string | null>(null)
+  // STEP2: 本日のトナメ
+  const [todayTournaments, setTodayTournaments] = useState<any[]>([])
+  // 仮モーダル用state（フック順序エラー根本修正: useState群の一番上に移動）
+  const [showPlayerModal, setShowPlayerModal] = useState<string|null>(null)
+
+  useEffect(() => {
+    if (!storeId) return
+    // 今日の日付（yyyy-mm-dd）
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    const yyyy = today.getFullYear()
+    const mm = String(today.getMonth() + 1).padStart(2, '0')
+    const dd = String(today.getDate()).padStart(2, '0')
+    const todayStr = `${yyyy}-${mm}-${dd}`
+
+    const tournamentsRef = collection(db, "stores", storeId, "tournaments")
+    const q = query(tournamentsRef, where("status", "==", "active"))
+    const unsub = onSnapshot(q, async (snap) => {
+      const list: any[] = []
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data()
+        // 日付判定（date型 or Timestamp型）
+        let dateObj = null
+        if (data.date && typeof data.date.toDate === 'function') {
+          dateObj = data.date.toDate()
+        } else if (data.date instanceof Date) {
+          dateObj = data.date
+        }
+        if (!dateObj) continue
+        dateObj.setHours(0,0,0,0)
+        const yyyy = dateObj.getFullYear()
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0')
+        const dd = String(dateObj.getDate()).padStart(2, '0')
+        const dateStr = `${yyyy}-${mm}-${dd}`
+        if (dateStr !== todayStr) continue
+        // playersサブコレクション取得
+        const playersRef = collection(db, "stores", storeId, "tournaments", docSnap.id, "players")
+        const playersSnap = await getDocs(playersRef)
+        let entry = 0, reentry = 0, addon = 0, bustCount = 0
+        playersSnap.forEach(p => {
+          const pdata = p.data()
+          entry += pdata.entryCount || 0
+          reentry += pdata.reentryCount || 0
+          addon += pdata.addonCount || 0
+          bustCount += pdata.bustCount || 0
+        })
+        list.push({
+          id: docSnap.id,
+          name: data.name,
+          entry,
+          reentry,
+          addon,
+          alive: (entry + reentry) - bustCount
+        })
+      }
+      setTodayTournaments(list)
+    })
+    return () => unsub()
+  }, [storeId])
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
@@ -392,6 +451,8 @@ export default function StorePage() {
     return null
   }
 
+
+
   return (
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-white pb-28">
       <HomeHeader
@@ -402,6 +463,7 @@ export default function StorePage() {
       />
 
       <div className="mx-auto max-w-sm px-5">
+        {/* 店舗名・コードセクション */}
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <div className="flex items-center gap-3">
             {store?.iconUrl ? (
@@ -433,6 +495,54 @@ export default function StorePage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 本日のトナメセクション（店舗名直下・mt-4） */}
+        <div className="mt-4">
+          <section>
+            <h2 className="text-[18px] font-semibold text-gray-900 mt-6">本日のトナメ</h2>
+            {todayTournaments.length === 0 ? (
+              <p className="text-gray-500 text-sm">本日のトーナメントはありません</p>
+            ) : (
+              <div>
+                {todayTournaments.map(t => {
+                  // 必要なstack値はt.entryStack, t.reentryStack, t.addonStackとして渡されている前提
+                  const totalEntry = t.entry ?? 0
+                  const totalReentry = t.reentry ?? 0
+                  const totalAddon = t.addon ?? 0
+                  const bustCount = t.bustCount ?? 0
+                  const entryStack = t.entryStack ?? 0
+                  const reentryStack = t.reentryStack ?? 0
+                  const addonStack = t.addonStack ?? 0
+                  const alive = (totalEntry + totalReentry) - bustCount
+                  const totalEntries = totalEntry + totalReentry
+                  const totalStack = (totalEntry * entryStack) + (totalReentry * reentryStack) + (totalAddon * addonStack)
+                  const average = alive > 0 ? Math.floor(totalStack / alive) : 0
+                  return (
+                    <div
+                      key={t.id}
+                      className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mt-3 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-[16px] font-semibold text-gray-900">{t.name}</p>
+                        <div className="flex flex-col gap-1 mt-2">
+                          <div className="text-[14px] text-gray-800">Player : {alive} / {totalEntries}</div>
+                          <div className="text-[14px] text-gray-800">add on : {totalAddon}</div>
+                          <div className="text-[14px] text-gray-800">Ave. : {average.toLocaleString()}</div>
+                        </div>
+                      </div>
+                      <button
+                        className="text-[13px] px-3 py-1 rounded-full bg-[#F2A900] text-white font-medium ml-4"
+                        onClick={() => setShowPlayerModal(t.id)}
+                      >
+                        Player
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
         </div>
                 <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <p className="text-[14px] font-semibold text-gray-900">
@@ -646,7 +756,160 @@ export default function StorePage() {
                     }}
                   >はい（純増も変更）</button>
                   <button
-                    className="w-full rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2.5 font-semibold text-base transition"
+                    className="w-full rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2.5 f                    rules_version = '2';
+                    service cloud.firestore {
+                      match /databases/{database}/documents {
+                    
+                        function isSignedIn() {
+                          return request.auth != null;
+                        }
+                    
+                        function isStoreOwner(storeId) {
+                          return isSignedIn()
+                            && exists(/databases/$(database)/documents/stores/$(storeId))
+                            && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid;
+                        }
+                    
+                        // ★ 店舗ホームにログインできる＝users/{uid}.storeId が一致
+                        function isStoreMember(storeId) {
+                          return isSignedIn()
+                            && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId is string
+                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == storeId;
+                        }
+                    
+                        match /users/{userId} {
+                          allow read: if isSignedIn();
+                          allow create: if isSignedIn();
+                          allow delete: if isSignedIn() && request.auth.uid == userId;
+                    
+                          allow update: if isSignedIn() && (
+                            request.auth.uid == userId
+                            || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentStoreId'])
+                            || (
+                              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendRequests'])
+                              && request.resource.data.friendRequests is list
+                              && (!(resource.data.friendRequests is list)
+                                  || request.resource.data.friendRequests.size() >= resource.data.friendRequests.size())
+                            )
+                            || (
+                              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
+                              && request.resource.data.friends is list
+                              && (!(resource.data.friends is list)
+                                  || request.resource.data.friends.size() >= resource.data.friends.size())
+                            )
+                          );
+                    
+                          match /storeBalances/{storeId} {
+                            allow read, write: if isSignedIn()
+                              && (request.auth.uid == userId || isStoreOwner(storeId));
+                          }
+                        }
+                    
+                        match /stores/{storeId} {
+                    
+                          allow read: if isSignedIn();
+                    
+                          allow create: if isSignedIn()
+                            && request.resource.data.ownerUid == request.auth.uid
+                            && request.resource.data.code == storeId;
+                    
+                          allow write: if isStoreOwner(storeId);
+                    
+                          match /tournaments/{tournamentId} {
+                    
+                            allow read: if isSignedIn();
+                            allow create, update, delete: if isStoreMember(storeId);
+                    
+                            // playersサブコレクションのread権限追加
+                            match /players/{playerId} {
+                              allow read: if isSignedIn();
+                              allow create, update, delete: if isStoreMember(storeId);
+                            }
+                    
+                            match /entries/{userId} {
+                              allow read, write: if isStoreMember(storeId);
+                            }
+                    
+                            match /results/{userId} {
+                              allow read, write: if isStoreMember(storeId);
+                            }
+                          }
+                    
+                          match /publicRanking/{rankingId} {
+                            allow read: if isSignedIn();
+                            allow write: if isStoreOwner(storeId);
+                          }
+                    
+                          match /notices/{noticeId} {
+                            allow read: if isStoreOwner(storeId);
+                            allow write: if isStoreOwner(storeId);
+                          }
+                    
+                          match /rakeEntries/{entryId} {
+                            allow read, write: if isSignedIn() && isStoreOwner(storeId);
+                          }
+                        }
+                    
+                        match /notifications/{notificationId} {
+                          allow create: if isSignedIn();
+                    
+                          allow read: if isSignedIn()
+                            && resource.data.userId == request.auth.uid;
+                    
+                          allow update: if isSignedIn()
+                            && resource.data.userId == request.auth.uid;
+                    
+                          allow delete: if isSignedIn()
+                            && resource.data.userId == request.auth.uid;
+                        }
+                    
+                        match /depositRequests/{requestId} {
+                          allow create: if isSignedIn()
+                            && request.resource.data.playerId == request.auth.uid;
+                    
+                          allow read: if isSignedIn()
+                            && (
+                              resource.data.playerId == request.auth.uid
+                              || isStoreOwner(resource.data.storeId)
+                            );
+                    
+                          allow update: if isSignedIn()
+                            && isStoreOwner(resource.data.storeId);
+                        }
+                    
+                        match /withdrawals/{withdrawalId} {
+                          allow read, write: if isSignedIn();
+                        }
+                    
+                        match /transactions/{transactionId} {
+                          allow read, write: if isSignedIn();
+                        }
+                    
+                        match /friendRequests/{requestId} {
+                          allow create: if isSignedIn()
+                            && request.resource.data.fromUid == request.auth.uid;
+                    
+                          allow update: if isSignedIn()
+                            && (
+                              resource.data.fromUid == request.auth.uid
+                              || resource.data.toUid == request.auth.uid
+                            );
+                    
+                          allow read: if isSignedIn()
+                            && (
+                              resource.data.fromUid == request.auth.uid
+                              || resource.data.toUid == request.auth.uid
+                            );
+                    
+                          allow delete: if isSignedIn()
+                            && (
+                              resource.data.fromUid == request.auth.uid
+                              || resource.data.toUid == request.auth.uid
+                            );
+                        }
+                      }
+                    }ont-semibold text-base transition"
                     onClick={async () => {
                       setShowAdjustmentConfirm(false)
                       await runAdjustment(pendingAdjustment.direction, false)
@@ -719,16 +982,15 @@ export default function StorePage() {
 
           <button
             type="button"
-            onClick={() =>
-              router.push("/home/store/timer")
-            }
+            onClick={() => router.push("/home/store/tournaments")}
             className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
+            aria-label="トーナメント"
           >
-            <FiClock className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">
-              タイマー
-            </span>
+            <FiPlus className="text-[22px]" />
+            <span className="mt-1 text-[10px] font-semibold">トナメ</span>
           </button>
+
+
 
           <button
             type="button"
