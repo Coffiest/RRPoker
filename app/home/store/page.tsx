@@ -21,7 +21,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore"
-import { FiPlus, FiCopy, FiHome, FiUser } from "react-icons/fi"
+import { FiPlus, FiMinus, FiCopy, FiHome, FiUser } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -728,9 +728,10 @@ export default function StorePage() {
                 setPendingAdjustment({ direction: "add", amount: adjustAmount })
                 setShowAdjustmentConfirm(true)
               }}
-              className="flex-1 rounded-2xl bg-green-500 py-2 text-[13px] font-semibold text-white"
+              className="flex-1 rounded-full bg-yellow-500 hover:bg-yellow-600 shadow-md py-2 text-[13px] font-semibold text-white flex items-center justify-center"
+              aria-label="加算"
             >
-              +加算
+              <FiPlus className="text-[20px]" />
             </button>
             <button
               type="button"
@@ -738,9 +739,10 @@ export default function StorePage() {
                 setPendingAdjustment({ direction: "subtract", amount: adjustAmount })
                 setShowAdjustmentConfirm(true)
               }}
-              className="flex-1 rounded-2xl bg-red-500 py-2 text-[13px] font-semibold text-white"
+              className="flex-1 rounded-full bg-gray-600 hover:bg-gray-800 shadow-md py-2 text-[13px] font-semibold text-white flex items-center justify-center"
+              aria-label="減算"
             >
-              −減算
+              <FiMinus className="text-[20px]" />
             </button>
           </div>
 
