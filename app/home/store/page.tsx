@@ -568,7 +568,7 @@ export default function StorePage() {
                           onClick={() => setShowPrizeModal(t.id)}
                           disabled={t.status === "finished"}
                         >
-                          終了
+                           Finish !
                         </button>
                       </div>
                     </div>
