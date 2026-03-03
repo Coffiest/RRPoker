@@ -86,30 +86,37 @@ export default function StorePage() {
 
     const tournamentsRef = collection(db, "stores", storeId, "tournaments")
     const q = query(tournamentsRef, where("status", "==", "active"))
-    const unsub = onSnapshot(q, async (snap) => {
+    const unsub = onSnapshot(q, (snap) => {
       const list: any[] = []
       for (const docSnap of snap.docs) {
         const data = docSnap.data()
         if (typeof data.date !== "string") continue
         if (data.date !== todayStr) continue
-        // entriesコレクション取得
-        const entriesRef = collection(db, "stores", storeId, "tournaments", docSnap.id, "entries")
-        const entriesSnap = await getDocs(entriesRef)
-        let entry = 0, reentry = 0, addon = 0, bustCount = 0
-        entriesSnap.forEach(p => {
-          const pdata = p.data()
-          entry += pdata.entryCount || 0
-          reentry += pdata.reentryCount || 0
-          addon += pdata.addonCount || 0
-          bustCount += pdata.bustCount || 0
-        })
+
+        const entry = (data.totalEntry ?? 0) as number
+        const reentry = (data.totalReentry ?? 0) as number
+        const addon = (data.totalAddon ?? 0) as number
+        const bustCount = (data.bustCount ?? 0) as number
+
+        const entryStack = (data.entryStack ?? 0) as number
+        const reentryStack = (data.reentryStack ?? 0) as number
+        const addonStack = (data.addonStack ?? 0) as number
+
+        const totalEntries = entry + reentry
+        const alive = totalEntries - bustCount
+
         list.push({
           id: docSnap.id,
           name: data.name,
           entry,
           reentry,
           addon,
-          alive: (entry + reentry) - bustCount
+          bustCount,
+          entryStack,
+          reentryStack,
+          addonStack,
+          totalEntries,
+          alive,
         })
       }
       setTodayTournaments(list)

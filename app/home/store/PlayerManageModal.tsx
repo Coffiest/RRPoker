@@ -104,7 +104,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
       await updateDoc(tournamentRef, {
         bustCount: increment(delta)
       })
-      // tournamentBust の state は onSnapshot(tournamentRef) の値のみを信頼する（ローカル加算は禁止）
+      // bust値は onSnapshot(tournamentRef) からのみ反映させる（ここで setTournamentBust は絶対にしない）
       setError("")
     } catch (e) {
       setError("bust更新に失敗しました")
@@ -195,7 +195,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
           <p className="text-red-500 text-center">{error}</p>
         ) : (
           <>
-            {/* Bustセクション 強調・デザイン変更 */}
+            {/* Bustセクション内 */}
             <div className="mb-4 flex items-center justify-between">
               <span className="text-sm font-semibold text-gray-800 tracking-wide">BUST : </span>
               <div className="flex items-center gap-3">
