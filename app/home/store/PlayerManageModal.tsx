@@ -144,9 +144,9 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   }
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-transparent px-5">
-      <div className="w-full max-w-sm rounded-[24px] bg-white p-5 shadow-2xl border border-gray-200 animate-fadeIn">
-        <div className="flex items-center justify-between mb-4">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 animate-fadeIn">
+        <div className="flex items-center justify-between mb-2">
           <h2 className="text-[16px] font-semibold text-gray-900">プレイヤー管理</h2>
           <button type="button" onClick={onClose} className="text-gray-500 text-[22px] p-1 hover:bg-gray-100 rounded-full">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L14 14M14 6L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
@@ -158,74 +158,61 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
           <p className="text-red-500 text-center">{error}</p>
         ) : (
           <>
-            {/* Bustセクション */}
-            <div className="mb-6 border-b pb-4">
-              <div className="text-sm font-semibold text-gray-700 mb-2">トーナメント進行</div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600 text-sm">Bust</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleTournamentBustChange(-1)}
-                    disabled={tournamentBust <= 0}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
-                  >−</button>
-                  <span className="w-8 text-center font-bold text-lg">
-                    {tournamentBust}
-                  </span>
-                  <button
-                    onClick={() => handleTournamentBustChange(1)}
-                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
-                  >＋</button>
-                </div>
+            {/* Bustセクション 強調・デザイン変更 */}
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-800 tracking-wide">BUST</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleTournamentBustChange(-1)}
+                  disabled={tournamentBust <= 0}
+                  className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
+                >−</button>
+                <span className="text-xl font-bold text-gray-900 w-8 text-center">
+                  {tournamentBust}
+                </span>
+                <button
+                  onClick={() => handleTournamentBustChange(1)}
+                  className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
+                >＋</button>
               </div>
             </div>
-            {/* プレイヤー表示 */}
-            <div className="space-y-4">
+            {/* プレイヤー表示（コンパクト・横並び・スクロール対応） */}
+            <div className="max-h-[50vh] overflow-y-auto space-y-3">
               {players.length === 0 ? (
                 <p className="text-gray-500 text-center">プレイヤーがいません</p>
               ) : (
                 players.map(player => (
-                  <div key={player.id} className="rounded-2xl bg-gray-50 p-4 space-y-3">
-                    <div className="font-semibold text-gray-900">
+                  <div key={player.id} className="border-b border-gray-100 py-3">
+                    <div className="font-medium text-[14px] text-gray-900 mb-2">
                       {player.name}
                     </div>
-                    {[
-                      { label: "Entry", field: "entryCount" },
-                      { label: "Reentry", field: "reentryCount" },
-                      { label: "Addon", field: "addonCount" }
-                    ].map(item => (
-                      <div key={item.field} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.label}</span>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() =>
-                              handleEntryChange(player.id, item.field as any, -1)
-                            }
-                            disabled={player[item.field] <= 0}
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
-                          >−</button>
-                          <span className="w-8 text-center font-medium">
-                            {player[item.field]}
-                          </span>
-                          <button
-                            onClick={() =>
-                              handleEntryChange(player.id, item.field as any, 1)
-                            }
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
-                          >＋</button>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[{ label: "Entry", field: "entryCount" }, { label: "Reentry", field: "reentryCount" }, { label: "Addon", field: "addonCount" }].map(item => (
+                        <div key={item.field} className="flex flex-col items-center gap-1">
+                          <span className="text-[11px] text-gray-500">{item.label}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEntryChange(player.id, item.field as any, -1)}
+                              disabled={player[item.field] <= 0}
+                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-sm"
+                            >−</button>
+                            <span className="w-6 text-center font-medium">
+                              {player[item.field]}
+                            </span>
+                            <button
+                              onClick={() => handleEntryChange(player.id, item.field as any, 1)}
+                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-sm"
+                            >＋</button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </>
         )}
-        <button
-          className="mt-6 w-full rounded-xl bg-blue-500 hover:bg-blue-600 text-white py-2.5 font-semibold text-base transition"
-          onClick={onClose}
-        >閉じる</button>
       </div>
     </div>
   )
