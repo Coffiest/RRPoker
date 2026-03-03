@@ -24,6 +24,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [tournamentBust, setTournamentBust] = useState(0)
+  const [bustUpdating, setBustUpdating] = useState(false)
 
   useEffect(() => {
     if (!storeId || !tournamentId) {
@@ -88,6 +89,10 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   // トーナメント単位のBust更新
   const handleTournamentBustChange = async (delta: number) => {
     if (!storeId || !tournamentId) return
+    if (bustUpdating) return
+    if (delta < 0 && tournamentBust <= 0) return
+
+    setBustUpdating(true)
     try {
       const tournamentRef = doc(
         db,
@@ -99,9 +104,12 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
       await updateDoc(tournamentRef, {
         bustCount: increment(delta)
       })
-      setTournamentBust(prev => prev + delta)
+      // tournamentBust の state は onSnapshot(tournamentRef) の値のみを信頼する（ローカル加算は禁止）
+      setError("")
     } catch (e) {
       setError("bust更新に失敗しました")
+    } finally {
+      setBustUpdating(false)
     }
   }
 
@@ -193,7 +201,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleTournamentBustChange(-1)}
-                  disabled={tournamentBust <= 0}
+                  disabled={tournamentBust <= 0 || bustUpdating}
                   className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
                 >−</button>
                 <span className="text-xl font-bold text-gray-900 w-8 text-center">
@@ -201,6 +209,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                 </span>
                 <button
                   onClick={() => handleTournamentBustChange(1)}
+                  disabled={bustUpdating}
                   className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
                 >＋</button>
               </div>
