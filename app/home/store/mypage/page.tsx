@@ -6,7 +6,7 @@ import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { deleteField, doc, getDoc, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
-import { FiHome, FiUser, FiEdit2, FiClock } from "react-icons/fi"
+import { FiHome, FiUser, FiEdit2, FiClock, FiPlus } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 
 type StoreProfile = {
@@ -299,7 +299,7 @@ export default function StoreMyPage() {
               type="button"
               onClick={openIconPicker}
               className="absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600"
-              aria-label="アイコンを編集"
+              aria-label=" アイコンを編集"
             >
               <FiEdit2 className="text-[12px]" />
             </button>
@@ -438,7 +438,7 @@ export default function StoreMyPage() {
 
           {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
           {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
-          {savingIcon && <p className="mt-3 text-center text-[12px] text-gray-500">アイコンを更新中...</p>}
+          {savingIcon && <p className="mt-3 text-center text-[12px] text-gray-500"> アイコンを更新中...</p>}
 
           {editingField && (
             <button
@@ -586,12 +586,12 @@ export default function StoreMyPage() {
           </button>
           <button
             type="button"
-            onClick={() => router.push("/home/store/timer")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-            aria-label="タイマー"
+            onClick={() => router.push("/home/store/tournaments")}
+            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg font-semibold"
+            aria-label="トーナメント"
           >
-            <FiClock className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">タイマー</span>
+            <FiPlus className="text-[22px]" />
+            <span className="mt-1 text-[10px] font-semibold">トナメ</span>
           </button>
           <button
             type="button"
