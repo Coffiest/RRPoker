@@ -136,12 +136,12 @@ export default function StorePage() {
 
   useEffect(() => {
     if (!storeId) return
-    const fetchStorePlayers = async () => {
-      const usersSnap = await getDocs(collection(db, "users"))
+    const usersSnapUnsub = onSnapshot(collection(db, "users"), async (usersSnap) => {
       const players: any[] = []
       for (const userDoc of usersSnap.docs) {
         const userData = userDoc.data()
-        const balanceSnap = await getDoc(doc(db, "users", userDoc.id, "storeBalances", storeId))
+        const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
+        const balanceSnap = await getDoc(balanceRef)
         if (balanceSnap.exists()) {
           const balanceData = balanceSnap.data()
           players.push({
@@ -161,8 +161,8 @@ export default function StorePage() {
         return atB - atA
       })
       setStorePlayers(players)
-    }
-    fetchStorePlayers()
+    })
+    return () => usersSnapUnsub()
   }, [storeId])
 
   useEffect(() => {
@@ -419,6 +419,9 @@ export default function StorePage() {
     setAdjustAmount("")
     setSelectedPlayerBalance(newBalance)
     setSelectedPlayerNetGain(newNetGain)
+    if (typeof fetchStorePlayers === "function") {
+      await fetchStorePlayers();
+    }
   }
 
   const copyCode = async () => {
@@ -505,7 +508,7 @@ export default function StorePage() {
         {/* 本日のトナメセクション（店舗名直下・mt-4） */}
         <div className="mt-4">
           <section>
-            <h2 className="text-[18px] font-semibold text-gray-900 mt-6">本日のトナメ</h2>
+            <h2 className="text-[22px] font-semibold text-gray-900 mt-6">Today's Tournaments</h2>
             {todayTournaments.length === 0 ? (
               <p className="text-gray-500 text-sm">本日のトーナメントはありません</p>
             ) : (
@@ -540,7 +543,7 @@ export default function StorePage() {
                         className="text-[13px] px-3 py-1 rounded-full bg-[#F2A900] text-white font-medium ml-4"
                         onClick={() => setShowPlayerModal(t.id)}
                       >
-                        Player
+                        Players
                       </button>
                     </div>
                   )

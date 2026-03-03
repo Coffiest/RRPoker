@@ -8,6 +8,7 @@ import {
   increment,
   query,
   where,
+  onSnapshot,
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -25,66 +26,37 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
 
   useEffect(() => {
     if (!storeId || !tournamentId) return
-
-    const fetchPlayers = async () => {
-      setLoading(true)
-      try {
-        // ① トーナメントのbustCount取得
-        const tournamentRef = doc(
-          db,
-          "stores",
-          storeId,
-          "tournaments",
-          tournamentId
-        )
-        const tournamentSnap = await getDoc(tournamentRef)
-        const tournamentData = tournamentSnap.exists() ? tournamentSnap.data() : {}
-        setTournamentBust(tournamentData.bustCount ?? 0)
-
-        // 入店中ユーザー取得
-        const usersQuery = query(
-          collection(db, "users"),
-          where("currentStoreId", "==", storeId)
-        )
-        const usersSnap = await getDocs(usersQuery)
-
-        const list: any[] = []
-
-        // entries取得用参照
-        const entriesRefBase = collection(
-          db,
-          "stores",
-          storeId,
-          "tournaments",
-          tournamentId,
-          "entries"
-        )
-
-        for (const userDoc of usersSnap.docs) {
-          const userData = userDoc.data()
-
-          const entryRef = doc(entriesRefBase, userDoc.id)
-          const entrySnap = await getDoc(entryRef)
-          const entryData = entrySnap.exists() ? entrySnap.data() : {}
-
+    const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
+    const unsub = onSnapshot(entriesRef, async () => {
+      // 既存のfetch/aggregationロジックを再利用
+      const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
+      const tournamentSnap = await getDoc(tournamentRef)
+      if (!tournamentSnap.exists()) return
+      const tournamentData = tournamentSnap.data()
+      const usersQuery = query(collection(db, "users"))
+      const usersSnap = await getDocs(usersQuery)
+      const list: any[] = []
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data()
+        const entryRef = doc(db, "stores", storeId, "tournaments", tournamentId, "entries", userDoc.id)
+        const entrySnap = await getDoc(entryRef)
+        if (entrySnap.exists()) {
+          const entryData = entrySnap.data()
           list.push({
             id: userDoc.id,
-            name: userData.name ?? userDoc.id,
+            name: userData.name,
+            iconUrl: userData.iconUrl,
             entryCount: entryData.entryCount ?? 0,
             reentryCount: entryData.reentryCount ?? 0,
             addonCount: entryData.addonCount ?? 0,
+            bustCount: entryData.bustCount ?? 0,
+            isBust: entryData.bustCount > 0,
           })
         }
-
-        setPlayers(list)
-        setError("")
-      } catch (e) {
-        setError("プレイヤー情報の取得に失敗しました")
       }
-      setLoading(false)
-    }
-
-    fetchPlayers()
+      setPlayers(list)
+    })
+    return () => unsub()
   }, [storeId, tournamentId])
 
 
@@ -147,7 +119,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 animate-fadeIn">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[16px] font-semibold text-gray-900">プレイヤー管理</h2>
+          <h2 className="text-[16px] font-semibold text-gray-900">Players:</h2>
           <button type="button" onClick={onClose} className="text-gray-500 text-[22px] p-1 hover:bg-gray-100 rounded-full">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L14 14M14 6L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           </button>
