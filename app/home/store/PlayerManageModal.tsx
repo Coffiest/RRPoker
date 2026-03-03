@@ -9,6 +9,7 @@ import {
   query,
   where,
   onSnapshot,
+  setDoc // 追加
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -30,6 +31,18 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
       return
     }
     setLoading(true)
+    const tournamentRef = doc(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      tournamentId
+    )
+    const unsubTournament = onSnapshot(tournamentRef, snap => {
+      if (snap.exists()) {
+        setTournamentBust(snap.data().bustCount ?? 0)
+      }
+    })
     const unsub = onSnapshot(
       query(collection(db, "users"), where("currentStoreId", "==", storeId)),
       async (usersSnap) => {
@@ -65,7 +78,10 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
         setLoading(false)
       }
     )
-    return () => unsub()
+    return () => {
+      unsub()
+      unsubTournament()
+    }
   }, [storeId, tournamentId])
 
 
@@ -108,9 +124,41 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
         playerId
       )
 
-      await updateDoc(entryRef, {
-        [field]: increment(delta)
+      await setDoc(
+        entryRef,
+        {
+          [field]: increment(delta)
+        },
+        { merge: true }
+      )
+
+      // entries再集計
+      const entriesRef = collection(
+        db,
+        "stores",
+        storeId,
+        "tournaments",
+        tournamentId,
+        "entries"
+      )
+      const entriesSnap = await getDocs(entriesRef)
+      let totalEntry = 0
+      let totalReentry = 0
+      let totalAddon = 0
+      entriesSnap.forEach(d => {
+        const data = d.data()
+        totalEntry += data.entryCount ?? 0
+        totalReentry += data.reentryCount ?? 0
+        totalAddon += data.addonCount ?? 0
       })
+      await updateDoc(
+        doc(db, "stores", storeId, "tournaments", tournamentId),
+        {
+          totalEntry,
+          totalReentry,
+          totalAddon
+        }
+      )
 
       setPlayers(players =>
         players.map(p =>
@@ -134,14 +182,14 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
           </button>
         </div>
         {loading ? (
-          <p className="text-gray-500 text-center">読み込み中...</p>
+          <p className="text-gray-500 text-center">Loading...</p>
         ) : error ? (
           <p className="text-red-500 text-center">{error}</p>
         ) : (
           <>
             {/* Bustセクション 強調・デザイン変更 */}
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-800 tracking-wide">BUST</span>
+              <span className="text-sm font-semibold text-gray-800 tracking-wide">BUST : </span>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleTournamentBustChange(-1)}
@@ -160,7 +208,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
             {/* プレイヤー表示（コンパクト・横並び・スクロール対応） */}
             <div className="max-h-[50vh] overflow-y-auto space-y-3">
               {players.length === 0 ? (
-                <p className="text-gray-500 text-center">プレイヤーがいません</p>
+                <p className="text-gray-500 text-center">No Players</p>
               ) : (
                 players.map(player => (
                   <div key={player.id} className="rounded-xl bg-gray-50 border border-gray-100 py-3 px-3">
