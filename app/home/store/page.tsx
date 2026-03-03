@@ -7,6 +7,7 @@ import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import PlayerManageModal from "./PlayerManageModal"
+import PrizeDistributeModal from "./PrizeDistributeModal"
 import {
   collection,
   doc,
@@ -73,6 +74,7 @@ export default function StorePage() {
   const [todayTournaments, setTodayTournaments] = useState<any[]>([])
   // 仮モーダル用state（フック順序エラー根本修正: useState群の一番上に移動）
   const [showPlayerModal, setShowPlayerModal] = useState<string|null>(null)
+  const [showPrizeModal, setShowPrizeModal] = useState<string|null>(null)
 
   useEffect(() => {
     if (!storeId) return
@@ -105,19 +107,20 @@ export default function StorePage() {
         const totalEntries = entry + reentry
         const alive = totalEntries - bustCount
 
-        list.push({
-          id: docSnap.id,
-          name: data.name,
-          entry,
-          reentry,
-          addon,
-          bustCount,
-          entryStack,
-          reentryStack,
-          addonStack,
-          totalEntries,
-          alive,
-        })
+          list.push({
+            id: docSnap.id,
+            name: data.name,
+            entry,
+            reentry,
+            addon,
+            bustCount,
+            entryStack,
+            reentryStack,
+            addonStack,
+            totalEntries,
+            alive,
+            status: data.status ?? "active",
+          })
       }
       setTodayTournaments(list)
     })
@@ -478,6 +481,13 @@ export default function StorePage() {
             onClose={() => setShowPlayerModal(null)}
           />
         )}
+        {showPrizeModal && (
+          <PrizeDistributeModal
+            tournamentId={showPrizeModal}
+            storeId={storeId}
+            onClose={() => setShowPrizeModal(null)}
+          />
+        )}
         {/* 店舗名・コードセクション */}
         <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -546,12 +556,21 @@ export default function StorePage() {
                           <div className="text-[14px] text-gray-800">Ave : {average.toLocaleString()}</div>
                         </div>
                       </div>
-                      <button
-                        className="text-[13px] px-3 py-1 rounded-full bg-[#F2A900] text-white font-medium ml-4"
-                        onClick={() => setShowPlayerModal(t.id)}
-                      >
-                        Players
-                      </button>
+                      <div className="flex flex-col items-end">
+                        <button
+                          className="text-[13px] px-3 py-1 rounded-full bg-[#F2A900] text-white font-medium ml-4"
+                          onClick={() => setShowPlayerModal(t.id)}
+                        >
+                          Players
+                        </button>
+                        <button
+                          className="text-[13px] px-3 py-1 rounded-full bg-red-600 text-white font-medium ml-4 mt-2 disabled:opacity-50"
+                          onClick={() => setShowPrizeModal(t.id)}
+                          disabled={t.status === "finished"}
+                        >
+                          終了
+                        </button>
+                      </div>
                     </div>
                   )
                 })}
