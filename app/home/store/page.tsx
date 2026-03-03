@@ -413,9 +413,6 @@ export default function StorePage() {
     setAdjustAmount("")
     setSelectedPlayerBalance(newBalance)
     setSelectedPlayerNetGain(newNetGain)
-    if (typeof fetchStorePlayers === "function") {
-      await fetchStorePlayers();
-    }
   }
 
   const copyCode = async () => {
