@@ -471,6 +471,7 @@ export default function HomePage() {
       joinedStores: arrayUnion(storeId),
     })
 
+
     const balanceRef = doc(db, "users", userId, "storeBalances", storeId)
     const balanceSnap = await getDoc(balanceRef)
     if (!balanceSnap.exists()) {

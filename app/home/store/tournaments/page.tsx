@@ -117,16 +117,20 @@ export default function TournamentsPage() {
       createdAt: editData?.createdAt ?? new Date()
     }
 
+    let tournamentId: string | null = null
+
     if (editData) {
       await updateDoc(
         doc(db, "stores", storeId, "tournaments", editData.id),
         payload
       )
+      tournamentId = editData.id
     } else {
-      await addDoc(
+      const docRef = await addDoc(
         collection(db, "stores", storeId, "tournaments"),
         payload
       )
+      tournamentId = docRef.id
     }
 
     setOpenModal(false)

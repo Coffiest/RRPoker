@@ -90,14 +90,13 @@ export default function StorePage() {
       const list: any[] = []
       for (const docSnap of snap.docs) {
         const data = docSnap.data()
-        // dateフィールドはstring（yyyy-mm-dd）であることを前提
         if (typeof data.date !== "string") continue
         if (data.date !== todayStr) continue
-        // playersサブコレクション取得
-        const playersRef = collection(db, "stores", storeId, "tournaments", docSnap.id, "players")
-        const playersSnap = await getDocs(playersRef)
+        // entriesコレクション取得
+        const entriesRef = collection(db, "stores", storeId, "tournaments", docSnap.id, "entries")
+        const entriesSnap = await getDocs(entriesRef)
         let entry = 0, reentry = 0, addon = 0, bustCount = 0
-        playersSnap.forEach(p => {
+        entriesSnap.forEach(p => {
           const pdata = p.data()
           entry += pdata.entryCount || 0
           reentry += pdata.reentryCount || 0
@@ -217,15 +216,23 @@ export default function StorePage() {
       where("currentStoreId", "==", storeId)
     )
     const unsub = onSnapshot(q, snap => {
+      console.log("=== INSTORE DEBUG START ===")
+      console.log("storeId:", storeId)
+      console.log("instore snap.size:", snap.size)
       const list: PlayerInfo[] = []
       snap.forEach(d => {
         const data = d.data()
+        console.log("instore user:", d.id, {
+          currentStoreId: data.currentStoreId,
+          name: data.name,
+        })
         list.push({
           id: d.id,
           name: data.name,
           iconUrl: data.iconUrl,
         })
       })
+      console.log("=== INSTORE DEBUG END ===")
       setPlayers(list)
     })
     return () => unsub()

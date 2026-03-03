@@ -21,23 +21,46 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
 
   useEffect(() => {
     if (!storeId || !tournamentId) return
+
     const fetchPlayers = async () => {
       setLoading(true)
       try {
-        const ref = collection(db, "stores", storeId, "tournaments", tournamentId, "players")
-        const snap = await getDocs(ref)
+        // 入店中ユーザー取得
+        const usersQuery = query(
+          collection(db, "users"),
+          where("currentStoreId", "==", storeId)
+        )
+        const usersSnap = await getDocs(usersQuery)
+
         const list: any[] = []
-        snap.forEach(docSnap => {
-          const data = docSnap.data()
+
+        // entries取得用参照
+        const entriesRefBase = collection(
+          db,
+          "stores",
+          storeId,
+          "tournaments",
+          tournamentId,
+          "entries"
+        )
+
+        for (const userDoc of usersSnap.docs) {
+          const userData = userDoc.data()
+
+          const entryRef = doc(entriesRefBase, userDoc.id)
+          const entrySnap = await getDoc(entryRef)
+          const entryData = entrySnap.exists() ? entrySnap.data() : {}
+
           list.push({
-            id: docSnap.id,
-            name: data.name ?? docSnap.id,
-            entryCount: data.entryCount ?? 0,
-            reentryCount: data.reentryCount ?? 0,
-            addonCount: data.addonCount ?? 0,
-            bustCount: data.bustCount ?? 0,
+            id: userDoc.id,
+            name: userData.name ?? userDoc.id,
+            entryCount: entryData.entryCount ?? 0,
+            reentryCount: entryData.reentryCount ?? 0,
+            addonCount: entryData.addonCount ?? 0,
+            bustCount: entryData.bustCount ?? 0,
           })
-        })
+        }
+
         setPlayers(list)
         setError("")
       } catch (e) {
@@ -45,13 +68,14 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
       }
       setLoading(false)
     }
+
     fetchPlayers()
   }, [storeId, tournamentId])
 
   const handleBustChange = async (playerId: string, delta: number) => {
     if (!storeId || !tournamentId) return
     try {
-      const playerRef = doc(db, "stores", storeId, "tournaments", tournamentId, "players", playerId)
+      const playerRef = doc(db, "stores", storeId, "tournaments", tournamentId, "entries", playerId)
       await updateDoc(playerRef, { bustCount: increment(delta) })
       setPlayers(players =>
         players.map(p =>
