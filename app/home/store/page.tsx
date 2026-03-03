@@ -469,7 +469,7 @@ export default function StorePage() {
           />
         )}
         {/* 店舗名・コードセクション */}
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+        <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             {store?.iconUrl ? (
               <img
@@ -549,7 +549,7 @@ export default function StorePage() {
             )}
           </section>
         </div>
-                <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+                <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <p className="text-[14px] font-semibold text-gray-900">
             入金申請一覧
           </p>
@@ -620,7 +620,7 @@ export default function StorePage() {
           )}
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
+        <div className="mt-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <p className="text-[14px] font-semibold text-gray-900">
             入店中のプレイヤー
           </p>
@@ -671,7 +671,7 @@ export default function StorePage() {
           )}
         </div>
 
-        <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
+        <div className="mt-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <p className="text-[14px] font-semibold text-gray-900">手動調整</p>
           <div className="mt-3 relative">
             <label className="block mb-1 text-[13px] font-semibold text-gray-900" style={{color:'#111'}}>プレイヤー名で検索</label>
@@ -761,160 +761,7 @@ export default function StorePage() {
                     }}
                   >はい（純増も変更）</button>
                   <button
-                    className="w-full rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2.5 f                    rules_version = '2';
-                    service cloud.firestore {
-                      match /databases/{database}/documents {
-                    
-                        function isSignedIn() {
-                          return request.auth != null;
-                        }
-                    
-                        function isStoreOwner(storeId) {
-                          return isSignedIn()
-                            && exists(/databases/$(database)/documents/stores/$(storeId))
-                            && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid;
-                        }
-                    
-                        // ★ 店舗ホームにログインできる＝users/{uid}.storeId が一致
-                        function isStoreMember(storeId) {
-                          return isSignedIn()
-                            && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId is string
-                            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == storeId;
-                        }
-                    
-                        match /users/{userId} {
-                          allow read: if isSignedIn();
-                          allow create: if isSignedIn();
-                          allow delete: if isSignedIn() && request.auth.uid == userId;
-                    
-                          allow update: if isSignedIn() && (
-                            request.auth.uid == userId
-                            || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentStoreId'])
-                            || (
-                              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendRequests'])
-                              && request.resource.data.friendRequests is list
-                              && (!(resource.data.friendRequests is list)
-                                  || request.resource.data.friendRequests.size() >= resource.data.friendRequests.size())
-                            )
-                            || (
-                              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
-                              && request.resource.data.friends is list
-                              && (!(resource.data.friends is list)
-                                  || request.resource.data.friends.size() >= resource.data.friends.size())
-                            )
-                          );
-                    
-                          match /storeBalances/{storeId} {
-                            allow read, write: if isSignedIn()
-                              && (request.auth.uid == userId || isStoreOwner(storeId));
-                          }
-                        }
-                    
-                        match /stores/{storeId} {
-                    
-                          allow read: if isSignedIn();
-                    
-                          allow create: if isSignedIn()
-                            && request.resource.data.ownerUid == request.auth.uid
-                            && request.resource.data.code == storeId;
-                    
-                          allow write: if isStoreOwner(storeId);
-                    
-                          match /tournaments/{tournamentId} {
-                    
-                            allow read: if isSignedIn();
-                            allow create, update, delete: if isStoreMember(storeId);
-                    
-                            // playersサブコレクションのread権限追加
-                            match /players/{playerId} {
-                              allow read: if isSignedIn();
-                              allow create, update, delete: if isStoreMember(storeId);
-                            }
-                    
-                            match /entries/{userId} {
-                              allow read, write: if isStoreMember(storeId);
-                            }
-                    
-                            match /results/{userId} {
-                              allow read, write: if isStoreMember(storeId);
-                            }
-                          }
-                    
-                          match /publicRanking/{rankingId} {
-                            allow read: if isSignedIn();
-                            allow write: if isStoreOwner(storeId);
-                          }
-                    
-                          match /notices/{noticeId} {
-                            allow read: if isStoreOwner(storeId);
-                            allow write: if isStoreOwner(storeId);
-                          }
-                    
-                          match /rakeEntries/{entryId} {
-                            allow read, write: if isSignedIn() && isStoreOwner(storeId);
-                          }
-                        }
-                    
-                        match /notifications/{notificationId} {
-                          allow create: if isSignedIn();
-                    
-                          allow read: if isSignedIn()
-                            && resource.data.userId == request.auth.uid;
-                    
-                          allow update: if isSignedIn()
-                            && resource.data.userId == request.auth.uid;
-                    
-                          allow delete: if isSignedIn()
-                            && resource.data.userId == request.auth.uid;
-                        }
-                    
-                        match /depositRequests/{requestId} {
-                          allow create: if isSignedIn()
-                            && request.resource.data.playerId == request.auth.uid;
-                    
-                          allow read: if isSignedIn()
-                            && (
-                              resource.data.playerId == request.auth.uid
-                              || isStoreOwner(resource.data.storeId)
-                            );
-                    
-                          allow update: if isSignedIn()
-                            && isStoreOwner(resource.data.storeId);
-                        }
-                    
-                        match /withdrawals/{withdrawalId} {
-                          allow read, write: if isSignedIn();
-                        }
-                    
-                        match /transactions/{transactionId} {
-                          allow read, write: if isSignedIn();
-                        }
-                    
-                        match /friendRequests/{requestId} {
-                          allow create: if isSignedIn()
-                            && request.resource.data.fromUid == request.auth.uid;
-                    
-                          allow update: if isSignedIn()
-                            && (
-                              resource.data.fromUid == request.auth.uid
-                              || resource.data.toUid == request.auth.uid
-                            );
-                    
-                          allow read: if isSignedIn()
-                            && (
-                              resource.data.fromUid == request.auth.uid
-                              || resource.data.toUid == request.auth.uid
-                            );
-                    
-                          allow delete: if isSignedIn()
-                            && (
-                              resource.data.fromUid == request.auth.uid
-                              || resource.data.toUid == request.auth.uid
-                            );
-                        }
-                      }
-                    }ont-semibold text-base transition"
+                    className="w-full rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2.5 font-semibold text-base transition"
                     onClick={async () => {
                       setShowAdjustmentConfirm(false)
                       await runAdjustment(pendingAdjustment.direction, false)
