@@ -25,37 +25,46 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [tournamentBust, setTournamentBust] = useState(0)
 
   useEffect(() => {
-    if (!storeId || !tournamentId) return
-    const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
-    const unsub = onSnapshot(entriesRef, async () => {
-      // 既存のfetch/aggregationロジックを再利用
-      const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
-      const tournamentSnap = await getDoc(tournamentRef)
-      if (!tournamentSnap.exists()) return
-      const tournamentData = tournamentSnap.data()
-      const usersQuery = query(collection(db, "users"))
-      const usersSnap = await getDocs(usersQuery)
-      const list: any[] = []
-      for (const userDoc of usersSnap.docs) {
-        const userData = userDoc.data()
-        const entryRef = doc(db, "stores", storeId, "tournaments", tournamentId, "entries", userDoc.id)
-        const entrySnap = await getDoc(entryRef)
-        if (entrySnap.exists()) {
-          const entryData = entrySnap.data()
-          list.push({
-            id: userDoc.id,
-            name: userData.name,
-            iconUrl: userData.iconUrl,
-            entryCount: entryData.entryCount ?? 0,
-            reentryCount: entryData.reentryCount ?? 0,
-            addonCount: entryData.addonCount ?? 0,
-            bustCount: entryData.bustCount ?? 0,
-            isBust: entryData.bustCount > 0,
-          })
+    if (!storeId || !tournamentId) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    const unsub = onSnapshot(
+      query(collection(db, "users"), where("currentStoreId", "==", storeId)),
+      async (usersSnap) => {
+        try {
+          const list: any[] = []
+          for (const userDoc of usersSnap.docs) {
+            const userData = userDoc.data()
+            const entryRef = doc(
+              db,
+              "stores",
+              storeId,
+              "tournaments",
+              tournamentId,
+              "entries",
+              userDoc.id
+            )
+            const entrySnap = await getDoc(entryRef)
+            const entryData = entrySnap.exists() ? entrySnap.data() : {}
+            list.push({
+              id: userDoc.id,
+              name: userData.name,
+              iconUrl: userData.iconUrl,
+              entryCount: entryData.entryCount ?? 0,
+              reentryCount: entryData.reentryCount ?? 0,
+              addonCount: entryData.addonCount ?? 0,
+            })
+          }
+          setPlayers(list)
+          setError("")
+        } catch (e) {
+          setError("プレイヤー情報の取得に失敗しました")
         }
+        setLoading(false)
       }
-      setPlayers(list)
-    })
+    )
     return () => unsub()
   }, [storeId, tournamentId])
 
