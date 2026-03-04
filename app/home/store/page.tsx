@@ -571,25 +571,27 @@ export default function StorePage() {
                           <div className="text-[14px] text-gray-800">Ave : {average.toLocaleString()}</div>
                         </div>
                         {/* タイマーへボタン配置修正: Playersの直上・同一デザイン */}
-                        <button
-                          onClick={() => openTimer(t.id)}
-                          className="w-full h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold text-[14px] transition mt-4"
-                        >
-                          タイマーへ
-                        </button>
-                        <button
-                          className="w-full h-11 rounded-xl bg-[#F2A900] hover:bg-yellow-500 text-white font-semibold text-[14px] transition mt-2"
-                          onClick={() => setShowPlayerModal(t.id)}
-                        >
-                          Players
-                        </button>
-                        <button
-                          className="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-[14px] transition mt-2 disabled:opacity-50"
-                          onClick={() => setShowPrizeModal(t.id)}
-                          disabled={t.status !== "active"}
-                        >
-                           Finish !
-                        </button>
+                        <div className="flex flex-col items-center gap-2 mt-4 max-w-xs mx-auto">
+                          <button
+                            onClick={() => openTimer(t.id)}
+                            className="w-full h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold text-[14px] transition"
+                          >
+                            タイマーへ
+                          </button>
+                          <button
+                            className="w-full h-11 rounded-xl bg-[#F2A900] hover:bg-yellow-500 text-white font-semibold text-[14px] transition"
+                            onClick={() => setShowPlayerModal(t.id)}
+                          >
+                            Players
+                          </button>
+                          <button
+                            className="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-[14px] transition disabled:opacity-50"
+                            onClick={() => setShowPrizeModal(t.id)}
+                            disabled={t.status !== "active"}
+                          >
+                             Finish !
+                          </button>
+                        </div>
                         {/* タイマーコントロール: 3ボタン構成・デザイン統一 */}
                         <div className="flex items-center gap-2 mt-2">
                           <button
