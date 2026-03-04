@@ -13,6 +13,16 @@ collection,
 getDocs
 } from "firebase/firestore"
 
+// Toastコンポーネント
+function Toast({ message, onClose }) {
+  return (
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#F2A900] text-white px-6 py-3 rounded shadow-lg z-[300] animate-fadein">
+      {message}
+      <button className="ml-4 text-white underline" onClick={onClose}>閉じる</button>
+    </div>
+  );
+}
+
 interface BlindLevel{
 id:number
 smallBlind:number
@@ -29,9 +39,12 @@ const tournamentId=params.tournamentId as string
 const [storeId,setStoreId]=useState<string|null>(null)
 
 const [isMenuOpen,setIsMenuOpen]=useState(false)
-const [isPresetModalOpen, setIsPresetModalOpen] = useState(false);
-const [presetName, setPresetName] = useState("");
-const [presetLevels, setPresetLevels] = useState<BlindLevel[]>([{ id: 1, smallBlind: 100, bigBlind: 200, ante: 0, duration: 20 }]);
+const [isPresetModalOpen,setIsPresetModalOpen]=useState(false)
+
+const [presetName,setPresetName]=useState("")
+const [presetLevels,setPresetLevels]=useState<BlindLevel[]>([
+{id:1,smallBlind:100,bigBlind:200,ante:0,duration:20}
+])
 
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
 const [timeRemaining,setTimeRemaining]=useState(1200)
@@ -68,33 +81,49 @@ const blindLevels:BlindLevel[]=[
 {id:8,smallBlind:100,bigBlind:200,ante:200,duration:20},
 ]
 
-const [blindPresets, setBlindPresets] = useState<any[]>([]);
-const [selectedPreset, setSelectedPreset] = useState<string>("");
-const [customBlindLevels, setCustomBlindLevels] = useState<BlindLevel[] | null>(null);
+const [blindPresets,setBlindPresets]=useState<any[]>([])
+const [selectedPreset,setSelectedPreset]=useState<string>("")
+const [customBlindLevels,setCustomBlindLevels]=useState<BlindLevel[]|null>(null)
 
-// Firestoreからプリセット一覧取得
-useEffect(() => {
-  if (!storeId) return;
-  const fetchPresets = async () => {
-    const col = collection(db, "stores", storeId, "blindPresets");
-    const snap = await getDocs(col);
-    setBlindPresets(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
-  fetchPresets();
-}, [storeId, isPresetModalOpen]);
+useEffect(()=>{
 
-// プリセット選択時にblindLevelsを更新
-// showPresetModalはuseState宣言のみ（useEffect外）
-const [showPresetModal, setShowPresetModal] = useState(false);
-useEffect(() => {
-  if (!selectedPreset) return;
-  const preset = blindPresets.find(p => p.id === selectedPreset);
-  if (preset && preset.levels) {
-    setCustomBlindLevels(preset.levels);
-    setCurrentLevelIndex(0);
-    setTimeRemaining(preset.levels[0]?.duration ? preset.levels[0].duration * 60 : 1200);
-  }
-}, [selectedPreset, blindPresets]);
+if(!storeId) return
+
+const fetchPresets=async()=>{
+
+const col=collection(db,"stores",storeId,"blindPresets")
+const snap=await getDocs(col)
+
+setBlindPresets(
+snap.docs.map(doc=>({id:doc.id,...doc.data()}))
+)
+
+}
+
+fetchPresets()
+
+},[storeId,isPresetModalOpen])
+
+useEffect(()=>{
+
+if(!selectedPreset) return
+
+const preset=blindPresets.find(p=>p.id===selectedPreset)
+
+if(preset && preset.levels){
+
+setCustomBlindLevels(preset.levels)
+setCurrentLevelIndex(0)
+
+setTimeRemaining(
+preset.levels[0]?.duration
+? preset.levels[0].duration*60
+:1200
+)
+
+}
+
+},[selectedPreset,blindPresets])
 
 useEffect(()=>{
 
@@ -133,7 +162,9 @@ setEntryStack(d.entryStack ?? 0)
 setReentryStack(d.reentryStack ?? 0)
 setAddonStack(d.addonStack ?? 0)
 
-setPrizePool(d.prizePool ?? prizePool)
+setPrizePool(d.prizePool ?? {
+"1":0,"2":0,"3":0,"4":0,"5":0,"6":0
+})
 
 })
 
@@ -166,6 +197,8 @@ alivePlayers>0
 ?Math.floor(totalChips/alivePlayers)
 :0
 
+const levelsToUse=customBlindLevels || blindLevels
+
 useEffect(()=>{
 
 if(!isRunning) return
@@ -176,12 +209,12 @@ setTimeRemaining(prev=>{
 
 if(prev<=1){
 
-if(currentLevelIndex<blindLevels.length-1){
+if(currentLevelIndex<levelsToUse.length-1){
 
 const next=currentLevelIndex+1
 setCurrentLevelIndex(next)
 
-return blindLevels[next].duration*60
+return levelsToUse[next].duration*60
 
 }
 
@@ -193,25 +226,122 @@ return 0
 return prev-1
 
 })
+{isPresetModalOpen && (
+  <div
+    className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200]"
+    onClick={()=>setIsPresetModalOpen(false)}
+  >
+    <div
+      className="bg-white w-[420px] rounded-xl shadow-xl p-6"
+      onClick={(e)=>e.stopPropagation()}
+    >
+      <h2 className="text-lg font-semibold mb-4">
+        プリセット作成
+      </h2>
+      <input
+        placeholder="プリセット名"
+        value={presetName}
+        onChange={(e)=>setPresetName(e.target.value)}
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 mb-4"
+      />
+      <div className="space-y-2 mb-4">
+        {presetLevels.map((level,index)=>(
+          <div key={index} className="flex gap-2">
+            <input
+              type="number"
+              value={level.smallBlind}
+              onChange={(e)=>{
+                const copy=[...presetLevels]
+                copy[index].smallBlind=Number(e.target.value)
+                setPresetLevels(copy)
+              }}
+              className="w-20 border rounded px-2 py-1"
+            />
+            <span>/</span>
+            <input
+              type="number"
+              value={level.bigBlind}
+              onChange={(e)=>{
+                const copy=[...presetLevels]
+                copy[index].bigBlind=Number(e.target.value)
+                setPresetLevels(copy)
+              }}
+              className="w-20 border rounded px-2 py-1"
+            />
+            <input
+              type="number"
+              value={level.duration}
+              onChange={(e)=>{
+                const copy=[...presetLevels]
+                copy[index].duration=Number(e.target.value)
+                setPresetLevels(copy)
+              }}
+              className="w-20 border rounded px-2 py-1"
+            />
+            <span className="text-sm text-gray-500">
+              min
+            </span>
+          </div>
+        ))}
+      </div>
+      <button
+        onClick={() => {
+          const last = presetLevels[presetLevels.length - 1];
+          const round = (n:number) => Math.round(n / 10) * 10;
+          const nextSB = round(last.smallBlind * 1.5);
+          const nextBB = round(last.bigBlind * 1.5);
+          setPresetLevels([
+            ...presetLevels,
+            {
+              id: presetLevels.length + 1,
+              smallBlind: nextSB,
+              bigBlind: nextBB,
+              ante: nextBB,
+              duration: last.duration
+            }
+          ]);
+        }}
+        className="mb-4 text-sm text-[#F2A900]"
+      >
+        ＋レベル追加
+      </button>
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setIsPresetModalOpen(false)}
+          className="px-4 py-2 rounded bg-gray-200"
+        >
+          キャンセル
+        </button>
+        <button
+          className="px-4 py-2 rounded bg-[#F2A900] text-white"
+        >
+          保存
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 },1000)
 
 return ()=>clearInterval(interval)
 
-},[isRunning,currentLevelIndex])
+},[isRunning,currentLevelIndex,levelsToUse])
 
-const levelsToUse = customBlindLevels || blindLevels;
-const level = levelsToUse[currentLevelIndex];
-const nextLevel =
-  currentLevelIndex < levelsToUse.length - 1
-    ? levelsToUse[currentLevelIndex + 1]
-    : level;
+const level=levelsToUse[currentLevelIndex]
+
+const nextLevel=
+currentLevelIndex<levelsToUse.length-1
+?levelsToUse[currentLevelIndex+1]
+:level
 
 const minutes=Math.floor(timeRemaining/60)
 const seconds=timeRemaining%60
 
 const totalPrize=
 Object.values(prizePool).reduce((a,b)=>a+b,0)
+
+const [toastMsg, setToastMsg] = useState("");
 
 return(
 
@@ -281,23 +411,34 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 </div>
 
 <div className="p-6">
-    <div className="mb-4">
-      {blindPresets.map(preset => (
-        <button
-          key={preset.id}
-          className={`w-full py-2 px-4 mb-2 rounded-lg font-semibold border ${selectedPreset === preset.id ? 'bg-[#F2A900] text-white' : 'bg-white text-gray-800'}`}
-          onClick={() => setSelectedPreset(preset.id)}
-        >
-          {preset.name}
-        </button>
-      ))}
-    </div>
-    <button
-      className="w-full py-2 px-4 bg-[#F2A900] text-white rounded-lg font-semibold hover:bg-[#e2a000] transition mb-4"
-      onClick={() => setIsPresetModalOpen(true)}
-    >
-      ＋プリセットを作成
-    </button>
+
+<div className="mb-4">
+
+{blindPresets.map(preset=>(
+
+<button
+key={preset.id}
+className={`w-full py-2 px-4 mb-2 rounded-lg font-semibold border ${selectedPreset===preset.id?'bg-[#F2A900] text-white':'bg-white text-gray-800'}`}
+onClick={()=>setSelectedPreset(preset.id)}
+>
+
+{preset.name}
+
+</button>
+
+))}
+
+</div>
+
+<button
+className="w-full py-2 px-4 bg-[#F2A900] text-white rounded-lg font-semibold hover:bg-[#e2a000] transition mb-4"
+onClick={()=>setIsPresetModalOpen(true)}
+>
+
+＋プリセットを作成
+
+</button>
+
 </div>
 
 </div>
@@ -305,7 +446,7 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 <div className="absolute top-5 left-5 z-10">
 
 <button
-              onClick={() => setShowPresetModal(true)}
+onClick={()=>setIsMenuOpen(true)}
 className="menu-btn"
 >
 
