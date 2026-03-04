@@ -20,7 +20,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore"
-import { FiPlus, FiMinus, FiCopy, FiHome, FiUser } from "react-icons/fi"
+import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -42,7 +42,42 @@ type PlayerInfo = {
 }
 
 export default function StorePage() {
+    // タイマー稼働状態管理
+    const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
+
+    // タイマー再生/停止トグル
+    const toggleTimer = (tournamentId: string) => {
+      const running = timerRunning[tournamentId]
+      if (running) {
+        controlTimer(tournamentId, "STOP")
+      } else {
+        controlTimer(tournamentId, "START")
+      }
+      setTimerRunning(prev => ({
+        ...prev,
+        [tournamentId]: !running
+      }))
+    }
   const router = useRouter()
+  // タイマーウィンドウ管理
+  const [timerWindowMap, setTimerWindowMap] = useState<Record<string, Window | null>>({})
+
+  // タイマーウィンドウを開く
+  const openTimer = (tournamentId: string) => {
+    const win = window.open(
+      `/home/store/timer/${tournamentId}`,
+      `_blank`,
+      "width=800,height=600"
+    )
+    setTimerWindowMap((prev) => ({ ...prev, [tournamentId]: win }))
+  }
+
+  // タイマー制御
+  const controlTimer = (tournamentId: string, type: "START" | "STOP" | "NEXT" | "PREV") => {
+    const win = timerWindowMap[tournamentId]
+    if (!win) return
+    win.postMessage({ type }, "*")
+  }
   const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
@@ -528,28 +563,54 @@ export default function StorePage() {
                       key={t.id}
                       className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mt-3 flex items-center justify-between"
                     >
-                      <div>
+                      <div className="w-full">
                         <p className="text-[16px] font-semibold text-gray-900">{t.name}</p>
                         <div className="flex flex-col gap-1 mt-2">
                           <div className="text-[14px] text-gray-800">Player : {alive} / {totalEntries}</div>
                           <div className="text-[14px] text-gray-800">add on : {totalAddon}</div>
                           <div className="text-[14px] text-gray-800">Ave : {average.toLocaleString()}</div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end">
+                        {/* タイマーへボタン配置修正: Playersの直上・同一デザイン */}
                         <button
-                          className="text-[13px] px-3 py-1 rounded-full bg-[#F2A900] text-white font-medium ml-4"
+                          onClick={() => openTimer(t.id)}
+                          className="w-full h-11 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold text-[14px] transition mt-4"
+                        >
+                          タイマーへ
+                        </button>
+                        <button
+                          className="w-full h-11 rounded-xl bg-[#F2A900] hover:bg-yellow-500 text-white font-semibold text-[14px] transition mt-2"
                           onClick={() => setShowPlayerModal(t.id)}
                         >
                           Players
                         </button>
                         <button
-                          className="text-[13px] px-3 py-1 rounded-full bg-red-600 text-white font-medium ml-4 mt-2 disabled:opacity-50"
+                          className="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-[14px] transition mt-2 disabled:opacity-50"
                           onClick={() => setShowPrizeModal(t.id)}
                           disabled={t.status !== "active"}
                         >
                            Finish !
                         </button>
+                        {/* タイマーコントロール: 3ボタン構成・デザイン統一 */}
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => controlTimer(t.id, "PREV")}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                          >
+                            <FiSkipBack size={16}/>
+                          </button>
+                          <button
+                            onClick={() => toggleTimer(t.id)}
+                            className={`h-8 w-8 flex items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition`}
+                          >
+                            {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>}
+                          </button>
+                          <button
+                            onClick={() => controlTimer(t.id, "NEXT")}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                          >
+                            <FiSkipForward size={16}/>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )
