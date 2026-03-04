@@ -8,7 +8,9 @@ import {
 doc,
 getDoc,
 updateDoc,
-onSnapshot
+onSnapshot,
+collection,
+getDocs
 } from "firebase/firestore"
 
 interface BlindLevel{
@@ -65,6 +67,34 @@ const blindLevels:BlindLevel[]=[
 {id:7,smallBlind:75,bigBlind:150,ante:150,duration:20},
 {id:8,smallBlind:100,bigBlind:200,ante:200,duration:20},
 ]
+
+const [blindPresets, setBlindPresets] = useState<any[]>([]);
+const [selectedPreset, setSelectedPreset] = useState<string>("");
+const [customBlindLevels, setCustomBlindLevels] = useState<BlindLevel[] | null>(null);
+
+// Firestoreからプリセット一覧取得
+useEffect(() => {
+  if (!storeId) return;
+  const fetchPresets = async () => {
+    const col = collection(db, "stores", storeId, "blindPresets");
+    const snap = await getDocs(col);
+    setBlindPresets(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  };
+  fetchPresets();
+}, [storeId, isPresetModalOpen]);
+
+// プリセット選択時にblindLevelsを更新
+// showPresetModalはuseState宣言のみ（useEffect外）
+const [showPresetModal, setShowPresetModal] = useState(false);
+useEffect(() => {
+  if (!selectedPreset) return;
+  const preset = blindPresets.find(p => p.id === selectedPreset);
+  if (preset && preset.levels) {
+    setCustomBlindLevels(preset.levels);
+    setCurrentLevelIndex(0);
+    setTimeRemaining(preset.levels[0]?.duration ? preset.levels[0].duration * 60 : 1200);
+  }
+}, [selectedPreset, blindPresets]);
 
 useEffect(()=>{
 
@@ -170,12 +200,12 @@ return ()=>clearInterval(interval)
 
 },[isRunning,currentLevelIndex])
 
-const level=blindLevels[currentLevelIndex]
-
-const nextLevel=
-currentLevelIndex<blindLevels.length-1
-?blindLevels[currentLevelIndex+1]
-:level
+const levelsToUse = customBlindLevels || blindLevels;
+const level = levelsToUse[currentLevelIndex];
+const nextLevel =
+  currentLevelIndex < levelsToUse.length - 1
+    ? levelsToUse[currentLevelIndex + 1]
+    : level;
 
 const minutes=Math.floor(timeRemaining/60)
 const seconds=timeRemaining%60
@@ -251,6 +281,17 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 </div>
 
 <div className="p-6">
+    <div className="mb-4">
+      {blindPresets.map(preset => (
+        <button
+          key={preset.id}
+          className={`w-full py-2 px-4 mb-2 rounded-lg font-semibold border ${selectedPreset === preset.id ? 'bg-[#F2A900] text-white' : 'bg-white text-gray-800'}`}
+          onClick={() => setSelectedPreset(preset.id)}
+        >
+          {preset.name}
+        </button>
+      ))}
+    </div>
     <button
       className="w-full py-2 px-4 bg-[#F2A900] text-white rounded-lg font-semibold hover:bg-[#e2a000] transition mb-4"
       onClick={() => setIsPresetModalOpen(true)}
@@ -264,7 +305,7 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 <div className="absolute top-5 left-5 z-10">
 
 <button
-onClick={()=>setIsMenuOpen(true)}
+              onClick={() => setShowPresetModal(true)}
 className="menu-btn"
 >
 
