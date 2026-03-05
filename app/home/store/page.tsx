@@ -90,6 +90,14 @@ export default function StorePage() {
       }
     )
   }
+  // --- タイマー一時停止処理 ---
+  async function pauseTimer(tournamentId: string) {
+    if (!storeId) return;
+    const ref = doc(db, "stores", storeId, "tournaments", tournamentId);
+    await updateDoc(ref, {
+      timerRunning: false
+    });
+  }
   async function prevLevel(tournamentId: string,currentLevel:number){
     if(!storeId) return
     await updateDoc(
@@ -631,13 +639,7 @@ export default function StorePage() {
                             <FiSkipBack size={16}/>
                           </button>
                           <button
-                            onClick={()=>{
-                              if(timerRunning[t.id]){
-                                stopTimer(t.id)
-                              }else{
-                                startTimer(t.id)
-                              }
-                            }}
+                            onClick={() => toggleTimer(t.id)}
                             className={`h-8 w-8 flex items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition`}
                           >
                             {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>} 
