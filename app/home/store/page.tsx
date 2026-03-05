@@ -582,14 +582,14 @@ export default function StorePage() {
                             className="w-full h-11 rounded-xl bg-[#F2A900] hover:bg-yellow-500 text-white font-semibold text-[14px] transition"
                             onClick={() => setShowPlayerModal(t.id)}
                           >
-                            Players
+                            プレイヤー
                           </button>
                           <button
                             className="w-full h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-[14px] transition disabled:opacity-50"
                             onClick={() => setShowPrizeModal(t.id)}
                             disabled={t.status !== "active"}
                           >
-                             Finish !
+                             終了
                           </button>
                         </div>
                         {/* タイマーコントロール: 3ボタン構成・デザイン統一 */}

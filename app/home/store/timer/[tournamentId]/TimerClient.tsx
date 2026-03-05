@@ -266,25 +266,27 @@ if(!storeId) return
 const ref=doc(db,"stores",storeId,"tournaments",tournamentId)
 
 const unsub=onSnapshot(ref,(snap)=>{
+  const d=snap.data()
+  if(!d) return
 
-const d=snap.data()
-if(!d) return
+  setTournamentName(d.name ?? "")
+  setEntry(d.totalEntry ?? 0)
+  setReentry(d.totalReentry ?? 0)
+  setAddon(d.totalAddon ?? 0)
+  setBust(d.bustCount ?? 0)
 
-setTournamentName(d.name ?? "")
+  setEntryStack(d.entryStack ?? 0)
+  setReentryStack(d.reentryStack ?? 0)
+  setAddonStack(d.addonStack ?? 0)
 
-setEntry(d.totalEntry ?? 0)
-setReentry(d.totalReentry ?? 0)
-setAddon(d.totalAddon ?? 0)
-setBust(d.bustCount ?? 0)
+  setPrizePool(d.prizePool ?? {
+    "1":0,"2":0,"3":0,"4":0,"5":0,"6":0
+  })
 
-setEntryStack(d.entryStack ?? 0)
-setReentryStack(d.reentryStack ?? 0)
-setAddonStack(d.addonStack ?? 0)
-
-setPrizePool(d.prizePool ?? {
-"1":0,"2":0,"3":0,"4":0,"5":0,"6":0
-})
-
+  // timerRunningの外部同期
+  if(typeof d.timerRunning === "boolean") {
+    setIsRunning(d.timerRunning)
+  }
 })
 
 return ()=>unsub()
@@ -422,19 +424,34 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
 
 <div className="mb-4">
 
-{blindPresets.map(preset=>(
+{blindPresets.map((preset) => {
+  return (
+    <div key={preset.id} className="flex items-center gap-2 mb-2">
+      <button
+        type="button"
+        className={["flex-1 py-2 px-4 rounded-lg font-semibold border transition","bg-white text-gray-900",selectedPreset === preset.id ? "border-[#F2A900] ring-2 ring-[#F2A900]/30" : "border-gray-200 hover:border-gray-300"].join(" ")}
+        onClick={() => setSelectedPreset(preset.id)}
+      >
+        {preset.name}
+      </button>
 
-<button
-key={preset.id}
-className={`w-full py-2 px-4 mb-2 rounded-lg font-semibold border ${selectedPreset===preset.id?'bg-[#F2A900] text-white':'bg-white text-gray-800'}`}
-onClick={()=>setSelectedPreset(preset.id)}
->
+      <button
+        type="button"
+        className="h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+        onClick={async () => {
+          const ok = window.confirm("このプリセットを削除しますか？")
+          if (!ok) return
 
-{preset.name}
+          await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id))
 
-</button>
-
-))}
+          setBlindPresets((prev) => prev.filter((p) => p.id !== preset.id))
+        }}
+      >
+        <FiTrash2 className="text-[18px] text-gray-600" />
+      </button>
+    </div>
+  )
+})}
 
 </div>
 
@@ -650,7 +667,17 @@ Total
                       <span className="font-bold text-gray-900">Level {getLevelNumber(idx)}</span>
                       <input type="number" min={1} step={1} value={lv.smallBlind??""} onChange={e=>{
                         const v = Math.max(1, Math.round(Number(e.target.value)))
-                        setLevels(ls=>ls.map((l,i)=>i===idx?{...l,smallBlind:v}:l))
+                        setLevels(ls=>ls.map((l,i)=>{
+                          if(i!==idx) return l;
+                          // SB変更時、BB/ANTEも自動入力
+                          const bb = Math.max(1, Math.round(v*2));
+                          return {
+                            ...l,
+                            smallBlind: v,
+                            bigBlind: bb,
+                            ante: bb
+                          };
+                        }))
                       }} className="w-16 border rounded px-1 text-gray-900" placeholder="SB"/>
                       <span className="text-gray-900">/</span>
                       <input type="number" min={1} step={1} value={lv.bigBlind??""} onChange={e=>handleBbChange(idx,Number(e.target.value))} className="w-16 border rounded px-1 text-gray-900" placeholder="BB"/>
