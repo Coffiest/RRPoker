@@ -15,9 +15,11 @@ collection,
 getDocs
 } from "firebase/firestore"
 import { createPortal } from "react-dom"
+import { deleteDoc } from "firebase/firestore"
 
 // Toastコンポーネント
-function Toast({ message, onClose }) {
+// Toast props型明示
+function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#F2A900] text-white px-6 py-3 rounded shadow-lg z-[300] animate-fadein">
       {message}
@@ -216,14 +218,14 @@ const [prizePool,setPrizePool]=useState<Record<string,number>>({
 })
 
 const blindLevels:BlindLevel[]=[
-{id:1,smallBlind:15,bigBlind:30,ante:30,duration:20},
-{id:2,smallBlind:20,bigBlind:40,ante:40,duration:20},
-{id:3,smallBlind:25,bigBlind:50,ante:50,duration:20},
-{id:4,smallBlind:30,bigBlind:60,ante:60,duration:20},
-{id:5,smallBlind:40,bigBlind:80,ante:80,duration:20},
-{id:6,smallBlind:50,bigBlind:100,ante:100,duration:20},
-{id:7,smallBlind:75,bigBlind:150,ante:150,duration:20},
-{id:8,smallBlind:100,bigBlind:200,ante:200,duration:20},
+{smallBlind:15,bigBlind:30,ante:30,duration:20},
+{smallBlind:20,bigBlind:40,ante:40,duration:20},
+{smallBlind:25,bigBlind:50,ante:50,duration:20},
+{smallBlind:30,bigBlind:60,ante:60,duration:20},
+{smallBlind:40,bigBlind:80,ante:80,duration:20},
+{smallBlind:50,bigBlind:100,ante:100,duration:20},
+{smallBlind:75,bigBlind:150,ante:150,duration:20},
+{smallBlind:100,bigBlind:200,ante:200,duration:20},
 ]
 
 const [blindPresets,setBlindPresets]=useState<any[]>([])
@@ -355,7 +357,7 @@ const interval = setInterval(() => {
       if (currentLevelIndex < levelsToUse.length - 1) {
         const next = currentLevelIndex + 1;
         setCurrentLevelIndex(next);
-        return levelsToUse[next].duration * 60;
+        return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
       }
       setIsRunning(false);
       return 0;
@@ -378,6 +380,8 @@ const seconds=timeRemaining%60
 
 const totalPrize=
 Object.values(prizePool).reduce((a,b)=>a+b,0)
+
+const isPresetSelected = selectedPreset !== ""
 
 return (
   <>
@@ -536,53 +540,48 @@ className="menu-btn"
 </div>
 
 <div className="text-center mb-6">
-
-<div className="flex items-baseline justify-center gap-2">
-
-<span className="text-[56px] font-light text-gray-900">
-{level.smallBlind}
-</span>
-
-<span className="text-[40px] text-gray-400">/</span>
-
-<span className="text-[56px] font-light text-gray-900">
-{level.bigBlind}
-</span>
-
-<span className="text-[36px] text-gray-500 ml-1">
-({level.ante})
-</span>
-
+  <div className="flex items-baseline justify-center gap-2">
+    <span className="text-[56px] font-light text-gray-900">
+      {isPresetSelected ? level.smallBlind : "-"}
+    </span>
+    <span className="text-[40px] text-gray-400">/</span>
+    <span className="text-[56px] font-light text-gray-900">
+      {isPresetSelected ? level.bigBlind : "-"}
+    </span>
+    <span className="text-[36px] text-gray-500 ml-1">
+      ({isPresetSelected ? level.ante : "-"})
+    </span>
+  </div>
 </div>
-
-</div>
-
 <div className="text-center mb-6">
-
-<div className="flex items-baseline justify-center gap-2">
-
-<span className="text-[200px] font-light text-[#F2A900] tabular-nums">
-{minutes.toString().padStart(2,"0")}
-</span>
-
-<span className="text-[140px] text-[#F2A900]">:</span>
-
-<span className="text-[200px] font-light text-[#F2A900] tabular-nums">
-{seconds.toString().padStart(2,"0")}
-</span>
-
+  <div className="flex items-baseline justify-center gap-2">
+    {isPresetSelected ? (
+      <>
+        <span className="text-[200px] font-light text-[#F2A900] tabular-nums">
+          {minutes.toString().padStart(2,"0")}
+        </span>
+        <span className="text-[140px] text-[#F2A900]">:</span>
+        <span className="text-[200px] font-light text-[#F2A900] tabular-nums">
+          {seconds.toString().padStart(2,"0")}
+        </span>
+      </>
+    ) : (
+      <span className="text-[120px] font-light text-gray-400">
+        WELCOME
+      </span>
+    )}
+  </div>
 </div>
-
-</div>
-
 <div className="text-center mb-12 text-[18px] text-gray-600">
-
-<span className="font-medium">Next:</span>{" "}
-{nextLevel.smallBlind}
-<span className="text-gray-400"> / </span>
-{nextLevel.bigBlind}
-<span className="text-gray-500"> ({nextLevel.ante})</span>
-
+  {isPresetSelected && (
+    <>
+      <span className="font-medium">Next:</span>{" "}
+      {nextLevel.smallBlind}
+      <span className="text-gray-400"> / </span>
+      {nextLevel.bigBlind}
+      <span className="text-gray-500"> ({nextLevel.ante})</span>
+    </>
+  )}
 </div>
 
 <div className="flex items-center justify-center gap-12 text-[16px] text-gray-700">
@@ -686,13 +685,15 @@ Total
 {isPresetModalOpen &&
   createPortal(
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
-        <h2 className="text-[18px] text-gray-900 font-semibold mb-4">ブラインドプリセット作成</h2>
-        <div className="mb-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg max-h-[80vh] flex flex-col">
+        {/* HEADER */}
+        <div className="p-6 pb-4">
+          <h2 className="text-[18px] text-gray-900 font-semibold mb-4">ブラインドプリセット作成</h2>
           <label className="block text-[14px] text-gray-800 mb-1">プリセット名</label>
           <input value={presetName} onChange={e=>setPresetName(e.target.value)} className="w-full border rounded px-3 py-2 text-gray-900" placeholder="例: 通常トーナメント"/>
         </div>
-        <div className="mb-4">
+        {/* BODY: レベルリストスクロール領域 */}
+        <div className="flex-1 overflow-y-auto px-6">
           <label className="block text-[14px] text-gray-800 mb-2">レベルリスト</label>
           <div className="space-y-2">
             {levels.map((lv,idx)=>(
@@ -749,13 +750,16 @@ Total
             ))}
           </div>
         </div>
-        <div className="flex gap-2 mb-4">
-          <button className="px-3 py-2 bg-[#F2A900] text-white rounded" onClick={addLevel}>＋レベル追加</button>
-          <button className="px-3 py-2 bg-blue-100 text-blue-700 rounded" onClick={addBreak}>＋ブレイク追加</button>
-        </div>
-        <div className="flex gap-4 mt-6">
-          <button className="px-5 py-2 bg-[#F2A900] text-white rounded font-bold" onClick={savePreset}>保存</button>
-          <button className="px-5 py-2 bg-gray-200 text-gray-700 rounded font-bold" onClick={()=>setIsPresetModalOpen(false)}>キャンセル</button>
+        {/* FOOTER: 追加・保存ボタン固定 */}
+        <div className="p-6 pt-4 border-t flex flex-col gap-4">
+          <div className="flex gap-2">
+            <button className="px-3 py-2 bg-[#F2A900] text-white rounded" onClick={addLevel}>＋レベル追加</button>
+            <button className="px-3 py-2 bg-blue-100 text-blue-700 rounded" onClick={addBreak}>＋ブレイク追加</button>
+          </div>
+          <div className="flex gap-4">
+            <button className="px-5 py-2 bg-[#F2A900] text-white rounded font-bold" onClick={savePreset}>保存</button>
+            <button className="px-5 py-2 bg-gray-200 text-gray-700 rounded font-bold" onClick={()=>setIsPresetModalOpen(false)}>キャンセル</button>
+          </div>
         </div>
       </div>
     </div>,
