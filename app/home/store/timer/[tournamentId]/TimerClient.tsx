@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect,useState } from "react"
-import { FiTrash2 } from "react-icons/fi"
+import { FiTrash2, FiEdit3 } from "react-icons/fi"
 import { addDoc, collection as fsCollection } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { FiMenu,FiX } from "react-icons/fi"
@@ -58,6 +58,7 @@ type BreakLevel = {
   duration: number | null
 }
 const [presetName,setPresetName]=useState("")
+const [editingPresetId,setEditingPresetId]=useState<string|null>(null)
 const [levels,setLevels]=useState<Level[]>([
   {
     type: "level",
@@ -172,15 +173,22 @@ async function savePreset(){
     alert("店舗IDが取得できません")
     return
   }
-  const ref = collection(db,"stores",storeId,"blindPresets")
-  await addDoc(ref,{
-    name:presetName,
-    levels:levels,
-    createdAt:new Date()
-  })
+  if(editingPresetId){
+    const ref = doc(db,"stores",storeId,"blindPresets",editingPresetId)
+    await updateDoc(ref,{
+      name:presetName,
+      levels:levels
+    })
+  }else{
+    const ref = collection(db,"stores",storeId,"blindPresets")
+    await addDoc(ref,{
+      name:presetName,
+      levels:levels,
+      createdAt:new Date()
+    })
+  }
+  setEditingPresetId(null)
   setIsPresetModalOpen(false)
-  // 保存後プリセット一覧更新
-  if(typeof fetchPresets === "function") fetchPresets()
 }
 
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
@@ -452,16 +460,27 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
       >
         {preset.name}
       </button>
-
+      <button
+        type="button"
+        className="h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
+        onClick={() => {
+          setEditingPresetId(preset.id)
+          setPresetName(preset.name)
+          if(preset.levels){
+            setLevels(preset.levels)
+          }
+          setIsPresetModalOpen(true)
+        }}
+      >
+        <FiEdit3 className="text-[18px] text-gray-600" />
+      </button>
       <button
         type="button"
         className="h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-50"
         onClick={async () => {
           const ok = window.confirm("このプリセットを削除しますか？")
           if (!ok) return
-
           await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id))
-
           setBlindPresets((prev) => prev.filter((p) => p.id !== preset.id))
         }}
       >
