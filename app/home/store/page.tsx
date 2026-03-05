@@ -49,9 +49,9 @@ export default function StorePage() {
     const toggleTimer = (tournamentId: string) => {
       const running = timerRunning[tournamentId]
       if (running) {
-        controlTimer(tournamentId, "STOP")
+        stopTimer(tournamentId)
       } else {
-        controlTimer(tournamentId, "START")
+        startTimer(tournamentId)
       }
       setTimerRunning(prev => ({
         ...prev,
@@ -59,25 +59,48 @@ export default function StorePage() {
       }))
     }
   const router = useRouter()
-  // タイマーウィンドウ管理
-  const [timerWindowMap, setTimerWindowMap] = useState<Record<string, Window | null>>({})
-
-  // タイマーウィンドウを開く
-  const openTimer = (tournamentId: string) => {
-    const win = window.open(
-      `/home/store/timer/${tournamentId}`,
-      `_blank`,
-      "width=800,height=600"
-    )
-    setTimerWindowMap((prev) => ({ ...prev, [tournamentId]: win }))
-  }
 
   // タイマー制御
-  const controlTimer = (tournamentId: string, type: "START" | "STOP" | "NEXT" | "PREV") => {
-    const win = timerWindowMap[tournamentId]
-    if (!win) return
-    win.postMessage({ type }, "*")
+  async function startTimer(tournamentId: string){
+    if(!storeId) return
+    await updateDoc(
+      doc(db,"stores",storeId,"tournaments",tournamentId),
+      {
+        timerRunning:true,
+        levelStartedAt:serverTimestamp()
+      }
+    )
   }
+  async function stopTimer(tournamentId: string){
+    if(!storeId) return
+    await updateDoc(
+      doc(db,"stores",storeId,"tournaments",tournamentId),
+      {
+        timerRunning:false
+      }
+    )
+  }
+  async function nextLevel(tournamentId: string,currentLevel:number){
+    if(!storeId) return
+    await updateDoc(
+      doc(db,"stores",storeId,"tournaments",tournamentId),
+      {
+        currentLevelIndex:currentLevel+1,
+        levelStartedAt:serverTimestamp()
+      }
+    )
+  }
+  async function prevLevel(tournamentId: string,currentLevel:number){
+    if(!storeId) return
+    await updateDoc(
+      doc(db,"stores",storeId,"tournaments",tournamentId),
+      {
+        currentLevelIndex:Math.max(0,currentLevel-1),
+        levelStartedAt:serverTimestamp()
+      }
+    )
+  }
+
   const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
@@ -477,7 +500,14 @@ export default function StorePage() {
     return null
   }
 
-
+  // タイマー画面を新規ウィンドウで開く関数
+  const openTimer = (tournamentId:string) => {
+    window.open(
+      `/home/store/timer/${tournamentId}`,
+      "_blank",
+      "width=1200,height=900"
+    )
+  }
 
   return (
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-white pb-28">
@@ -595,19 +625,25 @@ export default function StorePage() {
                         {/* タイマーコントロール: 3ボタン構成・デザイン統一 */}
                         <div className="flex items-center gap-2 mt-2">
                           <button
-                            onClick={() => controlTimer(t.id, "PREV")}
+                            onClick={()=>prevLevel(t.id,t.currentLevelIndex ?? 0)}
                             className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
                           >
                             <FiSkipBack size={16}/>
                           </button>
                           <button
-                            onClick={() => toggleTimer(t.id)}
+                            onClick={()=>{
+                              if(timerRunning[t.id]){
+                                stopTimer(t.id)
+                              }else{
+                                startTimer(t.id)
+                              }
+                            }}
                             className={`h-8 w-8 flex items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition`}
                           >
-                            {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>}
+                            {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>} 
                           </button>
                           <button
-                            onClick={() => controlTimer(t.id, "NEXT")}
+                            onClick={()=>nextLevel(t.id,t.currentLevelIndex ?? 0)}
                             className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
                           >
                             <FiSkipForward size={16}/>
