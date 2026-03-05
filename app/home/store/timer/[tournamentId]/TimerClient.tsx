@@ -105,10 +105,28 @@ function handleBbChange(idx:number,value:number|null){
 
 // レベル追加
 function addLevel(){
-  if(levels.length===0) return
   const last = [...levels].reverse().find(l=>l.type==="level") as BlindLevel|undefined
-  if(!last||last.smallBlind==null||last.bigBlind==null||last.duration==null) return
-  setLevels([...levels,generateNextLevel(last)])
+
+  if(!last){
+    setLevels([...levels,{
+      type:"level",
+      smallBlind:100,
+      bigBlind:200,
+      ante:200,
+      duration:20
+    }])
+    return
+  }
+
+  const base:BlindLevel={
+    type:"level",
+    smallBlind:last.smallBlind ?? 100,
+    bigBlind:last.bigBlind ?? 200,
+    ante:last.bigBlind ?? 200,
+    duration:last.duration ?? 20
+  }
+
+  setLevels([...levels,generateNextLevel(base)])
 }
 
 // ブレイク追加
