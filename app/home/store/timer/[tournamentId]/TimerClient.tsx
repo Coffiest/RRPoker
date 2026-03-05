@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect,useState } from "react"
+import { FiTrash2 } from "react-icons/fi"
+import { addDoc, collection as fsCollection } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { FiMenu,FiX } from "react-icons/fi"
 import { auth,db } from "@/lib/firebase"
@@ -12,6 +14,7 @@ onSnapshot,
 collection,
 getDocs
 } from "firebase/firestore"
+import { createPortal } from "react-dom"
 
 // Toastコンポーネント
 function Toast({ message, onClose }) {
@@ -39,12 +42,128 @@ const tournamentId=params.tournamentId as string
 const [storeId,setStoreId]=useState<string|null>(null)
 
 const [isMenuOpen,setIsMenuOpen]=useState(false)
-const [isPresetModalOpen,setIsPresetModalOpen]=useState(false)
 
+const [isPresetModalOpen,setIsPresetModalOpen]=useState(false)
+// プリセット作成用state
+type Level = BlindLevel | BreakLevel
+type BlindLevel = {
+  type: "level"
+  smallBlind: number | null
+  bigBlind: number | null
+  ante: number | null
+  duration: number | null
+}
+type BreakLevel = {
+  type: "break"
+  duration: number | null
+}
 const [presetName,setPresetName]=useState("")
-const [presetLevels,setPresetLevels]=useState<BlindLevel[]>([
-{id:1,smallBlind:100,bigBlind:200,ante:0,duration:20}
+const [levels,setLevels]=useState<Level[]>([
+  {
+    type: "level",
+    smallBlind: null,
+    bigBlind: null,
+    ante: null,
+    duration: null
+  }
 ])
+
+// 並び替え用ドラッグ
+const [dragIndex,setDragIndex]=useState<number|null>(null)
+const [dropIndex,setDropIndex]=useState<number|null>(null)
+
+// 有効数字2桁丸め
+function roundSig2(num:number){
+  return Number(num.toPrecision(2))
+}
+
+// 次レベル生成（整数・四捨五入）
+function generateNextLevel(prev:BlindLevel):BlindLevel{
+  const sb = Math.max(1, Math.round((prev.smallBlind??0)*1.5))
+  const bb = Math.max(1, Math.round((prev.bigBlind??0)*1.5))
+  return {
+    type:"level",
+    smallBlind: sb,
+    bigBlind: bb,
+    ante: bb,
+    duration: prev.duration
+  }
+}
+
+// ANTE自動更新（整数）
+function handleBbChange(idx:number,value:number|null){
+  const intVal = value !== null ? Math.max(1, Math.round(Number(value))) : null
+  setLevels(levels=>levels.map((lv,i)=>{
+    if(i!==idx||lv.type!=="level") return lv
+    return {
+      ...lv,
+      bigBlind: intVal,
+      ante: intVal
+    }
+  }))
+}
+
+// レベル追加
+function addLevel(){
+  if(levels.length===0) return
+  const last = [...levels].reverse().find(l=>l.type==="level") as BlindLevel|undefined
+  if(!last||last.smallBlind==null||last.bigBlind==null||last.duration==null) return
+  setLevels([...levels,generateNextLevel(last)])
+}
+
+// ブレイク追加
+function addBreak(){
+  setLevels([...levels,{type:"break",duration:null}])
+}
+
+// 行削除
+function removeLevel(idx:number){
+  setLevels(levels=>levels.filter((_,i)=>i!==idx))
+}
+
+// 並び替え
+function handleDragStart(idx:number){
+  setDragIndex(idx)
+}
+function handleDragEnter(idx:number){
+  setDropIndex(idx)
+}
+function handleDragEnd(){
+  if(dragIndex===null||dropIndex===null||dragIndex===dropIndex){
+    setDragIndex(null);setDropIndex(null);return
+  }
+  const newLv = [...levels]
+  const [moved] = newLv.splice(dragIndex,1)
+  newLv.splice(dropIndex,0,moved)
+  setLevels(newLv)
+  setDragIndex(null);setDropIndex(null)
+}
+
+// Level番号: index+1, Breakは番号なし
+function getLevelNumber(idx:number){
+  return idx+1
+}
+
+// プリセット保存処理
+async function savePreset(){
+  if(!presetName){
+    alert("ブラインド名を入力してください")
+    return
+  }
+  if(!storeId){
+    alert("店舗IDが取得できません")
+    return
+  }
+  const ref = collection(db,"stores",storeId,"blindPresets")
+  await addDoc(ref,{
+    name:presetName,
+    levels:levels,
+    createdAt:new Date()
+  })
+  setIsPresetModalOpen(false)
+  // 保存後プリセット一覧更新
+  if(typeof fetchPresets === "function") fetchPresets()
+}
 
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
 const [timeRemaining,setTimeRemaining]=useState(1200)
@@ -202,131 +321,22 @@ const levelsToUse=customBlindLevels || blindLevels
 useEffect(()=>{
 
 if(!isRunning) return
-
-const interval=setInterval(()=>{
-
-setTimeRemaining(prev=>{
-
-if(prev<=1){
-
-if(currentLevelIndex<levelsToUse.length-1){
-
-const next=currentLevelIndex+1
-setCurrentLevelIndex(next)
-
-return levelsToUse[next].duration*60
-
-}
-
-setIsRunning(false)
-return 0
-
-}
-
-return prev-1
-
-})
-{isPresetModalOpen && (
-  <div
-    className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200]"
-    onClick={()=>setIsPresetModalOpen(false)}
-  >
-    <div
-      className="bg-white w-[420px] rounded-xl shadow-xl p-6"
-      onClick={(e)=>e.stopPropagation()}
-    >
-      <h2 className="text-lg font-semibold mb-4">
-        プリセット作成
-      </h2>
-      <input
-        placeholder="プリセット名"
-        value={presetName}
-        onChange={(e)=>setPresetName(e.target.value)}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 mb-4"
-      />
-      <div className="space-y-2 mb-4">
-        {presetLevels.map((level,index)=>(
-          <div key={index} className="flex gap-2">
-            <input
-              type="number"
-              value={level.smallBlind}
-              onChange={(e)=>{
-                const copy=[...presetLevels]
-                copy[index].smallBlind=Number(e.target.value)
-                setPresetLevels(copy)
-              }}
-              className="w-20 border rounded px-2 py-1"
-            />
-            <span>/</span>
-            <input
-              type="number"
-              value={level.bigBlind}
-              onChange={(e)=>{
-                const copy=[...presetLevels]
-                copy[index].bigBlind=Number(e.target.value)
-                setPresetLevels(copy)
-              }}
-              className="w-20 border rounded px-2 py-1"
-            />
-            <input
-              type="number"
-              value={level.duration}
-              onChange={(e)=>{
-                const copy=[...presetLevels]
-                copy[index].duration=Number(e.target.value)
-                setPresetLevels(copy)
-              }}
-              className="w-20 border rounded px-2 py-1"
-            />
-            <span className="text-sm text-gray-500">
-              min
-            </span>
-          </div>
-        ))}
-      </div>
-      <button
-        onClick={() => {
-          const last = presetLevels[presetLevels.length - 1];
-          const round = (n:number) => Math.round(n / 10) * 10;
-          const nextSB = round(last.smallBlind * 1.5);
-          const nextBB = round(last.bigBlind * 1.5);
-          setPresetLevels([
-            ...presetLevels,
-            {
-              id: presetLevels.length + 1,
-              smallBlind: nextSB,
-              bigBlind: nextBB,
-              ante: nextBB,
-              duration: last.duration
-            }
-          ]);
-        }}
-        className="mb-4 text-sm text-[#F2A900]"
-      >
-        ＋レベル追加
-      </button>
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setIsPresetModalOpen(false)}
-          className="px-4 py-2 rounded bg-gray-200"
-        >
-          キャンセル
-        </button>
-        <button
-          className="px-4 py-2 rounded bg-[#F2A900] text-white"
-        >
-          保存
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-},1000)
-
-return ()=>clearInterval(interval)
-
-},[isRunning,currentLevelIndex,levelsToUse])
+const interval = setInterval(() => {
+  setTimeRemaining(prev => {
+    if (prev <= 1) {
+      if (currentLevelIndex < levelsToUse.length - 1) {
+        const next = currentLevelIndex + 1;
+        setCurrentLevelIndex(next);
+        return levelsToUse[next].duration * 60;
+      }
+      setIsRunning(false);
+      return 0;
+    }
+    return prev - 1;
+  });
+}, 1000);
+return () => clearInterval(interval);
+}, [isRunning, currentLevelIndex, levelsToUse])
 
 const level=levelsToUse[currentLevelIndex]
 
@@ -341,11 +351,9 @@ const seconds=timeRemaining%60
 const totalPrize=
 Object.values(prizePool).reduce((a,b)=>a+b,0)
 
-const [toastMsg, setToastMsg] = useState("");
-
-return(
-
-<main className="min-h-screen bg-[#FFFBF5] overflow-hidden relative">
+return (
+  <>
+    <main className="min-h-screen bg-[#FFFBF5] overflow-hidden relative">
 
 <style>{`
 .side-menu{
@@ -432,7 +440,10 @@ onClick={()=>setSelectedPreset(preset.id)}
 
 <button
 className="w-full py-2 px-4 bg-[#F2A900] text-white rounded-lg font-semibold hover:bg-[#e2a000] transition mb-4"
-onClick={()=>setIsPresetModalOpen(true)}
+onClick={() => {
+  console.log("open modal clicked");
+  setIsPresetModalOpen(true);
+}}
 >
 
 ＋プリセットを作成
@@ -618,5 +629,75 @@ Total
 
 </main>
 
+{isPresetModalOpen &&
+  createPortal(
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <h2 className="text-[18px] text-gray-900 font-semibold mb-4">ブラインドプリセット作成</h2>
+        <div className="mb-4">
+          <label className="block text-[14px] text-gray-800 mb-1">プリセット名</label>
+          <input value={presetName} onChange={e=>setPresetName(e.target.value)} className="w-full border rounded px-3 py-2 text-gray-900" placeholder="例: 通常トーナメント"/>
+        </div>
+        <div className="mb-4">
+          <label className="block text-[14px] text-gray-800 mb-2">レベルリスト</label>
+          <div className="space-y-2">
+            {levels.map((lv,idx)=>(
+              <div key={idx} className="flex justify-between items-center border rounded px-2 py-1 bg-gray-50" draggable onDragStart={()=>handleDragStart(idx)} onDragEnter={()=>handleDragEnter(idx)} onDragEnd={handleDragEnd}>
+                <div className="flex items-center gap-2">
+                  <span className="cursor-move text-gray-400 mr-2">≡</span>
+                  {lv.type==="level"? (
+                    <>
+                      <span className="font-bold text-gray-900">Level {getLevelNumber(idx)}</span>
+                      <input type="number" min={1} step={1} value={lv.smallBlind??""} onChange={e=>{
+                        const v = Math.max(1, Math.round(Number(e.target.value)))
+                        setLevels(ls=>ls.map((l,i)=>i===idx?{...l,smallBlind:v}:l))
+                      }} className="w-16 border rounded px-1 text-gray-900" placeholder="SB"/>
+                      <span className="text-gray-900">/</span>
+                      <input type="number" min={1} step={1} value={lv.bigBlind??""} onChange={e=>handleBbChange(idx,Number(e.target.value))} className="w-16 border rounded px-1 text-gray-900" placeholder="BB"/>
+                      <span className="text-gray-900">(</span>
+                      <input type="number" min={1} step={1} value={lv.ante??""} onChange={e=>{
+                        const v = Math.max(1, Math.round(Number(e.target.value)))
+                        setLevels(ls=>ls.map((l,i)=>i===idx?{...l,ante:v}:l))
+                      }} className="w-16 border rounded px-1 text-gray-900" placeholder="ANTE"/>
+                      <span className="text-gray-900">)</span>
+                      <input type="number" min={1} step={1} value={lv.duration??""} onChange={e=>{
+                        const v = Math.max(1, Math.round(Number(e.target.value)))
+                        setLevels(ls=>ls.map((l,i)=>i===idx?{...l,duration:v}:l))
+                      }} className="w-16 border rounded px-1 text-gray-900" placeholder="分"/>
+                      <span className="text-gray-900">min</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-bold text-gray-900">Break</span>
+                      <input type="number" min={1} step={1} value={lv.duration??""} onChange={e=>{
+                        const v = Math.max(1, Math.round(Number(e.target.value)))
+                        setLevels(ls=>ls.map((l,i)=>i===idx?{...l,duration:v}:l))
+                      }} className="w-16 border rounded px-1 text-gray-900" placeholder="分"/>
+                      <span className="text-gray-900">min</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex gap-2 items-center">
+                  <button className="text-red-500" onClick={()=>removeLevel(idx)}><FiTrash2 size={18}/></button>
+                  {/* 点線メニュー・後で実装 */}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-2 mb-4">
+          <button className="px-3 py-2 bg-[#F2A900] text-white rounded" onClick={addLevel}>＋レベル追加</button>
+          <button className="px-3 py-2 bg-blue-100 text-blue-700 rounded" onClick={addBreak}>＋ブレイク追加</button>
+        </div>
+        <div className="flex gap-4 mt-6">
+          <button className="px-5 py-2 bg-[#F2A900] text-white rounded font-bold" onClick={savePreset}>保存</button>
+          <button className="px-5 py-2 bg-gray-200 text-gray-700 rounded font-bold" onClick={()=>setIsPresetModalOpen(false)}>キャンセル</button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+  </>
 )
 }
