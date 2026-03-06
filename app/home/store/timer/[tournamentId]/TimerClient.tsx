@@ -408,7 +408,13 @@ const interval = setInterval(() => {
   setTimeRemaining(prev => {
     // 10秒前音
     if (prev === 11) {
-      playBeep(880, 150); // 高めの音
+      const audio = new Audio("/tensec.mp3");
+      audio.play(); // 10秒前音
+    }
+    // 残り3,2,1秒カウントダウン音
+    if (prev === 4 || prev === 3 || prev === 2 || prev === 1) {
+      const audio = new Audio("/countdown.mp3");
+      audio.play(); // カウントダウン音
     }
     // レベルアップ音
     if (prev <= 1) {
