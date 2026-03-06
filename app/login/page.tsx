@@ -227,8 +227,8 @@ export default function LoginPage() {
 
   <div className="pt-[50px] text-center">
     
-               <p className="mt-2 text-[10px] text-gray-500">ver 1.1.0</p>
-                <p className="mt-2 text-[10px] text-gray-500">RRPoker by "Runner Runner"</p>
+               <p className="mt-2 text-[10px] text-gray-500">ver 1.2.0</p>
+                <p className="mt-2 text-[10px] text-gray-500">RRPoker by Runner Runner</p>
                 <p className="mt-2 text-[10px] text-gray-500">製作者 : Turn dead man</p>
         </div>
 
