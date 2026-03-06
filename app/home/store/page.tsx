@@ -113,41 +113,67 @@ export default function StorePage() {
   }
 
   async function nextLevel(tournamentId: string, currentLevel: number) {
-    if (!storeId) return
+async function nextLevel(tournamentId: string) {
+  if (!storeId) return
 
-    const tournament = activeTournaments.find((t) => t.id === tournamentId)
-    if (!tournament) return
+  const ref = doc(db, "stores", storeId, "tournaments", tournamentId)
 
-    const customLevels = Array.isArray(tournament.customBlindLevels)
-      ? tournament.customBlindLevels.filter((lv: any) => lv?.type === "level")
-      : null
+  const snap = await getDoc(ref)
+  const data = snap.data()
 
-    const defaultLevels = [
-      { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
-      { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
-      { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
-      { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
-      { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
-      { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
-      { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
-      { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
-    ]
+  if (!data) return
 
-    const levelsToUse =
-      customLevels && customLevels.length > 0 ? customLevels : defaultLevels
+  const currentLevel =
+    typeof data.currentLevelIndex === "number"
+      ? data.currentLevelIndex
+      : 0
 
-    const lastIndex = Math.max(0, levelsToUse.length - 1)
-    const nextIndex = Math.min(currentLevel + 1, lastIndex)
-    const nextDurationSeconds = getNextLevelDurationSeconds(tournament, nextIndex)
+  const tournament = activeTournaments.find(
+    (t) => t.id === tournamentId
+  )
 
-    await updateDoc(
-      doc(db, "stores", storeId, "tournaments", tournamentId),
-      {
-        currentLevelIndex: nextIndex,
-        timeRemaining: nextDurationSeconds,
-        levelStartedAt: serverTimestamp(),
-      }
-    )
+  if (!tournament) return
+
+  const customLevels = Array.isArray(tournament.customBlindLevels)
+    ? tournament.customBlindLevels.filter(
+        (lv: any) => lv?.type === "level"
+      )
+    : null
+
+  const defaultLevels = [
+    { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
+    { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
+    { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
+    { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
+    { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
+    { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
+    { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
+    { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+  ]
+
+  const levelsToUse =
+    customLevels && customLevels.length > 0
+      ? customLevels
+      : defaultLevels
+
+  const lastIndex = Math.max(0, levelsToUse.length - 1)
+
+  const nextIndex = Math.min(currentLevel + 1, lastIndex)
+
+  const nextLevelData = levelsToUse[nextIndex]
+
+  const nextDurationSeconds =
+    typeof nextLevelData?.duration === "number" &&
+    nextLevelData.duration > 0
+      ? nextLevelData.duration * 60
+      : 20 * 60
+
+  await updateDoc(ref, {
+    currentLevelIndex: nextIndex,
+    timeRemaining: nextDurationSeconds,
+    levelStartedAt: serverTimestamp(),
+  })
+}
   }
   // --- タイマー一時停止処理 ---
   async function pauseTimer(tournamentId: string) {
@@ -726,7 +752,7 @@ export default function StorePage() {
                             {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>} 
                           </button>
                           <button
-                            onClick={()=>nextLevel(t.id,t.currentLevelIndex ?? 0)}
+                            onClick={()=>nextLevel(t.id)}
                             className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-400 hover:bg-gray-200 transition"
                           >
                             <FiSkipForward size={16}/>
