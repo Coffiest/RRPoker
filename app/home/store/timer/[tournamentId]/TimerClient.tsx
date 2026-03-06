@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect,useState } from "react"
+import { useEffect,useRef,useState } from "react"
 import { FiTrash2, FiEdit3 } from "react-icons/fi"
 import { addDoc, collection as fsCollection } from "firebase/firestore"
 import { useParams } from "next/navigation"
@@ -248,6 +248,17 @@ async function savePreset(){
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
 const [timeRemaining,setTimeRemaining]=useState(1200)
 const [isRunning,setIsRunning]=useState(false)
+const prevIsRunningRef = useRef(false)
+useEffect(() => {
+  const justStarted = !prevIsRunningRef.current && isRunning;
+
+  if (justStarted && currentLevelIndex === 0 && timeRemaining > 0) {
+    const audio = new Audio("/levelup.mp3");
+    audio.play().catch(() => {});
+  }
+
+  prevIsRunningRef.current = isRunning;
+}, [isRunning, currentLevelIndex, timeRemaining]);
 
 const [tournamentName,setTournamentName]=useState("")
 
@@ -401,44 +412,36 @@ alivePlayers>0
 const levelsToUse=customBlindLevels || blindLevels
 
 useEffect(()=>{
-
-if(!isRunning) {
-  // レベル1開始時（タイマースタート時）
-  if(currentLevelIndex === 0 && timeRemaining > 0) {
-    const audio = new Audio("/levelup.mp3");
-    audio.play();
-  }
-  return;
-}
-let prevTime = timeRemaining;
-const interval = setInterval(() => {
-  setTimeRemaining(prev => {
-    // 10秒前音
-    if (prev === 11) {
-      const audio = new Audio("/tensec.mp3");
-      audio.play(); // 10秒前音
-    }
-    // 残り3,2,1秒カウントダウン音
-    if (prev === 4 || prev === 3 || prev === 2) {
-      const audio = new Audio("/countdown.mp3");
-      audio.play(); // カウントダウン音
-    }
-    // レベルアップ音
-    if (prev <= 1) {
-      if (currentLevelIndex < levelsToUse.length - 1) {
-        const next = currentLevelIndex + 1;
-        setCurrentLevelIndex(next);
-        const audio = new Audio("/levelup.mp3");
-        audio.play(); // レベルアップ音
-        return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
+  if(!isRunning) return;
+  let prevTime = timeRemaining;
+  const interval = setInterval(() => {
+    setTimeRemaining(prev => {
+      // 10秒前音
+      if (prev === 11) {
+        const audio = new Audio("/tensec.mp3");
+        audio.play(); // 10秒前音
       }
-      setIsRunning(false);
-      return 0;
-    }
-    return prev - 1;
-  });
-}, 1000);
-return () => clearInterval(interval);
+      // 残り3,2,1秒カウントダウン音
+      if (prev === 4 || prev === 3 || prev === 2) {
+        const audio = new Audio("/countdown.mp3");
+        audio.play(); // カウントダウン音
+      }
+      // レベルアップ音
+      if (prev <= 1) {
+        if (currentLevelIndex < levelsToUse.length - 1) {
+          const next = currentLevelIndex + 1;
+          setCurrentLevelIndex(next);
+          const audio = new Audio("/levelup.mp3");
+          audio.play(); // レベルアップ音
+          return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
+        }
+        setIsRunning(false);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+  return () => clearInterval(interval);
 }, [isRunning, currentLevelIndex, levelsToUse, timeRemaining])
 
 const level=levelsToUse[currentLevelIndex]
