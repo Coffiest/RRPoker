@@ -509,7 +509,25 @@ export default function StorePage() {
   }
 
   // タイマー画面を新規ウィンドウで開く関数
-  const openTimer = (tournamentId:string) => {
+  const openTimer = async (tournamentId:string) => {
+    if (!storeId) {
+      window.open(
+        `/home/store/timer/${tournamentId}`,
+        "_blank",
+        "width=1200,height=900"
+      )
+      return;
+    }
+    try {
+      await updateDoc(
+        doc(db,"stores",storeId,"tournaments",tournamentId),
+        {
+          timerRunning:false
+        }
+      )
+    } catch(e) {
+      console.error("timerRunning reset error",e)
+    }
     window.open(
       `/home/store/timer/${tournamentId}`,
       "_blank",
