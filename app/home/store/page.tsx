@@ -1035,7 +1035,7 @@ export default function StorePage() {
               className="h-12 rounded-2xl bg-gradient-to-r from-[#F2A900] to-[#D4910A] hover:from-[#D4910A] hover:to-[#C48509] text-white font-semibold text-[15px] flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
             >
               <FiPlus size={20} />
-              <span>加算</span>
+              <span></span>
             </button>
             <button
               type="button"
@@ -1046,7 +1046,7 @@ export default function StorePage() {
               className="h-12 rounded-2xl bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white font-semibold text-[15px] flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
             >
               <FiMinus size={20} />
-              <span>減算</span>
+              <span></span>
             </button>
           </div>
 
