@@ -126,6 +126,8 @@ const [levels,setLevels]=useState<Level[]>([
     duration:null
   }
 ])
+const [dragIndex, setDragIndex] = useState<number | null>(null)
+const [dropIndex, setDropIndex] = useState<number | null>(null)
 
 // 有効数字2桁丸め
 function roundSig2(num:number){
