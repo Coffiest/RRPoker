@@ -17,6 +17,41 @@ getDocs
 import { createPortal } from "react-dom"
 import { deleteDoc } from "firebase/firestore"
 
+const AudioContextClass =
+  typeof window !== "undefined"
+    ? (window.AudioContext || (window as any).webkitAudioContext)
+    : null;
+
+let globalAudioCtx: AudioContext | null = null;
+
+function getAudioContext() {
+  if (!AudioContextClass) return null;
+  if (!globalAudioCtx) {
+    globalAudioCtx = new AudioContextClass();
+  }
+
+  if (globalAudioCtx.state === "suspended") {
+    globalAudioCtx.resume();
+  }
+
+  return globalAudioCtx;
+}
+
+function playBeep(frequency = 440, duration = 200) {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const oscillator = ctx.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = frequency;
+    oscillator.connect(ctx.destination);
+    oscillator.start();
+    setTimeout(() => {
+      oscillator.stop();
+    }, duration);
+  } catch (e) {}
+}
+
 // Toastコンポーネント
 // Toast props型明示
 function Toast({ message, onClose }: { message: string; onClose: () => void }) {
@@ -28,15 +63,31 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   );
 }
 
-interface BlindLevel{
-id:number
-smallBlind:number
-bigBlind:number
-ante:number
-duration:number
-}
+
 
 export default function TimerClient(){
+useEffect(() => {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+}, []);
+const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  ctx.resume();
+
+  const buffer = ctx.createBuffer(1, 1, 22050);
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.start(0);
+
+  setAudioUnlocked(true);
+}
 
 const params=useParams()
 const tournamentId=params.tournamentId as string
@@ -63,17 +114,13 @@ const [presetName,setPresetName]=useState("")
 const [editingPresetId,setEditingPresetId]=useState<string|null>(null)
 const [levels,setLevels]=useState<Level[]>([
   {
-    type: "level",
-    smallBlind: null,
-    bigBlind: null,
-    ante: null,
-    duration: null
+    type:"level",
+    smallBlind:null,
+    bigBlind:null,
+    ante:null,
+    duration:null
   }
 ])
-
-// 並び替え用ドラッグ
-const [dragIndex,setDragIndex]=useState<number|null>(null)
-const [dropIndex,setDropIndex]=useState<number|null>(null)
 
 // 有効数字2桁丸め
 function roundSig2(num:number){
@@ -350,13 +397,20 @@ const levelsToUse=customBlindLevels || blindLevels
 
 useEffect(()=>{
 
-if(!isRunning) return
+if(!isRunning) return;
+let prevTime = timeRemaining;
 const interval = setInterval(() => {
   setTimeRemaining(prev => {
+    // 10秒前音
+    if (prev === 11) {
+      playBeep(880, 150); // 高めの音
+    }
+    // レベルアップ音
     if (prev <= 1) {
       if (currentLevelIndex < levelsToUse.length - 1) {
         const next = currentLevelIndex + 1;
         setCurrentLevelIndex(next);
+        playBeep(440, 300); // レベルアップ音
         return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
       }
       setIsRunning(false);
@@ -366,7 +420,7 @@ const interval = setInterval(() => {
   });
 }, 1000);
 return () => clearInterval(interval);
-}, [isRunning, currentLevelIndex, levelsToUse])
+}, [isRunning, currentLevelIndex, levelsToUse, timeRemaining])
 
 const level=levelsToUse[currentLevelIndex]
 
@@ -384,8 +438,10 @@ Object.values(prizePool).reduce((a,b)=>a+b,0)
 const isPresetSelected = selectedPreset !== ""
 
 return (
-  <>
-    <main className="min-h-screen bg-[#FFFBF5] overflow-hidden relative">
+  <div onClick={unlockAudio} onTouchStart={unlockAudio}>
+    <main
+      className="min-h-screen bg-[#FFFBF5] overflow-hidden relative"
+    >
 
 <style>{`
 .side-menu{
@@ -766,6 +822,6 @@ Total
     document.body
   )
 }
-  </>
+  </div>
 )
 }
