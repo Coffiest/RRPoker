@@ -80,13 +80,72 @@ export default function StorePage() {
       }
     )
   }
-  async function nextLevel(tournamentId: string,currentLevel:number){
-    if(!storeId) return
+  function getNextLevelDurationSeconds(tournament: any, nextIndex: number) {
+    const customLevels = Array.isArray(tournament.customBlindLevels)
+      ? tournament.customBlindLevels.filter((lv: any) => lv?.type === "level")
+      : null
+
+    const defaultLevels = [
+      { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
+      { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
+      { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
+      { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
+      { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
+      { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
+      { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
+      { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+    ]
+
+    const levelsToUse =
+      customLevels && customLevels.length > 0 ? customLevels : defaultLevels
+
+    const safeIndex = Math.min(nextIndex, levelsToUse.length - 1)
+    const nextLevel = levelsToUse[safeIndex]
+
+    if (!nextLevel) return 0
+
+    const durationMinutes =
+      typeof nextLevel.duration === "number" && nextLevel.duration > 0
+        ? nextLevel.duration
+        : 20
+
+    return durationMinutes * 60
+  }
+
+  async function nextLevel(tournamentId: string, currentLevel: number) {
+    if (!storeId) return
+
+    const tournament = activeTournaments.find((t) => t.id === tournamentId)
+    if (!tournament) return
+
+    const customLevels = Array.isArray(tournament.customBlindLevels)
+      ? tournament.customBlindLevels.filter((lv: any) => lv?.type === "level")
+      : null
+
+    const defaultLevels = [
+      { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
+      { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
+      { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
+      { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
+      { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
+      { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
+      { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
+      { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+    ]
+
+    const levelsToUse =
+      customLevels && customLevels.length > 0 ? customLevels : defaultLevels
+
+    const lastIndex = Math.max(0, levelsToUse.length - 1)
+    const nextIndex = Math.min(currentLevel + 1, lastIndex)
+    const nextDurationSeconds = getNextLevelDurationSeconds(tournament, nextIndex)
+
     await updateDoc(
-      doc(db,"stores",storeId,"tournaments",tournamentId),
+      doc(db, "stores", storeId, "tournaments", tournamentId),
       {
-        currentLevelIndex:currentLevel+1,
-        levelStartedAt:serverTimestamp()
+        currentLevelIndex: nextIndex,
+        timeRemaining: nextDurationSeconds,
+        levelStartedAt: serverTimestamp(),
       }
     )
   }
@@ -170,6 +229,10 @@ export default function StorePage() {
           totalEntries,
           alive,
           status: data.status ?? "scheduled",
+          currentLevelIndex: data.currentLevelIndex ?? 0,
+          timeRemaining: data.timeRemaining ?? 1200,
+          selectedPreset: data.selectedPreset ?? "",
+          customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
         })
       }
       setActiveTournaments(list)

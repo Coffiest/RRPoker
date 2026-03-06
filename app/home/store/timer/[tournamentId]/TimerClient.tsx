@@ -374,6 +374,22 @@ const unsub=onSnapshot(ref,(snap)=>{
     "1":0,"2":0,"3":0,"4":0,"5":0,"6":0
   })
 
+  if(typeof d.currentLevelIndex === "number"){
+    setCurrentLevelIndex(d.currentLevelIndex)
+  }
+
+  if(typeof d.timeRemaining === "number"){
+    setTimeRemaining(d.timeRemaining)
+  }
+
+  if(typeof d.selectedPreset === "string"){
+    setSelectedPreset(d.selectedPreset)
+  }
+
+  if(Array.isArray(d.customBlindLevels)){
+    setCustomBlindLevels(d.customBlindLevels)
+  }
+
   // timerRunningの外部同期
   if(typeof d.timerRunning === "boolean") {
     setIsRunning(d.timerRunning)
