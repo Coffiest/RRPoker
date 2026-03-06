@@ -402,7 +402,14 @@ const levelsToUse=customBlindLevels || blindLevels
 
 useEffect(()=>{
 
-if(!isRunning) return;
+if(!isRunning) {
+  // レベル1開始時（タイマースタート時）
+  if(currentLevelIndex === 0 && timeRemaining > 0) {
+    const audio = new Audio("/levelup.mp3");
+    audio.play();
+  }
+  return;
+}
 let prevTime = timeRemaining;
 const interval = setInterval(() => {
   setTimeRemaining(prev => {
@@ -412,7 +419,7 @@ const interval = setInterval(() => {
       audio.play(); // 10秒前音
     }
     // 残り3,2,1秒カウントダウン音
-    if (prev === 4 || prev === 3 || prev === 2 || prev === 1) {
+    if (prev === 4 || prev === 3 || prev === 2) {
       const audio = new Audio("/countdown.mp3");
       audio.play(); // カウントダウン音
     }
