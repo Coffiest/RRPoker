@@ -661,7 +661,7 @@ export default function StorePage() {
         </div>
                 <div className="mt-6 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <p className="text-[14px] font-semibold text-gray-900">
-            入金申請一覧
+            Cash
           </p>
 
           {depositRequests.length === 0 ? (
