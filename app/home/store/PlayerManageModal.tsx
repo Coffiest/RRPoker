@@ -202,15 +202,15 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                 <button
                   onClick={() => handleTournamentBustChange(-1)}
                   disabled={tournamentBust <= 0 || bustUpdating}
-                  className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
-                >−</button>
+                  className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition"
+                >ー</button>
                 <span className="text-xl font-bold text-gray-900 w-8 text-center">
                   {tournamentBust}
                 </span>
                 <button
                   onClick={() => handleTournamentBustChange(1)}
                   disabled={bustUpdating}
-                  className="w-7 h-7 rounded-full bg-orange-100 text-orange-600 hover:bg-orange-200 transition"
+                  className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition"
                 >＋</button>
               </div>
             </div>
@@ -227,19 +227,19 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                     <div className="grid grid-cols-3 gap-2">
                       {[{ label: "Entry", field: "entryCount" }, { label: "Reentry", field: "reentryCount" }, { label: "Addon", field: "addonCount" }].map(item => (
                         <div key={item.field} className="flex flex-col items-center gap-1">
-                          <span className="text-[11px] text-gray-500">{item.label}</span>
-                          <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-gray-800">{item.label}</span>
+                          <div className="flex items-center text-gray-800 gap-2">
                             <button
                               onClick={() => handleEntryChange(player.id, item.field as any, -1)}
                               disabled={player[item.field] <= 0}
-                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-sm"
-                            >−</button>
+                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-orange-600 bg-orange-100  text-sm"
+                            >ー</button>
                             <span className="w-6 text-center font-medium">
                               {player[item.field]}
                             </span>
                             <button
                               onClick={() => handleEntryChange(player.id, item.field as any, 1)}
-                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-sm"
+                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-orange-600 bg-orange-100  text-sm"
                             >＋</button>
                           </div>
                         </div>

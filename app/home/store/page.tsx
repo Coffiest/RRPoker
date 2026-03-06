@@ -634,19 +634,19 @@ export default function StorePage() {
                         <div className="flex items-center gap-2 mt-2">
                           <button
                             onClick={()=>prevLevel(t.id,t.currentLevelIndex ?? 0)}
-                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-400 hover:bg-gray-200 transition"
                           >
                             <FiSkipBack size={16}/>
                           </button>
                           <button
                             onClick={() => toggleTimer(t.id)}
-                            className={`h-8 w-8 flex items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-800 transition`}
+                            className={`h-8 w-8 flex items-center justify-center rounded-lg bg-gray-700 text-white hover:bg-gray-800 transition`}
                           >
                             {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>} 
                           </button>
                           <button
                             onClick={()=>nextLevel(t.id,t.currentLevelIndex ?? 0)}
-                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                            className="h-8 w-8 flex items-center justify-center rounded-lg bg-gray-400 hover:bg-gray-200 transition"
                           >
                             <FiSkipForward size={16}/>
                           </button>
