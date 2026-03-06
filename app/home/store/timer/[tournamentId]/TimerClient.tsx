@@ -22,34 +22,39 @@ const AudioContextClass =
     ? (window.AudioContext || (window as any).webkitAudioContext)
     : null;
 
-let globalAudioCtx: AudioContext | null = null;
+let audioCtx: AudioContext | null = null;
 
-function getAudioContext() {
+function getAudio() {
   if (!AudioContextClass) return null;
-  if (!globalAudioCtx) {
-    globalAudioCtx = new AudioContextClass();
+
+  if (!audioCtx) {
+    audioCtx = new AudioContextClass();
   }
 
-  if (globalAudioCtx.state === "suspended") {
-    globalAudioCtx.resume();
-  }
-
-  return globalAudioCtx;
+  return audioCtx;
 }
 
-function playBeep(frequency = 440, duration = 200) {
-  try {
-    const ctx = getAudioContext();
-    if (!ctx) return;
-    const oscillator = ctx.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = frequency;
-    oscillator.connect(ctx.destination);
-    oscillator.start();
-    setTimeout(() => {
-      oscillator.stop();
-    }, duration);
-  } catch (e) {}
+function playBeep(freq = 440, ms = 200) {
+  const ctx = getAudio();
+  if (!ctx) return;
+
+  if (ctx.state === "suspended") {
+    ctx.resume();
+  }
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = freq;
+
+  gain.gain.setValueAtTime(0.25, ctx.currentTime);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start();
+  osc.stop(ctx.currentTime + ms / 1000);
 }
 
 // Toastコンポーネント
@@ -67,7 +72,7 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
 
 export default function TimerClient(){
 useEffect(() => {
-  const ctx = getAudioContext();
+  const ctx = getAudio();
   if (!ctx) return;
 }, []);
 const [audioUnlocked, setAudioUnlocked] = useState(false);
@@ -75,7 +80,7 @@ const [audioUnlocked, setAudioUnlocked] = useState(false);
 function unlockAudio() {
   if (audioUnlocked) return;
 
-  const ctx = getAudioContext();
+  const ctx = getAudio();
   if (!ctx) return;
 
   ctx.resume();
@@ -410,7 +415,8 @@ const interval = setInterval(() => {
       if (currentLevelIndex < levelsToUse.length - 1) {
         const next = currentLevelIndex + 1;
         setCurrentLevelIndex(next);
-        playBeep(440, 300); // レベルアップ音
+        const audio = new Audio("/levelup.mp3");
+        audio.play(); // レベルアップ音
         return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
       }
       setIsRunning(false);
