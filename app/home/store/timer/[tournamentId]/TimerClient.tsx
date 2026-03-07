@@ -380,6 +380,14 @@ const unsub=onSnapshot(ref,(snap)=>{
   if(typeof d.timerRunning === "boolean") {
     setIsRunning(d.timerRunning)
   }
+
+  // currentLevelIndex, timeRemainingの外部同期
+  if(typeof d.currentLevelIndex === "number") {
+    setCurrentLevelIndex(d.currentLevelIndex)
+  }
+  if(typeof d.timeRemaining === "number") {
+    setTimeRemaining(d.timeRemaining)
+  }
 })
 
 return ()=>unsub()
