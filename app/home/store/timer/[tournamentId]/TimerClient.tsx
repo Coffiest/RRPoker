@@ -283,14 +283,14 @@ const [prizePool,setPrizePool]=useState<Record<string,number>>({
 })
 
 const blindLevels:BlindLevel[]=[
-{smallBlind:15,bigBlind:30,ante:30,duration:20},
-{smallBlind:20,bigBlind:40,ante:40,duration:20},
-{smallBlind:25,bigBlind:50,ante:50,duration:20},
-{smallBlind:30,bigBlind:60,ante:60,duration:20},
-{smallBlind:40,bigBlind:80,ante:80,duration:20},
-{smallBlind:50,bigBlind:100,ante:100,duration:20},
-{smallBlind:75,bigBlind:150,ante:150,duration:20},
-{smallBlind:100,bigBlind:200,ante:200,duration:20},
+{type: "level", smallBlind:15, bigBlind:30, ante:30, duration:20},
+{type: "level", smallBlind:20, bigBlind:40, ante:40, duration:20},
+{type: "level", smallBlind:25, bigBlind:50, ante:50, duration:20},
+{type: "level", smallBlind:30, bigBlind:60, ante:60, duration:20},
+{type: "level", smallBlind:40, bigBlind:80, ante:80, duration:20},
+{type: "level", smallBlind:50, bigBlind:100, ante:100, duration:20},
+{type: "level", smallBlind:75, bigBlind:150, ante:150, duration:20},
+{type: "level", smallBlind:100, bigBlind:200, ante:200, duration:20},
 ]
 
 const [blindPresets,setBlindPresets]=useState<any[]>([])
@@ -564,6 +564,7 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
         onClick={async () => {
           const ok = window.confirm("このプリセットを削除しますか？")
           if (!ok) return
+          if (!storeId) return
           await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id))
           setBlindPresets((prev) => prev.filter((p) => p.id !== preset.id))
         }}
