@@ -119,6 +119,14 @@ export default function TournamentsPage() {
       alert("名称と日付は必須です")
       return
     }
+    if (
+      Number(form.entryFee) === 0 &&
+      Number(form.reentryFee) === 0 &&
+      Number(form.addonFee) === 0
+    ) {
+      alert("エントリー費、リエントリー費、アドオン費のいずれかは1以上必要です")
+      return
+    }
 
     const flyerUrl = await uploadImageIfNeeded()
 
