@@ -282,20 +282,37 @@ const [prizePool,setPrizePool]=useState<Record<string,number>>({
 "6":0
 })
 
-const blindLevels:BlindLevel[]=[
-{type: "level", smallBlind:15, bigBlind:30, ante:30, duration:20},
-{type: "level", smallBlind:20, bigBlind:40, ante:40, duration:20},
-{type: "level", smallBlind:25, bigBlind:50, ante:50, duration:20},
-{type: "level", smallBlind:30, bigBlind:60, ante:60, duration:20},
-{type: "level", smallBlind:40, bigBlind:80, ante:80, duration:20},
-{type: "level", smallBlind:50, bigBlind:100, ante:100, duration:20},
-{type: "level", smallBlind:75, bigBlind:150, ante:150, duration:20},
-{type: "level", smallBlind:100, bigBlind:200, ante:200, duration:20},
-]
-
 const [blindPresets,setBlindPresets]=useState<any[]>([])
-const [selectedPreset,setSelectedPreset]=useState<string>("")
 const [customBlindLevels,setCustomBlindLevels]=useState<BlindLevel[]|null>(null)
+async function applyPreset(preset:any){
+  if(!storeId) return
+  const levels = Array.isArray(preset.levels)
+    ? preset.levels.filter((lv:any)=>lv?.type==="level")
+    : []
+  if(levels.length===0) return
+  const firstDuration =
+    typeof levels[0].duration==="number"
+      ? levels[0].duration*60
+      : 1200
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+  await updateDoc(ref,{
+    selectedPreset:preset.id,
+    customBlindLevels:levels,
+    currentLevelIndex:0,
+    timeRemaining:firstDuration
+  })
+}
+ function getActiveLevels(): BlindLevel[] {
+   if (!Array.isArray(customBlindLevels)) {
+     return []
+   }
+ 
+   const levels = customBlindLevels.filter(
+     (lv: any) => lv?.type === "level"
+   )
+ 
+   return levels
+ }
 
 useEffect(()=>{
 
@@ -316,26 +333,7 @@ fetchPresets()
 
 },[storeId,isPresetModalOpen])
 
-useEffect(()=>{
 
-if(!selectedPreset) return
-
-const preset=blindPresets.find(p=>p.id===selectedPreset)
-
-if(preset && preset.levels){
-
-setCustomBlindLevels(preset.levels)
-setCurrentLevelIndex(0)
-
-setTimeRemaining(
-preset.levels[0]?.duration
-? preset.levels[0].duration*60
-:1200
-)
-
-}
-
-},[selectedPreset,blindPresets])
 
 useEffect(()=>{
 
@@ -387,7 +385,15 @@ const unsub=onSnapshot(ref,(snap)=>{
   }
   if(typeof d.timeRemaining === "number") {
     setTimeRemaining(d.timeRemaining)
+    if(Array.isArray(d.customBlindLevels)){
+      setCustomBlindLevels(d.customBlindLevels)
+    }
   }
+
+    if(Array.isArray(d.customBlindLevels)){
+  setCustomBlindLevels(d.customBlindLevels)
+}
+
 })
 
 return ()=>unsub()
@@ -419,7 +425,7 @@ alivePlayers>0
 ?Math.floor(totalChips/alivePlayers)
 :0
 
-const levelsToUse=customBlindLevels || blindLevels
+const levelsToUse = getActiveLevels()
 
 useEffect(()=>{
   if(!isRunning) return;
@@ -454,12 +460,12 @@ useEffect(()=>{
   return () => clearInterval(interval);
 }, [isRunning, currentLevelIndex, levelsToUse, timeRemaining])
 
-const level=levelsToUse[currentLevelIndex]
+const level = levelsToUse[currentLevelIndex] ?? null
 
-const nextLevel=
-currentLevelIndex<levelsToUse.length-1
-?levelsToUse[currentLevelIndex+1]
-:level
+const nextLevel =
+  currentLevelIndex < levelsToUse.length - 1
+    ? levelsToUse[currentLevelIndex + 1]
+    : level
 
 const minutes=Math.floor(timeRemaining/60)
 const seconds=timeRemaining%60
@@ -467,7 +473,7 @@ const seconds=timeRemaining%60
 const totalPrize=
 Object.values(prizePool).reduce((a,b)=>a+b,0)
 
-const isPresetSelected = selectedPreset !== ""
+const isPresetSelected = levelsToUse.length > 0 && level !== null
 
 return (
   <div onClick={unlockAudio} onTouchStart={unlockAudio}>
@@ -547,8 +553,14 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
     <div key={preset.id} className="flex items-center gap-2 mb-2">
       <button
         type="button"
-        className={["flex-1 py-2 px-4 rounded-lg font-semibold border transition","bg-white text-gray-900",selectedPreset === preset.id ? "border-[#F2A900] ring-2 ring-[#F2A900]/30" : "border-gray-200 hover:border-gray-300"].join(" ")}
-        onClick={() => setSelectedPreset(preset.id)}
+
+        className={[
+          "flex-1 py-2 px-4 rounded-lg font-semibold border transition",
+          "bg-white text-gray-900",
+          "border-gray-200 hover:border-gray-300"
+        ].join(" ")}
+        
+        onClick={() => applyPreset(preset)}
       >
         {preset.name}
       </button>

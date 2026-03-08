@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
-// ...existing code...
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore"
 import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2 } from "react-icons/fi"
@@ -61,7 +60,6 @@ export default function HomePage() {
   const [isHistoryFlipped, setIsHistoryFlipped] = useState(false)
   const [isDetailedRankingModalOpen, setIsDetailedRankingModalOpen] = useState(false)
   const [favoriteMessage, setFavoriteMessage] = useState("")
-  // ...以降のロジック・JSXもこの関数内...
   const [favoritePulse, setFavoritePulse] = useState("")
   const [historyItems, setHistoryItems] = useState<any[]>([])
   const [ranking, setRanking] = useState<RankingPlayer[]>([])
@@ -84,7 +82,6 @@ export default function HomePage() {
   const [rrRankingLoading, setRrRankingLoading] = useState(true)
   const [displayBalance, setDisplayBalance] = useState(0)
   const [displayNetGain, setDisplayNetGain] = useState(0)
-  // チップ/BB表記切り替え用
   const [showBB, setShowBB] = useState(false)
   const balanceRef = useRef(0)
   const netGainRef = useRef(0)
@@ -102,10 +99,8 @@ export default function HomePage() {
       if (!userId) return
       const snap = await getDoc(doc(db, "users", userId))
       const data = snap.data()
-      // role取得
       const userRole = data?.role ?? null
       setRole(userRole)
-      // roleがstoreなら即リダイレクト
       if (userRole === "store") {
         router.replace("/home/store")
         return
@@ -121,7 +116,6 @@ export default function HomePage() {
       }
     }
 
-    // role未取得時は何もせず待機
     if (!userId) return
     fetchUser()
   }, [userId, router])
@@ -292,7 +286,6 @@ export default function HomePage() {
     return rounded.toLocaleString()
   }
 
-  // チップ/BB表記切り替え対応
   const formatChipValue = (value: number) => {
     if (showBB && useBb) return `${formatBbValue(value)}BB`
     return `${unitLabel}${value.toLocaleString()}`
@@ -616,44 +609,99 @@ export default function HomePage() {
   }, [favoriteStores, joinedStores])
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-28">
-      <HomeHeader
-        homePath="/home"
-        myPagePath="/home/mypage"
-        showNotifications
-        menuItems={getCommonMenuItems(router, 'user')}
-      />
-
+    <main className="min-h-screen bg-[#FFFBF5] pb-32">
       <style>{`
-        @keyframes arrowShift {
-          0% {
-            stroke-dashoffset: 10;
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
           }
-          100% {
-            stroke-dashoffset: 0;
-          }
-        }
-        .arrow-animate {
-          animation: arrowShift 1.5s ease-in-out infinite;
-          stroke-dasharray: 10;
-        }
-        @keyframes tickerPulse {
-          0% {
-            transform: translateY(6px);
-            opacity: 0.6;
-          }
-          100% {
-            transform: translateY(0);
+          to {
             opacity: 1;
+            transform: translateY(0);
           }
         }
-        .ticker {
-          font-variant-numeric: tabular-nums;
-          letter-spacing: 0.02em;
+        .animate-slideUp {
+          animation: slideUp 0.3s ease-out;
         }
-        .ticker-animate {
-          display: inline-block;
-          animation: tickerPulse 0.6s ease;
+        .profile-card {
+          background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+          box-shadow: 
+            0 2px 8px rgba(242, 169, 0, 0.06),
+            0 8px 24px rgba(0, 0, 0, 0.04);
+        }
+        .store-badge {
+          background: linear-gradient(145deg, rgba(242, 169, 0, 0.08) 0%, rgba(242, 169, 0, 0.03) 100%);
+          border: 1.5px solid rgba(242, 169, 0, 0.2);
+        }
+        .rr-board {
+          position: relative;
+          background: linear-gradient(145deg, #FFFBF5 0%, #FFF8ED 100%);
+          border: 1px solid rgba(242, 169, 0, 0.15);
+          border-radius: 28px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(242, 169, 0, 0.08), 0 12px 32px rgba(242, 169, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        .rr-rate-card {
+          background: linear-gradient(135deg, #F2A900 0%, #D4910A 100%);
+          border-radius: 20px;
+          padding: 24px;
+          box-shadow: 0 4px 16px rgba(242, 169, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+          position: relative;
+          overflow: hidden;
+        }
+        .rr-rate-card::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+        }
+        .rr-rate-card::after {
+          content: "";
+          position: absolute;
+          top: -50%;
+          right: -20%;
+          width: 200px;
+          height: 200px;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+          border-radius: 50%;
+        }
+        .rr-ranking-item {
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(242, 169, 0, 0.1);
+          border-radius: 16px;
+          padding: 14px 16px;
+          box-shadow: 0 1px 3px rgba(242, 169, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .rr-ranking-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(242, 169, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+          border-color: rgba(242, 169, 0, 0.2);
+        }
+        .medal-gold {
+          background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+          box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .medal-silver {
+          background: linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%);
+          box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+        .medal-bronze {
+          background: linear-gradient(135deg, #F4A460 0%, #CD7F32 100%);
+          box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+        .rr-my-entry {
+          background: linear-gradient(135deg, #FFFBF5 0%, #FFF4E0 100%);
+          border: 1.5px solid rgba(242, 169, 0, 0.3);
+          border-radius: 16px;
+          padding: 14px 16px;
+          box-shadow: 0 2px 8px rgba(242, 169, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
         .bank-card {
           perspective: 1200px;
@@ -712,181 +760,110 @@ export default function HomePage() {
           overflow-y: auto;
           padding-right: 2px;
         }
-        .rr-board {
-          position: relative;
-          background: linear-gradient(145deg, #FFFBF5 0%, #FFF8ED 100%);
-          border: 1px solid rgba(242, 169, 0, 0.15);
-          border-radius: 28px;
-          padding: 24px;
-          box-shadow: 0 2px 8px rgba(242, 169, 0, 0.08), 0 12px 32px rgba(242, 169, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-          z-index: 1;
+        .ticker {
+          font-variant-numeric: tabular-nums;
+          letter-spacing: 0.02em;
         }
-        .rr-rate-card {
-          background: linear-gradient(135deg, #F2A900 0%, #D4910A 100%);
-          border-radius: 20px;
-          padding: 24px;
-          box-shadow: 0 4px 16px rgba(242, 169, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
-          position: relative;
-          overflow: hidden;
+        .ticker-animate {
+          display: inline-block;
+          animation: tickerPulse 0.6s ease;
         }
-        .rr-rate-card::before {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+        @keyframes tickerPulse {
+          0% {
+            transform: translateY(6px);
+            opacity: 0.6;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
         }
-        .rr-rate-card::after {
-          content: "";
-          position: absolute;
-          top: -50%;
-          right: -20%;
-          width: 200px;
-          height: 200px;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-          border-radius: 50%;
-        }
-        .rr-ranking-item {
-          background: rgba(255, 255, 255, 0.85);
+        .glass-card {
+          background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(242, 169, 0, 0.1);
-          border-radius: 16px;
-          padding: 14px 16px;
-          box-shadow: 0 1px 3px rgba(242, 169, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .rr-ranking-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(242, 169, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
-          border-color: rgba(242, 169, 0, 0.2);
-        }
-        .medal-gold {
-          background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-          box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        }
-        .medal-silver {
-          background: linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%);
-          box-shadow: 0 2px 8px rgba(192, 192, 192, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-        }
-        .medal-bronze {
-          background: linear-gradient(135deg, #F4A460 0%, #CD7F32 100%);
-          box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-        }
-        .rr-divider {
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, rgba(242, 169, 0, 0.2) 50%, transparent 100%);
-        }
-        .rr-my-entry {
-          background: linear-gradient(135deg, #FFFBF5 0%, #FFF4E0 100%);
-          border: 1.5px solid rgba(242, 169, 0, 0.3);
-          border-radius: 16px;
-          padding: 14px 16px;
-          box-shadow: 0 2px 8px rgba(242, 169, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
-        }
-        .rr-more-btn {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(242, 169, 0, 0.4);
-          color: #D4910A;
-          border-radius: 14px;
-          padding: 12px;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(242, 169, 0, 0.15);
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .rr-more-btn:hover {
-          background: rgba(255, 255, 255, 1);
-          border-color: rgba(242, 169, 0, 0.6);
-          box-shadow: 0 4px 12px rgba(242, 169, 0, 0.25);
-          color: #F2A900;
-        }
-        .rr-full-ranking-container {
-          background: linear-gradient(145deg, #FFF8ED 0%, #FFF0D6 100%);
-          border-radius: 20px;
-          padding: 16px;
-          max-height: 435px;
-          overflow-y: auto;
-        }
-        .rr-full-ranking-container::-webkit-scrollbar {
-          width: 6px;
-        }
-        .rr-full-ranking-container::-webkit-scrollbar-track {
-          background: rgba(242, 169, 0, 0.05);
-          border-radius: 3px;
-        }
-        .rr-full-ranking-container::-webkit-scrollbar-thumb {
-          background: rgba(242, 169, 0, 0.3);
-          border-radius: 3px;
-        }
-        .rr-full-ranking-container::-webkit-scrollbar-thumb:hover {
-          background: rgba(242, 169, 0, 0.5);
+        .modal-overlay {
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
         }
       `}</style>
+      
+      <HomeHeader
+        homePath="/home"
+        myPagePath="/home/mypage"
+        showNotifications
+        menuItems={getCommonMenuItems(router, 'user')}
+      />
 
-      <div className="mx-auto max-w-sm px-5">
+      <div className="mx-auto max-w-sm px-4">
         {currentStoreId && currentStore ? (
           <>
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <div className="flex flex-col items-center">
-                <div className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
-                  {profile.iconUrl ? (
-                    <img src={profile.iconUrl} alt={profile.name ?? "icon"} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] text-gray-500">icon</span>
-                  )}
+            <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-[#F2A900] bg-white shadow-md">
+                    {profile.iconUrl ? (
+                      <img src={profile.iconUrl} alt={profile.name ?? "icon"} className="h-full w-full object-cover" />
+                    ) : (
+                      <FiUser className="text-[20px] text-gray-400" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[15px] font-semibold text-gray-900">{profile.name || ""}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-[12px] text-green-600 font-medium">入店中</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-2 text-[13px] font-semibold text-gray-900">
-                  {profile.name || ""}
-                </p>
+                
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 rounded-full bg-[#F2A900]/10 flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 8h12M8 2l6 6-6 6" stroke="#F2A900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white">
+                    {currentStore.iconUrl ? (
+                      <img src={currentStore.iconUrl} alt={currentStore.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-gray-400">店舗</span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex flex-col items-center flex-1">
-                <svg className="h-1" width="100%" viewBox="0 0 80 1" preserveAspectRatio="none">
-                  <line x1="0" y1="0.5" x2="80" y2="0.5" stroke="#F2A900" strokeWidth="2" className="arrow-animate" />
-                </svg>
-                <span className="text-[11px] font-semibold text-[#F2A900] mt-1">入店中</span>
-                <svg className="h-1" width="100%" viewBox="0 0 80 1" preserveAspectRatio="none">
-                  <line x1="0" y1="0.5" x2="80" y2="0.5" stroke="transparent" strokeWidth="2" />
-                </svg>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
-                  {currentStore.iconUrl ? (
-                    <img src={currentStore.iconUrl} alt={currentStore.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-[10px] text-gray-500">icon</span>
-                  )}
-                </div>
-                <p className="mt-2 text-[13px] font-semibold text-gray-900">
-                  {currentStore.name || ""}
-                </p>
+              <div className="store-badge rounded-2xl p-3 text-center">
+                <p className="text-[13px] font-semibold text-gray-700">{currentStore.name || ""}</p>
+                {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    レート: {currentStore.ringBlindSb}/{currentStore.ringBlindBb}
+                  </p>
+                )}
               </div>
             </div>
 
             <button
               type="button"
               onClick={handleLeaveStore}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-200 py-2 text-[13px] font-semibold text-red-600 transition hover:border-red-300 hover:text-red-700"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 py-3 text-[14px] font-medium text-red-600 transition-all hover:bg-red-50 active:scale-98"
             >
-              <FiLogOut className="text-[14px]" />
+              <FiLogOut className="text-[16px]" />
               退店する
             </button>
           </>
         ) : (
-          <div className="mt-6 flex flex-col items-center text-center">
-            <div className="flex h-[88px] w-[88px] items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+          <div className="mt-6 profile-card rounded-3xl p-6 text-center animate-slideUp">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#F2A900] bg-white mx-auto shadow-md">
               {profile.iconUrl ? (
                 <img src={profile.iconUrl} alt={profile.name ?? "icon"} className="h-full w-full object-cover" />
               ) : (
-                <span className="text-[12px] text-gray-500">icon</span>
+                <FiUser className="text-[28px] text-gray-400" />
               )}
             </div>
-            <p className="mt-3 text-[22px] font-semibold text-gray-900">
+            <p className="mt-4 text-[20px] font-semibold text-gray-900">
               {profile.name || ""}
             </p>
           </div>
@@ -895,18 +872,18 @@ export default function HomePage() {
         {!currentStoreId && (
           <>
             <div className="mt-6">
-              <p className="text-[13px] text-gray-500">入店したことのある店舗</p>
+              <p className="text-[14px] font-medium text-gray-600 mb-3">入店したことのある店舗</p>
               {orderedJoinedStores.length > 0 ? (
-                <div className="mt-3 flex gap-3 overflow-x-auto">
+                <div className="flex gap-3 overflow-x-auto pb-2">
                   <button
                     type="button"
                     onClick={openJoinModal}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors flex-shrink-0"
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] hover:from-[#D4910A] hover:to-[#C48509] text-white transition-all shadow-md flex-shrink-0 active:scale-95"
                     aria-label="店舗を探す"
                   >
-                    <FiSearch className="text-[20px] text-[#F2A900]" />
+                    <FiSearch size={20} />
                   </button>
-                  <div className="border-l border-gray-300 h-8 self-center"></div>
+                  <div className="border-l border-gray-200 h-10 self-center"></div>
                   {orderedJoinedStores.map(storeId => {
                     const store = stores[storeId]
                     const isFavorite = favoriteStores.includes(storeId)
@@ -915,67 +892,67 @@ export default function HomePage() {
                         key={storeId}
                         type="button"
                         onClick={() => store && setSelectedStore(store)}
-                        className={`flex h-14 w-14 items-center justify-center rounded-full border bg-white ${
-                          isFavorite ? "border-[#F4D77C]" : "border-gray-200"
+                        className={`flex h-14 w-14 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all active:scale-95 ${
+                          isFavorite ? "border-[#F2A900]" : "border-gray-200"
                         }`}
                       >
                         {store?.iconUrl ? (
                           <img src={store.iconUrl} alt={store.name} className="h-12 w-12 rounded-full object-cover" />
                         ) : (
-                          <span className="text-[12px] text-gray-500">店</span>
+                          <span className="text-[12px] text-gray-400">店</span>
                         )}
                       </button>
                     )
                   })}
                 </div>
               ) : (
-                <div className="mt-3 flex gap-3 items-center">
+                <div className="flex gap-3 items-center">
                   <button
                     type="button"
                     onClick={openJoinModal}
-                    className="flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors flex-shrink-0"
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] hover:from-[#D4910A] hover:to-[#C48509] text-white transition-all shadow-md flex-shrink-0 active:scale-95"
                     aria-label="店舗を探す"
                   >
-                    <FiSearch className="text-[20px] text-[#F2A900]" />
+                    <FiSearch size={20} />
                   </button>
-                  <div className="border-l border-gray-300 h-8"></div>
+                  <div className="border-l border-gray-200 h-10"></div>
                   <p className="text-[13px] text-gray-500">入店したことのある店舗がありません</p>
                 </div>
               )}
             </div>
 
-            {/* RR Rating Header - Outside Frame */}
-            <div className="relative mt-6 flex items-center gap-1">
+            {/* RR Rating Section */}
+            <div className="relative mt-6 flex items-center gap-2">
               <div className="flex items-center gap-2">
-                <FiTrendingUp className="text-[16px] text-[#F2A900]" />
-                <p className="text-[14px] font-semibold text-gray-900">RR Rating</p>
+                <FiTrendingUp className="text-[18px] text-[#F2A900]" />
+                <p className="text-[16px] font-semibold text-gray-900">RR Rating</p>
               </div>
               <button
                 type="button"
                 onClick={() => setRrRatingInfoOpen(prev => !prev)}
-                className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-gray-500"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
                 aria-label="RR Ratingについて"
               >
-                <FiHelpCircle className="text-[14px]" />
+                <FiHelpCircle size={14} />
               </button>
               {rrRatingInfoOpen && (
-                <div className="absolute left-0 top-9 z-50 w-[220px] rounded-xl border border-gray-200 bg-white p-3 text-[11px] text-gray-600 shadow-lg">
+                <div className="absolute left-0 top-10 z-50 w-[240px] rounded-2xl border border-gray-200 bg-white p-4 text-[12px] text-gray-600 shadow-xl animate-slideUp">
                   RR Rating(RRレーティング)とは、ポーカーの強さを数値化したもの。2000で上級者、3000で世界最強レベル。
                 </div>
               )}
             </div>
 
-            {/* RR Rating Frame */}
-            <div className={`mt-2 rr-board relative transition-transform duration-500 min-h-[500px]`} style={{
+            {/* RR Rating Card */}
+            <div className={`mt-3 rr-board relative transition-all duration-500 min-h-[500px]`} style={{
               transformStyle: 'preserve-3d',
               transform: rrCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
             }}>
-              {/* Front Face - Current Rate Display */}
+              {/* Front Face */}
               {!rrCardFlipped && (
               <>
               <div className="rr-rate-card">
                 <p className="relative z-10 text-[12px] font-medium text-white/90">現在のレート</p>
-                <p className="relative z-10 mt-2 text-[32px] font-bold text-white tracking-tight drop-shadow-sm">
+                <p className="relative z-10 mt-2 text-[36px] font-bold text-white tracking-tight drop-shadow-sm">
                   {(rrMyEntry?.rating ?? rrRatingValue).toLocaleString()}
                 </p>
               </div>
@@ -983,8 +960,8 @@ export default function HomePage() {
               {/* Ranking Section */}
               <div className="mt-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <FiAward className="text-[14px] text-[#F2A900]" />
-                  <p className="text-[12px] font-semibold text-gray-600">RANKING</p>
+                  <FiAward className="text-[16px] text-[#F2A900]" />
+                  <p className="text-[13px] font-semibold text-gray-600">RANKING</p>
                 </div>
                 <div className="space-y-2">
                   {rrRankingLoading ? (
@@ -1020,7 +997,7 @@ export default function HomePage() {
                                 <p className="text-[11px] font-medium text-gray-500">{player.rank}位</p>
                               </div>
                             </div>
-                            <p className="text-[14px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
+                            <p className="text-[15px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
                           </div>
                         </div>
                       )
@@ -1032,12 +1009,7 @@ export default function HomePage() {
               </div>
 
               {/* Divider */}
-              <div className="mt-5 mb-4 relative">
-                <div className="rr-divider" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3" style={{ backgroundColor: 'inherit' }}>
-                  <p className="text-[11px] font-semibold text-gray-400">あなた</p>
-                </div>
-              </div>
+              <div className="mt-5 mb-4 h-px bg-gradient-to-r from-transparent via-[#F2A900]/20 to-transparent"></div>
 
               {/* Your Entry */}
               <div className="rr-my-entry">
@@ -1047,7 +1019,7 @@ export default function HomePage() {
                       {profile.iconUrl ? (
                         <img src={profile.iconUrl} alt={profile.name} className="h-8 w-8 rounded-full object-cover" />
                       ) : (
-                        <FiUser className="text-[14px] text-[#F2A900]" />
+                        <FiUser className="text-[16px] text-[#F2A900]" />
                       )}
                     </div>
                     <div>
@@ -1055,7 +1027,7 @@ export default function HomePage() {
                       <p className="text-[11px] font-medium text-[#D4910A]">{rrMyEntry?.rank ?? "-"}位</p>
                     </div>
                   </div>
-                  <p className="text-[14px] font-bold text-gray-900">
+                  <p className="text-[15px] font-bold text-gray-900">
                     {(rrMyEntry?.rating ?? rrRatingValue).toLocaleString()}
                   </p>
                 </div>
@@ -1063,7 +1035,7 @@ export default function HomePage() {
               </>
               )}
 
-              {/* Back Face - Full Ranking Display */}
+              {/* Back Face */}
               {rrCardFlipped && (
               <div style={{ transform: 'rotateY(180deg)' }}>
                 {rrRankingLoading ? (
@@ -1073,10 +1045,10 @@ export default function HomePage() {
                 ) : rrBackFaceVisible ? (
                   <>
                     <div className="flex items-center gap-2 mb-3">
-                      <FiAward className="text-[14px] text-[#F2A900]" />
-                      <p className="text-[12px] font-semibold text-gray-600">TOP 100 RANKING</p>
+                      <FiAward className="text-[16px] text-[#F2A900]" />
+                      <p className="text-[13px] font-semibold text-gray-600">TOP 100 RANKING</p>
                     </div>
-                    <div className="rr-full-ranking-container space-y-2">
+                    <div className="max-h-[435px] overflow-y-auto space-y-2 pr-2">
                       {rrFullRanking.slice(0, 100).length > 0 ? (
                         rrFullRanking.slice(0, 100).map(player => {
                           let medalClass = ""
@@ -1108,7 +1080,7 @@ export default function HomePage() {
                                     <p className="text-[11px] font-medium text-gray-500">{player.rank}位</p>
                                   </div>
                                 </div>
-                                <p className="text-[14px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
+                                <p className="text-[15px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
                               </div>
                             </div>
                           )
@@ -1123,27 +1095,24 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Flip Card / "もっと見る" Button - Outside Frame */}
+            {/* Flip Button */}
             <button
               type="button"
               onClick={() => {
                 if (rrCardFlipped) {
-                  // 戻る: 裏面を非表示にしてからカードをフリップ
                   setRrBackFaceVisible(false)
                   setRrCardFlipped(false)
                 } else {
-                  // もっと見る: カードをフリップしてから裏面を表示
                   setRrCardFlipped(true)
                   if (rrFullRanking.length === 0) {
                     setRrFullRanking(rrRanking)
                   }
-                  // アニメーション完了後に裏面を表示
                   setTimeout(() => {
                     setRrBackFaceVisible(true)
                   }, 500)
                 }
               }}
-              className="mt-4 w-full rr-more-btn text-[14px]"
+              className="mt-4 w-full h-12 rounded-2xl bg-white border border-[#F2A900] text-[14px] font-semibold text-[#F2A900] hover:bg-[#F2A900]/5 transition-all shadow-sm active:scale-98"
             >
               {rrCardFlipped ? '戻る' : 'もっと見る'}
             </button>
@@ -1152,14 +1121,15 @@ export default function HomePage() {
 
         {currentStoreId && currentStore && (
           <>
+            {/* Bank Card */}
             <div className="mt-6">
               <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}> 
                 <div className="bank-card-inner">
                   <div className="bank-card-face bank-card-front">
                     <div className="relative z-10">
                       <div className="flex items-center gap-2 text-white/80">
-                        <FiCreditCard className="text-[16px]" />
-                        <span className="text-[12px] tracking-[0.25em]">BANK ROLL</span>
+                        <FiCreditCard className="text-[18px]" />
+                        <span className="text-[13px] tracking-[0.25em]">BANK ROLL</span>
                       </div>
                       <p className="mt-2 text-[13px] text-white/70">
                         {currentStore.name}
@@ -1170,7 +1140,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => setIsHistoryFlipped(true)}
-                        className="absolute top-0 right-0 mt-1 mr-1 inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-[11px] text-white/80 hover:border-white/50 hover:text-white bg-black/30"
+                        className="absolute top-0 right-0 mt-1 mr-1 inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-[11px] text-white/80 hover:border-white/50 hover:text-white bg-black/30 transition-colors"
                         style={{ zIndex: 20 }}
                       >
                         <FiClock className="text-[12px]" />
@@ -1186,14 +1156,14 @@ export default function HomePage() {
                           タップで{showBB ? 'チップ' : 'BB'}表記に変更！
                         </span>
                       </div>
-                      <div className="ticker text-[30px] font-semibold text-white cursor-pointer select-none" onClick={() => setShowBB(v => !v)}>
+                      <div className="ticker text-[32px] font-semibold text-white cursor-pointer select-none" onClick={() => setShowBB(v => !v)}>
                         <span key={balance} className="ticker-animate">
                           {formatChipValue(displayBalance)}
                         </span>
                       </div>
                       {displayNetGain !== 0 && (
                         <div
-                          className={`ticker mt-2 text-[15px] font-semibold ${
+                          className={`ticker mt-2 text-[16px] font-semibold ${
                             displayNetGain > 0 ? "text-emerald-200" : "text-rose-200"
                           } cursor-pointer select-none`}
                           onClick={() => setShowBB(v => !v)}
@@ -1205,16 +1175,15 @@ export default function HomePage() {
                       )}
                     </div>
                     <div className="relative z-10 mt-6 flex items-center justify-end text-[11px] text-white/80">
-                      {/* RRPoker表記削除 */}
                     </div>
                   </div>
                   <div className="bank-card-face bank-card-back">
                     <div className="flex items-center justify-between text-white/80">
-                      <p className="text-[12px] font-semibold tracking-[0.2em]">HISTORY</p>
+                      <p className="text-[13px] font-semibold tracking-[0.2em]">HISTORY</p>
                       <button
                         type="button"
                         onClick={() => setIsHistoryFlipped(false)}
-                        className="flex items-center gap-1 text-[11px] text-white/80 hover:text-white"
+                        className="flex items-center gap-1 text-[11px] text-white/80 hover:text-white transition-colors"
                       >
                         <FiArrowLeft className="text-[12px]" />
                         戻る
@@ -1227,13 +1196,13 @@ export default function HomePage() {
                         sortedHistoryItems.map(item => (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2"
+                            className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 bg-white/5"
                           >
                             <div>
                               <p className="text-[11px] text-white/70">{getHistoryLabel(item.type)}</p>
                               <p className="text-[10px] text-white/50">{formatDateTime(item.createdAt?.seconds)}</p>
                             </div>
-                            <p className="text-[12px] font-semibold text-white">{getHistoryAmount(item)}</p>
+                            <p className="text-[13px] font-semibold text-white">{getHistoryAmount(item)}</p>
                           </div>
                         ))
                       )}
@@ -1243,17 +1212,18 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-              <div className="flex items-center justify-between">
+            {/* Ranking Section */}
+            <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <FiTrendingUp className="text-[16px] text-[#F2A900]" />
-                  <p className="text-[14px] font-semibold text-gray-900">RANKING</p>
+                  <FiTrendingUp className="text-[18px] text-[#F2A900]" />
+                  <p className="text-[16px] font-semibold text-gray-900">RANKING</p>
                 </div>
                 {ranking.length > 3 && (
                   <button
                     type="button"
                     onClick={() => setIsDetailedRankingModalOpen(true)}
-                    className="text-[12px] font-semibold text-[#F2A900]"
+                    className="text-[13px] font-semibold text-[#F2A900] hover:text-[#D4910A] transition-colors"
                   >
                     もっと見る
                   </button>
@@ -1261,29 +1231,35 @@ export default function HomePage() {
               </div>
               
               {userRank && (
-                <div className="mt-3 rounded-lg bg-blue-50 p-3 border border-blue-200">
-                  <div className="text-[12px] text-gray-600">
-                    <p className="font-semibold text-blue-600">あなたのランク: {userRank.rank}位</p>
-                    <p className="mt-1">純増: <span className="font-semibold text-gray-900">{formatSignedChipValue(userRank.netGain)}</span></p>
+                <div className="mb-4 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 p-4 border border-blue-200">
+                  <div className="text-[13px]">
+                    <p className="font-semibold text-blue-700">あなたのランク: {userRank.rank}位</p>
+                    <p className="mt-1 text-gray-700">純増: <span className="font-semibold text-gray-900">{formatSignedChipValue(userRank.netGain)}</span></p>
                   </div>
                 </div>
               )}
 
-              <div className="mt-3 space-y-2">
+              <div className="space-y-2">
                 {rankingLoading ? (
-                  <p className="text-center text-[13px] text-gray-500">ロード中...</p>
+                  <p className="text-center text-[13px] text-gray-500 py-4">ロード中...</p>
                 ) : ranking.slice(0, 3).length > 0 ? (
                   ranking.slice(0, 3).map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between text-[13px]">
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 text-gray-600 font-semibold">{index + 1}位</span>
-                        <span className="text-gray-700">{player.name || "プレイヤー"}</span>
+                    <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold text-[13px] ${
+                          index === 0 ? 'medal-gold text-white' :
+                          index === 1 ? 'medal-silver text-gray-700' :
+                          'medal-bronze text-white'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <span className="text-[14px] font-medium text-gray-700">{player.name || "プレイヤー"}</span>
                       </div>
-                      <span className="font-semibold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
+                      <span className="text-[14px] font-bold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-[13px] text-gray-500">プレイヤーがいません</p>
+                  <p className="text-center text-[13px] text-gray-500 py-4">プレイヤーがいません</p>
                 )}
               </div>
             </div>
@@ -1292,16 +1268,17 @@ export default function HomePage() {
         )}
       </div>
 
+      {/* Join Modal */}
       {isJoinModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
-          <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-gray-900">店舗検索</h2>
-              <button type="button" onClick={() => setIsJoinModalOpen(false)} className="text-gray-500">
-                <FiX />
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[18px] font-semibold text-gray-900">店舗検索</h2>
+              <button type="button" onClick={() => setIsJoinModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <FiX size={20} />
               </button>
             </div>
-            <div className="mt-4 flex gap-2">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={searchQuery}
@@ -1313,19 +1290,19 @@ export default function HomePage() {
                   }
                 }}
                 placeholder="店舗コード or 店舗名"
-                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-300"
+                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
               />
               <button
                 type="button"
                 onClick={handleSearch}
-                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200 text-gray-700"
+                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F2A900] text-white hover:bg-[#D4910A] transition-all active:scale-95"
                 aria-label="検索"
               >
-                <FiSearch />
+                <FiSearch size={18} />
               </button>
             </div>
             {suggestions.length > 0 && (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-2">
+              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-2">
                 {suggestions.map(store => (
                   <button
                     key={store.id}
@@ -1334,9 +1311,9 @@ export default function HomePage() {
                       setSelectedStore(store)
                       setIsJoinModalOpen(false)
                     }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50"
+                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left hover:bg-white transition-colors"
                   >
-                    <span className="font-semibold text-gray-900">{store.name}</span>
+                    <span className="text-[14px] font-semibold text-gray-900">{store.name}</span>
                     <span className="text-[11px] text-gray-400">{store.id}</span>
                   </button>
                 ))}
@@ -1346,63 +1323,64 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Store Detail Modal */}
       {selectedStore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
-          <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
-            <div className="relative flex min-h-[32px] items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+            <div className="relative flex min-h-[32px] items-center justify-center mb-5">
               <button
                 type="button"
                 onClick={() => setSelectedStore(null)}
-                className="absolute left-0 top-0 text-gray-500"
+                className="absolute left-0 top-0 text-gray-400 hover:text-gray-600 transition-colors"
                 aria-label="閉じる"
               >
-                <FiX />
+                <FiX size={20} />
               </button>
               <button
                 type="button"
                 onClick={() => toggleFavoriteStore(selectedStore.id)}
-                className={`absolute right-0 top-0 flex h-9 w-9 items-center justify-center rounded-full border ${
+                className={`absolute right-0 top-0 flex h-10 w-10 items-center justify-center rounded-full border transition-all active:scale-95 ${
                   favoriteStores.includes(selectedStore.id)
-                    ? "border-[#F4D77C] text-[#F4D77C]"
-                    : "border-gray-200 text-gray-400"
-                } ${favoritePulse === selectedStore.id ? "favorite-sparkle-strong" : ""}`}
+                    ? "border-[#F2A900] bg-[#F2A900]/10 text-[#F2A900]"
+                    : "border-gray-200 text-gray-400 hover:border-[#F2A900] hover:text-[#F2A900]"
+                }`}
                 aria-label="お気に入り"
               >
-                <FiStar className="text-[16px]" />
+                <FiStar size={18} />
               </button>
-              <h2 className="text-[16px] font-semibold text-gray-900">店舗詳細</h2>
+              <h2 className="text-[18px] font-semibold text-gray-900">店舗詳細</h2>
             </div>
             {favoriteMessage && (
-              <p className="mt-2 text-center text-[12px] font-semibold text-[#F4D77C]">
+              <p className="mb-3 text-center text-[13px] font-semibold text-[#F2A900] animate-slideUp">
                 {favoriteMessage}
               </p>
             )}
-            <div className="mt-4 flex items-center gap-3">
+            <div className="flex items-center gap-4 mb-4">
               {selectedStore.iconUrl ? (
                 <img
                   src={selectedStore.iconUrl}
                   alt={selectedStore.name}
-                  className="h-12 w-12 rounded-full object-cover"
+                  className="h-16 w-16 rounded-2xl object-cover shadow-md"
                 />
               ) : (
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 text-[12px] text-gray-500">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-[14px] text-gray-400">
                   店舗
                 </div>
               )}
               <div>
-                <p className="text-[15px] font-semibold text-gray-900">{selectedStore.name}</p>
-                <p className="text-[12px] text-gray-500">{selectedStore.address}</p>
+                <p className="text-[17px] font-semibold text-gray-900">{selectedStore.name}</p>
+                <p className="text-[13px] text-gray-500 mt-1">{selectedStore.address}</p>
               </div>
             </div>
-            <p className="mt-3 text-[12px] text-gray-600">
+            <p className="text-[13px] text-gray-600 leading-relaxed">
               {selectedStore.description || "店舗の説明はまだありません"}
             </p>
 
-            <div className="mt-5 space-y-2">
+            <div className="mt-6 space-y-3">
               <button
                 type="button"
                 onClick={() => joinStore(selectedStore.id)}
-                className="h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+                className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#F2A900] to-[#D4910A] text-[15px] font-semibold text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all shadow-md active:scale-98"
               >
                 入店する
               </button>
@@ -1419,13 +1397,13 @@ export default function HomePage() {
 
                   setSelectedStore(null)
                 }}
-                className="h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-800"
+                className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 transition-all active:scale-98"
               >
                 現在入店中のプレイヤーを見る
               </button>
               <button
                 type="button"
-                className="h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-400"
+                className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-400"
               >
                 DMを送る
               </button>
@@ -1434,39 +1412,40 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Players Preview Modal */}
       {isPlayersModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
-          <div className="w-full max-w-sm rounded-[24px] bg-white p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-gray-900">入店中プレイヤー</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[18px] font-semibold text-gray-900">入店中プレイヤー</h2>
               <button
                 type="button"
                 onClick={() => setIsPlayersModalOpen(false)}
-                className="text-gray-500"
+                className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <FiX />
+                <FiX size={20} />
               </button>
             </div>
             {playersPreviewStore && (
-              <p className="mt-2 text-[12px] text-gray-500">{playersPreviewStore.name}</p>
+              <p className="mb-4 text-[13px] text-gray-500">{playersPreviewStore.name}</p>
             )}
 
-            <div className="mt-4 space-y-3">
+            <div className="space-y-2 max-h-96 overflow-y-auto">
               {playersPreviewLoading ? (
-                <p className="text-center text-[13px] text-gray-500">読み込み中...</p>
+                <p className="text-center text-[13px] text-gray-500 py-8">読み込み中...</p>
               ) : playersPreview.length === 0 ? (
-                <p className="text-center text-[13px] text-gray-500">入店中のプレイヤーがいません</p>
+                <p className="text-center text-[13px] text-gray-500 py-8">入店中のプレイヤーがいません</p>
               ) : (
                 playersPreview.map(player => (
-                  <div key={player.id} className="flex items-center gap-3 rounded-[20px] border border-gray-200 p-3">
+                  <div key={player.id} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors">
                     {player.iconUrl ? (
-                      <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
+                      <img src={player.iconUrl} alt={player.name} className="h-12 w-12 rounded-full object-cover" />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-[12px] text-gray-500">
-                        人
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
+                        <FiUser className="text-[16px] text-gray-400" />
                       </div>
                     )}
-                    <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
+                    <p className="text-[15px] font-semibold text-gray-900">{player.name ?? player.id}</p>
                   </div>
                 ))
               )}
@@ -1475,24 +1454,25 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Detailed Ranking Modal */}
       {isDetailedRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
-          <div className="mx-auto w-full max-w-sm rounded-[24px] bg-white p-6 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-gray-900">チップ純増ランキング（上位50）</h2>
-              <button type="button" onClick={() => setIsDetailedRankingModalOpen(false)} className="text-gray-500">
-                <FiX />
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+          <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-6 max-h-[80vh] overflow-y-auto shadow-2xl animate-slideUp">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[18px] font-semibold text-gray-900">チップ純増ランキング（上位50）</h2>
+              <button type="button" onClick={() => setIsDetailedRankingModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <FiX size={20} />
               </button>
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="space-y-2">
               {ranking.slice(0, 50).map((player, index) => (
-                <div key={player.id} className="flex items-center justify-between rounded-2xl border border-gray-200 px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-[12px] text-gray-500 font-semibold text-right">{index + 1}位</span>
-                    <span className="text-[13px] text-gray-800">{player.name || "プレイヤー"}</span>
+                <div key={player.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 text-[13px] text-gray-500 font-semibold text-right">{index + 1}位</span>
+                    <span className="text-[14px] text-gray-800 font-medium">{player.name || "プレイヤー"}</span>
                   </div>
-                  <span className="text-[12px] font-semibold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
+                  <span className="text-[14px] font-bold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
                 </div>
               ))}
             </div>
@@ -1500,65 +1480,31 @@ export default function HomePage() {
         </div>
       )}
 
-      {isRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-transparent px-5">
-          <div className="w-full max-w-sm rounded-[24px] bg-white p-5 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <h2 className="text-[16px] font-semibold text-gray-900">RR Rating Ranking（上位100）</h2>
-              <button type="button" onClick={() => setIsRankingModalOpen(false)} className="text-gray-500">
-                <FiX />
-              </button>
-            </div>
-            <p className="mt-2 text-[12px] text-gray-500">
-              RR Rating（RR レーティング）はポーカーの強さを数値化したもの。2000で上級者、3000で世界最強レベル。
-            </p>
-            <div className="mt-4 space-y-2">
-              {rrRanking.slice(0, 100).map(player => (
-                <div key={player.id} className="flex items-center justify-between rounded-2xl border border-gray-200 px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-8 text-[12px] text-gray-500 font-semibold text-right">{player.rank}位</span>
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white">
-                      {player.iconUrl ? (
-                        <img src={player.iconUrl} alt={player.name} className="h-6 w-6 rounded-full object-cover" />
-                      ) : (
-                        <FiUser className="text-[12px] text-gray-400" />
-                      )}
-                    </div>
-                    <span className="text-[13px] text-gray-800">{player.name || "プレイヤー"}</span>
-                  </div>
-                  <span className="text-[12px] font-semibold text-gray-900">{player.rating.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
         <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
           <button
             type="button"
             onClick={() => router.push("/home")}
-            className="flex flex-col items-center text-[#111]"
+            className="flex flex-col items-center text-[#F2A900] transition-all"
           >
-            <FiHome className="text-[18px]" />
-            <span className="mt-1 text-[11px]">ホーム</span>
+            <FiHome size={22} />
+            <span className="mt-1 text-[11px] font-medium">ホーム</span>
           </button>
           <button
             type="button"
             onClick={() => router.push("/home/transactions")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
+            className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
             aria-label="入出金"
           >
-            <FiCreditCard className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">入出金</span>
+            <FiCreditCard size={28} />
           </button>
           <button
             type="button"
             onClick={() => router.push("/home/mypage")}
-            className="flex flex-col items-center text-gray-400"
+            className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
           >
-            <FiUser className="text-[18px]" />
+            <FiUser size={22} />
             <span className="mt-1 text-[11px]">マイページ</span>
           </button>
         </div>

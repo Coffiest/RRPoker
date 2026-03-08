@@ -527,35 +527,7 @@ export default function StoreSettingsPage() {
         </div>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
-          <button
-            type="button"
-            onClick={() => router.push("/home/store")}
-            className="flex flex-col items-center text-gray-400"
-          >
-            <FiHome className="text-[18px]" />
-            <span className="mt-1 text-[11px]">ホーム</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/transactions")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-            aria-label="入出金"
-          >
-            <FiCreditCard className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">入出金</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/mypage")}
-            className="flex flex-col items-center text-gray-400"
-          >
-            <FiUser className="text-[18px]" />
-            <span className="mt-1 text-[11px]">マイページ</span>
-          </button>
-        </div>
-      </nav>
+      
     </main>
   )
 }
