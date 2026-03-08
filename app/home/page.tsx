@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore"
-import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2 } from "react-icons/fi"
+import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -1220,23 +1220,67 @@ const tournamentStats = useMemo(() => {
               {rrCardFlipped ? '戻る' : 'もっと見る'}
             </button>
 
+             {/* Tournament　スタッツ Section */}
+         
+                      <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
+
+                        <div className="flex items-center gap-2 mb-4">
+                          <FiBarChart2 className="text-[18px] text-[#F2A900]" />
+                          <p className="text-[16px] font-semibold text-gray-900">
+                            TOURNAMENT STATS
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+
+  <div className="rounded-2xl bg-white border border-gray-200 p-3">
+    <p className="text-[11px] text-gray-500">ΣCost</p>
+    <p className="text-[18px] font-semibold text-gray-900">
+      {tournamentStats.totalCost}
+    </p>
+  </div>
+
+  <div className="rounded-2xl bg-white border border-gray-200 p-3">
+    <p className="text-[11px] text-gray-500">ΣReward</p>
+    <p className="text-[18px] font-semibold text-gray-900">
+      {tournamentStats.totalReward}
+    </p>
+  </div>
+
+  <div className="rounded-2xl bg-[#FFF6E5] border border-[#F2A900]/30 p-3">
+    <p className="text-[11px] text-gray-500">ROI</p>
+    <p className="text-[18px] font-semibold text-[#D4910A]">
+      {tournamentStats.roi === "集計中"
+        ? "集計中"
+        : `${tournamentStats.roi}%`}
+    </p>
+  </div>
+
+  <div className="rounded-2xl bg-[#FFF6E5] border border-[#F2A900]/30 p-3">
+    <p className="text-[11px] text-gray-500">ITM (インマネ率)</p>
+    <p className="text-[18px] font-semibold text-[#D4910A]">
+      {tournamentStats.itmRate}%
+    </p>
+  </div>
+
+  <div className="col-span-2 rounded-2xl bg-white border border-gray-200 p-3">
+    <p className="text-[11px] text-gray-500">今までエントリーしたトナメの数：</p>
+    <p className="text-[18px] font-semibold text-gray-900">
+      {tournamentStats.plays}
+    </p>
+  </div>
+
+</div>
+
+                      </div>
+            
+
             {/* Tournament Section */}
 
                   <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
 
                     <div className="text-[12px] text-gray-600 flex flex-wrap gap-x-3 gap-y-1 mb-3">
 
-                                      <span>Cost {tournamentStats.totalCost}</span>
-
-                                      <span>Reward {tournamentStats.totalReward}</span>
-
-                                      <span>
-                                      ROI {tournamentStats.roi === "集計中" ? "集計中" : `${tournamentStats.roi}%`}
-                                      </span>
-
-                                      <span>Plays {tournamentStats.plays}</span>
-
-                                      <span>ITM {tournamentStats.itmRate}%</span>
+                                    
 
                                       </div>
                     
@@ -1244,10 +1288,7 @@ const tournamentStats = useMemo(() => {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <FiAward className="text-[18px] text-[#F2A900]" />
-                      <p className="text-[16px] font-semibold text-gray-900">TOURNAMENT</p>
-
-                      
-                      
+                      <p className="text-[16px] font-semibold text-gray-900">Tournaments History</p>
                     </div>
 
                     <button
@@ -1300,9 +1341,9 @@ const tournamentStats = useMemo(() => {
          {formatDateTime(item.startedAt?.seconds)} {item.tournamentName ?? ""} ({item.storeName ?? ""})
         </p>
 
-        <div className="text-[12px] text-gray-700">
+        <div className="text-[15px] text-gray-600">
 
-          <p className="font-semibold">Buy-in</p>
+          <p className="font-semibold">◯ Buy-in</p>
 
           {entryCount > 0 && (
             <p>Entry ({entryFee} ×{entryCount})</p>
@@ -1317,14 +1358,14 @@ const tournamentStats = useMemo(() => {
           )}
 
           <p className="mt-1 font-semibold">
-            Total {buyin}
+            合計出費 : {buyin}
           </p>
 
         </div>
 
-        <div className="text-[12px] text-gray-700">
+        <div className="text-[15px] text-gray-600">
 
-          <p className="font-semibold">Prize</p>
+          <p className="font-semibold">◯ Prize</p>
 
           {rank !== "-" ? (
             <p>{rank}位 {prize}</p>
