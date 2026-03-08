@@ -82,6 +82,25 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         // 参加者（entries に doc がある userId）
         const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
         const entriesSnap = await getDocs(entriesRef)
+
+        
+  
+        const tournamentSnap = await getDoc(tournamentRef)
+        const tournamentData: any = tournamentSnap.data()
+
+        const tournamentName = tournamentData?.name ?? ""
+        const startTime = tournamentData?.startTime ?? null
+
+        const entryFeeValue = Number(tournamentData?.entryFee ?? 0)
+        const reentryFeeValue = Number(tournamentData?.reentryFee ?? 0)
+        const addonFeeValue = Number(tournamentData?.addonFee ?? 0)
+
+        const storeRef = doc(db, "stores", storeId)
+        const storeSnap = await getDoc(storeRef)
+        const storeData: any = storeSnap.data()
+
+        const storeName = storeData?.name ?? ""
+        
         
 
         const ids = entriesSnap.docs.map(d => d.id)
@@ -154,6 +173,23 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
       const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
       const entriesSnap = await getDocs(entriesRef)
 
+      const tournamentRef = doc(db,"stores",storeId,"tournaments",tournamentId)
+      const tournamentSnap = await getDoc(tournamentRef)
+      const tournamentData:any = tournamentSnap.data()
+
+      const tournamentName = tournamentData?.name ?? ""
+      const startTime = tournamentData?.startTime ?? null
+
+      const entryFeeValue = Number(tournamentData?.entryFee ?? 0)
+      const reentryFeeValue = Number(tournamentData?.reentryFee ?? 0)
+      const addonFeeValue = Number(tournamentData?.addonFee ?? 0)
+
+      const storeRef = doc(db,"stores",storeId)
+      const storeSnap = await getDoc(storeRef)
+      const storeData:any = storeSnap.data()
+
+      const storeName = storeData?.name ?? ""
+
       const entriesMap: Record<string, any> = {}
         entriesSnap.forEach(d => {
         entriesMap[d.id] = d.data()
@@ -163,47 +199,55 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
       // tournamentHistory 保存
       for (const d of entriesSnap.docs) {
-  const userId = d.id
-  const entry = d.data()
+            const userId = d.id
+            const entry = d.data()
 
-  const entryCount = entry.entryCount ?? 0
-  const reentryCount = entry.reentryCount ?? 0
-  const addonCount = entry.addonCount ?? 0
+            const entryCount = entry.entryCount ?? 0
+            const reentryCount = entry.reentryCount ?? 0
+            const addonCount = entry.addonCount ?? 0
 
-  let cost = 0
-
-  if (entryFee > 0) {
-    cost += entryCount * entryFee
-  } else if (reentryFee > 0) {
-    cost += entryCount * reentryFee
-  } else {
-    cost += entryCount * addonFee
-  }
-
-  cost += reentryCount * reentryFee
-  cost += addonCount * addonFee
-
-  const payout = payouts.find(p => p.playerId === userId)
-
-  const reward = payout ? payout.amount : 0
-  const rank = payout ? payout.rank : null
-  const inTheMoney = reward > 0
-
-  const historyRef = doc(db, "users", userId, "tournamentHistory", tournamentId)
-
-  await setDoc(historyRef, {
-    storeId: storeId,
-    tournamentId: tournamentId,
-    entryCount,
-    reentryCount,
-    addonCount,
-    cost,
-    reward,
-    rank,
-    inTheMoney,
-    createdAt: serverTimestamp()
-  })
+            if (entryCount + reentryCount + addonCount === 0) {
+  continue
 }
+
+    
+
+
+            const payout = payouts.find(p => p.playerId === userId)
+
+            const reward = payout ? payout.amount : 0
+            const rank = payout ? payout.rank : "-"
+            const inTheMoney = reward > 0
+
+            const historyRef = doc(db, "users", userId, "tournamentHistory", tournamentId)
+
+          
+
+            await setDoc(historyRef, {
+
+              tournamentId: tournamentId,
+
+              storeId: storeId,
+              storeName: storeName,
+
+              tournamentName: tournamentName,
+
+              startedAt: startTime,
+
+              entryCount: entryCount,
+              reentryCount: reentryCount,
+              addonCount: addonCount,
+
+              entryFee: entryFeeValue,
+              reentryFee: reentryFeeValue,
+              addonFee: addonFeeValue,
+
+              prize: reward,
+              rank: rank
+
+            })
+
+          }
 
 
       for (const p of payouts) {
@@ -220,7 +264,7 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
       }
 
       // 2) トナメを finished にして履歴保存（doc直下配列）
-      const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
+
       await updateDoc(tournamentRef, {
         status: "finished",
         finishedAt: serverTimestamp(),
