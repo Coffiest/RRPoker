@@ -283,25 +283,42 @@ const [prizePool,setPrizePool]=useState<Record<string,number>>({
 })
 
 const [blindPresets,setBlindPresets]=useState<any[]>([])
+const [selectedPreset,setSelectedPreset]=useState<string>("")
 const [customBlindLevels,setCustomBlindLevels]=useState<BlindLevel[]|null>(null)
+
+
 async function applyPreset(preset:any){
+
   if(!storeId) return
+
   const levels = Array.isArray(preset.levels)
     ? preset.levels.filter((lv:any)=>lv?.type==="level")
     : []
+
   if(levels.length===0) return
+
   const firstDuration =
     typeof levels[0].duration==="number"
       ? levels[0].duration*60
       : 1200
+
   const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
   await updateDoc(ref,{
     selectedPreset:preset.id,
     customBlindLevels:levels,
     currentLevelIndex:0,
     timeRemaining:firstDuration
   })
+
+  setSelectedPreset(preset.id)
+  setCustomBlindLevels(levels)
+  setCurrentLevelIndex(0)
+  setTimeRemaining(firstDuration)
+
 }
+
+
  function getActiveLevels(): BlindLevel[] {
    if (!Array.isArray(customBlindLevels)) {
      return []
@@ -379,20 +396,29 @@ const unsub=onSnapshot(ref,(snap)=>{
     setIsRunning(d.timerRunning)
   }
 
-  // currentLevelIndex, timeRemainingの外部同期
-  if(typeof d.currentLevelIndex === "number") {
-    setCurrentLevelIndex(d.currentLevelIndex)
-  }
-  if(typeof d.timeRemaining === "number") {
-    setTimeRemaining(d.timeRemaining)
-    if(Array.isArray(d.customBlindLevels)){
-      setCustomBlindLevels(d.customBlindLevels)
-    }
-  }
 
-    if(Array.isArray(d.customBlindLevels)){
+
+if(typeof d.currentLevelIndex === "number") {
+  setCurrentLevelIndex(d.currentLevelIndex)
+}
+
+if(typeof d.timeRemaining === "number") {
+  setTimeRemaining(d.timeRemaining)
+}
+
+if(typeof d.selectedPreset === "string"){
+  setSelectedPreset(d.selectedPreset)
+}
+
+if(Array.isArray(d.customBlindLevels)){
   setCustomBlindLevels(d.customBlindLevels)
 }
+
+
+
+
+
+
 
 })
 
@@ -555,10 +581,12 @@ className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-50"
         type="button"
 
         className={[
-          "flex-1 py-2 px-4 rounded-lg font-semibold border transition",
-          "bg-white text-gray-900",
-          "border-gray-200 hover:border-gray-300"
-        ].join(" ")}
+  "flex-1 py-2 px-4 rounded-lg font-semibold border transition",
+  "bg-white text-gray-900",
+  selectedPreset === preset.id
+    ? "border-[#F2A900] ring-2 ring-[#F2A900]/30"
+    : "border-gray-200 hover:border-gray-300"
+].join(" ")}
         
         onClick={() => applyPreset(preset)}
       >
