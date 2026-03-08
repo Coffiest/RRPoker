@@ -82,6 +82,8 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         // 参加者（entries に doc がある userId）
         const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
         const entriesSnap = await getDocs(entriesRef)
+        
+
         const ids = entriesSnap.docs.map(d => d.id)
 
         const list: Participant[] = []
@@ -148,7 +150,62 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
     setSubmitting(true)
     setError("")
     try {
-      // 1) プライズ付与（balance & netGain）
+
+      const entriesRef = collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
+      const entriesSnap = await getDocs(entriesRef)
+
+      const entriesMap: Record<string, any> = {}
+        entriesSnap.forEach(d => {
+        entriesMap[d.id] = d.data()
+      })
+
+ 
+
+      // tournamentHistory 保存
+      for (const d of entriesSnap.docs) {
+  const userId = d.id
+  const entry = d.data()
+
+  const entryCount = entry.entryCount ?? 0
+  const reentryCount = entry.reentryCount ?? 0
+  const addonCount = entry.addonCount ?? 0
+
+  let cost = 0
+
+  if (entryFee > 0) {
+    cost += entryCount * entryFee
+  } else if (reentryFee > 0) {
+    cost += entryCount * reentryFee
+  } else {
+    cost += entryCount * addonFee
+  }
+
+  cost += reentryCount * reentryFee
+  cost += addonCount * addonFee
+
+  const payout = payouts.find(p => p.playerId === userId)
+
+  const reward = payout ? payout.amount : 0
+  const rank = payout ? payout.rank : null
+  const inTheMoney = reward > 0
+
+  const historyRef = doc(db, "users", userId, "tournamentHistory", tournamentId)
+
+  await setDoc(historyRef, {
+    storeId: storeId,
+    tournamentId: tournamentId,
+    entryCount,
+    reentryCount,
+    addonCount,
+    cost,
+    reward,
+    rank,
+    inTheMoney,
+    createdAt: serverTimestamp()
+  })
+}
+
+
       for (const p of payouts) {
         const balRef = doc(db, "users", p.playerId, "storeBalances", storeId)
         await setDoc(
