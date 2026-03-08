@@ -500,66 +500,75 @@ const tournamentStats = useMemo(() => {
     animateCount(netGain, netGainRef, setDisplayNetGain)
   }, [netGain])
 
-  useEffect(() => {
-    const fetchRrRanking = async () => {
-      if (!userId) {
-        setRrRankingLoading(false)
-        return
-      }
-      setRrRankingLoading(true)
-      try {
-        const snap = await getDocs(collection(db, "rrLeaderboard"))
-        const list: RRPlayer[] = []
-        const updates: Array<Promise<void>> = []
-        snap.forEach(docSnap => {
-          const data = docSnap.data()
-          if (data.role === "store") return
-            const rating = typeof data.rrRating === "number" ? data.rrRating : 0
-          if (typeof data.rrRating !== "number") {
-           
-         updates.push(updateDoc(doc(db, "users", docSnap.id), { rrRating: 0 }) as Promise<void>)
-          
-          
-          }
-          list.push({
-            id: docSnap.id,
-            name: data.name,
-            iconUrl: data.iconUrl,
-            roi: data?.roi ?? 0,
-            rank: 0,
-            
-          })
-        })
+ useEffect(() => {
 
-        if (updates.length) {
-          await Promise.allSettled(updates)
-        }
+  const fetchRrRanking = async () => {
 
-        list.sort((a, b) => b.roi - a.roi)
-        let currentRank = 0
-        let lastRoi: number | null = null
-        const ranked = list.map((player, index) => {
-          if (lastRoi === null || player.roi !== lastRoi) {
-            currentRank = index + 1
-            lastRoi = player.roi  
-          }
-          return { ...player, rank: currentRank }
-        })
-
-        setRrRanking(ranked)
-        setRrFullRanking(ranked)
-        setRrMyEntry(ranked.find(player => player.id === userId) ?? null)
-      } catch (error) {
-        console.error("Failed to fetch RR ranking:", error)
-        setRrRanking([])
-        setRrMyEntry(null)
-      } finally {
-        setRrRankingLoading(false)
-      }
+    if (!userId) {
+      setRrRankingLoading(false)
+      return
     }
 
-    fetchRrRanking()
-  }, [userId])
+    setRrRankingLoading(true)
+
+    try {
+
+      const snap = await getDocs(collection(db, "rrLeaderboard"))
+
+      const list: RRPlayer[] = []
+
+      for (const docSnap of snap.docs) {
+
+        const data = docSnap.data()
+        const playerId = data.userId
+        const roi = data.roi ?? 0
+
+        const userSnap = await getDoc(doc(db, "users", playerId))
+        const user = userSnap.data()
+
+        list.push({
+          id: playerId,
+          name: user?.name,
+          iconUrl: user?.iconUrl,
+          roi: roi,
+          rank: 0
+        })
+      }
+
+      list.sort((a,b)=>b.roi-a.roi)
+
+      let currentRank = 0
+      let lastRoi: number | null = null
+
+      const ranked = list.map((p,i)=>{
+        if(lastRoi === null || p.roi !== lastRoi){
+          currentRank = i+1
+          lastRoi = p.roi
+        }
+        return {...p, rank:currentRank}
+      })
+
+      setRrRanking(ranked)
+      setRrFullRanking(ranked)
+      setRrMyEntry(ranked.find(p=>p.id===userId) ?? null)
+
+    } catch (error) {
+
+      console.error("Failed to fetch RR ranking:", error)
+      setRrRanking([])
+      setRrMyEntry(null)
+
+    } finally {
+
+      setRrRankingLoading(false)
+
+    }
+
+  }
+
+  fetchRrRanking()
+
+}, [userId])
 
   const joinStore = async (storeId: string) => {
     if (!userId) return
