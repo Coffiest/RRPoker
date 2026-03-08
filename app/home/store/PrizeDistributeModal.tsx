@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
+
 type Props = {
   tournamentId: string
   storeId: string | null
@@ -89,7 +90,7 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         const tournamentData: any = tournamentSnap.data()
 
         const tournamentName = tournamentData?.name ?? ""
-        const startTime = tournamentData?.startTime ?? null
+        const startedAt = tournamentData?.startedAt ?? null
 
         const entryFeeValue = Number(tournamentData?.entryFee ?? 0)
         const reentryFeeValue = Number(tournamentData?.reentryFee ?? 0)
@@ -178,7 +179,7 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
       const tournamentData:any = tournamentSnap.data()
 
       const tournamentName = tournamentData?.name ?? ""
-      const startTime = tournamentData?.startTime ?? null
+      const startedAt = tournamentData?.startedAt ?? null
 
       const entryFeeValue = Number(tournamentData?.entryFee ?? 0)
       const reentryFeeValue = Number(tournamentData?.reentryFee ?? 0)
@@ -190,11 +191,7 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
       const storeName = storeData?.name ?? ""
 
-      const entriesMap: Record<string, any> = {}
-        entriesSnap.forEach(d => {
-        entriesMap[d.id] = d.data()
-      })
-
+   
  
 
       // tournamentHistory 保存
@@ -232,7 +229,8 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
               tournamentName: tournamentName,
 
-              startedAt: startTime,
+         
+             startedAt: startedAt,
 
               entryCount: entryCount,
               reentryCount: reentryCount,
