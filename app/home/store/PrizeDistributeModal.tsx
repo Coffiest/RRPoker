@@ -230,6 +230,7 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
       onClose()
     } catch (e) {
+      console.error(e)
       setError("終了処理に失敗しました")
     }
     setSubmitting(false)

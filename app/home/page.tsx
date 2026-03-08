@@ -204,6 +204,10 @@ export default function HomePage() {
           )
         )
 
+        const tournamentSnap = await getDocs(
+           collection(db, "users", userId, "tournamentHistory")
+        )
+
         const next: any[] = []
         depositSnap.forEach(docSnap => {
           const data = docSnap.data()
@@ -228,6 +232,19 @@ export default function HomePage() {
             createdAt: data.createdAt,
             direction: data.direction,
           })
+        })
+
+        tournamentSnap.forEach(docSnap => {
+          const data = docSnap.data()
+
+           if (data.storeId !== currentStoreId) return
+
+           next.push({
+             id: docSnap.id,
+             type: "tournament",
+             amount: data.prize ?? 0,
+            createdAt: data.createdAt,
+            })
         })
 
         setHistoryItems(next)
@@ -314,6 +331,8 @@ export default function HomePage() {
         return "出金"
       case "manual_adjustment":
         return "手動調整"
+      case "tournament":
+        return "トーナメント賞金"
       default:
         return ""
     }
@@ -1116,6 +1135,56 @@ export default function HomePage() {
             >
               {rrCardFlipped ? '戻る' : 'もっと見る'}
             </button>
+
+            {/* Tournament Section */}
+
+<div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
+<div className="flex items-center justify-between mb-4">
+  <div className="flex items-center gap-2">
+    <FiAward className="text-[18px] text-[#F2A900]" />
+    <p className="text-[16px] font-semibold text-gray-900">TOURNAMENT</p>
+  </div>
+
+  <button
+    onClick={()=>router.push("/home/tournaments")}
+    className="text-[13px] font-semibold text-[#F2A900]"
+  >
+    もっと見る
+  </button>
+</div>
+
+  <div className="space-y-2">
+    {sortedHistoryItems
+      .filter(item => item.type === "tournament")
+      .slice(0, 5)
+      .map(item => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between p-3 rounded-xl bg-gray-50"
+        >
+          <div>
+            <p className="text-[13px] font-semibold text-gray-800">
+              トーナメント賞金
+            </p>
+            <p className="text-[11px] text-gray-500">
+              {formatDateTime(item.createdAt?.seconds)}
+            </p>
+          </div>
+
+          <p className="text-[14px] font-bold text-gray-900">
+            {formatSignedChipValue(item.amount)}
+          </p>
+        </div>
+      ))}
+
+    {sortedHistoryItems.filter(item => item.type === "tournament").length === 0 && (
+      <p className="text-center text-[13px] text-gray-500 py-4">
+        トーナメント履歴がありません
+      </p>
+    )}
+  </div>
+</div>
+
           </>
         )}
 
