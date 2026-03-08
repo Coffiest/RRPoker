@@ -284,23 +284,23 @@ const [prizePool,setPrizePool]=useState<Record<string,number>>({
 
 const [blindPresets,setBlindPresets]=useState<any[]>([])
 const [selectedPreset,setSelectedPreset]=useState<string>("")
-const [customBlindLevels,setCustomBlindLevels]=useState<BlindLevel[]|null>(null)
+const [customBlindLevels,setCustomBlindLevels]=useState<Level[]|null>(null)
 
 
 async function applyPreset(preset:any){
 
   if(!storeId) return
 
-  const levels = Array.isArray(preset.levels)
-    ? preset.levels.filter((lv:any)=>lv?.type==="level")
-    : []
+ const levels = Array.isArray(preset.levels)
+  ? preset.levels
+  : []
 
   if(levels.length===0) return
 
-  const firstDuration =
-    typeof levels[0].duration==="number"
-      ? levels[0].duration*60
-      : 1200
+ const firstDuration =
+  typeof levels[0]?.duration === "number"
+    ? levels[0].duration * 60
+    : 0
 
   const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
 
@@ -319,17 +319,7 @@ async function applyPreset(preset:any){
 }
 
 
- function getActiveLevels(): BlindLevel[] {
-   if (!Array.isArray(customBlindLevels)) {
-     return []
-   }
- 
-   const levels = customBlindLevels.filter(
-     (lv: any) => lv?.type === "level"
-   )
- 
-   return levels
- }
+
 
 useEffect(()=>{
 
@@ -451,7 +441,9 @@ alivePlayers>0
 ?Math.floor(totalChips/alivePlayers)
 :0
 
-const levelsToUse = getActiveLevels()
+const levelsToUse = Array.isArray(customBlindLevels)
+  ? customBlindLevels
+  : []
 
 useEffect(()=>{
   if(!isRunning) return;
@@ -475,7 +467,11 @@ useEffect(()=>{
           setCurrentLevelIndex(next);
           const audio = new Audio("/levelup.mp3");
           audio.play(); // レベルアップ音
-          return levelsToUse[next].duration ? levelsToUse[next].duration * 60 : 0;
+         
+          const d = levelsToUse[next]?.duration
+
+          return typeof d === "number" ? d * 60 : 0
+
         }
         setIsRunning(false);
         return 0;
@@ -670,18 +666,35 @@ className="menu-btn"
 
 <div className="text-center mb-6">
   <div className="flex items-baseline justify-center gap-2">
-    <span className="text-[56px] font-light text-gray-900">
-      {isPresetSelected ? level.smallBlind : "-"}
-    </span>
-    <span className="text-[40px] text-gray-400">/</span>
-    <span className="text-[56px] font-light text-gray-900">
-      {isPresetSelected ? level.bigBlind : "-"}
-    </span>
-    <span className="text-[36px] text-gray-500 ml-1">
-      ({isPresetSelected ? level.ante : "-"})
-    </span>
+
+    {level?.type === "break" ? (
+      <span className="text-[64px] font-semibold text-[#F2A900]">
+        BREAK
+      </span>
+    ) : (
+      <>
+        <span className="text-[56px] font-light text-gray-900">
+          {level?.smallBlind ?? "-"}
+        </span>
+
+        <span className="text-[40px] text-gray-400">/</span>
+
+        <span className="text-[56px] font-light text-gray-900">
+          {level?.bigBlind ?? "-"}
+        </span>
+
+        <span className="text-[36px] text-gray-500 ml-1">
+          ({level?.ante ?? "-"})
+        </span>
+      </>
+    )}
+
   </div>
 </div>
+
+
+
+
 <div className="text-center mb-6">
   <div className="flex items-baseline justify-center gap-2">
     {isPresetSelected ? (
@@ -701,23 +714,25 @@ className="menu-btn"
     )}
   </div>
 </div>
-<div className="text-center mb-12 text-[18px] text-gray-600">
-  {isPresetSelected && (
-    <>
-      <span className="font-medium">Next:</span>{" "}
-      {nextLevel.smallBlind}
-      <span className="text-gray-400"> / </span>
-      {nextLevel.bigBlind}
-      <span className="text-gray-500"> ({nextLevel.ante})</span>
-    </>
-  )}
+<div className="text-center mb-12 text-[25px] text-gray-600">
+
+    {isPresetSelected && nextLevel?.type === "level" && (
+  <>
+    <span className="font-medium">Next:</span>{" "}
+    {nextLevel.smallBlind}
+    <span className="text-gray-400"> / </span>
+    {nextLevel.bigBlind}
+    <span className="text-gray-500"> ({nextLevel.ante})</span>
+  </>
+)}
+
 </div>
 
-<div className="flex items-center justify-center gap-12 text-[16px] text-gray-700">
+<div className="flex items-center justify-center gap-12 text-[22px] text-gray-700">
 
 <div>
 
-<span className="text-gray-500">Players </span>
+<span className="text-gray-500">Players :  </span>
 
 <span className="font-medium">
 {alivePlayers}/{totalPlayers}

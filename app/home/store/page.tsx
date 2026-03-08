@@ -79,8 +79,8 @@ export default function StorePage() {
   }
   function getNextLevelDurationSeconds(tournament: any, nextIndex: number) {
     const customLevels = Array.isArray(tournament.customBlindLevels)
-      ? tournament.customBlindLevels.filter((lv: any) => lv?.type === "level")
-      : null
+  ? tournament.customBlindLevels
+  : null
 
     const defaultLevels = [
       { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
@@ -130,11 +130,9 @@ export default function StorePage() {
 
   if (!tournament) return
 
-  const customLevels = Array.isArray(tournament.customBlindLevels)
-    ? tournament.customBlindLevels.filter(
-        (lv: any) => lv?.type === "level"
-      )
-    : null
+    const customLevels = Array.isArray(tournament.customBlindLevels)
+  ? tournament.customBlindLevels
+  : null
 
   const defaultLevels = [
     { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
