@@ -324,6 +324,84 @@ setHistoryItems(next)
     return [...historyItems].sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
   }, [historyItems])
 
+
+
+const tournamentItems = useMemo(() => {
+  return sortedHistoryItems.filter(item => item.type === "tournament")
+}, [sortedHistoryItems])
+
+
+const tournamentStats = useMemo(() => {
+
+  let totalCost = 0
+  let totalReward = 0
+  let plays = 0
+  let itm = 0
+
+  tournamentItems.forEach(item => {
+
+    const entryCount = item.entryCount ?? 0
+    const reentryCount = item.reentryCount ?? 0
+    const addonCount = item.addonCount ?? 0
+
+    const entryFee = item.entryFee ?? 0
+    const reentryFee = item.reentryFee ?? 0
+    const addonFee = item.addonFee ?? 0
+
+    const prize = item.prize ?? 0
+    const rank = item.rank ?? "-"
+
+    const buyin =
+      (entryCount * entryFee) +
+      (reentryCount * reentryFee) +
+      (addonCount * addonFee)
+
+    let baseFee = 0
+
+    if (entryFee > 0) {
+      baseFee = entryFee
+    } else if (reentryFee > 0) {
+      baseFee = reentryFee
+    } else {
+      baseFee = addonFee
+    }
+
+    const cost = baseFee > 0 ? buyin / baseFee : 0
+    const reward = baseFee > 0 ? prize / baseFee : 0
+
+    totalCost += cost
+    totalReward += reward
+
+    plays += entryCount + reentryCount
+
+    if (rank !== "-" && prize > 0) {
+      itm += 1
+    }
+
+  })
+
+  let roi: string | number = "集計中"
+
+  if (totalCost > 0) {
+    roi = ((totalReward / totalCost) * 100).toFixed(2)
+  }
+
+  let itmRate = "0.00"
+
+  if (plays > 0) {
+    itmRate = ((itm / plays) * 100).toFixed(2)
+  }
+
+  return {
+    totalCost,
+    totalReward,
+    roi,
+    plays,
+    itmRate
+  }
+
+}, [tournamentItems])
+
   const getHistoryLabel = (type: string) => {
     switch (type) {
       case "deposit":
@@ -1145,10 +1223,31 @@ setHistoryItems(next)
             {/* Tournament Section */}
 
                   <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
+
+                    <div className="text-[12px] text-gray-600 flex flex-wrap gap-x-3 gap-y-1 mb-3">
+
+                                      <span>Cost {tournamentStats.totalCost}</span>
+
+                                      <span>Reward {tournamentStats.totalReward}</span>
+
+                                      <span>
+                                      ROI {tournamentStats.roi === "集計中" ? "集計中" : `${tournamentStats.roi}%`}
+                                      </span>
+
+                                      <span>Plays {tournamentStats.plays}</span>
+
+                                      <span>ITM {tournamentStats.itmRate}%</span>
+
+                                      </div>
+                    
+                    
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <FiAward className="text-[18px] text-[#F2A900]" />
                       <p className="text-[16px] font-semibold text-gray-900">TOURNAMENT</p>
+
+                      
+                      
                     </div>
 
                     <button
@@ -1289,6 +1388,8 @@ setHistoryItems(next)
 
             {/* Ranking Section */}
             <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp">
+
+              
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <FiTrendingUp className="text-[18px] text-[#F2A900]" />
