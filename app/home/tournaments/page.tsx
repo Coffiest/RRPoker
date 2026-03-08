@@ -42,9 +42,9 @@ export default function TournamentHistoryPage() {
         })
       })
 
-      list.sort((a, b) =>
-        (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
-      )
+    list.sort((a, b) =>
+  (b.startedAt?.seconds ?? 0) - (a.startedAt?.seconds ?? 0)
+)
 
       setHistory(list)
     }
@@ -82,32 +82,91 @@ export default function TournamentHistoryPage() {
 
         <div className="mt-6 space-y-3">
 
-          {history.map(item => (
+         {history.map(item => {
 
-            <div
-              key={item.id}
-              className="rounded-2xl bg-white p-4 border border-gray-200"
-            >
+  const entryCount = item.entryCount ?? 0
+  const reentryCount = item.reentryCount ?? 0
+  const addonCount = item.addonCount ?? 0
 
-              <p className="text-[13px] text-gray-500">
-                {formatDateTime(item.createdAt?.seconds)}
-              </p>
+  const entryFee = item.entryFee ?? 0
+  const reentryFee = item.reentryFee ?? 0
+  const addonFee = item.addonFee ?? 0
 
-              <p className="text-[16px] font-semibold mt-1 text-gray-700">
-                Prize: {item.prize ?? 0}
-              </p>
+  const prize = item.prize ?? 0
+  const rank = item.rank ?? "-"
 
-              <p className="text-[14px] text-gray-600">
-                Place: {item.place ?? "-"}
-              </p>
+  const buyin =
+    entryCount * entryFee +
+    reentryCount * reentryFee +
+    addonCount * addonFee
 
-              <p className="text-[14px] text-gray-600">
-                Players: {item.players ?? "-"}
-              </p>
+  let baseFee = 0
 
-            </div>
+  if (entryFee > 0) baseFee = entryFee
+  else if (reentryFee > 0) baseFee = reentryFee
+  else baseFee = addonFee
 
-          ))}
+  const cost = baseFee > 0 ? buyin / baseFee : 0
+  const reward = baseFee > 0 ? prize / baseFee : 0
+
+  return (
+
+    <div
+      key={item.id}
+      className="rounded-2xl bg-white p-4 border border-gray-200 space-y-2"
+    >
+
+    <p className="text-[13px] text-gray-500">
+  {formatDateTime(item.startedAt?.seconds)} {item.tournamentName ?? ""} ({item.storeName ?? ""})
+</p>
+
+      <div className="text-[12px] text-gray-700">
+
+        <p className="font-semibold">Buy-in</p>
+
+        {entryCount > 0 && (
+          <p>Entry ({entryFee} ×{entryCount})</p>
+        )}
+
+        {reentryCount > 0 && (
+          <p>Reentry ({reentryFee} ×{reentryCount})</p>
+        )}
+
+        {addonCount > 0 && (
+          <p>Addon ({addonFee} ×{addonCount})</p>
+        )}
+
+        <p className="mt-1 font-semibold">
+          Total {buyin}
+        </p>
+
+      </div>
+
+      <div className="text-[12px] text-gray-700">
+
+        <p className="font-semibold">Prize</p>
+
+        {rank !== "-" ? (
+          <p>{rank}位 {prize}</p>
+        ) : (
+          <p>-</p>
+        )}
+
+      </div>
+
+      <div className="flex gap-3 text-[12px] text-gray-600">
+
+        <span>Cost {cost}</span>
+
+        <span>Reward {reward}</span>
+
+      </div>
+
+    </div>
+
+  )
+
+})}
 
         </div>
 

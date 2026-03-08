@@ -240,11 +240,11 @@ tournamentSnap.forEach(docSnap => {
   next.push({
     id: docSnap.id,
     type: "tournament",
+    ...data,
     amount: data.prize ?? 0,
-    createdAt: data.createdAt,
+    createdAt: data.startedAt
   })
 })
-
        
 next.sort((a, b) =>
   (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
@@ -1297,7 +1297,7 @@ const tournamentStats = useMemo(() => {
       >
 
         <p className="text-[13px] font-semibold text-gray-900">
-          {formatDateTime(item.createdAt?.seconds)} {item.tournamentName ?? ""}
+         {formatDateTime(item.startedAt?.seconds)} {item.tournamentName ?? ""} ({item.storeName ?? ""})
         </p>
 
         <div className="text-[12px] text-gray-700">
