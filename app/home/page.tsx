@@ -1259,28 +1259,94 @@ const tournamentStats = useMemo(() => {
                   </div>
 
                     <div className="space-y-2">
-                      {sortedHistoryItems
-                        .filter(item => item.type === "tournament")
-                        .slice(0, 5)
-                        .map(item => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-3 rounded-xl bg-gray-50"
-                          >
-                            <div>
-                              <p className="text-[13px] font-semibold text-gray-800">
-                                トーナメント賞金
-                              </p>
-                              <p className="text-[11px] text-gray-500">
-                                {formatDateTime(item.createdAt?.seconds)}
-                              </p>
-                            </div>
+                 {sortedHistoryItems
+  .filter(item => item.type === "tournament")
+  .slice(0, 5)
+  .map(item => {
 
-                            <p className="text-[14px] font-bold text-gray-900">
-                              {formatSignedChipValue(item.amount)}
-                            </p>
-                          </div>
-                        ))}
+    const entryCount = item.entryCount ?? 0
+    const reentryCount = item.reentryCount ?? 0
+    const addonCount = item.addonCount ?? 0
+
+    const entryFee = item.entryFee ?? 0
+    const reentryFee = item.reentryFee ?? 0
+    const addonFee = item.addonFee ?? 0
+
+    const prize = item.prize ?? 0
+    const rank = item.rank ?? "-"
+
+    const buyin =
+      entryCount * entryFee +
+      reentryCount * reentryFee +
+      addonCount * addonFee
+
+    let baseFee = 0
+
+    if (entryFee > 0) baseFee = entryFee
+    else if (reentryFee > 0) baseFee = reentryFee
+    else baseFee = addonFee
+
+    const cost = baseFee > 0 ? buyin / baseFee : 0
+    const reward = baseFee > 0 ? prize / baseFee : 0
+
+    return (
+
+      <div
+        key={item.id}
+        className="p-4 rounded-xl bg-gray-50 space-y-2"
+      >
+
+        <p className="text-[13px] font-semibold text-gray-900">
+          {formatDateTime(item.createdAt?.seconds)} {item.tournamentName ?? ""}
+        </p>
+
+        <div className="text-[12px] text-gray-700">
+
+          <p className="font-semibold">Buy-in</p>
+
+          {entryCount > 0 && (
+            <p>Entry ({entryFee} ×{entryCount})</p>
+          )}
+
+          {reentryCount > 0 && (
+            <p>Reentry ({reentryFee} ×{reentryCount})</p>
+          )}
+
+          {addonCount > 0 && (
+            <p>Addon ({addonFee} ×{addonCount})</p>
+          )}
+
+          <p className="mt-1 font-semibold">
+            Total {buyin}
+          </p>
+
+        </div>
+
+        <div className="text-[12px] text-gray-700">
+
+          <p className="font-semibold">Prize</p>
+
+          {rank !== "-" ? (
+            <p>{rank}位 {prize}</p>
+          ) : (
+            <p>-</p>
+          )}
+
+        </div>
+
+        <div className="flex gap-3 text-[12px] text-gray-600">
+
+          <span>Cost {cost}</span>
+
+          <span>Reward {reward}</span>
+
+        </div>
+
+      </div>
+
+    )
+
+})}
 
                       {sortedHistoryItems.filter(item => item.type === "tournament").length === 0 && (
                         <p className="text-center text-[13px] text-gray-500 py-4">
