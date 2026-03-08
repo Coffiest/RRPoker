@@ -34,10 +34,9 @@ type StorePlayer = {
 
 type RRPlayer = {
   id: string
-
   name?: string
   iconUrl?: string
-  rating: number
+  roi: number
   rank: number
 }
 
@@ -509,22 +508,26 @@ const tournamentStats = useMemo(() => {
       }
       setRrRankingLoading(true)
       try {
-        const snap = await getDocs(collection(db, "users"))
+        const snap = await getDocs(collection(db, "rrLeaderboard"))
         const list: RRPlayer[] = []
         const updates: Array<Promise<void>> = []
         snap.forEach(docSnap => {
           const data = docSnap.data()
           if (data.role === "store") return
-          const rating = typeof data.rrRating === "number" ? data.rrRating : 1000
+            const rating = typeof data.rrRating === "number" ? data.rrRating : 0
           if (typeof data.rrRating !== "number") {
-            updates.push(updateDoc(doc(db, "users", docSnap.id), { rrRating: 1000 }) as Promise<void>)
+           
+         updates.push(updateDoc(doc(db, "users", docSnap.id), { rrRating: 0 }) as Promise<void>)
+          
+          
           }
           list.push({
             id: docSnap.id,
             name: data.name,
             iconUrl: data.iconUrl,
-            rating,
+            roi: data?.roi ?? 0,
             rank: 0,
+            
           })
         })
 
@@ -532,18 +535,19 @@ const tournamentStats = useMemo(() => {
           await Promise.allSettled(updates)
         }
 
-        list.sort((a, b) => b.rating - a.rating)
+        list.sort((a, b) => b.roi - a.roi)
         let currentRank = 0
-        let lastRating: number | null = null
+        let lastRoi: number | null = null
         const ranked = list.map((player, index) => {
-          if (lastRating === null || player.rating !== lastRating) {
+          if (lastRoi === null || player.roi !== lastRoi) {
             currentRank = index + 1
-            lastRating = player.rating
+            lastRoi = player.roi  
           }
           return { ...player, rank: currentRank }
         })
 
         setRrRanking(ranked)
+        setRrFullRanking(ranked)
         setRrMyEntry(ranked.find(player => player.id === userId) ?? null)
       } catch (error) {
         console.error("Failed to fetch RR ranking:", error)
@@ -594,6 +598,7 @@ const tournamentStats = useMemo(() => {
     const list: StoreInfo[] = []
     snap.forEach(docSnap => {
       const data = docSnap.data()
+      const roi = typeof data?.roi === "number" ? data.roi : 0
       list.push({
         id: docSnap.id,
         name: data.name,
@@ -1054,9 +1059,9 @@ const tournamentStats = useMemo(() => {
               {!rrCardFlipped && (
               <>
               <div className="rr-rate-card">
-                <p className="relative z-10 text-[12px] font-medium text-white/90">現在のレート</p>
+                <p className="relative z-10 text-[12px] font-medium text-white/90">現在のROI :</p>
                 <p className="relative z-10 mt-2 text-[36px] font-bold text-white tracking-tight drop-shadow-sm">
-                  {(rrMyEntry?.rating ?? rrRatingValue).toLocaleString()}
+                   {(rrMyEntry?.roi ?? 0).toFixed(1)}%
                 </p>
               </div>
 
@@ -1100,7 +1105,7 @@ const tournamentStats = useMemo(() => {
                                 <p className="text-[11px] font-medium text-gray-500">{player.rank}位</p>
                               </div>
                             </div>
-                            <p className="text-[15px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
+                            <p className="text-[15px] font-bold text-gray-900">{player.roi.toFixed(1)}%</p>
                           </div>
                         </div>
                       )
@@ -1131,7 +1136,7 @@ const tournamentStats = useMemo(() => {
                     </div>
                   </div>
                   <p className="text-[15px] font-bold text-gray-900">
-                    {(rrMyEntry?.rating ?? rrRatingValue).toLocaleString()}
+                     {(rrMyEntry?.roi ?? 0).toFixed(1)}%
                   </p>
                 </div>
               </div>
@@ -1183,7 +1188,7 @@ const tournamentStats = useMemo(() => {
                                     <p className="text-[11px] font-medium text-gray-500">{player.rank}位</p>
                                   </div>
                                 </div>
-                                <p className="text-[15px] font-bold text-gray-900">{player.rating.toLocaleString()}</p>
+                                <p className="text-[15px] font-bold text-gray-900">{player.roi.toFixed(1)}%</p>
                               </div>
                             </div>
                           )
@@ -1346,15 +1351,15 @@ const tournamentStats = useMemo(() => {
           <p className="font-semibold">◯ Buy-in</p>
 
           {entryCount > 0 && (
-            <p>Entry ({entryFee} ×{entryCount})</p>
+            <p>Entry ：({entryFee} ×{entryCount}回)</p>
           )}
 
           {reentryCount > 0 && (
-            <p>Reentry ({reentryFee} ×{reentryCount})</p>
+            <p>Reentry ：({reentryFee} ×{reentryCount}回)</p>
           )}
 
           {addonCount > 0 && (
-            <p>Addon ({addonFee} ×{addonCount})</p>
+            <p>Addon ：({addonFee} ×{addonCount}回)</p>
           )}
 
           <p className="mt-1 font-semibold">

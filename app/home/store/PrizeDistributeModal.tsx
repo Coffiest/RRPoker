@@ -245,6 +245,68 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
             })
 
+            // ---- RR Leaderboard 更新用の値計算 ----
+
+              const buyin =
+                entryCount * entryFeeValue +
+                reentryCount * reentryFeeValue +
+                addonCount * addonFeeValue
+
+              let costValue = 0
+              let baseFee = 0
+
+              if (entryFeeValue > 0) {
+                costValue = buyin / entryFeeValue
+                baseFee = entryFeeValue
+              } else if (reentryFeeValue > 0) {
+                costValue = buyin / reentryFeeValue
+                baseFee = reentryFeeValue
+              } else {
+                costValue = buyin / addonFeeValue
+                baseFee = addonFeeValue
+              }
+
+              const rewardValue =
+                baseFee > 0 ? reward / baseFee : 0
+
+              const playsValue =
+                entryCount + reentryCount
+
+                const rrRef = doc(db, "rrLeaderboard", userId)
+
+
+        await setDoc(
+  rrRef,
+  {
+    userId: userId,
+    storeId: storeId,
+    totalCost: increment(costValue),
+    totalReward: increment(rewardValue),
+    plays: increment(playsValue)
+  },
+  { merge: true }
+)
+
+                
+                const updatedSnap = await getDoc(rrRef)
+                const updated = updatedSnap.data()
+
+                const totalCost = updated?.totalCost ?? 0
+                const totalReward = updated?.totalReward ?? 0
+                const totalPlays = updated?.plays ?? 0
+
+                let roi = 0
+
+                if (totalCost > 0) {
+                  roi = (totalReward / totalCost) * 100
+                }
+
+                await updateDoc(rrRef,{
+                  roi: roi,
+                  rrRating: 0
+                })
+
+
           }
 
 
