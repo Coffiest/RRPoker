@@ -658,7 +658,7 @@ className="menu-btn"
 
 <div className="text-center mb-8">
 
-<h1 className="text-[22px] font-medium text-gray-800">
+<h1 className="text-[30px] font-medium text-gray-600">
 {tournamentName}
 </h1>
 
@@ -673,17 +673,17 @@ className="menu-btn"
       </span>
     ) : (
       <>
-        <span className="text-[56px] font-light text-gray-900">
+        <span className="text-[56px] font-light text-gray-600">
           {level?.smallBlind ?? "-"}
         </span>
 
-        <span className="text-[40px] text-gray-400">/</span>
+        <span className="text-[56px] text-gray-600"> / </span>
 
-        <span className="text-[56px] font-light text-gray-900">
+        <span className="text-[56px] font-light text-gray-600">
           {level?.bigBlind ?? "-"}
         </span>
 
-        <span className="text-[36px] text-gray-500 ml-1">
+        <span className="text-[40px] text-gray-600 ml-1">
           ({level?.ante ?? "-"})
         </span>
       </>
@@ -714,15 +714,25 @@ className="menu-btn"
     )}
   </div>
 </div>
+
+
 <div className="text-center mb-12 text-[25px] text-gray-600">
 
-    {isPresetSelected && nextLevel?.type === "level" && (
+{isPresetSelected && nextLevel && (
   <>
     <span className="font-medium">Next:</span>{" "}
-    {nextLevel.smallBlind}
-    <span className="text-gray-400"> / </span>
-    {nextLevel.bigBlind}
-    <span className="text-gray-500"> ({nextLevel.ante})</span>
+
+    {nextLevel.type === "break" ? (
+      <>Break</>
+    ) : (
+      <>
+        {nextLevel.smallBlind}
+        <span className="text-gray-600"> / </span>
+        {nextLevel.bigBlind}
+        <span className="text-gray-600"> ({nextLevel.ante})</span>
+      </>
+    )}
+
   </>
 )}
 
