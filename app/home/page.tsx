@@ -247,7 +247,14 @@ export default function HomePage() {
             })
         })
 
-        setHistoryItems(next)
+       
+next.sort((a, b) =>
+  (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+)
+
+setHistoryItems(next)
+
+
       } catch (error) {
         console.error("Failed to fetch history:", error)
         setHistoryItems([])

@@ -12,6 +12,7 @@ export default function TournamentHistoryPage() {
 
   const [userId, setUserId] = useState<string | null>(null)
   const [history, setHistory] = useState<any[]>([])
+  
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(user => {
