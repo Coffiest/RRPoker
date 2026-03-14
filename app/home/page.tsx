@@ -1256,7 +1256,7 @@ const tournamentStats = useMemo(() => {
   <div className="rounded-2xl bg-white border border-gray-200 p-3">
     <p className="text-[11px] text-gray-500">ΣReward</p>
     <p className="text-[18px] font-semibold text-gray-900">
-      {tournamentStats.totalReward}
+      {tournamentStats.totalReward.toFixed(2)}
     </p>
   </div>
 
