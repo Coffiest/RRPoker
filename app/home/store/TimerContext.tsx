@@ -18,7 +18,8 @@ export const useTimer = () => {
   return ctx;
 };
 
-export const TimerProvider: React.FC<{ levels: any[] }> = ({ levels, children }) => {
+export const TimerProvider: React.FC<{ levels: any[]; children: React.ReactNode }> = ({ levels, children }) => {
+  
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(levels[0]?.duration ? levels[0].duration * 60 : 1200);
   const [isRunning, setIsRunning] = useState(false);
