@@ -302,20 +302,20 @@ export default function TournamentsPage() {
                 type="date"
                 value={form.date}
                 onChange={(e) => handleChange("date", e.target.value)}
-                className="w-full border rounded-xl p-3 text-gray-900 placeholder-gray-400"
+                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
               />
               <input
                 type="time"
                 value={form.startTime}
                 onChange={(e) => handleChange("startTime", e.target.value)}
-                className="w-full border rounded-xl p-3 text-gray-900 placeholder-gray-400"
+                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
                 placeholder="開始時刻を入力"
               />
               <input
                 type="time"
                 value={form.rcTime}
                 onChange={(e) => handleChange("rcTime", e.target.value)}
-                className="w-full border rounded-xl p-3 text-gray-900 placeholder-gray-400"
+                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
                 placeholder="RC時間を入力"
               />
             </div>
