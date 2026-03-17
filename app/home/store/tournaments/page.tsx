@@ -277,7 +277,8 @@ export default function TournamentsPage() {
 
       {openModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center px-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl p-6 relative text-gray-900">
+          <div className="bg-white w-full max-w-md rounded-2xl p-6 relative text-gray-900 
+          max-h-[80vh] overflow-y-auto">
             <button
               className="absolute right-4 top-4"
               onClick={() => setOpenModal(false)}
