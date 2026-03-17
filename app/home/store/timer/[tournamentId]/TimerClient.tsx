@@ -3,6 +3,7 @@
 import { useEffect,useRef,useState } from "react"
 import { FiTrash2, FiEdit3 } from "react-icons/fi"
 import { addDoc, collection as fsCollection } from "firebase/firestore"
+import { serverTimestamp } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { FiMenu,FiX } from "react-icons/fi"
 import { auth,db } from "@/lib/firebase"
@@ -248,19 +249,11 @@ async function savePreset(){
 }
 
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
-const [timeRemaining,setTimeRemaining]=useState(1200)
+const [startTime,setStartTime]=useState<number|null>(null)
+const [duration,setDuration]=useState<number>(0)
+const [now,setNow]=useState(Date.now())
 const [isRunning,setIsRunning]=useState(false)
-const prevIsRunningRef = useRef(false)
-useEffect(() => {
-  const justStarted = !prevIsRunningRef.current && isRunning;
 
-  if (justStarted && currentLevelIndex === 0 && timeRemaining > 0) {
-    const audio = new Audio("/levelup.mp3");
-    audio.play().catch(() => {});
-  }
-
-  prevIsRunningRef.current = isRunning;
-}, [isRunning, currentLevelIndex, timeRemaining]);
 
 const [tournamentName,setTournamentName]=useState("")
 
@@ -304,17 +297,19 @@ async function applyPreset(preset:any){
 
   const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
 
-  await updateDoc(ref,{
-    selectedPreset:preset.id,
-    customBlindLevels:levels,
-    currentLevelIndex:0,
-    timeRemaining:firstDuration
-  })
+await updateDoc(ref,{
+  selectedPreset:preset.id,
+  customBlindLevels:levels,
+  currentLevelIndex:0,
+  startTime: serverTimestamp(),
+  duration: firstDuration,
+  timerRunning: false
+})
 
   setSelectedPreset(preset.id)
   setCustomBlindLevels(levels)
   setCurrentLevelIndex(0)
-  setTimeRemaining(firstDuration)
+
 
 }
 
@@ -381,10 +376,7 @@ const unsub=onSnapshot(ref,(snap)=>{
     "1":0,"2":0,"3":0,"4":0,"5":0,"6":0
   })
 
-  // timerRunningの外部同期
-  if(typeof d.timerRunning === "boolean") {
-    setIsRunning(d.timerRunning)
-  }
+
 
 
 
@@ -392,8 +384,20 @@ if(typeof d.currentLevelIndex === "number") {
   setCurrentLevelIndex(d.currentLevelIndex)
 }
 
-if(typeof d.timeRemaining === "number") {
-  setTimeRemaining(d.timeRemaining)
+if(d.startTime){
+  if(typeof d.startTime === "number"){
+    setStartTime(d.startTime)
+  }else if(typeof d.startTime.toDate === "function"){
+    setStartTime(d.startTime.toDate().getTime())
+  }
+}
+
+if(typeof d.duration === "number"){
+  setDuration(d.duration)
+}
+
+if(typeof d.timerRunning === "boolean"){
+  setIsRunning(d.timerRunning)
 }
 
 if(typeof d.selectedPreset === "string"){
@@ -428,6 +432,54 @@ await updateDoc(ref,{
 
 }
 
+async function pauseTimer(){
+  if(!storeId || !startTime) return
+
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
+  const elapsed = Math.floor((Date.now() - startTime) / 1000)
+  const remaining = Math.max(duration - elapsed, 0)
+
+  await updateDoc(ref,{
+    duration: remaining,
+    timerRunning: false
+  })
+}
+
+async function resumeTimer(){
+  if(!storeId) return
+
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
+  await updateDoc(ref,{
+    startTime: serverTimestamp(),
+    timerRunning: true
+  })
+}
+
+async function skipLevel(){
+  if(!storeId) return
+
+  const nextIndex = currentLevelIndex + 1
+  const next = levelsToUse[nextIndex]
+
+  if(!next) return
+
+  const nextDuration =
+    typeof next.duration === "number"
+      ? next.duration * 60
+      : 0
+
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
+  await updateDoc(ref,{
+    currentLevelIndex: nextIndex,
+    startTime: serverTimestamp(),
+    duration: nextDuration,
+    timerRunning: true
+  })
+}
+
 const totalPlayers=entry+reentry
 const alivePlayers=totalPlayers-bust
 
@@ -445,44 +497,35 @@ const levelsToUse = Array.isArray(customBlindLevels)
   ? customBlindLevels
   : []
 
-useEffect(()=>{
-  if(!isRunning) return;
-  let prevTime = timeRemaining;
-  const interval = setInterval(() => {
-    setTimeRemaining(prev => {
-      // 10秒前音
-      if (prev === 11) {
-        const audio = new Audio("/tensec.mp3");
-        audio.play(); // 10秒前音
-      }
-      // 残り3,2,1秒カウントダウン音
-      if (prev === 4 || prev === 3 || prev === 2) {
-        const audio = new Audio("/countdown.mp3");
-        audio.play(); // カウントダウン音
-      }
-      // レベルアップ音
-      if (prev <= 1) {
-        if (currentLevelIndex < levelsToUse.length - 1) {
-          const next = currentLevelIndex + 1;
-          setCurrentLevelIndex(next);
-          const audio = new Audio("/levelup.mp3");
-          audio.play(); // レベルアップ音
-         
-          const d = levelsToUse[next]?.duration
+  useEffect(()=>{
+  const interval=setInterval(()=>{
+    setNow(Date.now())
+  },1000)
+  return ()=>clearInterval(interval)
+},[])
 
-          return typeof d === "number" ? d * 60 : 0
-
-        }
-        setIsRunning(false);
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
-  return () => clearInterval(interval);
-}, [isRunning, currentLevelIndex, levelsToUse, timeRemaining])
 
 const level = levelsToUse[currentLevelIndex] ?? null
+
+const timeRemaining = (() => {
+  if(!startTime || !isRunning) return duration
+
+  const elapsed = Math.floor((now - startTime) / 1000)
+  return Math.max(duration - elapsed, 0)
+})()
+
+const prevIsRunningRef = useRef(false)
+useEffect(() => {
+  const justStarted = !prevIsRunningRef.current && isRunning;
+
+  if (justStarted && currentLevelIndex === 0 && timeRemaining > 0) {
+    const audio = new Audio("/levelup.mp3");
+    audio.play().catch(() => {});
+  }
+
+  prevIsRunningRef.current = isRunning;
+}, [isRunning, currentLevelIndex, timeRemaining]);
+
 
 const nextLevel =
   currentLevelIndex < levelsToUse.length - 1
