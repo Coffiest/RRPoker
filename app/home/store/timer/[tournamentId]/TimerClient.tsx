@@ -250,6 +250,9 @@ async function savePreset(){
 const [currentLevelIndex,setCurrentLevelIndex]=useState(0)
 const [timeRemaining,setTimeRemaining]=useState(1200)
 const [isRunning,setIsRunning]=useState(false)
+
+
+
 const prevIsRunningRef = useRef(false)
 useEffect(() => {
   const justStarted = !prevIsRunningRef.current && isRunning;
@@ -367,6 +370,12 @@ const unsub=onSnapshot(ref,(snap)=>{
   const d=snap.data()
   if(!d) return
 
+  if (typeof d.timeRemaining === "number") {
+  setTimeRemaining(d.timeRemaining)
+}
+
+
+
   setTournamentName(d.name ?? "")
   setEntry(d.totalEntry ?? 0)
   setReentry(d.totalReentry ?? 0)
@@ -392,9 +401,7 @@ if(typeof d.currentLevelIndex === "number") {
   setCurrentLevelIndex(d.currentLevelIndex)
 }
 
-if(typeof d.timeRemaining === "number") {
-  setTimeRemaining(d.timeRemaining)
-}
+
 
 if(typeof d.selectedPreset === "string"){
   setSelectedPreset(d.selectedPreset)
@@ -446,41 +453,52 @@ const levelsToUse = Array.isArray(customBlindLevels)
   : []
 
 useEffect(()=>{
-  if(!isRunning) return;
-  let prevTime = timeRemaining;
-  const interval = setInterval(() => {
-    setTimeRemaining(prev => {
-      // 10秒前音
-      if (prev === 11) {
-        const audio = new Audio("/tensec.mp3");
-        audio.play(); // 10秒前音
-      }
-      // 残り3,2,1秒カウントダウン音
-      if (prev === 4 || prev === 3 || prev === 2) {
-        const audio = new Audio("/countdown.mp3");
-        audio.play(); // カウントダウン音
-      }
-      // レベルアップ音
-      if (prev <= 1) {
-        if (currentLevelIndex < levelsToUse.length - 1) {
-          const next = currentLevelIndex + 1;
-          setCurrentLevelIndex(next);
-          const audio = new Audio("/levelup.mp3");
-          audio.play(); // レベルアップ音
-         
-          const d = levelsToUse[next]?.duration
+  if(!isRunning || !storeId) return;
 
-          return typeof d === "number" ? d * 60 : 0
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
 
-        }
-        setIsRunning(false);
-        return 0;
+  const interval = setInterval(async () => {
+    const snap = await getDoc(ref)
+    const d = snap.data()
+    if(!d) return
+
+    const current = d.timeRemaining ?? 0
+
+    // 音
+    if (current === 11) new Audio("/tensec.mp3").play()
+    if (current === 4 || current === 3 || current === 2) {
+      new Audio("/countdown.mp3").play()
+    }
+
+    if (current <= 1) {
+      if (d.currentLevelIndex < levelsToUse.length - 1) {
+        const next = d.currentLevelIndex + 1
+        const duration = levelsToUse[next]?.duration
+
+        await updateDoc(ref,{
+          currentLevelIndex: next,
+          timeRemaining: typeof duration === "number" ? duration * 60 : 0
+        })
+
+        new Audio("/levelup.mp3").play()
+      } else {
+        await updateDoc(ref,{
+          timerRunning:false,
+          timeRemaining:0
+        })
       }
-      return prev - 1;
-    });
-  }, 1000);
-  return () => clearInterval(interval);
-}, [isRunning, currentLevelIndex, levelsToUse, timeRemaining])
+      return
+    }
+
+    await updateDoc(ref,{
+      timeRemaining: current - 1
+    })
+
+  },1000)
+
+  return ()=>clearInterval(interval)
+
+},[isRunning,storeId,currentLevelIndex,levelsToUse])
 
 const level = levelsToUse[currentLevelIndex] ?? null
 

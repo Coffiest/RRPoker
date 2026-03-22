@@ -7,6 +7,7 @@ import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
+import { Timestamp } from "firebase/firestore"
 import {
   collection,
   doc,
@@ -44,30 +45,72 @@ type PlayerInfo = {
 export default function StorePage() {
     const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
 
-    const toggleTimer = (tournamentId: string) => {
-      const running = timerRunning[tournamentId]
-      if (running) {
-        stopTimer(tournamentId)
-      } else {
-        startTimer(tournamentId)
-      }
-      setTimerRunning(prev => ({
-        ...prev,
-        [tournamentId]: !running
-      }))
-    }
+
+const toggleTimer = async (tournamentId: string) => {
+  const running = timerRunning[tournamentId]
+
+  if (running) {
+    await pauseTimer(tournamentId)
+  } else {
+    await resumeTimer(tournamentId)
+  }
+
+
+}
+
+
   const router = useRouter()
 
-  async function startTimer(tournamentId: string){
-    if(!storeId) return
-    await updateDoc(
-      doc(db,"stores",storeId,"tournaments",tournamentId),
-      {
-        timerRunning:true,
-        levelStartedAt:serverTimestamp()
-      }
-    )
+async function startTimer(tournamentId: string){
+  if(!storeId) return
+
+  await updateDoc(
+    doc(db,"stores",storeId,"tournaments",tournamentId),
+    {
+      timerRunning:true,
+      levelStartedAt:serverTimestamp(),
+      pausedAt:null
+    }
+  )
+}
+
+async function resumeTimer(tournamentId: string){
+  if(!storeId) return
+
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+  const snap = await getDoc(ref)
+  const data = snap.data()
+
+  if(!data?.pausedAt || !data?.levelStartedAt) {
+    await startTimer(tournamentId)
+    return
   }
+
+const now = Timestamp.now().toMillis()
+const pausedMs = now - data.pausedAt.toMillis()
+
+let startedAtMs: number
+
+if (data.levelStartedAt?.toMillis) {
+  startedAtMs = data.levelStartedAt.toMillis()
+} else if (data.levelStartedAt instanceof Date) {
+  startedAtMs = data.levelStartedAt.getTime()
+} else if (typeof data.levelStartedAt === "number") {
+  startedAtMs = data.levelStartedAt
+} else {
+   await startTimer(tournamentId)
+  return
+}
+
+const newStart = startedAtMs + pausedMs
+
+  await updateDoc(ref,{
+    timerRunning:true,
+    levelStartedAt: Timestamp.fromMillis(newStart),
+    pausedAt:null
+  })
+}
+
   async function stopTimer(tournamentId: string){
     if(!storeId) return
     await updateDoc(
@@ -162,29 +205,79 @@ export default function StorePage() {
       ? nextLevelData.duration * 60
       : 20 * 60
 
+
+await updateDoc(ref, {
+  currentLevelIndex: nextIndex,
+  timeRemaining: nextDurationSeconds,
+  levelStartedAt: serverTimestamp(),
+  pausedAt: null,
+  timerRunning: false
+})
+
+}
+
+
+async function pauseTimer(tournamentId: string){
+  if(!storeId) return
+
+  await updateDoc(
+    doc(db,"stores",storeId,"tournaments",tournamentId),
+    {
+      timerRunning:false,
+      pausedAt:serverTimestamp()
+    }
+  )
+}
+
+async function prevLevel(tournamentId: string,currentLevel:number){
+  if(!storeId) return
+
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
+  const snap = await getDoc(ref)
+  const data = snap.data()
+  if(!data) return
+
+  const tournament = activeTournaments.find(t => t.id === tournamentId)
+  if(!tournament) return
+
+  const customLevels = Array.isArray(tournament.customBlindLevels)
+    ? tournament.customBlindLevels
+    : null
+
+  const defaultLevels = [
+    { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
+    { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
+    { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
+    { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
+    { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
+    { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
+    { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
+    { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+  ]
+
+  const levelsToUse =
+    customLevels && customLevels.length > 0
+      ? customLevels
+      : defaultLevels
+
+  const prevIndex = Math.max(0, currentLevel - 1)
+
+  const prevLevelData = levelsToUse[prevIndex]
+
+  const prevDurationSeconds =
+    typeof prevLevelData?.duration === "number" && prevLevelData.duration > 0
+      ? prevLevelData.duration * 60
+      : 20 * 60
+
   await updateDoc(ref, {
-    currentLevelIndex: nextIndex,
-    timeRemaining: nextDurationSeconds,
+    currentLevelIndex: prevIndex,
+    timeRemaining: prevDurationSeconds,
     levelStartedAt: serverTimestamp(),
+    pausedAt: null,
+    timerRunning: false
   })
 }
-  async function pauseTimer(tournamentId: string) {
-    if (!storeId) return;
-    const ref = doc(db, "stores", storeId, "tournaments", tournamentId);
-    await updateDoc(ref, {
-      timerRunning: false
-    });
-  }
-  async function prevLevel(tournamentId: string,currentLevel:number){
-    if(!storeId) return
-    await updateDoc(
-      doc(db,"stores",storeId,"tournaments",tournamentId),
-      {
-        currentLevelIndex:Math.max(0,currentLevel-1),
-        levelStartedAt:serverTimestamp()
-      }
-    )
-  }
 
   const [role, setRole] = useState<string | null>(null)
 
@@ -232,26 +325,36 @@ export default function StorePage() {
         const addonStack = (data.addonStack ?? 0) as number
         const totalEntries = entry + reentry
         const alive = totalEntries - bustCount
-        list.push({
-          id: docSnap.id,
-          name: data.name,
-          entry,
-          reentry,
-          addon,
-          bustCount,
-          entryStack,
-          reentryStack,
-          addonStack,
-          totalEntries,
-          alive,
-          status: data.status ?? "scheduled",
-          currentLevelIndex: data.currentLevelIndex ?? 0,
-          timeRemaining: data.timeRemaining ?? 1200,
-          selectedPreset: data.selectedPreset ?? "",
-          customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
-        })
+  list.push({
+  id: docSnap.id,
+  name: data.name,
+  entry,
+  reentry,
+  addon,
+  bustCount,
+  entryStack,
+  reentryStack,
+  addonStack,
+  totalEntries,
+  alive,
+  status: data.status ?? "scheduled",
+  currentLevelIndex: data.currentLevelIndex ?? 0,
+  timeRemaining: data.timeRemaining ?? 1200,
+  selectedPreset: data.selectedPreset ?? "",
+  customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
+  timerRunning: data.timerRunning ?? false   // ← 追加
+})
       }
       setActiveTournaments(list)
+
+      const runningMap: Record<string, boolean> = {}
+
+list.forEach(t => {
+  runningMap[t.id] = t.timerRunning ?? false
+})
+
+setTimerRunning(runningMap)
+
     })
     return () => unsub()
   }, [storeId])
