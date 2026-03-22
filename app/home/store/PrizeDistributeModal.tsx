@@ -71,6 +71,20 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         const tSnap = await getDoc(tournamentRef)
         if (tSnap.exists()) {
           const d: any = tSnap.data()
+
+          if (d.prizePool) {
+  const restoredRows = Object.entries(d.prizePool).map(([rank, amount]) => ({
+    rank: Number(rank),
+    playerId: "",
+    amount: String(amount),
+  }))
+
+  if (restoredRows.length > 0) {
+    setRows(restoredRows)
+  }
+}
+
+
           setEntryFee(Number(d.entryFee ?? 0))
           setReentryFee(Number(d.reentryFee ?? 0))
           setAddonFee(Number(d.addonFee ?? 0))
@@ -140,6 +154,35 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
     if (set.size !== chosen.length) return "同じプレイヤーを複数行で選択できません"
     return null
   }
+
+  async function saveDraft(){
+  if (!storeId || !tournamentId) return
+
+  const v = validate()
+  if (v) {
+    setError(v)
+    return
+  }
+
+  const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
+
+  const prizePool: Record<string, number> = {}
+
+  rows.forEach(r => {
+    if (r.amount !== "") {
+      prizePool[String(r.rank)] = Number(r.amount)
+    }
+  })
+
+  try {
+    await updateDoc(tournamentRef, {
+      prizePool: prizePool
+    })
+  } catch (e) {
+    console.error(e)
+    setError("下書き保存に失敗しました")
+  }
+}
 
   const submitFinish = async () => {
     if (!storeId || !tournamentId) return
@@ -404,6 +447,15 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
               ＋入賞者追加
             </button>
 
+                        <button
+  type="button"
+  onClick={saveDraft}
+  className="mt-2 w-full rounded-full bg-[#F2A900] hover:bg-[#e29b00] text-white font-semibold py-2 text-[13px]"
+  disabled={submitting}
+>
+  下書き保存
+</button>
+
             <button
               type="button"
               onClick={() => {
@@ -416,6 +468,10 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
             >
               終了する
             </button>
+
+
+
+            
 
             {confirmOpen && (
               <div className="fixed inset-0 z-[450] flex items-center justify-center bg-black/20 px-4">

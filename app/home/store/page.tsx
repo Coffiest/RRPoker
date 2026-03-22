@@ -897,7 +897,7 @@ setTimerRunning(runningMap)
                           onClick={() => setShowPrizeModal(t.id)}
                           disabled={t.status !== "active"}
                         >
-                          Plize
+                          PRIZE
                         </button>
                       </div>
                     </div>
