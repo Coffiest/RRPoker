@@ -255,6 +255,19 @@ const [now,setNow]=useState(Date.now())
 const [isRunning,setIsRunning]=useState(false)
 
 
+
+const prevIsRunningRef = useRef(false)
+useEffect(() => {
+  const justStarted = !prevIsRunningRef.current && isRunning;
+
+  if (justStarted && currentLevelIndex === 0 && timeRemaining > 0) {
+    const audio = new Audio("/levelup.mp3");
+    audio.play().catch(() => {});
+  }
+
+  prevIsRunningRef.current = isRunning;
+}, [isRunning, currentLevelIndex, timeRemaining]);
+
 const [tournamentName,setTournamentName]=useState("")
 
 const [entry,setEntry]=useState(0)
@@ -362,6 +375,12 @@ const unsub=onSnapshot(ref,(snap)=>{
   const d=snap.data()
   if(!d) return
 
+  if (typeof d.timeRemaining === "number") {
+  setTimeRemaining(d.timeRemaining)
+}
+
+
+
   setTournamentName(d.name ?? "")
   setEntry(d.totalEntry ?? 0)
   setReentry(d.totalReentry ?? 0)
@@ -384,21 +403,7 @@ if(typeof d.currentLevelIndex === "number") {
   setCurrentLevelIndex(d.currentLevelIndex)
 }
 
-if(d.startTime){
-  if(typeof d.startTime === "number"){
-    setStartTime(d.startTime)
-  }else if(typeof d.startTime.toDate === "function"){
-    setStartTime(d.startTime.toDate().getTime())
-  }
-}
 
-if(typeof d.duration === "number"){
-  setDuration(d.duration)
-}
-
-if(typeof d.timerRunning === "boolean"){
-  setIsRunning(d.timerRunning)
-}
 
 if(typeof d.selectedPreset === "string"){
   setSelectedPreset(d.selectedPreset)
@@ -497,35 +502,55 @@ const levelsToUse = Array.isArray(customBlindLevels)
   ? customBlindLevels
   : []
 
-  useEffect(()=>{
-  const interval=setInterval(()=>{
-    setNow(Date.now())
-  },1000)
-  return ()=>clearInterval(interval)
-},[])
+useEffect(()=>{
+  if(!isRunning || !storeId) return;
 
+  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
+
+  const interval = setInterval(async () => {
+    const snap = await getDoc(ref)
+    const d = snap.data()
+    if(!d) return
+
+    const current = d.timeRemaining ?? 0
+
+    // 音
+    if (current === 11) new Audio("/tensec.mp3").play()
+    if (current === 4 || current === 3 || current === 2) {
+      new Audio("/countdown.mp3").play()
+    }
+
+    if (current <= 1) {
+      if (d.currentLevelIndex < levelsToUse.length - 1) {
+        const next = d.currentLevelIndex + 1
+        const duration = levelsToUse[next]?.duration
+
+        await updateDoc(ref,{
+          currentLevelIndex: next,
+          timeRemaining: typeof duration === "number" ? duration * 60 : 0
+        })
+
+        new Audio("/levelup.mp3").play()
+      } else {
+        await updateDoc(ref,{
+          timerRunning:false,
+          timeRemaining:0
+        })
+      }
+      return
+    }
+
+    await updateDoc(ref,{
+      timeRemaining: current - 1
+    })
+
+  },1000)
+
+  return ()=>clearInterval(interval)
+
+},[isRunning,storeId,currentLevelIndex,levelsToUse])
 
 const level = levelsToUse[currentLevelIndex] ?? null
-
-const timeRemaining = (() => {
-  if(!startTime || !isRunning) return duration
-
-  const elapsed = Math.floor((now - startTime) / 1000)
-  return Math.max(duration - elapsed, 0)
-})()
-
-const prevIsRunningRef = useRef(false)
-useEffect(() => {
-  const justStarted = !prevIsRunningRef.current && isRunning;
-
-  if (justStarted && currentLevelIndex === 0 && timeRemaining > 0) {
-    const audio = new Audio("/levelup.mp3");
-    audio.play().catch(() => {});
-  }
-
-  prevIsRunningRef.current = isRunning;
-}, [isRunning, currentLevelIndex, timeRemaining]);
-
 
 const nextLevel =
   currentLevelIndex < levelsToUse.length - 1
