@@ -253,6 +253,7 @@ const [startTime,setStartTime]=useState<number|null>(null)
 const [duration,setDuration]=useState<number>(0)
 const [now,setNow]=useState(Date.now())
 const [isRunning,setIsRunning]=useState(false)
+const [timeRemaining, setTimeRemaining] = useState<number>(0)
 
 
 
