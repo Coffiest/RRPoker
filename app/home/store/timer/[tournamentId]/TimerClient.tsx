@@ -376,8 +376,14 @@ const unsub=onSnapshot(ref,(snap)=>{
   const d=snap.data()
   if(!d) return
 
-  if (typeof d.timeRemaining === "number") {
+  if (typeof d.timerRunning === "boolean") {
+  setIsRunning(d.timerRunning)
+}
+
+if (typeof d.timeRemaining === "number") {
   setTimeRemaining(d.timeRemaining)
+} else if (typeof d.duration === "number") {
+  setTimeRemaining(d.duration)
 }
 
 
