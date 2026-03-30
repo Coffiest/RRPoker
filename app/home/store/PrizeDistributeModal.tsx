@@ -375,6 +375,77 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         totalPrize: totalPrize, // 閲覧用（任意だが便利）
       })
 
+      // ===== RR Rating 再計算 =====
+
+const rrSnap = await getDocs(collection(db, "rrLeaderboard"))
+
+const players: any[] = []
+
+rrSnap.forEach(docSnap => {
+  const d = docSnap.data()
+
+  if ((d.totalCost ?? 0) > 0) {
+    const roi = d.totalCost > 0 ? d.totalReward / d.totalCost : 0
+
+    players.push({
+      userId: d.userId,
+      totalCost: d.totalCost,
+      totalReward: d.totalReward,
+      plays: d.plays ?? 0,
+      roi: roi,
+    })
+  }
+})
+
+// μ（平均ROI）
+const mu =
+  players.length > 0
+    ? players.reduce((a, b) => a + b.roi, 0) / players.length
+    : 0
+
+// adjustedROI
+const k = 20
+
+players.forEach(p => {
+  const n = p.plays
+
+  p.adjustedROI =
+    (n / (n + k)) * p.roi +
+    (k / (n + k)) * mu
+})
+
+// σ（標準偏差）
+const sigma = Math.sqrt(
+  players.reduce((sum, p) => sum + Math.pow(p.adjustedROI - mu, 2), 0) /
+    (players.length || 1)
+)
+
+// rrRating計算＆保存
+for (const p of players) {
+  let rr = 50
+
+  if (sigma !== 0) {
+    rr = 50 + 10 * ((p.adjustedROI - mu) / sigma)
+  }
+
+  const rounded = Number(rr.toFixed(2))
+
+  const rrRef = doc(db, "rrLeaderboard", p.userId)
+
+  await updateDoc(rrRef, {
+    roi: p.roi,
+    rrRating: rounded,
+  })
+
+  const userRef = doc(db, "users", p.userId)
+
+  await updateDoc(userRef, {
+    rrRating: rounded,
+  })
+}
+
+// ===== RR Rating 再計算 END =====
+
       onClose()
     } catch (e) {
       console.error(e)
