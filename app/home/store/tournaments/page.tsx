@@ -77,20 +77,27 @@ export default function TournamentsPage() {
     return () => unsub()
   }, [])
 
-  useEffect(() => {
-    if (!storeId) return
-    const refCol = collection(db, "stores", storeId, "tournaments")
+ useEffect(() => {
+  if (!storeId) return
+  const refCol = collection(db, "stores", storeId, "tournaments")
 
-    const unsub = onSnapshot(refCol, (snap) => {
-      const list: any[] = []
-      snap.forEach((d) => {
-        list.push({ id: d.id, ...d.data() })
+  const unsub = onSnapshot(refCol, (snap) => {
+    const list: any[] = []
+    snap.forEach((d) => {
+      const data = d.data()
+      list.push({
+        id: d.id,
+        ...data,
+        date: data.date?.toDate ? data.date.toDate() : data.date,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        startedAt: data.startedAt?.toDate ? data.startedAt.toDate() : data.startedAt,
       })
-      setTournaments(list)
     })
+    setTournaments(list)
+  })
 
-    return () => unsub()
-  }, [storeId])
+  return () => unsub()
+}, [storeId])
 
   const handleChange = (key: string, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -246,9 +253,9 @@ export default function TournamentsPage() {
                   {t.name}
                 </div>
                 <div className="text-sm text-gray-800">
-                  {t.date && t.date.toDate
-                    ? t.date.toDate().toLocaleDateString()
-                    : t.date || ""}
+                  {t.date instanceof Date
+                    ? t.date.toLocaleDateString()
+                    :  ""}
                   {" "}
                   {t.startTime || ""}
                 </div>
@@ -302,20 +309,20 @@ export default function TournamentsPage() {
                 type="date"
                 value={form.date}
                 onChange={(e) => handleChange("date", e.target.value)}
-                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
+                className="appearance-none w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
               />
               <input
                 type="time"
                 value={form.startTime}
                 onChange={(e) => handleChange("startTime", e.target.value)}
-                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
+                className="appearance-none w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
                 placeholder="開始時刻を入力"
               />
               <input
                 type="time"
                 value={form.rcTime}
                 onChange={(e) => handleChange("rcTime", e.target.value)}
-                className="w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
+                className="appearance-none w-full border rounded-xl p-3 h-12 text-base text-gray-900 placeholder-gray-400"
                 placeholder="RC時間を入力"
               />
             </div>
