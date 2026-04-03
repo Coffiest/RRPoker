@@ -9,7 +9,8 @@ import {
   query,
   where,
   onSnapshot,
-  setDoc // 追加
+  setDoc,
+  deleteDoc
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 
@@ -25,6 +26,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [error, setError] = useState("")
   const [tournamentBust, setTournamentBust] = useState(0)
   const [bustUpdating, setBustUpdating] = useState(false)
+  const [newTempName, setNewTempName] = useState("")
 
   useEffect(() => {
     if (!storeId || !tournamentId) {
@@ -44,41 +46,78 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
         setTournamentBust(snap.data().bustCount ?? 0)
       }
     })
-    const unsub = onSnapshot(
-      query(collection(db, "users"), where("currentStoreId", "==", storeId)),
-      async (usersSnap) => {
-        try {
-          const list: any[] = []
-          for (const userDoc of usersSnap.docs) {
-            const userData = userDoc.data()
-            const entryRef = doc(
-              db,
-              "stores",
-              storeId,
-              "tournaments",
-              tournamentId,
-              "entries",
-              userDoc.id
-            )
-            const entrySnap = await getDoc(entryRef)
-            const entryData = entrySnap.exists() ? entrySnap.data() : {}
-            list.push({
-              id: userDoc.id,
-              name: userData.name,
-              iconUrl: userData.iconUrl,
-              entryCount: entryData.entryCount ?? 0,
-              reentryCount: entryData.reentryCount ?? 0,
-              addonCount: entryData.addonCount ?? 0,
-            })
-          }
-          setPlayers(list)
-          setError("")
-        } catch (e) {
-          setError("プレイヤー情報の取得に失敗しました")
-        }
-        setLoading(false)
+
+
+if (!storeId || !tournamentId) return
+
+
+const unsub = onSnapshot(
+  query(collection(db, "users"), where("currentStoreId", "==", storeId)),
+  async (usersSnap) => {
+    try {
+
+      const list: any[] = []
+
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data()
+
+        const entryRef = doc(
+          db,
+          "stores",
+          storeId,
+          "tournaments",
+          tournamentId,
+          "entries",
+          userDoc.id
+        )
+
+        const entrySnap = await getDoc(entryRef)
+        const entryData = entrySnap.exists() ? entrySnap.data() : {}
+
+        list.push({
+          id: userDoc.id,
+          name: userData.name,
+          iconUrl: userData.iconUrl,
+          entryCount: entryData.entryCount ?? 0,
+          reentryCount: entryData.reentryCount ?? 0,
+          addonCount: entryData.addonCount ?? 0,
+        })
       }
-    )
+
+      // 仮プレイヤー追加
+      const entriesSnap = await getDocs(
+        collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
+      )
+
+      entriesSnap.forEach(d => {
+        if (d.id.startsWith("temp_")) {
+          const data = d.data()
+          list.push({
+            id: d.id,
+            name: data.name,
+            isTemp: true,
+            entryCount: data.entryCount ?? 0,
+            reentryCount: data.reentryCount ?? 0,
+            addonCount: data.addonCount ?? 0,
+          })
+        }
+      })
+
+      setPlayers(list)
+      setError("")
+    } catch {
+      setError("プレイヤー情報の取得に失敗しました")
+    }
+
+    setLoading(false)
+  }
+)
+         
+
+
+
+
+
     return () => {
       unsub()
       unsubTournament()
@@ -113,6 +152,100 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
     }
   }
 
+const addTempPlayer = async () => {
+  if (!storeId || !tournamentId) return
+  if (!newTempName.trim()) return
+
+  const id = "temp_" + Date.now()
+
+  const entryRef = doc(
+    db,
+    "stores",
+    storeId,
+    "tournaments",
+    tournamentId,
+    "entries",
+    id
+  )
+
+  await setDoc(
+    entryRef,
+    {
+      name: newTempName,
+      isTemp: true,
+      entryCount: 0,
+      reentryCount: 0,
+      addonCount: 0,
+    },
+    { merge: true }
+  )
+
+  // 🔴これ追加（即UI反映）
+  setPlayers(prev => [
+    ...prev,
+    {
+      id,
+      name: newTempName,
+      isTemp: true,
+      entryCount: 0,
+      reentryCount: 0,
+      addonCount: 0,
+    }
+  ])
+
+  setNewTempName("")
+}
+
+const deleteTempPlayer = async (playerId: string) => {
+  if (!storeId || !tournamentId) return
+
+  const entryRef = doc(
+    db,
+    "stores",
+    storeId,
+    "tournaments",
+    tournamentId,
+    "entries",
+    playerId
+  )
+
+  // ① 0にリセット
+  await setDoc(
+    entryRef,
+    {
+      entryCount: 0,
+      reentryCount: 0,
+      addonCount: 0,
+    },
+    { merge: true }
+  )
+
+  // ② 削除
+  await deleteDoc(entryRef)
+
+  // ③ UI即反映
+  setPlayers(prev => prev.filter(p => p.id !== playerId))
+}
+
+const updateTempPlayerName = async (playerId: string, newName: string) => {
+  if (!storeId || !tournamentId) return
+
+  await updateDoc(
+    doc(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      tournamentId,
+      "entries",
+      playerId
+    ),
+    {
+      name: newName
+    }
+  )
+}
+
   // Entry/Reentry/Addon更新
   const handleEntryChange = async (
     playerId: string,
@@ -121,64 +254,70 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   ) => {
     if (!storeId || !tournamentId) return
 
-    try {
-      const entryRef = doc(
-        db,
-        "stores",
-        storeId,
-        "tournaments",
-        tournamentId,
-        "entries",
-        playerId
-      )
 
-      await setDoc(
-        entryRef,
-        {
-          [field]: increment(delta)
-        },
-        { merge: true }
-      )
 
-      // entries再集計
-      const entriesRef = collection(
-        db,
-        "stores",
-        storeId,
-        "tournaments",
-        tournamentId,
-        "entries"
-      )
-      const entriesSnap = await getDocs(entriesRef)
-      let totalEntry = 0
-      let totalReentry = 0
-      let totalAddon = 0
-      entriesSnap.forEach(d => {
-        const data = d.data()
-        totalEntry += data.entryCount ?? 0
-        totalReentry += data.reentryCount ?? 0
-        totalAddon += data.addonCount ?? 0
-      })
-      await updateDoc(
-        doc(db, "stores", storeId, "tournaments", tournamentId),
-        {
-          totalEntry,
-          totalReentry,
-          totalAddon
-        }
-      )
+  try {
+    const entryRef = doc(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      tournamentId,
+      "entries",
+      playerId
+    )
 
-      setPlayers(players =>
-        players.map(p =>
-          p.id === playerId
-            ? { ...p, [field]: p[field] + delta }
-            : p
-        )
+    await setDoc(
+      entryRef,
+      {
+        [field]: increment(delta)
+      },
+      { merge: true }
+    )
+
+    const entriesRef = collection(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      tournamentId,
+      "entries"
+    )
+    const entriesSnap = await getDocs(entriesRef)
+
+    let totalEntry = 0
+    let totalReentry = 0
+    let totalAddon = 0
+
+    entriesSnap.forEach(d => {
+      const data = d.data()
+      totalEntry += data.entryCount ?? 0
+      totalReentry += data.reentryCount ?? 0
+      totalAddon += data.addonCount ?? 0
+    })
+
+    await updateDoc(
+      doc(db, "stores", storeId, "tournaments", tournamentId),
+      {
+        totalEntry,
+        totalReentry,
+        totalAddon
+      }
+    )
+
+    setPlayers(players =>
+      players.map(p =>
+        p.id === playerId
+          ? { ...p, [field]: p[field] + delta }
+          : p
       )
-    } catch {
-      setError("更新に失敗しました")
-    }
+    )
+  } catch {
+    setError("更新に失敗しました")
   }
+}
+
+const allPlayers = players
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
@@ -216,14 +355,38 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
             </div>
             {/* プレイヤー表示（コンパクト・横並び・スクロール対応） */}
             <div className="max-h-[50vh] overflow-y-auto space-y-3">
-              {players.length === 0 ? (
+              {allPlayers.length === 0 ? (
                 <p className="text-gray-500 text-center">No Players</p>
               ) : (
-                players.map(player => (
+                allPlayers.map(player => (
                   <div key={player.id} className="rounded-xl bg-gray-50 border border-gray-100 py-3 px-3">
-                    <div className="font-medium text-[14px] text-gray-900 mb-2">
-                      {player.name}
-                    </div>
+           <div className="flex items-center justify-between mb-2">
+  {player.isTemp ? (
+    <input
+      value={player.name}
+      onChange={(e) =>
+        updateTempPlayerName(player.id, e.target.value)
+      }
+      className="text-[14px] text-gray-900 border px-1 rounded w-full mr-2"
+    />
+  ) : (
+    <div className="text-[14px] text-gray-500">
+      {player.name}
+    </div>
+  )}
+
+  {player.isTemp && (
+    <button
+      onClick={() => deleteTempPlayer(player.id)}
+      className="text-[10px] px-1 py-[2px] text-red-500 border border-red-400 rounded"
+    >
+      削除
+    </button>
+  )}
+</div>
+
+
+
                     <div className="grid grid-cols-3 gap-2">
                       {[{ label: "Entry", field: "entryCount" }, { label: "Reentry", field: "reentryCount" }, { label: "Addon", field: "addonCount" }].map(item => (
                         <div key={item.field} className="flex flex-col items-center gap-1">
@@ -248,6 +411,22 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                   </div>
                 ))
               )}
+
+<div className="mt-3">
+    <input
+      value={newTempName}
+      onChange={(e)=>setNewTempName(e.target.value)}
+      placeholder="仮プレイヤー名"
+      className="w-full h-10 border rounded-lg px-2 text-sm"
+    />
+    <button
+      onClick={addTempPlayer}
+      className="w-full mt-2 h-10 rounded-xl bg-red-500 text-white text-sm"
+    >
+      ＋プレイヤーを追加
+    </button>
+  </div>
+
             </div>
           </>
         )}

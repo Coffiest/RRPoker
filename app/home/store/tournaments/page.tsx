@@ -10,6 +10,7 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
   addDoc,
   updateDoc,
   deleteDoc
@@ -31,6 +32,7 @@ export default function TournamentsPage() {
   const router = useRouter()
   const [storeId, setStoreId] = useState<string | null>(null)
   const [tournaments, setTournaments] = useState<any[]>([])
+  const [entriesMap, setEntriesMap] = useState<any>({})
   const [openModal, setOpenModal] = useState(false)
   const [editData, setEditData] = useState<any | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -81,7 +83,7 @@ export default function TournamentsPage() {
   if (!storeId) return
   const refCol = collection(db, "stores", storeId, "tournaments")
 
-  const unsub = onSnapshot(refCol, (snap) => {
+const unsub = onSnapshot(refCol, async (snap) => {
     const list: any[] = []
     snap.forEach((d) => {
       const data = d.data()
@@ -94,6 +96,29 @@ export default function TournamentsPage() {
       })
     })
     setTournaments(list)
+
+    const map: any = {}
+
+for (const t of list) {
+  const entriesRef = collection(
+    db,
+    "stores",
+    storeId,
+    "tournaments",
+    t.id,
+    "entries"
+  )
+
+const entriesSnap = await getDocs(entriesRef)
+
+map[t.id] = entriesSnap.docs.map(d => ({
+  id: d.id,
+  ...d.data()
+}))
+}
+
+setEntriesMap(map)
+
   })
 
   return () => unsub()
@@ -243,42 +268,121 @@ export default function TournamentsPage() {
         </div>
 
         <div className="space-y-3">
-          {tournaments.map((t) => (
-            <div
-              key={t.id}
-              className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center"
-            >
-              <div>
-                <div className="font-semibold text-gray-900">
-                  {t.name}
-                </div>
-                <div className="text-sm text-gray-800">
-                  {t.date instanceof Date
-                    ? t.date.toLocaleDateString()
-                    :  ""}
-                  {" "}
-                  {t.startTime || ""}
-                </div>
-              </div>
-              <div className="flex gap-3 items-center">
-                <button onClick={() => handleEdit(t)}>
-                  <FiSettings size={18} />
-                </button>
-                <button onClick={() => handleDelete(t.id)}>
-                  <FiTrash2 size={18} />
-                </button>
-                {t.status === "scheduled" && (
-                  <button
-                    className="text-[13px] px-3 py-1 rounded-full bg-gray-900 text-white font-medium ml-2 disabled:opacity-50"
-                    onClick={() => handleStartTournament(t.id)}
-                    disabled={!!startingId}
-                  >
-                    {startingId === t.id ? "Starting..." : "Start !"}
-                  </button>
-                )}
-              </div>
+{/* 現在のトーナメント */}
+
+
+{tournaments
+  .filter(t => t.status !== "finished")
+  .map((t) => (
+    <div
+      key={t.id}
+      className="bg-white border border-gray-200 rounded-xl p-4 flex justify-between items-center"
+    >
+      <div>
+        <div className="font-semibold text-gray-900">
+          {t.name}
+        </div>
+        <div className="text-sm text-gray-800">
+          {t.date instanceof Date ? t.date.toLocaleDateString() : ""}
+          {" "}
+          {t.startTime || ""}
+        </div>
+      </div>
+      <div className="flex gap-3 items-center">
+        <button onClick={() => handleEdit(t)}>
+          <FiSettings size={18} />
+        </button>
+        <button onClick={() => handleDelete(t.id)}>
+          <FiTrash2 size={18} />
+        </button>
+        {t.status === "scheduled" && (
+          <button
+            className="text-[13px] px-3 py-1 rounded-full bg-gray-900 text-white font-medium ml-2 disabled:opacity-50"
+            onClick={() => handleStartTournament(t.id)}
+            disabled={!!startingId}
+          >
+            {startingId === t.id ? "Starting..." : "Start !"}
+          </button>
+        )}
+      </div>
+    </div>
+))}
+
+{/* 履歴 */}
+<div className="mt-6 text-sm font-bold">履歴</div>
+
+{tournaments
+  .filter(t => t.status === "finished")
+  .map(t => {
+    return (
+      <div key={t.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-3">
+        
+<div className="flex items-center justify-between mb-1">
+  <div className="text-[14px] font-semibold text-gray-900">
+    {t.name}
+  </div>
+  <div className="text-[11px] text-gray-400">
+    {t.startedAt instanceof Date ? t.startedAt.toLocaleString() : ""}
+  </div>
+</div>
+
+        <div className="mt-2 text-xs">
+
+{entriesMap[t.id]
+  ?.filter((e: any) =>
+    (e.entryCount ?? 0) > 0 ||
+    (e.reentryCount ?? 0) > 0 ||
+    (e.addonCount ?? 0) > 0
+  )
+  .map((e: any, i: number) => {
+
+    const payout = t.payouts?.find((p: any) => p.playerId === e.id)
+    const isITM = !!payout
+
+    return (
+      <div
+        key={i}
+        className={`rounded-xl px-3 py-3 mt-2 ${
+          isITM
+            ? "bg-[#FFF7E6] border border-[#F2A900]"
+            : "bg-gray-50"
+        }`}
+      >
+
+        <div className="flex items-center justify-between">
+
+          <div className={`text-[14px] font-semibold ${
+            isITM ? "text-[#F2A900]" : "text-gray-900"
+          }`}>
+            {isITM ? `${payout.rank}位 ` : ""}{e.name ?? e.id}
+          </div>
+
+          {isITM && (
+            <div className="text-[13px] font-semibold text-[#F2A900]">
+              獲得プライズ：{payout.rank}位（{payout.amount.toLocaleString()}円）
             </div>
-          ))}
+          )}
+
+        </div>
+
+        <div className="flex gap-4 mt-2 text-[13px] text-gray-600 font-medium">
+          <span>E:{e.entryCount ?? 0}回</span>
+          <span>R:{e.reentryCount ?? 0}回</span>
+          <span>A:{e.addonCount ?? 0}回</span>
+        </div>
+
+      </div>
+    )
+})}
+
+        </div>
+      </div>
+    )
+  })}
+
+
+
+          
         </div>
       </div>
 

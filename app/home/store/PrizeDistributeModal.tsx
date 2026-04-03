@@ -118,16 +118,35 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         
         
 
-        const ids = entriesSnap.docs.map(d => d.id)
+const list: Participant[] = []
 
-        const list: Participant[] = []
-        for (const uid of ids) {
-          const uSnap = await getDoc(doc(db, "users", uid))
-          if (!uSnap.exists()) continue
-          const ud: any = uSnap.data()
-          list.push({ id: uid, name: ud.name, iconUrl: ud.iconUrl })
-        }
-        setParticipants(list)
+for (const d of entriesSnap.docs) {
+  const data = d.data()
+
+  // 仮プレイヤー
+  if (d.id.startsWith("temp_")) {
+    list.push({
+      id: d.id,
+      name: data.name ?? "TEMP",
+    })
+  } else {
+    // 通常ユーザー
+    const uSnap = await getDoc(doc(db, "users", d.id))
+    const ud: any = uSnap.data()
+
+    list.push({
+      id: d.id,
+      name: ud?.name ?? "Unknown",
+      iconUrl: ud?.iconUrl,
+    })
+  }
+}
+
+setParticipants(list)
+
+
+
+
       } catch (e) {
         setError("初期読み込みに失敗しました")
       }
@@ -353,18 +372,23 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
           }
 
 
-      for (const p of payouts) {
-        const balRef = doc(db, "users", p.playerId, "storeBalances", storeId)
-        await setDoc(
-          balRef,
-          {
-            storeId,
-            balance: increment(p.amount),
-            netGain: increment(p.amount),
-          },
-          { merge: true }
-        )
-      }
+for (const p of payouts) {
+
+  // 🔴 仮プレイヤーはスキップ
+  if (p.playerId.startsWith("temp_")) continue
+
+  const balRef = doc(db, "users", p.playerId, "storeBalances", storeId)
+
+  await setDoc(
+    balRef,
+    {
+      storeId,
+      balance: increment(p.amount),
+      netGain: increment(p.amount),
+    },
+    { merge: true }
+  )
+}
 
       // 2) トナメを finished にして履歴保存（doc直下配列）
 
