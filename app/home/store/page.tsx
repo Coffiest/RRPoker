@@ -1,5 +1,6 @@
 "use client"
 
+import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
@@ -361,6 +362,8 @@ setTimerRunning(runningMap)
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
+  const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null)
+  const [playerBalances, setPlayerBalances] = useState<Record<string, number>>({})
   const [playerSearchInput, setPlayerSearchInput] = useState("")
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [selectedPlayerBalance, setSelectedPlayerBalance] = useState(0)
@@ -450,34 +453,52 @@ setTimerRunning(runningMap)
     return () => unsub()
   }, [storeId])
 
-  useEffect(() => {
-    if (!storeId) return
-    const q = query(
-      collection(db, "users"),
-      where("currentStoreId", "==", storeId)
-    )
-    const unsub = onSnapshot(q, snap => {
-      console.log("=== INSTORE DEBUG START ===")
-      console.log("storeId:", storeId)
-      console.log("instore snap.size:", snap.size)
-      const list: PlayerInfo[] = []
-      snap.forEach(d => {
-        const data = d.data()
-        console.log("instore user:", d.id, {
-          currentStoreId: data.currentStoreId,
-          name: data.name,
-        })
-        list.push({
-          id: d.id,
-          name: data.name,
-          iconUrl: data.iconUrl,
-        })
+ 
+ useEffect(() => {
+  if (!storeId) return
+
+  const q = query(
+    collection(db, "users"),
+    where("currentStoreId", "==", storeId)
+  )
+
+  const unsub = onSnapshot(q, snap => {
+    const list: PlayerInfo[] = []
+    snap.forEach(d => {
+      const data = d.data()
+      list.push({
+        id: d.id,
+        name: data.name,
+        iconUrl: data.iconUrl,
       })
-      console.log("=== INSTORE DEBUG END ===")
-      setPlayers(list)
     })
-    return () => unsub()
-  }, [storeId])
+    setPlayers(list)
+  })
+
+  return () => unsub()
+}, [storeId])
+
+useEffect(() => {
+  if (!storeId) return
+
+  const unsub = onSnapshot(collection(db, "users"), async (snap) => {
+    const map: Record<string, number> = {}
+
+    for (const userDoc of snap.docs) {
+      const ref = doc(db, "users", userDoc.id, "storeBalances", storeId)
+      const s = await getDoc(ref)
+      if (s.exists()) {
+        map[userDoc.id] = s.data()?.balance ?? 0
+      }
+    }
+
+    setPlayerBalances(map)
+  })
+
+  return () => unsub()
+}, [storeId])
+
+
 
   const playerMap = useMemo(() => {
     const map: Record<string, PlayerInfo> = {}
@@ -775,6 +796,15 @@ setTimerRunning(runningMap)
           />
         )}
         
+{historyPlayerId && storeId && (
+  <PlayerHistoryModal
+    playerId={historyPlayerId}
+    storeId={storeId}
+    onClose={() => setHistoryPlayerId(null)}
+  />
+)}
+
+
         {/* Store Header */}
         <div className="mt-6 tournament-card rounded-3xl p-6 animate-slideUp">
           <div className="flex items-center gap-4">
@@ -1010,44 +1040,63 @@ setTimerRunning(runningMap)
               </span>
             </div>
 
-            <div className="space-y-2">
-              {players.map(player => (
-                <div
-                  key={player.id}
-                  className="flex items-center justify-between rounded-xl bg-gray-50 p-3 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    {player.iconUrl ? (
-                      <img
-                        src={player.iconUrl}
-                        alt={player.name}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <FiUser size={14} className="text-gray-500" />
-                      </div>
-                    )}
-                    <span className="text-[14px] font-medium text-gray-900">
-                      {player.name || player.id}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await updateDoc(
-                        doc(db, "users", player.id),
-                        { currentStoreId: deleteField() }
-                      )
-                    }}
-                    className="text-[13px] text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1"
-                  >
-                    <FiLogOut size={14} />
-                  </button>
-                </div>
-              ))}
+ 
+<div className="space-y-2">
+  {players.map(player => (
+    <div
+      key={player.id}
+      className="rounded-xl bg-gray-50 p-3 hover:bg-gray-100 transition-colors"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {player.iconUrl ? (
+            <img
+              src={player.iconUrl}
+              alt={player.name}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <FiUser size={14} className="text-gray-500" />
             </div>
+          )}
+          <span className="text-[14px] font-medium text-gray-900">
+            {player.name || player.id}
+          </span>
+        </div>
+
+        <div className="text-[13px] font-semibold text-gray-700">
+          {playerBalances[player.id] ?? 0}
+        </div>
+      </div>
+
+      <div className="flex gap-2 mt-2 justify-end">
+
+<button
+  onClick={() => setHistoryPlayerId(player.id)}
+  className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+>
+  履歴
+</button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            await updateDoc(
+              doc(db, "users", player.id),
+              { currentStoreId: deleteField() }
+            )
+          }}
+          className="px-2 py-1 text-xs text-white bg-red-500 rounded flex items-center gap-1"
+        >
+          <FiLogOut size={12} />
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
+
           </div>
         )}
 
