@@ -86,6 +86,9 @@
             const balanceRef = useRef(0)
             const netGainRef = useRef(0)
             const [role, setRole] = useState<string | null>(null)
+            const [checkinStatus, setCheckinStatus] = useState<"none" | "pending" | "approved">("none")
+            const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
+            const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
 
             useEffect(() => {
               const unsub = auth.onAuthStateChanged(user => {
@@ -94,31 +97,61 @@
               return () => unsub()
             }, [])
 
+
             useEffect(() => {
-              const fetchUser = async () => {
-                if (!userId) return
-                const snap = await getDoc(doc(db, "users", userId))
+              if (!userId) return
+
+              const ref = doc(db, "users", userId)
+
+              const unsub = onSnapshot(ref, async (snap) => {
                 const data = snap.data()
+
                 const userRole = data?.role ?? null
                 setRole(userRole)
+
                 if (userRole === "store") {
                   router.replace("/home/store")
                   return
                 }
-                setCurrentStoreId(data?.currentStoreId ?? null)
+
+                const status = data?.checkinStatus ?? "approved"
+
+                if (!data?.checkinStatus) {
+                  await updateDoc(ref, { checkinStatus: "approved" })
+                }
+
+                setCheckinStatus(status)
+                setPendingStoreId(data?.pendingStoreId ?? null)
+
+                if (status === "approved") {
+                  setCurrentStoreId(data?.currentStoreId ?? null)
+                  setIsPendingModalOpen(false)
+                }
+
+                if (status === "pending") {
+                  setIsPendingModalOpen(true)
+                }
+
+                if (status === "none") {
+                  setIsPendingModalOpen(false)
+                  setCurrentStoreId(null)
+                }
+
                 setJoinedStores(Array.isArray(data?.joinedStores) ? data.joinedStores : [])
                 setFavoriteStores(Array.isArray(data?.favoriteStores) ? data.favoriteStores : [])
                 setProfile({ name: data?.name, iconUrl: data?.iconUrl })
+
                 const rating = typeof data?.rrRating === "number" ? data.rrRating : 1000
                 setRrRatingValue(rating)
-                if (typeof data?.rrRating !== "number") {
-                  await updateDoc(doc(db, "users", userId), { rrRating: 1000 })
-                }
-              }
 
-              if (!userId) return
-              fetchUser()
+                if (typeof data?.rrRating !== "number") {
+                  await updateDoc(ref, { rrRating: 1000 })
+                }
+              })
+
+              return () => unsub()
             }, [userId, router])
+      
 
             useEffect(() => {
               const fetchStores = async () => {
@@ -589,36 +622,53 @@
 
           }, [userId])
 
-            const joinStore = async (storeId: string) => {
-              if (!userId) return
-              const userRef = doc(db, "users", userId)
+      const joinStore = async (storeId: string) => {
+        if (!userId) return
 
-              await updateDoc(userRef, {
-                currentStoreId: storeId,
-                joinedStores: arrayUnion(storeId),
-              })
+        if (checkinStatus === "pending") {
+          setIsPendingModalOpen(true)
+          return
+        }
 
+        const storeSnap = await getDoc(doc(db, "stores", storeId))
+        const storeData = storeSnap.data()
+        const isApprovalRequired = storeData?.isApprovalRequired ?? true
 
-              const balanceRef = doc(db, "users", userId, "storeBalances", storeId)
-              const balanceSnap = await getDoc(balanceRef)
-              if (!balanceSnap.exists()) {
-                await setDoc(
-                  balanceRef,
-                  { balance: 0, netGain: 0, lastVisitedAt: serverTimestamp(), storeId },
-                  { merge: true }
-                )
-              } else {
-                await setDoc(
-                  balanceRef,
-                  { lastVisitedAt: serverTimestamp(), storeId },
-                  { merge: true }
-                )
-              }
+        const userRef = doc(db, "users", userId)
 
-              setCurrentStoreId(storeId)
-              setJoinedStores(prev => (prev.includes(storeId) ? prev : [...prev, storeId]))
-              setSelectedStore(null)
-            }
+        if (isApprovalRequired) {
+          await updateDoc(userRef, {
+            checkinStatus: "pending",
+            pendingStoreId: storeId,
+            currentStoreId: null,
+            joinedStores: arrayUnion(storeId),
+          })
+
+          setIsPendingModalOpen(true)
+          return
+        }
+
+        await updateDoc(userRef, {
+          checkinStatus: "approved",
+          currentStoreId: storeId,
+          pendingStoreId: null,
+          joinedStores: arrayUnion(storeId),
+        })
+
+        const balanceRef = doc(db, "users", userId, "storeBalances", storeId)
+        const balanceSnap = await getDoc(balanceRef)
+
+        if (!balanceSnap.exists()) {
+          await setDoc(balanceRef, {
+            balance: 0,
+            netGain: 0,
+            lastVisitedAt: serverTimestamp(),
+            storeId,
+          })
+        }
+
+        setCurrentStoreId(storeId)
+      }
 
             const loadAllStores = async () => {
               if (allStores.length) return allStores
@@ -1595,6 +1645,36 @@
                 </div>
 
                 {/* Join Modal */}
+
+
+                {isPendingModalOpen && (
+                  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center">
+                      <p className="text-[25px] text-gray-600 mb-2">入店申請中</p>
+                      <p className="text-[14px] text-gray-600 mb-4">
+                        入店承認までしばらくお待ちください
+                      </p>
+                      <p className="text-[12px] text-gray-400 mb-6">
+                        この画面を閉じると入店申請は取り下げられます
+                      </p>
+
+                      <button
+                        onClick={async () => {
+                          if (!userId) return
+                          await updateDoc(doc(db, "users", userId), {
+                            checkinStatus: "none",
+                            pendingStoreId: null,
+                          })
+                          setIsPendingModalOpen(false)
+                        }}
+                        className="w-full h-11 rounded-xl bg-gray-200 text-gray-800 font-semibold"
+                      >
+                        戻る
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {isJoinModalOpen && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
                     <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">

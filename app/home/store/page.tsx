@@ -362,6 +362,7 @@ setTimerRunning(runningMap)
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
+  const [pendingPlayers, setPendingPlayers] = useState<PlayerInfo[]>([])
   const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null)
   const [playerBalances, setPlayerBalances] = useState<Record<string, number>>({})
   const [playerSearchInput, setPlayerSearchInput] = useState("")
@@ -473,6 +474,32 @@ setTimerRunning(runningMap)
       })
     })
     setPlayers(list)
+  })
+
+  return () => unsub()
+}, [storeId])
+
+useEffect(() => {
+  if (!storeId) return
+
+  const q = query(
+    collection(db, "users"),
+    where("pendingStoreId", "==", storeId)
+  )
+
+  const unsub = onSnapshot(q, snap => {
+    const list: PlayerInfo[] = []
+    snap.forEach(d => {
+      const data = d.data()
+      if (data.checkinStatus === "pending") {
+        list.push({
+          id: d.id,
+          name: data.name,
+          iconUrl: data.iconUrl,
+        })
+      }
+    })
+    setPendingPlayers(list.reverse())
   })
 
   return () => unsub()
@@ -682,6 +709,24 @@ useEffect(() => {
     setSelectedPlayerBalance(newBalance)
     setSelectedPlayerNetGain(newNetGain)
   }
+
+const approvePlayer = async (playerId: string) => {
+  if (!storeId) return
+
+  await updateDoc(doc(db, "users", playerId), {
+    currentStoreId: storeId,
+    checkinStatus: "approved",
+    pendingStoreId: null,
+  })
+}
+
+const rejectPlayer = async (playerId: string) => {
+  await updateDoc(doc(db, "users", playerId), {
+    checkinStatus: "none",
+    pendingStoreId: null,
+  })
+}
+  
 
   const copyCode = async () => {
     if (!store?.code) return
@@ -1026,6 +1071,50 @@ useEffect(() => {
             </div>
           </div>
         )}
+
+
+        {pendingPlayers.length > 0 && (
+            <div className="mt-6 tournament-card rounded-3xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <p className="text-[15px] font-semibold text-gray-900">入店申請中のプレイヤー</p>
+                <span className="ml-auto bg-yellow-100 text-yellow-700 text-[12px] font-bold px-2.5 py-0.5 rounded-full">
+                  {pendingPlayers.length}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {pendingPlayers.map(player => (
+                  <div key={player.id} className="rounded-xl bg-gray-50 p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {player.iconUrl ? (
+                          <img src={player.iconUrl} className="h-8 w-8 rounded-full"/>
+                        ) : (
+                          <FiUser />
+                        )}
+                        <span className="text-[14px] text-gray-900">{player.name}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => approvePlayer(player.id)}
+                          className="px-2 py-1 text-xs bg-green-500 text-white rounded"
+                        >
+                          許可
+                        </button>
+                        <button
+                          onClick={() => rejectPlayer(player.id)}
+                          className="px-2 py-1 text-xs bg-gray-400 text-white rounded"
+                        >
+                          却下
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         {/* In-Store Players */}
         {players.length > 0 && (
