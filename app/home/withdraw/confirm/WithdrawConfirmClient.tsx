@@ -23,6 +23,7 @@ export default function WithdrawConfirmClient() {
   const [unitLabel, setUnitLabel] = useState("")
   const [storeId, setStoreId] = useState<string | null>(null)
   const [error, setError] = useState("")
+  const [withdrawStatus, setWithdrawStatus] = useState<"idle" | "pending">("idle")
 
   const amount = Number(amountParam ?? 0)
 
@@ -68,20 +69,20 @@ export default function WithdrawConfirmClient() {
       return
     }
 
-    await updateDoc(balanceRef, { 
-      balance: increment(-amount),
-      netGain: increment(-amount)
-    })
-    await setDoc(doc(collection(db, "withdrawals")), {
-      storeId,
-      playerId: user.uid,
-      amount,
-      comment: commentParam,
-      status: "completed",
-      createdAt: serverTimestamp(),
-    })
+   const userSnap = await getDoc(doc(db, "users", user.uid))
+        const userData = userSnap.data()
 
-    router.replace("/home")
+      await setDoc(doc(collection(db, "withdrawRequests")), {
+        storeId,
+        playerId: user.uid,
+        playerName: userData?.name ?? "",
+        amount,
+        status: "pending",
+        createdAt: serverTimestamp(),
+      })
+
+      setWithdrawStatus("pending")
+
   }
 
   if (!amount) {
@@ -139,22 +140,44 @@ export default function WithdrawConfirmClient() {
           <h1 className="text-[18px] font-semibold text-gray-900">確認画面</h1>
         </div>
 
-        <div className="mt-8 rounded-[24px] border border-gray-200 p-8 text-center">
-          <p className="text-[12px] text-gray-500">ディーラーに見せてください</p>
-          <div className="mt-6 text-[56px] font-bold text-gray-900">
-            <span className="flip-amount-bottom">{unitLabel}{amount}</span>
-          </div>
-        </div>
-
+       
         {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
 
+        {withdrawStatus === "pending" && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-[200]">
+            <div className="bg-white p-8 rounded-2xl text-center w-[90%] max-w-sm">
+
+              <p className="text-[18px] font-semibold text-gray-900">
+                出金申請中
+              </p>
+
+              <p className="text-[32px] font-bold text-red-500 mt-4">
+                -{unitLabel}{amount}
+              </p>
+
+              <p className="text-sm text-gray-500 mt-4">
+                この画面をスタッフに見せてください
+              </p>
+
+              <button
+                onClick={() => setWithdrawStatus("idle")}
+                className="mt-6 w-full h-10 rounded-xl bg-gray-200 text-gray-700"
+              >
+                閉じる
+              </button>
+
+            </div>
+          </div>
+        )}
+
         <button
-          type="button"
-          onClick={confirm}
-          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900"
-        >
-          確認してもらった
-        </button>
+            type="button"
+            onClick={confirm}
+            className="mt-6 h-[52px] w-full rounded-[24px] bg-red-500 text-[15px] font-semibold text-white"
+          >
+            出金申請する
+          </button>
+
       </div>
       <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
         <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">

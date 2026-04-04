@@ -22,7 +22,8 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore"
-import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign, FiClock, FiCheck, FiX, FiSearch, FiLogOut } from "react-icons/fi"
+
+import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign, FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiArrowUpCircle } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -361,6 +362,8 @@ setTimerRunning(runningMap)
   }, [storeId])
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
+  const [withdrawRequests, setWithdrawRequests] = useState<any[]>([])
+  const [shownWithdrawPopupIds, setShownWithdrawPopupIds] = useState<Set<string>>(new Set())
   const [players, setPlayers] = useState<PlayerInfo[]>([])
   const [pendingPlayers, setPendingPlayers] = useState<PlayerInfo[]>([])
   const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null)
@@ -453,6 +456,47 @@ setTimerRunning(runningMap)
     })
     return () => unsub()
   }, [storeId])
+
+  useEffect(() => {
+  if (!storeId) return
+
+  const q = query(
+    collection(db, "withdrawRequests"),
+    where("storeId", "==", storeId),
+    where("status", "==", "pending")
+  )
+
+  const unsub = onSnapshot(q, snap => {
+    const list: any[] = []
+    snap.forEach(d => {
+      const data = d.data()
+      list.push({
+        id: d.id,
+        playerId: data.playerId,
+        playerName: data.playerName,
+        amount: data.amount,
+      })
+    })
+    setWithdrawRequests(list)
+  })
+
+  return () => unsub()
+}, [storeId])
+
+
+useEffect(() => {
+  withdrawRequests.forEach(req => {
+    if (!shownWithdrawPopupIds.has(req.id)) {
+      alert(`出金申請: ${req.playerName} - ${req.amount}`)
+      
+      setShownWithdrawPopupIds(prev => {
+        const newSet = new Set(prev)
+        newSet.add(req.id)
+        return newSet
+      })
+    }
+  })
+}, [withdrawRequests])
 
  
  useEffect(() => {
@@ -612,6 +656,42 @@ useEffect(() => {
       createdAt: serverTimestamp(),
     })
   }
+
+
+  const approveWithdraw = async (req: any) => {
+  if (!storeId) return
+
+  const balanceRef = doc(
+    db,
+    "users",
+    req.playerId,
+    "storeBalances",
+    storeId
+  )
+
+  await updateDoc(balanceRef, {
+    balance: increment(-req.amount),
+    netGain: increment(-req.amount)
+  })
+
+  await updateDoc(doc(db, "withdrawRequests", req.id), {
+    status: "approved"
+  })
+
+  await setDoc(doc(collection(db, "withdrawals")), {
+    storeId,
+    playerId: req.playerId,
+    playerName: req.playerName,
+    amount: req.amount,
+    createdAt: serverTimestamp(),
+  })
+}
+
+const rejectWithdraw = async (req: any) => {
+  await updateDoc(doc(db, "withdrawRequests", req.id), {
+    status: "rejected"
+  })
+}
 
   const rejectDeposit = async (request: DepositRequest) => {
     await updateDoc(doc(db, "depositRequests", request.id), {
@@ -1004,6 +1084,56 @@ const rejectPlayer = async (playerId: string) => {
             </div>
           )}
         </div>
+
+        {/* Withdraw Requests */}
+            {withdrawRequests.length > 0 && (
+              <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center">
+                    <FiArrowUpCircle size={16} className="text-white" />
+                  </div>
+                  <p className="text-[16px] font-semibold text-gray-900">出金申請</p>
+                  <span className="ml-auto bg-red-500 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
+                    {withdrawRequests.length}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {withdrawRequests.map(req => (
+                    <div
+                      key={req.id}
+                      className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="text-[14px] font-semibold text-gray-900">
+                            {req.playerName}
+                          </p>
+                        </div>
+                        <p className="text-[18px] font-bold text-red-500">
+                          -{req.amount}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => approveWithdraw(req)}
+                          className="rounded-xl bg-green-500 py-2.5 text-[12px] text-white"
+                        >
+                          承認
+                        </button>
+                        <button
+                            onClick={() => rejectWithdraw(req)}
+                            className="rounded-xl bg-red-500 py-2.5 text-[12px] text-white"
+                          >
+                            却下
+                          </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
         {/* Cash Requests */}
         {depositRequests.length > 0 && (

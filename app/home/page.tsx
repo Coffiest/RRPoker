@@ -8,6 +8,9 @@
           import { useRouter } from "next/navigation"
           import { getCommonMenuItems } from "@/components/commonMenuItems"
           import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
+          import { FiCheckCircle } from "react-icons/fi"
+
+          
 
           type StoreInfo = {
             id: string
@@ -89,6 +92,16 @@
             const [checkinStatus, setCheckinStatus] = useState<"none" | "pending" | "approved">("none")
             const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
             const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
+            const [withdrawStatus, setWithdrawStatus] = useState<"none" | "pending" | "approved" | "rejected">("none")
+            const [withdrawAmount, setWithdrawAmount] = useState(0)
+            const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(true)
+            const [hasSeenWithdrawPopup, setHasSeenWithdrawPopup] = useState(() => {
+                  if (typeof window === "undefined") return false
+                  return localStorage.getItem("withdraw_popup_seen") === "true"
+                })
+
+
+            
 
             useEffect(() => {
               const unsub = auth.onAuthStateChanged(user => {
@@ -202,6 +215,38 @@
                 const data = snap.data()
                 setBalance(typeof data?.balance === "number" ? data.balance : 0)
                 setNetGain(typeof data?.netGain === "number" ? data.netGain : 0)
+              })
+
+              return () => unsub()
+            }, [userId, currentStoreId])
+
+            useEffect(() => {
+              if (!userId || !currentStoreId) return
+
+              const q = query(
+                collection(db, "withdrawRequests"),
+                where("playerId", "==", userId),
+                where("storeId", "==", currentStoreId)
+              )
+
+              const unsub = onSnapshot(q, snap => {
+                let latest: any = null
+
+                snap.forEach(d => {
+                  const data = d.data()
+                  
+                  if (!latest || (data.createdAt?.seconds ?? 0) > (latest.createdAt?.seconds ?? 0)) {
+                    latest = data
+                  }
+                })
+
+                if (!latest) {
+                  setWithdrawStatus("none")
+                  return
+                }
+
+                setWithdrawStatus(latest.status)
+                setWithdrawAmount(latest.amount)
               })
 
               return () => unsub()
@@ -794,6 +839,8 @@
             }, [favoriteStores, joinedStores])
 
             return (
+
+              
               <main className="min-h-screen bg-[#FFFBF5] pb-32">
                 <style>{`
                   @keyframes slideUp {
@@ -975,6 +1022,69 @@
                   }
                 `}</style>
                 
+         
+
+                  {withdrawStatus === "approved" && withdrawAmount > 0 && isWithdrawModalOpen && !hasSeenWithdrawPopup && (
+                    
+                    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-[200]">
+                        <div className="relative w-[90%] max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+
+                          {/* 閉じるボタン */}
+                          <button
+                          onClick={() => {
+  setIsWithdrawModalOpen(false)
+  setHasSeenWithdrawPopup(true)
+  localStorage.setItem("withdraw_popup_seen", "true")
+}}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                          >
+                            <FiX size={18} />
+                          </button>
+
+                          {/* アイコン + タイトル */}
+                          <div className="flex flex-col items-center">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2A900]/10 mb-3">
+                              <FiCheckCircle className="text-[#F2A900] text-[20px]" />
+                            </div>
+
+                            <p className="text-[14px] font-semibold text-gray-900">
+                              お知らせ
+                            </p>
+                          </div>
+
+                          {/* メイン */}
+                          <div className="mt-4 text-center">
+                            <p className="text-[15px] font-medium text-gray-900 mb-2">
+                              出金が承認されました
+                            </p>
+
+                            <p className="text-[32px] font-bold text-[#F2A900]">
+                              {withdrawAmount}
+                            </p>
+
+                            <p className="mt-2 text-[13px] text-gray-700">
+                              がバンクロールから引き出されました
+                            </p>
+                          </div>
+
+                          {/* ボタン */}
+                          <button
+                       onClick={() => {
+  setIsWithdrawModalOpen(false)
+  setHasSeenWithdrawPopup(true)
+  localStorage.setItem("withdraw_popup_seen", "true")
+}}
+                            className="mt-6 w-full h-11 rounded-2xl bg-[#F2A900] text-white text-[14px] font-semibold active:scale-95"
+                          >
+                            閉じる
+                          </button>
+
+                        </div>
+                      </div>
+
+                    
+                  )}
+
                 <HomeHeader
                   homePath="/home"
                   myPagePath="/home/mypage"
