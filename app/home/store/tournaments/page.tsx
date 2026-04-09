@@ -83,43 +83,73 @@ export default function TournamentsPage() {
   if (!storeId) return
   const refCol = collection(db, "stores", storeId, "tournaments")
 
-const unsub = onSnapshot(refCol, async (snap) => {
-    const list: any[] = []
-    snap.forEach((d) => {
-      const data = d.data()
-      list.push({
-        id: d.id,
-        ...data,
-        date: data.date?.toDate ? data.date.toDate() : data.date,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
-        startedAt: data.startedAt?.toDate ? data.startedAt.toDate() : data.startedAt,
-      })
-    })
-    setTournaments(list)
+  const unsub = onSnapshot(refCol, async (snap) => {
 
-    const map: any = {}
-
-for (const t of list) {
-  const entriesRef = collection(
-    db,
-    "stores",
-    storeId,
-    "tournaments",
-    t.id,
-    "entries"
-  )
-
-const entriesSnap = await getDocs(entriesRef)
-
-map[t.id] = entriesSnap.docs.map(d => ({
-  id: d.id,
-  ...d.data()
-}))
+const normalize = (v: any) => {
+  if (v?.toDate) return v.toDate()
+  if (typeof v === "object" && v !== null) return null
+  return v
 }
 
-setEntriesMap(map)
+  const list: any[] = []
 
+  snap.forEach((d) => {
+    const data = d.data()
+
+    list.push({
+      id: d.id,
+      name: data.name ?? "",
+      status: data.status ?? "",
+      startTime: data.startTime ?? "",
+      date: normalize(data.date),
+      createdAt: normalize(data.createdAt),
+      startedAt: normalize(data.startedAt),
+      updatedAt: normalize(data.updatedAt),
+      payouts: Array.isArray(data.payouts)
+        ? data.payouts.map((p: any) => ({
+            playerId: p.playerId ?? "",
+            rank: p.rank ?? 0,
+            amount: p.amount ?? 0,
+            createdAt: normalize(p.createdAt),
+            updatedAt: normalize(p.updatedAt)
+          }))
+        : []
+    })
   })
+
+  setTournaments(list)
+
+  const map: any = {}
+
+  for (const t of list) {
+    const entriesRef = collection(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      t.id,
+      "entries"
+    )
+
+    const entriesSnap = await getDocs(entriesRef)
+
+map[t.id] = entriesSnap.docs.map(d => {
+  const data = d.data()
+
+  return {
+    id: d.id,
+    name: typeof data.name === "string" ? data.name : "",
+        entryCount: data.entryCount ?? 0,
+        reentryCount: data.reentryCount ?? 0,
+        addonCount: data.addonCount ?? 0,
+        createdAt: normalize(data.createdAt),
+        updatedAt: normalize(data.updatedAt)
+      }
+    })
+  }
+
+  setEntriesMap(map)
+})
 
   return () => unsub()
 }, [storeId])
@@ -282,11 +312,15 @@ setEntriesMap(map)
         <div className="font-semibold text-gray-900">
           {t.name}
         </div>
-        <div className="text-sm text-gray-800">
-          {t.date instanceof Date ? t.date.toLocaleDateString() : ""}
-          {" "}
-          {t.startTime || ""}
-        </div>
+       <div className="text-sm text-gray-800">
+  {t.date?.toDate
+    ? t.date.toDate().toLocaleDateString()
+    : t.date instanceof Date
+    ? t.date.toLocaleDateString()
+    : ""}
+  {" "}
+  {t.startTime || ""}
+</div>
       </div>
       <div className="flex gap-3 items-center">
         <button onClick={() => handleEdit(t)}>
@@ -321,9 +355,13 @@ setEntriesMap(map)
   <div className="text-[14px] font-semibold text-gray-900">
     {t.name}
   </div>
-  <div className="text-[11px] text-gray-400">
-    {t.startedAt instanceof Date ? t.startedAt.toLocaleString() : ""}
-  </div>
+ <div className="text-[11px] text-gray-400">
+  {t.startedAt?.toDate
+    ? t.startedAt.toDate().toLocaleString()
+    : t.startedAt instanceof Date
+    ? t.startedAt.toLocaleString()
+    : ""}
+</div>
 </div>
 
         <div className="mt-2 text-xs">
@@ -354,12 +392,18 @@ setEntriesMap(map)
           <div className={`text-[14px] font-semibold ${
             isITM ? "text-[#F2A900]" : "text-gray-900"
           }`}>
-            {isITM ? `${payout.rank}位 ` : ""}{e.name ?? e.id}
+            {isITM && typeof payout.rank === "number" ? `${payout.rank}位 ` : ""}{typeof e.name === "string"
+  ? e.name
+  : typeof e.id === "string"
+  ? e.id
+  : ""}
           </div>
 
           {isITM && (
             <div className="text-[13px] font-semibold text-[#F2A900]">
-              獲得プライズ：{payout.rank}位（{payout.amount.toLocaleString()}円）
+             獲得プライズ：
+{typeof payout.rank === "number" ? payout.rank : 0}位
+（{typeof payout.amount === "number" ? payout.amount.toLocaleString() : 0}円）
             </div>
           )}
 

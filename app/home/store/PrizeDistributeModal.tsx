@@ -121,21 +121,24 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 const list: Participant[] = []
 
 for (const d of entriesSnap.docs) {
+
   const data = d.data()
+  const userId = d.id
+
+  
 
   // 仮プレイヤー
-  if (d.id.startsWith("temp_")) {
+  if (userId.startsWith("temp_")) {
     list.push({
-      id: d.id,
+      id: userId,
       name: data.name ?? "TEMP",
     })
   } else {
-    // 通常ユーザー
-    const uSnap = await getDoc(doc(db, "users", d.id))
+    const uSnap = await getDoc(doc(db, "users", userId))
     const ud: any = uSnap.data()
 
     list.push({
-      id: d.id,
+      id: userId,
       name: ud?.name ?? "Unknown",
       iconUrl: ud?.iconUrl,
     })
@@ -260,6 +263,7 @@ setParticipants(list)
       for (const d of entriesSnap.docs) {
             const userId = d.id
             const entry = d.data()
+            if (userId.startsWith("temp_")) continue
 
             const entryCount = entry.entryCount ?? 0
             const reentryCount = entry.reentryCount ?? 0
@@ -446,6 +450,9 @@ const sigma = Math.sqrt(
 
 // rrRating計算＆保存
 for (const p of players) {
+
+  if (p.userId.startsWith("temp_")) continue
+
   let rr = 50
 
   if (sigma !== 0) {
@@ -461,11 +468,13 @@ for (const p of players) {
     rrRating: rounded,
   })
 
+  if (!p.userId.startsWith("temp_")) {
   const userRef = doc(db, "users", p.userId)
 
   await updateDoc(userRef, {
     rrRating: rounded,
   })
+}
 }
 
 // ===== RR Rating 再計算 END =====

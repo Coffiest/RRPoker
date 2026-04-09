@@ -37,6 +37,13 @@ type DepositRequest = {
   comment?: string
 }
 
+type WithdrawRequest = {
+  id: string
+  playerId: string
+  amount: number
+  comment?: string
+}
+
 type PlayerInfo = {
   id: string
   name?: string
@@ -361,6 +368,7 @@ setTimerRunning(runningMap)
   }, [storeId])
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
+  const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
   const [pendingPlayers, setPendingPlayers] = useState<PlayerInfo[]>([])
   const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null)
@@ -384,6 +392,7 @@ setTimerRunning(runningMap)
     const usersSnapUnsub = onSnapshot(collection(db, "users"), async (usersSnap) => {
       const players: any[] = []
       for (const userDoc of usersSnap.docs) {
+        if (userDoc.id.startsWith("temp_")) continue
         const userData = userDoc.data()
         const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
         const balanceSnap = await getDoc(balanceRef)
@@ -454,7 +463,32 @@ setTimerRunning(runningMap)
     return () => unsub()
   }, [storeId])
 
- 
+ useEffect(() => {
+  if (!storeId) return
+
+  const q = query(
+    collection(db, "withdrawRequests"),
+    where("storeId", "==", storeId),
+    where("status", "==", "pending")
+  )
+
+  const unsub = onSnapshot(q, snap => {
+    const list: WithdrawRequest[] = []
+    snap.forEach(d => {
+      const data = d.data()
+      list.push({
+        id: d.id,
+        playerId: data.playerId,
+        amount: data.amount,
+        comment: data.comment,
+      })
+    })
+    setWithdrawRequests(list)
+  })
+
+  return () => unsub()
+}, [storeId])
+
  useEffect(() => {
   if (!storeId) return
 
@@ -512,6 +546,7 @@ useEffect(() => {
     const map: Record<string, number> = {}
 
     for (const userDoc of snap.docs) {
+      if (userDoc.id.startsWith("temp_")) continue
       const ref = doc(db, "users", userDoc.id, "storeBalances", storeId)
       const s = await getDoc(ref)
       if (s.exists()) {
@@ -613,11 +648,59 @@ useEffect(() => {
     })
   }
 
+  const approveWithdraw = async (request: WithdrawRequest) => {
+  if (!storeId) return
+
+  const balanceRef = doc(
+    db,
+    "users",
+    request.playerId,
+    "storeBalances",
+    storeId
+  )
+
+  const snap = await getDoc(balanceRef)
+
+  if (!snap.exists()) {
+    await setDoc(balanceRef, {
+      balance: 0,
+      netGain: 0,
+      storeId,
+    }, { merge: true })
+  }
+
+  await updateDoc(balanceRef, {
+    balance: increment(-request.amount),
+    netGain: increment(-request.amount),
+  })
+
+  await updateDoc(doc(db, "withdrawRequests", request.id), {
+    status: "approved",
+  })
+
+  await setDoc(doc(collection(db, "transactions")), {
+    storeId,
+    playerId: request.playerId,
+    playerName: playerMap[request.playerId]?.name ?? null,
+    amount: request.amount,
+    direction: "subtract",
+    type: "withdraw_approved",
+    createdAt: serverTimestamp(),
+  })
+}
+
+
   const rejectDeposit = async (request: DepositRequest) => {
     await updateDoc(doc(db, "depositRequests", request.id), {
       status: "rejected",
     })
   }
+
+  const rejectWithdraw = async (request: WithdrawRequest) => {
+  await updateDoc(doc(db, "withdrawRequests", request.id), {
+    status: "rejected",
+  })
+}
 
   const runAdjustment = async (
     direction: "add" | "subtract",
@@ -713,20 +796,19 @@ useEffect(() => {
 const approvePlayer = async (playerId: string) => {
   if (!storeId) return
 
-  await updateDoc(doc(db, "users", playerId), {
+  await setDoc(doc(db, "users", playerId), {
     currentStoreId: storeId,
     checkinStatus: "approved",
     pendingStoreId: null,
-  })
+  }, { merge: true })
 }
 
 const rejectPlayer = async (playerId: string) => {
-  await updateDoc(doc(db, "users", playerId), {
+  await setDoc(doc(db, "users", playerId), {
     checkinStatus: "none",
     pendingStoreId: null,
-  })
+  }, { merge: true })
 }
-  
 
   const copyCode = async () => {
     if (!store?.code) return
@@ -1005,6 +1087,57 @@ const rejectPlayer = async (playerId: string) => {
           )}
         </div>
 
+        {withdrawRequests.length > 0 && (
+  <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center">
+        <FiMinus size={16} className="text-white" />
+      </div>
+      <p className="text-[16px] font-semibold text-gray-900">出金申請</p>
+      <span className="ml-auto bg-red-500 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
+        {withdrawRequests.length}
+      </span>
+    </div>
+
+    <div className="space-y-3">
+      {withdrawRequests.map(req => (
+        <div
+          key={req.id}
+          className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[14px] font-semibold text-gray-900">
+                {playerMap[req.playerId]?.name ?? req.playerId}
+              </p>
+            </div>
+            <p className="text-[18px] font-bold text-red-500">
+              ¥{req.amount.toLocaleString()}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => approveWithdraw(req)}
+              className="rounded-xl bg-green-500 py-2.5 text-[12px] font-medium text-white"
+            >
+              承認
+            </button>
+            <button
+              type="button"
+              onClick={() => rejectWithdraw(req)}
+              className="rounded-xl bg-gray-200 py-2.5 text-[12px] font-medium text-gray-700"
+            >
+              却下
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
         {/* Cash Requests */}
         {depositRequests.length > 0 && (
           <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
@@ -1171,10 +1304,11 @@ const rejectPlayer = async (playerId: string) => {
         <button
           type="button"
           onClick={async () => {
-            await updateDoc(
-              doc(db, "users", player.id),
-              { currentStoreId: deleteField() }
-            )
+           await setDoc(
+  doc(db, "users", player.id),
+  { currentStoreId: deleteField() },
+  { merge: true }
+)
           }}
           className="px-2 py-1 text-xs text-white bg-red-500 rounded flex items-center gap-1"
         >

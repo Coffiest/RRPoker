@@ -10,6 +10,8 @@ import {
   getDoc,
   serverTimestamp,
   setDoc,
+  updateDoc,
+  increment,
 } from "firebase/firestore"
 import { FiArrowLeft, FiArrowDownCircle, FiArrowUpCircle, FiHome, FiCreditCard, FiUser } from "react-icons/fi"
 
@@ -33,6 +35,7 @@ export default function TransactionsClient() {
   const [balance, setBalance] = useState(0)
   const [unitLabel, setUnitLabel] = useState("")
   const [blindBb, setBlindBb] = useState<number | null>(null)
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchInfo = async () => {
@@ -119,8 +122,50 @@ export default function TransactionsClient() {
       return
     }
 
-    router.push(`/home/withdraw/confirm?amount=${numeric}&comment=${encodeURIComponent(comment)}`)
+    setIsWithdrawModalOpen(true)
   }
+
+  const confirmWithdraw = async () => {
+  const user = auth.currentUser
+  if (!user || !storeId) return
+  const numeric = Number(amount)
+
+  if (!numeric || numeric < 1) {
+    setError("金額が不正です")
+    return
+  }
+
+  const balanceRef = doc(db, "users", user.uid, "storeBalances", storeId)
+  const balanceSnap = await getDoc(balanceRef)
+  const current = balanceSnap.data()?.balance ?? 0
+
+  if (current < numeric) {
+    setError("残高が不足しています")
+    return
+  }
+
+  if (!balanceSnap.exists()) {
+    setError("残高が不足しています")
+    return
+  }
+
+  await updateDoc(balanceRef, {
+    balance: increment(-numeric),
+    netGain: increment(-numeric),
+  })
+
+  await setDoc(doc(collection(db, "withdrawals")), {
+    storeId,
+    playerId: user.uid,
+    amount: numeric,
+    comment,
+    status: "completed",
+    createdAt: serverTimestamp(),
+  })
+
+  setIsWithdrawModalOpen(false)
+  router.replace("/home")
+}
 
   if (!storeId) {
     return (
@@ -165,6 +210,7 @@ export default function TransactionsClient() {
             </button>
           </div>
         </nav>
+
       </main>
     )
   }
@@ -304,6 +350,31 @@ export default function TransactionsClient() {
           </button>
         </div>
       </nav>
+
+              {isWithdrawModalOpen && (
+          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50">
+            <div className="w-[90%] max-w-sm rounded-[24px] bg-white p-6">
+              <h2 className="text-center text-[18px] font-semibold text-gray-900">確認画面</h2>
+
+              <div className="mt-6 rounded-[20px] border border-gray-200 p-6 text-center">
+                <p className="text-[12px] text-gray-500">ディーラーに見せてください</p>
+                <div className="mt-4 text-[48px] font-bold text-gray-900">
+                  {unitLabel}{Number(amount || 0)}
+                </div>
+              </div>
+
+              {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
+
+              <button
+                onClick={confirmWithdraw}
+                className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900"
+              >
+                確認してもらった
+              </button>
+            </div>
+          </div>
+        )}
+
     </main>
   )
 }

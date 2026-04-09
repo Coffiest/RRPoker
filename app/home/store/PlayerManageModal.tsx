@@ -61,6 +61,8 @@ const unsub = onSnapshot(
       for (const userDoc of usersSnap.docs) {
         const userData = userDoc.data()
 
+        
+
         const entryRef = doc(
           db,
           "stores",
@@ -158,6 +160,17 @@ const addTempPlayer = async () => {
 
   const id = "temp_" + Date.now()
 
+  // 🔴 usersにも作る（これが本質）
+await setDoc(
+  doc(db, "users", id),
+  {
+    name: newTempName,
+    isTemp: true,
+    createdAt: new Date(),
+  },
+  { merge: true }
+)
+
   const entryRef = doc(
     db,
     "stores",
@@ -246,15 +259,12 @@ const updateTempPlayerName = async (playerId: string, newName: string) => {
   )
 }
 
-  // Entry/Reentry/Addon更新
-  const handleEntryChange = async (
-    playerId: string,
-    field: "entryCount" | "reentryCount" | "addonCount",
-    delta: number
-  ) => {
-    if (!storeId || !tournamentId) return
-
-
+const handleEntryChange = async (
+  playerId: string,
+  field: "entryCount" | "reentryCount" | "addonCount",
+  delta: number
+) => {
+  if (!storeId || !tournamentId) return
 
   try {
     const entryRef = doc(
@@ -267,6 +277,24 @@ const updateTempPlayerName = async (playerId: string, newName: string) => {
       playerId
     )
 
+    // 🔴存在保証（これだけでいい）
+    const snap = await getDoc(entryRef)
+
+    if (!snap.exists()) {
+      await setDoc(
+        entryRef,
+        {
+          name: players.find(p => p.id === playerId)?.name ?? "ゲスト",
+          isTemp: true,
+          entryCount: 0,
+          reentryCount: 0,
+          addonCount: 0,
+        },
+        { merge: true }
+      )
+    }
+
+    // 🔴更新
     await setDoc(
       entryRef,
       {
@@ -275,6 +303,7 @@ const updateTempPlayerName = async (playerId: string, newName: string) => {
       { merge: true }
     )
 
+    // 🔴合計再計算
     const entriesRef = collection(
       db,
       "stores",
@@ -283,6 +312,7 @@ const updateTempPlayerName = async (playerId: string, newName: string) => {
       tournamentId,
       "entries"
     )
+
     const entriesSnap = await getDocs(entriesRef)
 
     let totalEntry = 0
@@ -312,6 +342,7 @@ const updateTempPlayerName = async (playerId: string, newName: string) => {
           : p
       )
     )
+
   } catch {
     setError("更新に失敗しました")
   }

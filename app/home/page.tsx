@@ -1,4 +1,4 @@
-          "use client"
+ "use client"
 
           import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
           import { auth, db } from "@/lib/firebase"
@@ -89,6 +89,13 @@
             const [checkinStatus, setCheckinStatus] = useState<"none" | "pending" | "approved">("none")
             const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
             const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
+            const [isCheckinCompleteModalOpen, setIsCheckinCompleteModalOpen] = useState(false)
+            const prevCheckinStatusRef = useRef<"none" | "pending" | "approved">("none")
+            const shownWithdrawIdsRef = useRef<Set<string>>(new Set())
+            const [withdrawNotice, setWithdrawNotice] = useState<{
+              type: "approved" | "rejected" | "pending"
+              amount: number
+            } | null>(null)
 
             useEffect(() => {
               const unsub = auth.onAuthStateChanged(user => {
@@ -97,11 +104,19 @@
               return () => unsub()
             }, [])
 
+            useEffect(() => {
+                const saved = localStorage.getItem("shownWithdrawIds")
+                if (saved) {
+                  shownWithdrawIdsRef.current = new Set(JSON.parse(saved))
+                }
+              }, [])
+
 
             useEffect(() => {
               if (!userId) return
 
               const ref = doc(db, "users", userId)
+              if (userId.startsWith("temp_")) return
 
               const unsub = onSnapshot(ref, async (snap) => {
                 const data = snap.data()
@@ -114,14 +129,20 @@
                   return
                 }
 
-                const status = data?.checkinStatus ?? "approved"
+                const status = data?.checkinStatus ?? "none"
 
-                if (!data?.checkinStatus) {
-                  await updateDoc(ref, { checkinStatus: "approved" })
-                }
+              
+
+                const prevStatus = prevCheckinStatusRef.current
 
                 setCheckinStatus(status)
                 setPendingStoreId(data?.pendingStoreId ?? null)
+
+                if (prevStatus === "pending" && status === "approved") {
+                  setIsCheckinCompleteModalOpen(true)
+                }
+
+                prevCheckinStatusRef.current = status
 
                 if (status === "approved") {
                   setCurrentStoreId(data?.currentStoreId ?? null)
@@ -145,7 +166,7 @@
                 setRrRatingValue(rating)
 
                 if (typeof data?.rrRating !== "number") {
-                  await updateDoc(ref, { rrRating: 1000 })
+                  await setDoc(ref, { rrRating: 1000 }, { merge: true })
                 }
               })
 
@@ -204,7 +225,9 @@
                 setNetGain(typeof data?.netGain === "number" ? data.netGain : 0)
               })
 
-              return () => unsub()
+                return () => {
+                  unsub()
+                }
             }, [userId, currentStoreId])
 
             useEffect(() => {
@@ -294,6 +317,63 @@
 
               fetchHistoryData()
             }, [userId, currentStoreId])
+
+
+                        useEffect(() => {
+              if (!userId || !currentStoreId) {
+                setBalance(0)
+                setNetGain(0)
+                return
+              }
+
+              const withdrawQuery = query(
+  collection(db, "withdrawRequests"),
+  where("playerId", "==", userId),
+  where("storeId", "==", currentStoreId)
+)
+
+const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
+    snap.forEach(docSnap => {
+      const data = docSnap.data()
+      const id = docSnap.id
+
+      if (shownWithdrawIdsRef.current.has(id)) return
+
+      if (data.status === "pending") {
+        setWithdrawNotice({ type: "pending", amount: data.amount })
+        shownWithdrawIdsRef.current.add(id)
+        localStorage.setItem(
+  "shownWithdrawIds",
+  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
+)
+      }
+
+      if (data.status === "approved") {
+        setWithdrawNotice({ type: "approved", amount: data.amount })
+        shownWithdrawIdsRef.current.add(id)
+        localStorage.setItem(
+  "shownWithdrawIds",
+  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
+)
+      }
+
+      if (data.status === "rejected") {
+        setWithdrawNotice({ type: "rejected", amount: data.amount })
+        shownWithdrawIdsRef.current.add(id)
+        localStorage.setItem(
+  "shownWithdrawIds",
+  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
+)
+      }
+    })
+  })
+
+  return () => unsubWithdraw()
+}, [userId, currentStoreId])
+
+          
+
+
 
             useEffect(() => {
               const fetchRankingData = async () => {
@@ -554,9 +634,12 @@
   const promises = snap.docs.map(async (docSnap) => {
 
     const data = docSnap.data()
+    
     const playerId = data.userId
     const roi = data.roi ?? 0
     const rrRating = data.rrRating ?? 0
+
+    
 
     const userSnap = await getDoc(doc(db, "users", playerId))
     const user = userSnap.data()
@@ -1648,6 +1731,8 @@
 
 
                 {isPendingModalOpen && (
+
+                  
                   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
                     <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center">
                       <p className="text-[25px] text-gray-600 mb-2">入店申請中</p>
@@ -1674,6 +1759,26 @@
                     </div>
                   </div>
                 )}
+
+                {isCheckinCompleteModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50">
+                      <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center animate-slideUp">
+                        <p className="text-[22px] font-semibold text-gray-900 mb-2">
+                          入店しました
+                        </p>
+                        <p className="text-[14px] text-gray-600 mb-6">
+                          入店が承認されました
+                        </p>
+
+                        <button
+                          onClick={() => setIsCheckinCompleteModalOpen(false)}
+                          className="w-full h-11 rounded-xl bg-[#F2A900] text-white font-semibold"
+                        >
+                          OK
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                 {isJoinModalOpen && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
@@ -1915,6 +2020,49 @@
                     </button>
                   </div>
                 </nav>
+
+                {withdrawNotice && (
+  <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50">
+    <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center animate-slideUp">
+
+      {withdrawNotice.type === "pending" && (
+        <>
+          <p className="text-[20px] font-semibold mb-2">出金申請中</p>
+          <p className="text-[14px] text-gray-600">
+            この画面をスタッフに見せてください
+          </p>
+        </>
+      )}
+
+      {withdrawNotice.type === "approved" && (
+        <>
+          <p className="text-[20px] font-semibold text-gray-900 mb-2">出金承認</p>
+          <p className="text-[14px] text-gray-600">
+            {withdrawNotice.amount} が引き出されました
+          </p>
+        </>
+      )}
+
+      {withdrawNotice.type === "rejected" && (
+        <>
+          <p className="text-[20px] font-semibold mb-2">出金却下</p>
+          <p className="text-[14px] text-gray-600">
+            出金が却下されました
+          </p>
+        </>
+      )}
+
+      <button
+        onClick={() => setWithdrawNotice(null)}
+        className="mt-5 w-full h-11 rounded-xl bg-[#F2A900] text-white font-semibold"
+      >
+        OK
+      </button>
+
+    </div>
+  </div>
+)}
+
               </main>
             )
           }

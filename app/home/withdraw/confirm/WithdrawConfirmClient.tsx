@@ -172,6 +172,7 @@ export default function WithdrawConfirmClient() {
             className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
             aria-label="入出金"
           >
+          
             <FiCreditCard className="text-[22px]" />
             <span className="mt-1 text-[10px] font-semibold">入出金</span>
           </button>
