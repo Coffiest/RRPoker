@@ -8,6 +8,7 @@
           import { useRouter } from "next/navigation"
           import { getCommonMenuItems } from "@/components/commonMenuItems"
           import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
+          import { getNetGainRankingFromUsers, getMyNetGainRank, NetGainPlayer } from "@/lib/netGainRanking"
 
           type StoreInfo = {
             id: string
@@ -62,8 +63,8 @@
             const [favoriteMessage, setFavoriteMessage] = useState("")
             const [favoritePulse, setFavoritePulse] = useState("")
             const [historyItems, setHistoryItems] = useState<any[]>([])
-            const [ranking, setRanking] = useState<RankingPlayer[]>([])
-            const [userRank, setUserRank] = useState<RankingPlayer | null>(null)
+            const [ranking, setRanking] = useState<NetGainPlayer[]>([])
+            const [userRank, setUserRank] = useState<NetGainPlayer | null>(null)
             const [rankingLoading, setRankingLoading] = useState(true)
             const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false)
             const [playersPreview, setPlayersPreview] = useState<StorePlayer[]>([])
@@ -386,10 +387,10 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
                 setRankingLoading(true)
                 try {
-          　        const rankingData = await getNetGainRanking(currentStoreId)
+          　        const rankingData = await getNetGainRankingFromUsers(currentStoreId)
                   setRanking(rankingData)
                   if (userId) {
-                    const uRank = getUserRank(userId, rankingData)
+                    const uRank = getMyNetGainRank(userId, rankingData)
                     setUserRank(uRank)
                   }
                 } catch (error) {
@@ -1701,22 +1702,22 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                         <div className="space-y-2">
                           {rankingLoading ? (
                             <p className="text-center text-[13px] text-gray-500 py-4">ロード中...</p>
-                          ) : ranking.slice(0, 3).length > 0 ? (
-                            ranking.slice(0, 3).map((player, index) => (
-                              <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold text-[13px] ${
-                                    index === 0 ? 'medal-gold text-white' :
-                                    index === 1 ? 'medal-silver text-gray-700' :
-                                    'medal-bronze text-white'
-                                  }`}>
-                                    {index + 1}
-                                  </div>
-                                  <span className="text-[14px] font-medium text-gray-700">{player.name || "プレイヤー"}</span>
+                          ) : ranking.slice(0, 5).length > 0 ? (
+                         ranking.slice(0, 5).map((player, index) => (
+                            <div key={player.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <div className={`flex h-8 w-8 items-center justify-center rounded-full font-bold text-[13px] ${
+                                  index === 0 ? 'medal-gold text-white' :
+                                  index === 1 ? 'medal-silver text-gray-700' :
+                                  'medal-bronze text-white'
+                                }`}>
+                                  {index + 1}
                                 </div>
-                                <span className="text-[14px] font-bold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
+                                <span className="text-[14px] font-medium text-gray-700">{player.name || "プレイヤー"}</span>
                               </div>
-                            ))
+                              <span className="text-[14px] font-bold text-gray-900">{formatSignedChipValue(player.netGain)}</span>
+                            </div>
+                          ))
                           ) : (
                             <p className="text-center text-[13px] text-gray-500 py-4">プレイヤーがいません</p>
                           )}

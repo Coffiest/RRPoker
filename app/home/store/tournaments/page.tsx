@@ -25,6 +25,7 @@ import {
 } from "firebase/storage"
 import { FiPlus, FiSettings, FiTrash2, FiX, FiCamera, FiHome, FiUser } from "react-icons/fi"
 import { useRouter } from "next/navigation"
+import { serverTimestamp } from "firebase/firestore"
 
 
 
@@ -63,7 +64,7 @@ export default function TournamentsPage() {
     try {
       await updateDoc(doc(db, "stores", storeId, "tournaments", id), {
         status: "active",
-        startedAt: new Date(),
+        startedAt: serverTimestamp(),
       })
     } finally {
       setStartingId(null)
@@ -86,8 +87,18 @@ export default function TournamentsPage() {
   const unsub = onSnapshot(refCol, async (snap) => {
 
 const normalize = (v: any) => {
+  // Firestore Timestamp
   if (v?.toDate) return v.toDate()
-  if (typeof v === "object" && v !== null) return null
+
+  // seconds/nanoseconds 型（壊れデータ）
+  if (
+    typeof v === "object" &&
+    v !== null &&
+    typeof v.seconds === "number"
+  ) {
+    return new Date(v.seconds * 1000)
+  }
+
   return v
 }
 
@@ -206,7 +217,7 @@ map[t.id] = entriesSnap.docs.map(d => {
       flyerUrl,
       bustCount: editData?.bustCount ?? 0,
       status: editData ? (editData.status ?? "scheduled") : "scheduled",
-      createdAt: editData?.createdAt ?? new Date()
+      createdAt: editData?.createdAt ?? serverTimestamp()
     }
 
     let tournamentId: string | null = null
@@ -313,12 +324,10 @@ map[t.id] = entriesSnap.docs.map(d => {
           {t.name}
         </div>
        <div className="text-sm text-gray-800">
-  {t.date?.toDate
-    ? t.date.toDate().toLocaleDateString()
-    : t.date instanceof Date
-    ? t.date.toLocaleDateString()
-    : ""}
-  {" "}
+          {t.date instanceof Date
+            ? t.date.toLocaleDateString()
+            : ""}
+            {" "}
   {t.startTime || ""}
 </div>
       </div>
@@ -356,11 +365,9 @@ map[t.id] = entriesSnap.docs.map(d => {
     {t.name}
   </div>
  <div className="text-[11px] text-gray-400">
-  {t.startedAt?.toDate
-    ? t.startedAt.toDate().toLocaleString()
-    : t.startedAt instanceof Date
-    ? t.startedAt.toLocaleString()
-    : ""}
+      {t.startedAt instanceof Date
+        ? t.startedAt.toLocaleString()
+        : ""}
 </div>
 </div>
 
