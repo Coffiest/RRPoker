@@ -796,11 +796,72 @@ useEffect(() => {
 const approvePlayer = async (playerId: string) => {
   if (!storeId) return
 
+  const storeRef = doc(db, "stores", storeId)
+  const storeSnap = await getDoc(storeRef)
+  const storeData = storeSnap.data()
+
   await setDoc(doc(db, "users", playerId), {
     currentStoreId: storeId,
     checkinStatus: "approved",
     pendingStoreId: null,
   }, { merge: true })
+
+  if (!storeData?.checkinBonusEnabled) return
+
+  const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
+  const stampSnap = await getDoc(stampRef)
+
+  const now = Timestamp.now().toMillis()
+
+  let canStamp = true
+
+  if (stampSnap.exists()) {
+    const data = stampSnap.data()
+    if (data.lastStampAt?.toMillis) {
+      const last = data.lastStampAt.toMillis()
+
+      const nowDate = new Date(now)
+      const lastDate = new Date(last)
+
+      const getResetBase = (d: Date) => {
+        const base = new Date(d)
+        base.setHours(3, 0, 0, 0)
+        if (d.getHours() < 3) base.setDate(base.getDate() - 1)
+        return base.getTime()
+      }
+
+      if (getResetBase(nowDate) === getResetBase(lastDate)) {
+        canStamp = false
+      }
+    }
+  }
+
+  if (!canStamp) return
+
+  let newCount = 1
+
+  if (stampSnap.exists()) {
+    const current = stampSnap.data().stampCount ?? 0
+    newCount = current + 1
+  }
+
+  if (newCount >= 12) {
+    await setDoc(doc(collection(db, "users", playerId, "coupons")), {
+      name: storeData.checkinBonusCouponName,
+      storeId: storeId,
+      createdAt: serverTimestamp(),
+    })
+
+    await setDoc(stampRef, {
+      stampCount: 0,
+      lastStampAt: serverTimestamp(),
+    })
+  } else {
+    await setDoc(stampRef, {
+      stampCount: newCount,
+      lastStampAt: serverTimestamp(),
+    })
+  }
 }
 
 const rejectPlayer = async (playerId: string) => {

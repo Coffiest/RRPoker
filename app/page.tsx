@@ -61,7 +61,7 @@ export default function TopPage() {
 
        <div className="pt-[50px] text-center">
     
-               <p className="mt-2 text-[10px] text-gray-500">ver 1.3.4.2</p>
+               <p className="mt-2 text-[10px] text-gray-500">ver 1.3.5</p>
                 <p className="mt-2 text-[10px] text-gray-500">RRPoker by Runner Runner</p>
                 <p className="mt-2 text-[10px] text-gray-500">製作者 : なおゆき</p>
         </div>

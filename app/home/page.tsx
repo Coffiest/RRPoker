@@ -91,7 +91,11 @@
             const [pendingStoreId, setPendingStoreId] = useState<string | null>(null)
             const [isPendingModalOpen, setIsPendingModalOpen] = useState(false)
             const [isCheckinCompleteModalOpen, setIsCheckinCompleteModalOpen] = useState(false)
+            const [showStampModal, setShowStampModal] = useState(false)
+            const [stampCount, setStampCount] = useState(0)
             const prevCheckinStatusRef = useRef<"none" | "pending" | "approved">("none")
+            const [hasShownCheckinComplete, setHasShownCheckinComplete] = useState(false)
+            const [hasShownStamp, setHasShownStamp] = useState(false)
             const shownWithdrawIdsRef = useRef<Set<string>>(new Set())
             const [withdrawNotice, setWithdrawNotice] = useState<{
               type: "approved" | "rejected" | "pending"
@@ -110,6 +114,14 @@
                 if (saved) {
                   shownWithdrawIdsRef.current = new Set(JSON.parse(saved))
                 }
+              }, [])
+
+              useEffect(() => {
+                const checkinShown = localStorage.getItem("hasShownCheckinComplete")
+                const stampShown = localStorage.getItem("hasShownStamp")
+
+                if (checkinShown === "true") setHasShownCheckinComplete(true)
+                if (stampShown === "true") setHasShownStamp(true)
               }, [])
 
 
@@ -136,17 +148,42 @@
 
                 const prevStatus = prevCheckinStatusRef.current
 
+                const shouldShowCheckin =
+                  (prevStatus === "pending" && status === "approved") ||
+                  (prevStatus === "none" && status === "approved")
+
                 setCheckinStatus(status)
                 setPendingStoreId(data?.pendingStoreId ?? null)
 
-                if (prevStatus === "pending" && status === "approved") {
+                if (prevStatus === "pending" && status === "approved" && !hasShownCheckinComplete) {
                   setIsCheckinCompleteModalOpen(true)
+                  setHasShownCheckinComplete(true)
+                  localStorage.setItem("hasShownCheckinComplete", "true")
+
+                  if (data?.currentStoreId) {
+                    const storeSnap = await getDoc(doc(db, "stores", data.currentStoreId))
+                    const storeData = storeSnap.data()
+
+                   if (storeData?.checkinBonusEnabled && !hasShownStamp) {
+                      const stampSnap = await getDoc(doc(db, "users", userId, "storeStamp", data.currentStoreId))
+                      if (stampSnap.exists()) {
+                        setStampCount(stampSnap.data().stampCount ?? 0)
+                        setShowStampModal(true)
+                        setHasShownStamp(true)
+                        localStorage.setItem("hasShownStamp", "true")
+                      }
+                    }
+                  }
                 }
 
                 prevCheckinStatusRef.current = status
 
                 if (status === "approved") {
                   setCurrentStoreId(data?.currentStoreId ?? null)
+                  localStorage.removeItem("hasShownCheckinComplete")
+                  localStorage.removeItem("hasShownStamp")
+                  setHasShownCheckinComplete(false)
+                  setHasShownStamp(false)
                   setIsPendingModalOpen(false)
                 }
 
@@ -427,13 +464,12 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
               return `${unitLabel}${value.toLocaleString()}`
             }
 
-            const formatSignedChipValue = (value: number) => {
-              const sign = value > 0 ? "+" : value < 0 ? "-" : ""
-              const absValue = Math.abs(value)
-              if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`
-              return `${sign}${unitLabel}${absValue.toLocaleString()}`
-            }
-
+       const formatSignedChipValue = (value: number) => {
+          const sign = value > 0 ? "+" : value < 0 ? "-" : "±"
+          const absValue = Math.abs(value)
+          if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`
+          return `${sign}${unitLabel}${absValue.toLocaleString()}`
+        }
             const sortedHistoryItems = useMemo(() => {
               return [...historyItems].sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
             }, [historyItems])
@@ -615,6 +651,8 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
               animateCount(netGain, netGainRef, setDisplayNetGain)
             }, [netGain])
 
+            
+
           useEffect(() => {
 
             const fetchRrRanking = async () => {
@@ -654,6 +692,8 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
       rank: 0
     }
   })
+
+  
 
   const results = await Promise.all(promises)
 
@@ -1057,6 +1097,43 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                     backdrop-filter: blur(4px);
                     -webkit-backdrop-filter: blur(4px);
                   }
+                  @keyframes stampPop {
+                    0% {
+                      transform: scale(0.3) rotate(-20deg);
+                      opacity: 0;
+                    }
+                    60% {
+                      transform: scale(1.3) rotate(10deg);
+                      opacity: 1;
+                    }
+                    100% {
+                      transform: scale(1) rotate(0deg);
+                    }
+                  }
+
+                  .animate-stampPop {
+                    animation: stampPop 0.35s ease-out;
+                  }
+
+                  @keyframes bounceIn {
+                    0% {
+                      transform: scale(0.6);
+                      opacity: 0;
+                    }
+                    70% {
+                      transform: scale(1.08);
+                      opacity: 1;
+                    }
+                    100% {
+                      transform: scale(1);
+                    }
+                  }
+
+                  .animate-bounceIn {
+                    animation: bounceIn 0.4s ease-out;
+                  }
+
+
                 `}</style>
                 
                 <HomeHeader
@@ -1581,16 +1658,18 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                     </div>
 
                     {/* ROI Indicator */}
-                    <div className="rounded-xl bg-gray-50 p-3">
-                      <p className="text-[11px] font-semibold text-gray-600 mb-1.5">ROI</p>
-                      <p className={`text-[16px] font-bold ${
-                        reward > cost ? "text-green-600" : 
-                        reward < cost ? "text-red-600" : 
-                        "text-gray-600"
-                      }`}>
-                        {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
-                      </p>
-                    </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                  <p className="text-[11px] font-semibold text-gray-600 mb-1.5">収支</p>
+                  <p className={`text-[16px] font-bold ${
+                    prize - buyin > 0
+                      ? "text-green-600"
+                      : prize - buyin < 0
+                      ? "text-red-600"
+                      : "text-gray-600"
+                  }`}>
+                    {formatSignedChipValue(prize - buyin)}
+                  </p>
+                </div>
                   </div>
 
                   {/* Cost/Reward Footer */}
@@ -1813,6 +1892,9 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                 )}
 
                 {isCheckinCompleteModalOpen && (
+
+
+                  
                     <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50">
                       <div className="bg-white rounded-2xl p-6 w-[90%] max-w-sm text-center animate-slideUp">
                         <p className="text-[22px] font-semibold text-gray-900 mb-2">
@@ -1831,6 +1913,40 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                       </div>
                     </div>
                   )}
+
+                  {showStampModal && (
+                      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50">
+                        <div className="bg-white rounded-3xl p-6 w-[90%] max-w-sm text-center animate-bounceIn shadow-2xl border-2 border-[#F2A900]">
+                          <p className="text-[22px] font-bold text-[#F2A900] mb-4 tracking-wide">
+                              スタンプ獲得！
+                            </p>
+
+                          <div className="grid grid-cols-4 gap-2 mb-4">
+                            {Array.from({ length: 12 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className={`h-14 w-14 rounded-full flex items-center justify-center text-[18px] font-bold transition-all duration-300 border-2
+                              ${
+                                i < stampCount
+                                  ? "bg-[#F2A900] text-white border-[#F2A900] shadow-xl animate-stampPop"
+                                  : "bg-white text-gray-300 border-gray-300"
+                              }
+                            `}
+                          >
+                            {i < stampCount ? "☑️" : ""}
+                          </div>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={() => setShowStampModal(false)}
+                            className="w-full h-10 rounded bg-[#F2A900] text-white"
+                          >
+                            OK
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                 {isJoinModalOpen && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
