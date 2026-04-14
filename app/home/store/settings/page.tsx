@@ -46,6 +46,10 @@ export default function StoreSettingsPage() {
   const [rakeAmount, setRakeAmount] = useState("")
   const [rakeMemo, setRakeMemo] = useState("")
   const [rakeError, setRakeError] = useState("")
+  const [checkinBonusEnabled, setCheckinBonusEnabled] = useState(false)
+  const [couponName, setCouponName] = useState("")
+  const [couponError, setCouponError] = useState("")
+  const [couponSuccess, setCouponSuccess] = useState("")
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -67,6 +71,8 @@ export default function StoreSettingsPage() {
         name: data?.name ?? "",
         chipExpiryMonths: data?.chipExpiryMonths,
       })
+      setCheckinBonusEnabled(data?.checkinBonusEnabled ?? false)
+      setCouponName(data?.checkinBonusCouponName ?? "")
     }
     fetchStore()
   }, [storeId])
@@ -129,6 +135,10 @@ export default function StoreSettingsPage() {
       return
     }
 
+
+
+
+
     const months = Number(raw)
     if (!Number.isInteger(months) || months < 0) {
       setChipExpiryError("0以上の整数で入力してください")
@@ -157,6 +167,41 @@ export default function StoreSettingsPage() {
     }
     setTimeout(() => setChipExpirySuccess(""), 3000)
   }
+
+  const toggleCheckinBonus = async () => {
+  if (!storeId) return
+
+  const next = !checkinBonusEnabled
+  setCheckinBonusEnabled(next)
+
+  await updateDoc(doc(db, "stores", storeId), {
+    checkinBonusEnabled: next
+  })
+}
+
+const saveCouponName = async () => {
+  if (!storeId) return
+
+  if (!couponName.trim()) {
+    setCouponError("クーポン名を入力してください")
+    return
+  }
+
+  if (couponName.length > 20) {
+    setCouponError("20文字以内で入力してください")
+    return
+  }
+
+  setCouponError("")
+  setCouponSuccess("")
+
+  await updateDoc(doc(db, "stores", storeId), {
+    checkinBonusCouponName: couponName
+  })
+
+  setCouponSuccess("保存しました")
+  setTimeout(() => setCouponSuccess(""), 2000)
+}
 
   const sendExpiryChangeNotification = async (
     storeId: string,
@@ -236,6 +281,71 @@ export default function StoreSettingsPage() {
         </button>
 
         <h1 className="mt-4 text-[20px] font-bold text-gray-900">設定</h1>
+
+        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+
+  <p className="text-[14px] font-semibold text-gray-900">
+    入店ボーナス
+  </p>
+
+  <p className="text-[12px] text-gray-500 mt-1">
+    入店時にスタンプを付与し、一定数でクーポンを配布します
+  </p>
+
+  <div className="mt-4 flex items-center justify-between">
+    <span className="text-[14px] text-gray-800">機能を有効にする</span>
+
+    <button
+      role="switch"
+      aria-checked={checkinBonusEnabled}
+      onClick={toggleCheckinBonus}
+      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
+        checkinBonusEnabled ? "bg-[#34C759]" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
+          checkinBonusEnabled ? "translate-x-5" : ""
+        }`}
+      />
+    </button>
+  </div>
+
+  {checkinBonusEnabled && (
+    <div className="mt-4">
+      <label className="text-[12px] text-gray-500">
+        クーポン名
+      </label>
+
+<input
+  value={couponName}
+  onChange={(e) => setCouponName(e.target.value)}
+  placeholder="例：入店無料クーポン"
+  className="mt-2 w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
+/>
+
+      {couponError && (
+        <p className="mt-1 text-[12px] text-red-500">
+          {couponError}
+        </p>
+      )}
+
+      {couponSuccess && (
+  <p className="mt-1 text-[12px] text-green-600">
+    {couponSuccess}
+  </p>
+)}
+
+      <button
+        onClick={saveCouponName}
+        className="mt-3 w-full h-10 rounded-xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+      >
+        保存する
+      </button>
+    </div>
+  )}
+
+</div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <p className="text-[14px] font-semibold text-gray-900">

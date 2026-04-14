@@ -1465,18 +1465,18 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-2">
                                 <FiAward className="text-[18px] text-[#F2A900]" />
-                                <p className="text-[16px] font-semibold text-gray-900">Tournaments History</p>
+                                <p className="text-[16px] font-semibold text-gray-900">Tournament History</p>
                               </div>
 
                               <button
                                 onClick={()=>router.push("/home/tournaments")}
-                                className="text-[13px] font-semibold text-[#F2A900]"
+                                className="text-[13px] font-semibold text-[#F2A900] hover:text-[#D4910A] transition-colors"
                               >
                                 もっと見る
                               </button>
                             </div>
 
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                           {sortedHistoryItems
             .filter(item => item.type === "tournament")
             .slice(0, 5)
@@ -1511,53 +1511,99 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
                 <div
                   key={item.id}
-                  className="p-4 rounded-xl bg-gray-50 space-y-2"
+                  className="relative rounded-2xl bg-white border border-gray-100 p-4 hover:shadow-md transition-all"
                 >
-
-                  <p className="text-[13px] font-semibold text-gray-900">
-                  {formatDateTime(item.startedAt?.seconds)} {item.tournamentName ?? ""} ({item.storeName ?? ""})
-                  </p>
-
-                  <div className="text-[15px] text-gray-600">
-
-                    <p className="font-semibold">◯ Buy-in</p>
-
-                    {entryCount > 0 && (
-                      <p>Entry ：({entryFee} ×{entryCount}回)</p>
+                  {/* Tournament Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <p className="text-[14px] font-semibold text-gray-900 leading-tight mb-1">
+                        {item.tournamentName ?? ""}
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        {formatDateTime(item.startedAt?.seconds)} • {item.storeName ?? ""}
+                      </p>
+                    </div>
+                    {rank !== "-" && (
+                      <div className="ml-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm">
+                        <span className="text-[13px] font-bold text-white">{rank}位</span>
+                      </div>
                     )}
-
-                    {reentryCount > 0 && (
-                      <p>Reentry ：({reentryFee} ×{reentryCount}回)</p>
-                    )}
-
-                    {addonCount > 0 && (
-                      <p>Addon ：({addonFee} ×{addonCount}回)</p>
-                    )}
-
-                    <p className="mt-1 font-semibold">
-                      合計出費 : {buyin}
-                    </p>
-
                   </div>
 
-                  <div className="text-[15px] text-gray-600">
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {/* Buy-in Section */}
+                    <div className="col-span-2 rounded-xl bg-gray-50 p-3">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#F2A900]"></div>
+                        <p className="text-[11px] font-semibold text-gray-600">Buy-in</p>
+                      </div>
+                      <div className="space-y-1 text-[12px] text-gray-600">
+                        {entryCount > 0 && (
+                          <p className="flex justify-between">
+                            <span>Entry:</span>
+                            <span className="font-medium">{entryFee} × {entryCount}回</span>
+                          </p>
+                        )}
+                        {reentryCount > 0 && (
+                          <p className="flex justify-between">
+                            <span>Re-entry:</span>
+                            <span className="font-medium">{reentryFee} × {reentryCount}回</span>
+                          </p>
+                        )}
+                        {addonCount > 0 && (
+                          <p className="flex justify-between">
+                            <span>Add-on:</span>
+                            <span className="font-medium">{addonFee} × {addonCount}回</span>
+                          </p>
+                        )}
+                        <div className="h-px bg-gray-200 my-1.5"></div>
+                        <p className="flex justify-between text-[13px] font-semibold text-gray-900">
+                          <span>合計出費:</span>
+                          <span>{buyin.toLocaleString()}</span>
+                        </p>
+                      </div>
+                    </div>
 
-                    <p className="font-semibold">◯ Prize</p>
+                    {/* Prize Section */}
+                    <div className={`rounded-xl p-3 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#FFFBF5] border border-[#F2A900]/20" : "bg-gray-50"}`}>
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <div className={`h-1.5 w-1.5 rounded-full ${rank !== "-" ? "bg-[#F2A900]" : "bg-gray-400"}`}></div>
+                        <p className="text-[11px] font-semibold text-gray-600">Prize</p>
+                      </div>
+                      {rank !== "-" ? (
+                        <p className="text-[16px] font-bold text-[#D4910A]">
+                          {prize.toLocaleString()}
+                        </p>
+                      ) : (
+                        <p className="text-[14px] text-gray-400">-</p>
+                      )}
+                    </div>
 
-                    {rank !== "-" ? (
-                      <p>{rank}位 {prize}</p>
-                    ) : (
-                      <p>-</p>
-                    )}
-
+                    {/* ROI Indicator */}
+                    <div className="rounded-xl bg-gray-50 p-3">
+                      <p className="text-[11px] font-semibold text-gray-600 mb-1.5">ROI</p>
+                      <p className={`text-[16px] font-bold ${
+                        reward > cost ? "text-green-600" : 
+                        reward < cost ? "text-red-600" : 
+                        "text-gray-600"
+                      }`}>
+                        {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex gap-3 text-[12px] text-gray-600">
-
-                    <span>Cost {cost}</span>
-
-                    <span>Reward {reward}</span>
-
+                  {/* Cost/Reward Footer */}
+                  <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-gray-500">Cost:</span>
+                      <span className="font-semibold text-gray-700">{cost.toFixed(1)}</span>
+                    </div>
+                    <div className="h-3 w-px bg-gray-200"></div>
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className="text-gray-500">Reward:</span>
+                      <span className="font-semibold text-gray-700">{reward.toFixed(1)}</span>
+                    </div>
                   </div>
 
                 </div>
@@ -1567,9 +1613,14 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
           })}
 
                                 {sortedHistoryItems.filter(item => item.type === "tournament").length === 0 && (
-                                  <p className="text-center text-[13px] text-gray-500 py-4">
-                                    トーナメント履歴がありません
-                                  </p>
+                                  <div className="text-center py-12">
+                                    <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                      <FiAward className="text-gray-300" size={28} />
+                                    </div>
+                                    <p className="text-[14px] text-gray-500">
+                                      トーナメント履歴がありません
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
