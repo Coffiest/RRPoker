@@ -39,10 +39,12 @@ export default function RegisterPage() {
         { merge: true }
       )
 
-      await sendEmailVerification(credential.user);
+      await sendEmailVerification(credential.user, {
+  url: "https://rrpoker.vercel.app/verify-complete",
+  handleCodeInApp: true,
+})
+
       console.log("EMAIL SENT")
-      await signOut(auth);
-      console.log("REDIRECTING")
       router.replace("/verify-email");
     } catch (e: any) {
       setError(getAuthErrorMessage(e.code))
@@ -67,7 +69,7 @@ export default function RegisterPage() {
         { merge: true }
       )
 
-      router.replace("/")
+      router.replace("/onboarding")
     } catch (e: any) {
       setError(getAuthErrorMessage(e.code))
     } finally {
@@ -168,6 +170,12 @@ export default function RegisterPage() {
             既にアカウントがある場合はログイン
           </button>
         </div>
+
+                  <p className="mt-4 text-[12px] text-red-800 text-center leading-relaxed">
+  ※iCloudメールは確認メールが届かない場合があります。<br />
+  Gmailなどのメールアドレスの使用を推奨します。
+</p>
+
       </div>
 
  <div className="pt-[50px] text-center">

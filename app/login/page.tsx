@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [isUnverified, setIsUnverified] = useState(false)
+  const [cooldown, setCooldown] = useState(0)
 
   const handleLogin = async () => {
     try {
@@ -29,9 +31,9 @@ export default function LoginPage() {
       }
 
       // 未認証ユーザーは verify-email へ
-      if (!user.emailVerified) {
-        await sendEmailVerification(user)
-        router.replace("/verify-email")
+     if (!user.emailVerified) {
+        setIsUnverified(true)
+        setError("メール認証が完了していません")
         return
       }
 
@@ -110,9 +112,21 @@ export default function LoginPage() {
 
       router.replace("/onboarding")
     } catch (e: any) {
-      console.log("GOOGLE LOGIN ERROR:", e)
-      setError(e.message || "Googleログインに失敗しました")
-    }
+    console.log("GOOGLE LOGIN ERROR:", e)
+
+  if (e.code === "auth/popup-blocked") {
+    setError("ポップアップがブロックされています。ブラウザの設定をご確認ください。")
+    return
+  }
+
+  if (e.code === "auth/network-request-failed") {
+    setError("ネットワークエラーが発生しました。通信環境をご確認ください。")
+    return
+  }
+
+  setError("Googleログインに失敗しました")
+}
+
   }
 
   const deleteAccount = async () => {
