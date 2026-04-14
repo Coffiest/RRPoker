@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiBell, FiTrash2, FiUsers } from 'react-icons/fi'
+import { FiBell, FiTrash2, FiCreditCard } from 'react-icons/fi'
 import { auth, db } from '@/lib/firebase'
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, writeBatch } from 'firebase/firestore'
 
@@ -165,10 +165,10 @@ export default function HomeHeader({
 					{isUserVariant && (
 						<button
 							type="button"
-							onClick={() => showToast('近日実装予定。もう少々お待ちください。')}
+							onClick={() => router.push('/home/tickets')}
 							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
-							<FiUsers className="text-[18px]" />
+							<FiCreditCard className="text-[18px]" />
 						</button>
 					)}
 
