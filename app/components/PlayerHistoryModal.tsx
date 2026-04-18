@@ -5,12 +5,14 @@ import {
   collection,
   query,
   where,
-  getDocs,
+  onSnapshot,
   orderBy
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { FiX, FiTrendingUp, FiTrendingDown } from "react-icons/fi"
 
 type Transaction = {
+  id: string
   amount: number
   createdAt?: any
   direction: "add" | "subtract"
@@ -23,26 +25,38 @@ type Props = {
   onClose: () => void
 }
 
+/* ===== 日付 ===== */
 function formatDate(ts: any) {
   if (!ts) return "-"
   if (typeof ts.seconds === "number") {
-    return new Date(ts.seconds * 1000).toLocaleString()
+    return new Date(ts.seconds * 1000).toLocaleString("ja-JP")
   }
   return "-"
 }
 
+/* ===== タイプ日本語化 ===== */
 function formatType(type: string) {
   switch (type) {
     case "manual_adjustment":
       return "手動調整（チップ）"
+
     case "manual_adjustment_net_gain":
       return "手動調整（純増）"
+
     case "deposit_approved_purchase":
       return "入金（購入）"
+
     case "deposit_approved_pure_increase":
       return "入金（純増）"
+
+    case "withdraw_approved":
+      return "出金"
+
+    case "withdraw_request":
+      return "出金申請"
+
     default:
-      return type
+      return "不明"
   }
 }
 
@@ -52,82 +66,109 @@ export default function PlayerHistoryModal({
   onClose
 }: Props) {
 
-
   const [history, setHistory] = useState<Transaction[]>([])
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!playerId || !storeId) return
 
-    const fetchHistory = async () => {
-      setLoading(true)
+    const q = query(
+      collection(db, "transactions"),
+      where("playerId", "==", playerId),
+      where("storeId", "==", storeId),
+      orderBy("createdAt", "desc")
+    )
 
-      try {
-        const q = query(
-  collection(db, "transactions"),
-  where("playerId", "==", playerId),
-  where("storeId", "==", storeId),
-  orderBy("createdAt", "desc")
-)
+    const unsub = onSnapshot(q, snap => {
+      const list: Transaction[] = []
+      snap.forEach(doc => {
+        list.push({
+          id: doc.id,
+          ...(doc.data() as Omit<Transaction, "id">)
+        })
+      })
+      setHistory(list)
+    })
 
-        const snap = await getDocs(q)
-
-        const data = snap.docs.map(doc => doc.data() as Transaction)
-
-        setHistory(data)
-      } catch (e) {
-        console.error(e)
-      }
-
-      setLoading(false)
-    }
-
-    fetchHistory()
+    return () => unsub()
   }, [playerId, storeId])
 
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] max-h-[80vh] overflow-y-auto text-gray-800 rounded-xl p-4">
-        <h2 className="text-lg font-bold mb-4">チップ履歴</h2>
+    <div className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+      
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl animate-slideUp overflow-hidden">
 
-        {loading && <div>読み込み中...</div>}
+        {/* ===== Header ===== */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <p className="text-[16px] font-semibold text-gray-900">
+            チップ履歴
+          </p>
+          <button onClick={onClose}>
+            <FiX size={20} className="text-gray-500"/>
+          </button>
+        </div>
 
-        {!loading && history.length === 0 && (
-          <div className="text-gray-500 text-sm">履歴なし</div>
-        )}
+        {/* ===== Body ===== */}
+        <div className="max-h-[60vh] overflow-y-auto px-4 py-3 space-y-2">
 
-        {!loading &&
-          history.map((h, i) => (
-            <div key={i} className="border-b py-2 text-sm">
-            <div className="flex items-center justify-between">
-  <div>
-    <div className="text-[14px] font-semibold text-gray-900">
-      {formatType(h.type)}
-    </div>
-    <div className="text-[12px] text-gray-500">
-      {formatDate(h.createdAt)}
-    </div>
-  </div>
+          {history.length === 0 && (
+            <p className="text-center text-gray-400 text-[13px] py-10">
+              履歴なし
+            </p>
+          )}
 
-  <div
-    className={`text-[14px] font-bold ${
-      h.direction === "add" ? "text-green-600" : "text-red-600"
-    }`}
-  >
-    {h.direction === "add" ? "+" : "-"}
-    {h.amount}
-  </div>
-</div>
-            </div>
-          ))}
+          {history.map(item => {
+            const isAdd = item.direction === "add"
 
-        <button
-          onClick={onClose}
-          className="mt-4 w-full bg-black text-white py-2 rounded"
-        >
-          閉じる
-        </button>
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3"
+              >
+                <div className="flex items-center gap-2">
+                  
+                  {/* アイコン */}
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                    isAdd ? "bg-green-100" : "bg-red-100"
+                  }`}>
+                    {isAdd ? (
+                      <FiTrendingUp size={16} className="text-green-600"/>
+                    ) : (
+                      <FiTrendingDown size={16} className="text-red-500"/>
+                    )}
+                  </div>
+
+                  {/* テキスト */}
+                  <div>
+                    <p className="text-[13px] font-medium text-gray-900">
+                      {formatType(item.type)}
+                    </p>
+                    <p className="text-[11px] text-gray-500">
+                      {formatDate(item.createdAt)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 金額 */}
+                <p className={`text-[14px] font-bold ${
+                  isAdd ? "text-green-600" : "text-red-500"
+                }`}>
+                  {isAdd ? "+" : "-"}¥{item.amount?.toLocaleString()}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ===== Footer ===== */}
+        <div className="p-4 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="w-full h-11 rounded-2xl bg-gray-100 text-gray-700 text-[14px] font-medium hover:bg-gray-200 transition-all"
+          >
+            閉じる
+          </button>
+        </div>
+
       </div>
     </div>
   )

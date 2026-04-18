@@ -315,6 +315,9 @@ async function prevLevel(tournamentId: string,currentLevel:number){
   const [activeTournaments, setActiveTournaments] = useState<any[]>([])
   const [showPlayerModal, setShowPlayerModal] = useState<string|null>(null)
   const [showPrizeModal, setShowPrizeModal] = useState<string|null>(null)
+  const [activeTab, setActiveTab] = useState<"in" | "out">("in")
+  const [inStorePage, setInStorePage] = useState(1)
+  const [outStorePage, setOutStorePage] = useState(1)
 
   useEffect(() => {
     if (!storeId) return
@@ -385,39 +388,51 @@ setTimerRunning(runningMap)
 
   const [storePlayers, setStorePlayers] = useState<any[]>([])
   const [storePlayersPage, setStorePlayersPage] = useState(1)
+  const [removingPlayerIds, setRemovingPlayerIds] = useState<string[]>([])
+  const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
+  const [removingHistoryPlayerIds, setRemovingHistoryPlayerIds] = useState<string[]>([])
   const pageSize = 10
 
-  useEffect(() => {
-    if (!storeId) return
-    const usersSnapUnsub = onSnapshot(collection(db, "users"), async (usersSnap) => {
-      const players: any[] = []
-      for (const userDoc of usersSnap.docs) {
-        if (userDoc.id.startsWith("temp_")) continue
-        const userData = userDoc.data()
-        const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
-        const balanceSnap = await getDoc(balanceRef)
-        if (balanceSnap.exists()) {
-          const balanceData = balanceSnap.data()
-          players.push({
-            id: userDoc.id,
-            name: userData.name,
-            iconUrl: userData.iconUrl,
-            playerId: userData.playerId,
-            balance: balanceData.balance ?? 0,
-            netGain: balanceData.netGain ?? 0,
-            lastVisitedAt: balanceData.lastVisitedAt?.toDate?.() ?? null,
-          })
-        }
-      }
-      players.sort((a, b) => {
-        const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
-        const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
-        return atB - atA
+useEffect(() => {
+  if (!storeId) return
+
+  const unsub = onSnapshot(collection(db, "users"), async (usersSnap) => {
+    const list: any[] = []
+
+    for (const userDoc of usersSnap.docs) {
+      if (userDoc.id.startsWith("temp_")) continue
+
+      const userData = userDoc.data()
+
+      if (!userData.joinedStores?.includes(storeId)) continue
+
+      const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
+      const balanceSnap = await getDoc(balanceRef)
+
+      const balanceData = balanceSnap.exists() ? balanceSnap.data() : {}
+
+      list.push({
+        id: userDoc.id,
+        name: userData.name,
+        iconUrl: userData.iconUrl,
+        balance: balanceData.balance ?? 0,
+        netGain: balanceData.netGain ?? 0,
+        lastVisitedAt: balanceData.lastVisitedAt?.toDate?.() ?? null,
+        isInStore: userData.currentStoreId === storeId,
       })
-      setStorePlayers(players)
+    }
+
+    list.sort((a, b) => {
+      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
+      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
+      return atB - atA
     })
-    return () => usersSnapUnsub()
-  }, [storeId])
+
+    setStorePlayers(list)
+  })
+
+  return () => unsub()
+}, [storeId])
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -567,6 +582,26 @@ useEffect(() => {
     players.forEach(p => (map[p.id] = p))
     return map
   }, [players])
+
+const inPlayers = useMemo(() => {
+  return storePlayers
+    .filter(p => p.isInStore)
+    .sort((a, b) => {
+      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
+      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
+      return atB - atA
+    })
+}, [storePlayers])
+
+const outPlayers = useMemo(() => {
+  return storePlayers
+    .filter(p => !p.isInStore)
+    .sort((a, b) => {
+      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
+      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
+      return atB - atA
+    })
+}, [storePlayers])
 
   const filteredPlayers = useMemo(() => {
     const q = playerSearchInput.toLowerCase()
@@ -1325,11 +1360,15 @@ const rejectPlayer = async (playerId: string) => {
 
  
 <div className="space-y-2">
-  {players.map(player => (
-    <div
-      key={player.id}
-      className="rounded-xl bg-gray-50 p-3 hover:bg-gray-100 transition-colors"
-    >
+      {players.map(player => (
+        <div
+          key={player.id}
+          className={`rounded-xl p-3 transition-all duration-300 ${
+            removingHistoryPlayerIds.includes(player.id)
+              ? "opacity-0 scale-95 translate-x-5"
+              : "bg-gray-50 hover:bg-gray-100"
+          }`}
+        >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {player.iconUrl ? (
@@ -1364,13 +1403,20 @@ const rejectPlayer = async (playerId: string) => {
 
         <button
           type="button"
-          onClick={async () => {
-           await setDoc(
-  doc(db, "users", player.id),
-  { currentStoreId: deleteField() },
-  { merge: true }
-)
-          }}
+   onClick={async () => {
+  setRemovingHistoryPlayerIds(prev => [...prev, player.id])
+
+  await setDoc(
+    doc(db, "users", player.id),
+    {
+      currentStoreId: deleteField(),
+      checkinStatus: "none",
+      pendingStoreId: null,
+    },
+    { merge: true }
+  )
+}}
+
           className="px-2 py-1 text-xs text-white bg-red-500 rounded flex items-center gap-1"
         >
           <FiLogOut size={12} />
@@ -1533,38 +1579,111 @@ const rejectPlayer = async (playerId: string) => {
           {storePlayers.length > 0 && (
             <div className="pt-5 border-t border-gray-100">
               <p className="text-[14px] font-semibold text-gray-900 mb-3">入店履歴</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {storePlayers.slice(0, storePlayersPage * pageSize).map(player => (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => selectPlayer(player.id)}
-                    className={`w-full text-left rounded-xl p-3 transition-all ${
-                      selectedPlayerId === player.id 
-                        ? "bg-[#F2A900]/10 border border-[#F2A900]/30" 
-                        : "bg-gray-50 border border-transparent hover:bg-gray-100"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      {player.iconUrl ? (
-                        <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <FiUser size={16} className="text-gray-500" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-semibold text-gray-900 truncate">{player.name || player.id}</p>
-                        <p className="text-[12px] text-gray-500">{player.playerId}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[14px] font-bold text-gray-900">¥{player.balance.toLocaleString()}</p>
-                        <p className={`text-[12px] font-semibold ${player.netGain >= 0 ? "text-green-600" : "text-red-600"}`}>
-                          {player.netGain >= 0 ? "+" : ""}¥{player.netGain.toLocaleString()}
-                        </p>
-                      </div>
+              {/* タブ */}
+                    <div className="flex mb-3">
+                      <button
+                        onClick={() => setActiveTab("in")}
+                        className={`flex-1 py-2 text-sm ${activeTab === "in" ? "text-black font-bold" : "text-gray-400"}`}
+                      >
+                        入店中
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("out")}
+                        className={`flex-1 py-2 text-sm ${activeTab === "out" ? "text-black font-bold" : "text-gray-400"}`}
+                      >
+                        退店済
+                      </button>
                     </div>
-                  </button>
+
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                {(activeTab === "in" ? inPlayers : outPlayers)
+                  .slice(0, storePlayersPage * pageSize)
+                  .map(player => (
+                 <div
+  key={player.id}
+  className={`w-full rounded-xl p-3 transition-all duration-300 ${
+    removingAdjustmentPlayerIds.includes(player.id)
+      ? "opacity-0 translate-x-10 scale-95"
+      : selectedPlayerId === player.id
+      ? "bg-[#F2A900]/10 border border-[#F2A900]/30"
+      : "bg-gray-50 border border-transparent hover:bg-gray-100"
+  }`}
+>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            
+
+                            <div className="relative">
+                              {player.iconUrl ? (
+                                <img src={player.iconUrl} className="h-10 w-10 rounded-full object-cover" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <FiUser size={16} className="text-gray-500" />
+                                </div>
+                              )}
+
+                              {player.isInStore && (
+                                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
+                              )}
+                            </div>
+
+
+
+
+                            <div>
+                              <p className="text-[14px] font-semibold text-gray-900">
+                                {player.name || player.id}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="text-[14px] font-bold text-gray-900">
+                              ¥{player.balance.toLocaleString()}
+                            </p>
+                            <p className={`text-[12px] font-semibold ${player.netGain >= 0 ? "text-green-600" : "text-red-600"}`}>
+                              {player.netGain >= 0 ? "+" : ""}¥{player.netGain.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+        <div className="flex gap-2 mt-2 justify-end">
+
+                          <button
+                            onClick={() => setHistoryPlayerId(player.id)}
+                            className="h-8 px-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-[12px] font-medium hover:bg-gray-50 transition-all"
+                          >
+                            履歴
+                          </button>
+
+                          {player.isInStore && (
+                            <button
+                              type="button"
+                             onClick={async () => {
+                                setRemovingAdjustmentPlayerIds(prev => [...prev, player.id])
+
+                                setTimeout(async () => {
+                                  await setDoc(
+                                    doc(db, "users", player.id),
+                                    {
+                                      currentStoreId: deleteField(),
+                                      checkinStatus: "none",
+                                      pendingStoreId: null,
+                                    },
+                                    { merge: true }
+                                  )
+
+                                  setRemovingAdjustmentPlayerIds(prev => prev.filter(id => id !== player.id))
+                                }, 300)
+                              }}
+                              className="h-8 w-8 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-sm hover:bg-red-600 transition-all"
+                            >
+                              <FiLogOut size={14} />
+                            </button>
+                          )}
+
+                        </div>
+                      </div>
                 ))}
                 {storePlayers.length > storePlayersPage * pageSize && (
                   <button
