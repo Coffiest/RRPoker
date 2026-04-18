@@ -55,6 +55,26 @@ function formatType(type: string) {
     case "withdraw_request":
       return "出金申請"
 
+      case "store_buyin":
+        return "バイイン (リングゲーム)"
+
+      case "store_cashout":
+        return "キャッシュアウト (リングゲーム)"
+
+      case "store_chip_purchase":
+        return "チップ購入"
+
+      case "store_tournament_entry":
+        return "エントリー (トーナメント)"
+
+      case "store_tournament_reentry":
+        return "リエントリー (トーナメント)"
+
+      case "store_tournament_addon":
+        return "アドオン(トーナメント)"
+      case "tournament_payout":
+        return "プライズ(トーナメント)"
+
     default:
       return "不明"
   }

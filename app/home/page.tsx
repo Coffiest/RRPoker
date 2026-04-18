@@ -321,7 +321,7 @@
                     const data = docSnap.data()
                     next.push({
                       id: docSnap.id,
-                      type: "manual_adjustment",
+                      type: data.type,
                       amount: data.amount,
                       createdAt: data.createdAt,
                       direction: data.direction,
@@ -581,9 +581,22 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
                 case "manual_adjustment":
                   return "手動調整"
                 case "tournament":
-                  return "トーナメント賞金"
+                  return "トーナメントプライズ"
                 default:
-                  return ""
+                  return "手動調整"
+                case "store_buyin":
+                  return "バイイン (リングゲーム)"
+                case "store_cashout":
+                  return "キャッシュアウト (リングゲーム)"
+                case "store_chip_purchase":
+                  return "チップ購入"
+                case "store_tournament_entry":
+                  return "エントリー (トーナメント)"
+                case "store_tournament_reentry":
+                  return "リエントリー (トーナメント)"
+                case "store_tournament_addon":
+                  return "アドオン (トーナメント)"
+
               }
             }
 
