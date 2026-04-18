@@ -394,6 +394,22 @@ for (const p of payouts) {
   )
 }
 
+for (const p of payouts) {
+
+  if (p.playerId.startsWith("temp_")) continue
+
+  await setDoc(doc(collection(db, "transactions")), {
+    storeId,
+    playerId: p.playerId,
+    playerName: p.playerName ?? null,
+    amount: p.amount,
+    direction: "add",
+    type: "tournament_payout",
+    tournamentId: tournamentId,
+    createdAt: serverTimestamp(),
+  })
+}
+
       // 2) トナメを finished にして履歴保存（doc直下配列）
 
       await updateDoc(tournamentRef, {

@@ -340,9 +340,16 @@
             })
           })
                 
-          next.sort((a, b) =>
-            (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
-          )
+      const getSeconds = (t: any) => {
+  if (!t) return 0
+  if (typeof t.seconds === "number") return t.seconds
+  if (typeof t.toDate === "function") return t.toDate().getTime() / 1000
+  return 0
+}
+
+next.sort((a, b) =>
+  getSeconds(b.createdAt) - getSeconds(a.createdAt)
+)
 
           setHistoryItems(next)
 
@@ -471,8 +478,17 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
           return `${sign}${unitLabel}${absValue.toLocaleString()}`
         }
             const sortedHistoryItems = useMemo(() => {
-              return [...historyItems].sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
-            }, [historyItems])
+  const getSeconds = (t: any) => {
+    if (!t) return 0
+    if (typeof t.seconds === "number") return t.seconds
+    if (typeof t.toDate === "function") return t.toDate().getTime() / 1000
+    return 0
+  }
+
+  return [...historyItems].sort((a, b) =>
+    getSeconds(b.createdAt) - getSeconds(a.createdAt)
+  )
+}, [historyItems])
 
 
 

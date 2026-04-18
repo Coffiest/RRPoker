@@ -163,6 +163,15 @@ export default function TransactionsClient() {
     createdAt: serverTimestamp(),
   })
 
+  await setDoc(doc(collection(db, "transactions")), {
+  storeId,
+  playerId: user.uid,
+  amount: numeric,
+  direction: "subtract",
+  type: "withdraw_direct",
+  createdAt: serverTimestamp(),
+})
+
   setIsWithdrawModalOpen(false)
   router.replace("/home")
 }
