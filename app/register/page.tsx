@@ -180,7 +180,7 @@ export default function RegisterPage() {
 
  <div className="pt-[50px] text-center">
     
-               <p className="mt-2 text-[10px] text-gray-500">ver 1.3.6.1</p>
+               <p className="mt-2 text-[10px] text-gray-500">ver 1.3.7</p>
                 <p className="mt-2 text-[10px] text-gray-500">RRPoker by Runner Runner</p>
                 <p className="mt-2 text-[10px] text-gray-500">協力者 : ゆうた / まいさん</p>
         </div>

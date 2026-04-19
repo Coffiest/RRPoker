@@ -17,6 +17,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  setDoc
 } from "firebase/firestore"
 import { FiArrowLeft, FiTrash2, FiHome, FiCreditCard, FiUser } from "react-icons/fi"
 
@@ -50,6 +51,7 @@ export default function StoreSettingsPage() {
   const [couponName, setCouponName] = useState("")
   const [couponError, setCouponError] = useState("")
   const [couponSuccess, setCouponSuccess] = useState("")
+  const [isApprovalRequired, setIsApprovalRequired] = useState(true)
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -73,6 +75,7 @@ export default function StoreSettingsPage() {
       })
       setCheckinBonusEnabled(data?.checkinBonusEnabled ?? false)
       setCouponName(data?.checkinBonusCouponName ?? "")
+      setIsApprovalRequired(data?.isApprovalRequired ?? true)
     }
     fetchStore()
   }, [storeId])
@@ -177,6 +180,56 @@ export default function StoreSettingsPage() {
   await updateDoc(doc(db, "stores", storeId), {
     checkinBonusEnabled: next
   })
+}
+
+const toggleApprovalRequired = async () => {
+  if (!storeId) return
+
+  const next = !isApprovalRequired
+  setIsApprovalRequired(next)
+
+  await updateDoc(doc(db, "stores", storeId), {
+    isApprovalRequired: next
+  })
+
+  // OFFにした時だけ自動承認
+  if (!next) {
+    const usersSnap = await getDocs(collection(db, "users"))
+
+    for (const userDoc of usersSnap.docs) {
+      const data = userDoc.data()
+
+      if (
+        data.pendingStoreId === storeId &&
+        data.checkinStatus === "pending"
+      ) {
+        await updateDoc(doc(db, "users", userDoc.id), {
+          currentStoreId: storeId,
+          checkinStatus: "approved",
+          pendingStoreId: null
+        })
+
+        // storeBalancesなければ作る
+        const balanceRef = doc(
+          db,
+          "users",
+          userDoc.id,
+          "storeBalances",
+          storeId
+        )
+
+        const balanceSnap = await getDoc(balanceRef)
+
+        if (!balanceSnap.exists()) {
+          await setDoc(balanceRef, {
+            balance: 0,
+            netGain: 0,
+            createdAt: serverTimestamp()
+          })
+        }
+      }
+    }
+  }
 }
 
 const saveCouponName = async () => {
@@ -344,6 +397,40 @@ const saveCouponName = async () => {
       </button>
     </div>
   )}
+
+</div>
+
+
+<div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+
+  <p className="text-[14px] font-semibold text-gray-900">
+    入店制限
+  </p>
+
+  <p className="text-[12px] text-gray-500 mt-1">
+    ON：承認必要 / OFF：即入店
+  </p>
+
+  <div className="mt-4 flex items-center justify-between">
+    <span className="text-[14px] text-gray-800">
+      承認を必要にする
+    </span>
+
+    <button
+      role="switch"
+      aria-checked={isApprovalRequired}
+      onClick={toggleApprovalRequired}
+      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
+        isApprovalRequired ? "bg-[#34C759]" : "bg-gray-300"
+      }`}
+    >
+      <span
+        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
+          isApprovalRequired ? "translate-x-5" : ""
+        }`}
+      />
+    </button>
+  </div>
 
 </div>
 
@@ -632,6 +719,15 @@ const saveCouponName = async () => {
                   戻る
                 </button>
               </div>
+
+
+
+
+
+
+
+
+
             )}
           </div>
         </div>

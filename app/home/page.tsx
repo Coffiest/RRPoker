@@ -105,6 +105,17 @@
 
 
             useEffect(() => {
+  if (isCheckinCompleteModalOpen) {
+    const timer = setTimeout(() => {
+      setIsCheckinCompleteModalOpen(false)
+    }, 2000) // ← 2秒後に閉じる（好きに調整可）
+
+    return () => clearTimeout(timer)
+  }
+}, [isCheckinCompleteModalOpen])
+
+
+            useEffect(() => {
 
                 const fetchTransactionData = async () => {
 
@@ -768,6 +779,10 @@ const getHistoryLabel = (type: string, comment?: string) => {
 
         const userRef = doc(db, "users", userId)
 
+ if (checkinStatus === "approved" && currentStoreId === storeId) {
+  return
+}
+
         if (isApprovalRequired) {
           await updateDoc(userRef, {
             checkinStatus: "pending",
@@ -1280,7 +1295,7 @@ const getHistoryLabel = (type: string, comment?: string) => {
                       <div className="relative mt-6 flex items-center gap-2">
                         <div className="flex items-center gap-2">
                           <FiTrendingUp className="text-[18px] text-[#F2A900]" />
-                          <p className="text-[16px] font-semibold text-gray-900">RR Rating(トナメ偏差値)</p>
+                          <p className="text-[16px] font-semibold text-gray-900">RR Rating</p>
                         </div>
                         <button
                           type="button"
@@ -1306,7 +1321,7 @@ const getHistoryLabel = (type: string, comment?: string) => {
                         {!rrCardFlipped && (
                         <>
                         <div className="rr-rate-card">
-                          <p className="relative z-10 text-[12px] font-medium text-white/90">現在のあなたのトナメ偏差値 :</p>
+                          <p className="relative z-10 text-[12px] font-medium text-white/90">あなたのトナメ偏差値 :</p>
 
 
                           <p className="relative z-10 mt-2 text-[36px] font-bold text-white tracking-tight drop-shadow-sm">
