@@ -62,7 +62,8 @@
             const [isDetailedRankingModalOpen, setIsDetailedRankingModalOpen] = useState(false)
             const [favoriteMessage, setFavoriteMessage] = useState("")
             const [favoritePulse, setFavoritePulse] = useState("")
-            const [historyItems, setHistoryItems] = useState<any[]>([])
+            const [transactionItems, setTransactionItems] = useState<any[]>([])
+            const [tournamentHistoryItems, setTournamentHistoryItems] = useState<any[]>([])
             const [ranking, setRanking] = useState<NetGainPlayer[]>([])
             const [userRank, setUserRank] = useState<NetGainPlayer | null>(null)
             const [rankingLoading, setRankingLoading] = useState(true)
@@ -101,6 +102,53 @@
               type: "approved" | "rejected" | "pending"
               amount: number
             } | null>(null)
+
+
+            useEffect(() => {
+
+                const fetchTransactionData = async () => {
+
+                  if (!userId || !currentStoreId) {
+                    setTransactionItems([])
+                    return
+                  }
+
+                  try {
+
+                    const snap = await getDocs(
+                      query(
+                        collection(db, "transactions"),
+                        where("playerId", "==", userId),
+                        where("storeId", "==", currentStoreId)
+                      )
+                    )
+
+                    const list: any[] = []
+
+                    snap.forEach(docSnap => {
+                      list.push({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                      })
+                    })
+
+                    list.sort((a, b) =>
+                      (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+                    )
+
+                    setTransactionItems(list)
+
+                  } catch (e) {
+                    console.error(e)
+                    setTransactionItems([])
+                  }
+
+                }
+
+                fetchTransactionData()
+
+              }, [userId, currentStoreId])
+
 
             useEffect(() => {
               const unsub = auth.onAuthStateChanged(user => {
@@ -274,7 +322,7 @@ useEffect(() => {
   const fetchHistoryData = async () => {
 
     if (!userId) {
-      setHistoryItems([])
+      setTournamentHistoryItems([])
       return
     }
 
@@ -299,11 +347,11 @@ useEffect(() => {
         (b.startedAt?.seconds ?? 0) - (a.startedAt?.seconds ?? 0)
       )
 
-      setHistoryItems(list)
+      setTournamentHistoryItems(list)
 
     } catch (error) {
       console.error("Failed to fetch history:", error)
-      setHistoryItems([])
+      setTournamentHistoryItems([])
     }
 
   }
@@ -372,7 +420,10 @@ useEffect(() => {
           if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`
           return `${sign}${unitLabel}${absValue.toLocaleString()}`
         }
-            const sortedHistoryItems = useMemo(() => {
+
+
+        const sortedTransactionItems = useMemo(() => {
+
   const getSeconds = (t: any) => {
     if (!t) return 0
     if (typeof t.seconds === "number") return t.seconds
@@ -380,16 +431,32 @@ useEffect(() => {
     return 0
   }
 
-  return [...historyItems].sort((a, b) =>
+  return [...transactionItems].sort((a, b) =>
     getSeconds(b.createdAt) - getSeconds(a.createdAt)
   )
-}, [historyItems])
+
+}, [transactionItems])
 
 
+const sortedTournamentItems = useMemo(() => {
 
-          const tournamentItems = useMemo(() => {
-            return sortedHistoryItems
-          }, [sortedHistoryItems])
+  const getSeconds = (t: any) => {
+    if (!t) return 0
+    if (typeof t.seconds === "number") return t.seconds
+    if (typeof t.toDate === "function") return t.toDate().getTime() / 1000
+    return 0
+  }
+
+  return [...tournamentHistoryItems].sort((a, b) =>
+    getSeconds(b.startedAt) - getSeconds(a.startedAt)
+  )
+
+}, [tournamentHistoryItems])
+
+
+        const tournamentItems = useMemo(() => {
+  return sortedTournamentItems
+}, [sortedTournamentItems])
 
 
           const tournamentStats = useMemo(() => {
@@ -1495,7 +1562,7 @@ const getHistoryLabel = (type: string, comment?: string) => {
                             </div>
 
                               <div className="space-y-3">
-                          {sortedHistoryItems
+                          {sortedTournamentItems
             
             .slice(0, 5)
             .map(item => {
@@ -1632,7 +1699,7 @@ const getHistoryLabel = (type: string, comment?: string) => {
 
           })}
 
-                                {sortedHistoryItems.length === 0 && (
+                                {sortedTournamentItems.length === 0 && (
                                   <div className="text-center py-12">
                                     <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                       <FiAward className="text-gray-300" size={28} />
@@ -1719,10 +1786,10 @@ const getHistoryLabel = (type: string, comment?: string) => {
                                 </button>
                               </div>
                               <div className="bank-card-history mt-3 space-y-2">
-                                {sortedHistoryItems.length === 0 ? (
+                                {sortedTransactionItems.length === 0 ? (
                                   <p className="text-center text-[12px] text-white/60">履歴がありません</p>
                                 ) : (
-                                  sortedHistoryItems.map(item => (
+                                  sortedTransactionItems.map(item => (
                                     <div
                                       key={item.id}
                                       className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-2 bg-white/5"
