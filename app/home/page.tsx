@@ -44,6 +44,17 @@
 
           export default function HomePage() {
 
+            const getVisitCountResetBase = (date: Date) => {
+                const base = new Date(date)
+                base.setHours(3, 0, 0, 0)
+
+                if (date.getHours() < 3) {
+                  base.setDate(base.getDate() - 1)
+                }
+
+                return base.getTime()
+}
+
             const router = useRouter()
             const [userId, setUserId] = useState<string | null>(null)
             const [currentStoreId, setCurrentStoreId] = useState<string | null>(null)
@@ -795,15 +806,75 @@ const getHistoryLabel = (type: string, comment?: string) => {
           return
         }
 
-        await updateDoc(userRef, {
-          checkinStatus: "approved",
-          currentStoreId: storeId,
-          pendingStoreId: null,
-          joinedStores: arrayUnion(storeId),
-        })
 
-        const balanceRef = doc(db, "users", userId, "storeBalances", storeId)
-        const balanceSnap = await getDoc(balanceRef)
+
+
+
+
+
+
+
+
+
+
+await updateDoc(userRef, {
+  checkinStatus: "approved",
+  currentStoreId: storeId,
+  pendingStoreId: null,
+  joinedStores: arrayUnion(storeId),
+})
+
+const balanceRef = doc(db, "users", userId, "storeBalances", storeId)
+const balanceSnap = await getDoc(balanceRef)
+
+const now = new Date()
+const nowTimestamp = new Date(now)
+const nowFirestoreTimestamp = serverTimestamp()
+
+let currentBalance = 0
+let currentNetGain = 0
+let currentVisitCount = 0
+let shouldIncrementVisitCount = true
+
+if (balanceSnap.exists()) {
+  const balanceData = balanceSnap.data()
+
+  currentBalance = balanceData.balance ?? 0
+  currentNetGain = balanceData.netGain ?? 0
+  currentVisitCount = balanceData.visitCount ?? 0
+
+  const lastVisitCountedAt = balanceData.lastVisitCountedAt?.toDate?.() ?? null
+
+  if (lastVisitCountedAt) {
+    const currentBase = getVisitCountResetBase(now)
+    const lastBase = getVisitCountResetBase(lastVisitCountedAt)
+
+    if (currentBase === lastBase) {
+      shouldIncrementVisitCount = false
+    }
+  }
+}
+
+await setDoc(balanceRef, {
+  balance: currentBalance,
+  netGain: currentNetGain,
+  storeId,
+  lastVisitedAt: nowFirestoreTimestamp,
+  ...(shouldIncrementVisitCount
+    ? {
+        visitCount: currentVisitCount + 1,
+        lastVisitCountedAt: nowFirestoreTimestamp,
+      }
+    : {}),
+}, { merge: true })
+
+
+
+
+
+
+
+        
 
         if (!balanceSnap.exists()) {
           await setDoc(balanceRef, {

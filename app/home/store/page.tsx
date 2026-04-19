@@ -48,9 +48,24 @@ type PlayerInfo = {
   id: string
   name?: string
   iconUrl?: string
+  visitCount?: number
+  lastVisitedAt?: Date | null
 }
 
 export default function StorePage() {
+
+  const getVisitCountResetBase = (date: Date) => {
+  const base = new Date(date)
+  base.setHours(3, 0, 0, 0)
+
+  if (date.getHours() < 3) {
+    base.setDate(base.getDate() - 1)
+  }
+
+  return base.getTime()
+}
+
+
     const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
 
 
@@ -498,6 +513,8 @@ useEffect(() => {
       where("storeId", "==", storeId),
       where("status", "==", "pending")
     )
+
+
     const unsub = onSnapshot(q, snap => {
       const list: DepositRequest[] = []
       snap.forEach(d => {
@@ -572,20 +589,36 @@ useEffect(() => {
     where("pendingStoreId", "==", storeId)
   )
 
-  const unsub = onSnapshot(q, snap => {
-    const list: PlayerInfo[] = []
-    snap.forEach(d => {
-      const data = d.data()
-      if (data.checkinStatus === "pending") {
-        list.push({
-          id: d.id,
-          name: data.name,
-          iconUrl: data.iconUrl,
-        })
-      }
+const unsub = onSnapshot(q, async snap => {
+  const list: PlayerInfo[] = []
+
+  for (const d of snap.docs) {
+    const data = d.data()
+    if (data.checkinStatus !== "pending") continue
+
+    const balanceRef = doc(db, "users", d.id, "storeBalances", storeId)
+    const balanceSnap = await getDoc(balanceRef)
+
+    let visitCount = 0
+    let lastVisitedAt: Date | null = null
+
+    if (balanceSnap.exists()) {
+      const b = balanceSnap.data()
+      visitCount = b.visitCount ?? 0
+      lastVisitedAt = b.lastVisitedAt?.toDate?.() ?? null
+    }
+
+    list.push({
+      id: d.id,
+      name: data.name,
+      iconUrl: data.iconUrl,
+      visitCount,
+      lastVisitedAt,
     })
-    setPendingPlayers(list.reverse())
-  })
+  }
+
+  setPendingPlayers(list.reverse())
+})
 
   return () => unsub()
 }, [storeId])
@@ -1113,12 +1146,71 @@ const approvePlayer = async (playerId: string) => {
     pendingStoreId: null,
   }, { merge: true })
 
+
+
+
+
+
+
+
+
+const balanceRef = doc(db, "users", playerId, "storeBalances", storeId)
+const balanceSnap = await getDoc(balanceRef)
+
+const now = new Date()
+const nowFirestoreTimestamp = serverTimestamp()
+
+let currentBalance = 0
+let currentNetGain = 0
+let currentVisitCount = 0
+let shouldIncrementVisitCount = true
+
+if (balanceSnap.exists()) {
+  const balanceData = balanceSnap.data()
+
+  currentBalance = balanceData.balance ?? 0
+  currentNetGain = balanceData.netGain ?? 0
+  currentVisitCount = balanceData.visitCount ?? 0
+
+  const lastVisitCountedAt = balanceData.lastVisitCountedAt?.toDate?.() ?? null
+
+  if (lastVisitCountedAt) {
+    const currentBase = getVisitCountResetBase(now)
+    const lastBase = getVisitCountResetBase(lastVisitCountedAt)
+
+    if (currentBase === lastBase) {
+      shouldIncrementVisitCount = false
+    }
+  }
+}
+
+await setDoc(balanceRef, {
+  balance: currentBalance,
+  netGain: currentNetGain,
+  storeId,
+  lastVisitedAt: nowFirestoreTimestamp,
+  ...(shouldIncrementVisitCount
+    ? {
+        visitCount: currentVisitCount + 1,
+        lastVisitCountedAt: nowFirestoreTimestamp,
+      }
+    : {}),
+}, { merge: true })
+
+
+
+
+
+
+
+
+
   if (!storeData?.checkinBonusEnabled) return
 
   const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
   const stampSnap = await getDoc(stampRef)
 
-  const now = Timestamp.now().toMillis()
+
 
   let canStamp = true
 
@@ -1176,6 +1268,15 @@ const rejectPlayer = async (playerId: string) => {
     checkinStatus: "none",
     pendingStoreId: null,
   }, { merge: true })
+}
+
+
+const formatDateTime = (date?: Date | null) => {
+  if (!date) return "なし"
+
+  const pad = (n: number) => n.toString().padStart(2, "0")
+
+  return `${date.getFullYear()}/${pad(date.getMonth()+1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
   const copyCode = async () => {
@@ -1712,7 +1813,15 @@ CashOut
                         ) : (
                           <FiUser />
                         )}
-                        <span className="text-[14px] text-gray-900">{player.name}</span>
+                        <div>
+                            <span className="text-[14px] text-gray-900">{player.name}</span>
+                            <div className="text-[11px] text-gray-500">
+                              来店回数：{player.visitCount ?? 0}回
+                            </div>
+                            <div className="text-[11px] text-gray-500">
+                              前回の来店：{formatDateTime(player.lastVisitedAt)}
+                            </div>
+                          </div>
                       </div>
 
                       <div className="flex gap-2">
