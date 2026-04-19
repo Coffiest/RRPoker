@@ -97,13 +97,13 @@ export default function HistoryPage() {
   const getLabel = (item: HistoryItem) => {
     switch (item.type) {
       case "deposit":
-        return "入金"
+        return "預入"
       case "deposit_pending":
-        return "入金申請中"
+        return "預入申請中"
       case "deposit_rejected":
         return "申請拒否"
       case "withdraw":
-        return "出金"
+        return "引き出し"
       case "manual_adjustment":
         return "手動調整"
     }

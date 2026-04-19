@@ -268,154 +268,49 @@
                 }
             }, [userId, currentStoreId])
 
-            useEffect(() => {
-              const fetchHistoryData = async () => {
-                if (!userId) {
-                  setHistoryItems([])
-                  return
-                }
 
-                try {
-                  const depositSnap = await getDocs(
-                    query(
-                      collection(db, "depositRequests"),
-                      where("playerId", "==", userId),
-                      where("storeId", "==", currentStoreId)
-                    )
-                  )
-                  const withdrawSnap = await getDocs(
-                    query(
-                      collection(db, "withdrawals"),
-                      where("playerId", "==", userId),
-                      where("storeId", "==", currentStoreId)
-                    )
-                  )
-                  const transactionSnap = await getDocs(
-                    query(
-                      collection(db, "transactions"),
-                      where("playerId", "==", userId),
-                      where("storeId", "==", currentStoreId)
-                    )
-                  )
+useEffect(() => {
 
-                  const tournamentSnap = await getDocs(
-                    collection(db, "users", userId, "tournamentHistory")
-                  )
+  const fetchHistoryData = async () => {
 
-                  const next: any[] = []
-                  depositSnap.forEach(docSnap => {
-                    const data = docSnap.data()
-                    if (data.status === "pending") {
-                      next.push({ id: docSnap.id, type: "deposit_pending", amount: data.amount, createdAt: data.createdAt })
-                    } else if (data.status === "rejected") {
-                      next.push({ id: docSnap.id, type: "deposit_rejected", amount: data.amount, createdAt: data.createdAt })
-                    } else {
-                      next.push({ id: docSnap.id, type: "deposit", amount: data.amount, createdAt: data.createdAt })
-                    }
-                  })
-                  withdrawSnap.forEach(docSnap => {
-                    const data = docSnap.data()
-                    next.push({ id: docSnap.id, type: "withdraw", amount: data.amount, createdAt: data.createdAt })
-                  })
-                  transactionSnap.forEach(docSnap => {
-                    const data = docSnap.data()
-                    next.push({
-                      id: docSnap.id,
-                      type: data.type,
-                      amount: data.amount,
-                      createdAt: data.createdAt,
-                      direction: data.direction,
-                    })
-                  })
+    if (!userId) {
+      setHistoryItems([])
+      return
+    }
 
-          tournamentSnap.forEach(docSnap => {
-            const data = docSnap.data()
+    try {
 
-            next.push({
-              id: docSnap.id,
-              type: "tournament",
-              ...data,
-              amount: data.prize ?? 0,
-              createdAt: data.startedAt
-            })
-          })
-                
-      const getSeconds = (t: any) => {
-  if (!t) return 0
-  if (typeof t.seconds === "number") return t.seconds
-  if (typeof t.toDate === "function") return t.toDate().getTime() / 1000
-  return 0
-}
+      const snap = await getDocs(
+        collection(db, "users", userId, "tournamentHistory")
+      )
 
-next.sort((a, b) =>
-  getSeconds(b.createdAt) - getSeconds(a.createdAt)
-)
+      const list: any[] = []
 
-          setHistoryItems(next)
+      snap.forEach(docSnap => {
+        const data = docSnap.data()
 
+        list.push({
+          id: docSnap.id,
+          ...data
+        })
+      })
 
-                } catch (error) {
-                  console.error("Failed to fetch history:", error)
-                  setHistoryItems([])
-                }
-              }
+      list.sort((a, b) =>
+        (b.startedAt?.seconds ?? 0) - (a.startedAt?.seconds ?? 0)
+      )
 
-              fetchHistoryData()
-            }, [userId, currentStoreId])
+      setHistoryItems(list)
 
+    } catch (error) {
+      console.error("Failed to fetch history:", error)
+      setHistoryItems([])
+    }
 
-                        useEffect(() => {
-              if (!userId || !currentStoreId) {
-                setBalance(0)
-                setNetGain(0)
-                return
-              }
+  }
 
-              const withdrawQuery = query(
-  collection(db, "withdrawRequests"),
-  where("playerId", "==", userId),
-  where("storeId", "==", currentStoreId)
-)
+  fetchHistoryData()
 
-const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
-    snap.forEach(docSnap => {
-      const data = docSnap.data()
-      const id = docSnap.id
-
-      if (shownWithdrawIdsRef.current.has(id)) return
-
-      if (data.status === "pending") {
-        setWithdrawNotice({ type: "pending", amount: data.amount })
-        shownWithdrawIdsRef.current.add(id)
-        localStorage.setItem(
-  "shownWithdrawIds",
-  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
-)
-      }
-
-      if (data.status === "approved") {
-        setWithdrawNotice({ type: "approved", amount: data.amount })
-        shownWithdrawIdsRef.current.add(id)
-        localStorage.setItem(
-  "shownWithdrawIds",
-  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
-)
-      }
-
-      if (data.status === "rejected") {
-        setWithdrawNotice({ type: "rejected", amount: data.amount })
-        shownWithdrawIdsRef.current.add(id)
-        localStorage.setItem(
-  "shownWithdrawIds",
-  JSON.stringify(Array.from(shownWithdrawIdsRef.current))
-)
-      }
-    })
-  })
-
-  return () => unsubWithdraw()
-}, [userId, currentStoreId])
-
+}, [userId])
           
 
 
@@ -493,7 +388,7 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
 
           const tournamentItems = useMemo(() => {
-            return sortedHistoryItems.filter(item => item.type === "tournament")
+            return sortedHistoryItems
           }, [sortedHistoryItems])
 
 
@@ -568,37 +463,54 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
           }, [tournamentItems])
 
-            const getHistoryLabel = (type: string) => {
-              switch (type) {
-                case "deposit":
-                  return "入金"
-                case "deposit_pending":
-                  return "入金申請中"
-                case "deposit_rejected":
-                  return "申請拒否"
-                case "withdraw":
-                  return "出金"
-                case "manual_adjustment":
-                  return "手動調整"
-                case "tournament":
-                  return "トーナメントプライズ"
-                default:
-                  return "手動調整"
-                case "store_buyin":
-                  return "バイイン (リングゲーム)"
-                case "store_cashout":
-                  return "キャッシュアウト (リングゲーム)"
-                case "store_chip_purchase":
-                  return "チップ購入"
-                case "store_tournament_entry":
-                  return "エントリー (トーナメント)"
-                case "store_tournament_reentry":
-                  return "リエントリー (トーナメント)"
-                case "store_tournament_addon":
-                  return "アドオン (トーナメント)"
+const getHistoryLabel = (type: string, comment?: string) => {
+  switch (type) {
+    case "manual_adjustment":
+      return "手動調整（チップ）"
 
-              }
-            }
+    case "manual_adjustment_net_gain":
+      return "手動調整（純増）"
+
+    case "deposit_approved_purchase":
+      return "預入（購入）"
+
+    case "deposit_approved_pure_increase":
+      return "預入（純増）"
+
+    case "withdraw_approved":
+      return "引き出し"
+
+    case "withdraw_request":
+      return "引き出し申請"
+
+    case "store_buyin":
+      return "バイイン (リングゲーム)"
+
+    case "store_cashout":
+      return "キャッシュアウト (リングゲーム)"
+
+    case "store_chip_purchase":
+      return "チップ購入"
+
+    case "store_tournament_entry":
+      return "エントリー (トーナメント)"
+
+    case "store_tournament_reentry":
+      return "リエントリー (トーナメント)"
+
+    case "store_tournament_addon":
+      return "アドオン(トーナメント)"
+
+    case "tournament_payout":
+      return "プライズ(トーナメント)"
+
+    case "other":
+      return comment ?? "その他"
+
+    default:
+      return "不明"
+  }
+}
 
             const getHistoryAmount = (item: any) => {
               if (item.type === "withdraw") return formatSignedChipValue(-item.amount)
@@ -1584,7 +1496,7 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
                               <div className="space-y-3">
                           {sortedHistoryItems
-            .filter(item => item.type === "tournament")
+            
             .slice(0, 5)
             .map(item => {
 
@@ -1720,7 +1632,7 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
           })}
 
-                                {sortedHistoryItems.filter(item => item.type === "tournament").length === 0 && (
+                                {sortedHistoryItems.length === 0 && (
                                   <div className="text-center py-12">
                                     <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                                       <FiAward className="text-gray-300" size={28} />
@@ -2224,7 +2136,7 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
       {withdrawNotice.type === "pending" && (
         <>
-          <p className="text-[20px] font-semibold mb-2">出金申請中</p>
+          <p className="text-[20px] font-semibold mb-2">引き出し申請中</p>
           <p className="text-[14px] text-gray-600">
             この画面をスタッフに見せてください
           </p>
@@ -2233,7 +2145,7 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
       {withdrawNotice.type === "approved" && (
         <>
-          <p className="text-[20px] font-semibold text-gray-900 mb-2">出金承認</p>
+          <p className="text-[20px] font-semibold text-gray-900 mb-2">引き出し承認</p>
           <p className="text-[14px] text-gray-600">
             {withdrawNotice.amount} が引き出されました
           </p>
@@ -2242,9 +2154,9 @@ const unsubWithdraw = onSnapshot(withdrawQuery, (snap) => {
 
       {withdrawNotice.type === "rejected" && (
         <>
-          <p className="text-[20px] font-semibold mb-2">出金却下</p>
+          <p className="text-[20px] font-semibold mb-2">引き出し却下</p>
           <p className="text-[14px] text-gray-600">
-            出金が却下されました
+            引き出しが却下されました
           </p>
         </>
       )}

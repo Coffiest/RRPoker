@@ -17,6 +17,7 @@ type Transaction = {
   createdAt?: any
   direction: "add" | "subtract"
   type: string
+  comment?: string
 }
 
 type Props = {
@@ -35,25 +36,25 @@ function formatDate(ts: any) {
 }
 
 /* ===== タイプ日本語化 ===== */
-function formatType(type: string) {
+function formatType(type: string, comment?: string) {
   switch (type) {
     case "manual_adjustment":
-      return "手動調整（チップ）"
+      return "手動調整"
 
     case "manual_adjustment_net_gain":
-      return "手動調整（純増）"
+      return "手動調整"
 
     case "deposit_approved_purchase":
-      return "入金（購入）"
+      return "預入（購入）"
 
     case "deposit_approved_pure_increase":
-      return "入金（純増）"
+      return "預入（純増）"
 
     case "withdraw_approved":
-      return "出金"
+      return "引き出し"
 
     case "withdraw_request":
-      return "出金申請"
+      return "引き出し申請"
 
       case "store_buyin":
         return "バイイン (リングゲーム)"
@@ -74,6 +75,8 @@ function formatType(type: string) {
         return "アドオン(トーナメント)"
       case "tournament_payout":
         return "プライズ(トーナメント)"
+        case "other":
+  return comment ?? "その他"
 
     default:
       return "不明"
@@ -160,7 +163,7 @@ export default function PlayerHistoryModal({
                   {/* テキスト */}
                   <div>
                     <p className="text-[13px] font-medium text-gray-900">
-                      {formatType(item.type)}
+                      {formatType(item.type, item.comment)}
                     </p>
                     <p className="text-[11px] text-gray-500">
                       {formatDate(item.createdAt)}

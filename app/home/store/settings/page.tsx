@@ -499,7 +499,7 @@ const saveCouponName = async () => {
                   min={1}
                   value={rakeAmount}
                   onChange={e => setRakeAmount(e.target.value)}
-                  placeholder="レーキ金額"
+                  placeholder="レーキ額"
                   className="h-11 w-full rounded-2xl border border-gray-200 px-3 text-[14px] text-gray-950"
                 />
                 <textarea

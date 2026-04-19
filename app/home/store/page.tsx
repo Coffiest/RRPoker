@@ -397,6 +397,14 @@ setTimerRunning(runningMap)
   const [adjustModalPlayer, setAdjustModalPlayer] = useState<any | null>(null)
 const [adjustValue, setAdjustValue] = useState("")
 const [manualNetGain, setManualNetGain] = useState(false)
+const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
+const [withdrawOtherOpenId, setWithdrawOtherOpenId] = useState<string | null>(null)
+
+const [depositOtherNetGain, setDepositOtherNetGain] = useState(false)
+const [withdrawOtherNetGain, setWithdrawOtherNetGain] = useState(false)
+
+const [depositOtherComment, setDepositOtherComment] = useState("")
+const [withdrawOtherComment, setWithdrawOtherComment] = useState("")
 
 useEffect(() => {
   if (!playerSearchInput) return
@@ -607,9 +615,9 @@ useEffect(() => {
 
   const playerMap = useMemo(() => {
     const map: Record<string, PlayerInfo> = {}
-    players.forEach(p => (map[p.id] = p))
+    storePlayers.forEach(p => (map[p.id] = p))
     return map
-  }, [players])
+  }, [storePlayers])
 
 const inPlayers = useMemo(() => {
   const list = storePlayers
@@ -697,85 +705,112 @@ const filteredPlayers = useMemo(() => {
     }
   }
 
-    const approveDeposit = async (
-    request: DepositRequest,
-    approveType: "purchase" | "pure_increase"
-  ) => {
-    if (!storeId) return
-
-    const balanceRef = doc(
-      db,
-      "users",
-      request.playerId,
-      "storeBalances",
-      storeId
-    )
-    const balanceSnap = await getDoc(balanceRef)
-
-    if (!balanceSnap.exists()) {
-      await setDoc(
-        balanceRef,
-        {
-          balance: request.amount,
-          netGain: approveType === "pure_increase" ? request.amount : 0,
-          storeId,
-        },
-        { merge: true }
-      )
-    } else {
-      const updates: Record<string, any> = {
-        balance: increment(request.amount),
-      }
-      if (approveType === "pure_increase") {
-        updates.netGain = increment(request.amount)
-      }
-      await updateDoc(balanceRef, updates)
-    }
-
-    await updateDoc(doc(db, "depositRequests", request.id), {
-      status: "approved",
-      type: approveType,
-    })
-
-    await setDoc(doc(collection(db, "transactions")), {
-      storeId,
-      playerId: request.playerId,
-      playerName: playerMap[request.playerId]?.name ?? null,
-      amount: request.amount,
-      direction: "add",
-      type:
-        approveType === "purchase"
-          ? "deposit_approved_purchase"
-          : "deposit_approved_pure_increase",
-      createdAt: serverTimestamp(),
-    })
-  }
-
-  const approveWithdraw = async (request: WithdrawRequest) => {
+const approveDepositWithType = async (
+  request: DepositRequest,
+  type: "cashout" | "chip" | "other"
+) => {
   if (!storeId) return
 
-  const balanceRef = doc(
-    db,
-    "users",
-    request.playerId,
-    "storeBalances",
-    storeId
-  )
+  const balanceRef = doc(db, "users", request.playerId, "storeBalances", storeId)
 
-  const snap = await getDoc(balanceRef)
+  let balanceDiff = 0
+  let netDiff = 0
+  let txType = ""
 
-  if (!snap.exists()) {
-    await setDoc(balanceRef, {
-      balance: 0,
-      netGain: 0,
-      storeId,
-    }, { merge: true })
+  if (type === "cashout") {
+    balanceDiff = request.amount
+    netDiff = request.amount
+    txType = "store_cashout"
   }
 
-  await updateDoc(balanceRef, {
-    balance: increment(-request.amount),
-    netGain: increment(-request.amount),
+  if (type === "chip") {
+    balanceDiff = request.amount
+    netDiff = 0
+    txType = "store_chip_purchase"
+  }
+
+  if (type === "other") {
+    balanceDiff = request.amount
+    netDiff = depositOtherNetGain ? request.amount : 0
+    txType = "other"
+  }
+
+  const updates: any = {
+    balance: increment(balanceDiff),
+  }
+
+  if (netDiff !== 0) {
+    updates.netGain = increment(netDiff)
+  }
+
+  await updateDoc(balanceRef, updates)
+
+  await updateDoc(doc(db, "depositRequests", request.id), {
+    status: "approved",
   })
+
+  await setDoc(doc(collection(db, "transactions")), {
+    storeId,
+    playerId: request.playerId,
+    playerName: playerMap[request.playerId]?.name ?? null,
+    amount: request.amount,
+    direction: "add",
+    type: txType,
+    comment: type === "other" ? depositOtherComment : null,
+    createdAt: serverTimestamp(),
+  })
+}
+const approveWithdrawWithType = async (
+  request: WithdrawRequest,
+  type: "buyin" | "tE" | "tR" | "tA" | "other"
+) => {
+  if (!storeId) return
+
+  const balanceRef = doc(db, "users", request.playerId, "storeBalances", storeId)
+
+  let balanceDiff = 0
+  let netDiff = 0
+  let txType = ""
+
+  if (type === "buyin") {
+    balanceDiff = -request.amount
+    netDiff = -request.amount
+    txType = "store_buyin"
+  }
+
+  if (type === "tE") {
+    balanceDiff = -request.amount
+    netDiff = -request.amount
+    txType = "store_tournament_entry"
+  }
+
+  if (type === "tR") {
+    balanceDiff = -request.amount
+    netDiff = -request.amount
+    txType = "store_tournament_reentry"
+  }
+
+  if (type === "tA") {
+    balanceDiff = -request.amount
+    netDiff = -request.amount
+    txType = "store_tournament_addon"
+  }
+
+  if (type === "other") {
+    balanceDiff = -request.amount
+    netDiff = withdrawOtherNetGain ? -request.amount : 0
+    txType = "other"
+  }
+
+  const updates: any = {
+    balance: increment(balanceDiff),
+  }
+
+  if (netDiff !== 0) {
+    updates.netGain = increment(netDiff)
+  }
+
+  await updateDoc(balanceRef, updates)
 
   await updateDoc(doc(db, "withdrawRequests", request.id), {
     status: "approved",
@@ -787,11 +822,11 @@ const filteredPlayers = useMemo(() => {
     playerName: playerMap[request.playerId]?.name ?? null,
     amount: request.amount,
     direction: "subtract",
-    type: "withdraw_approved",
+    type: txType,
+    comment: type === "other" ? withdrawOtherComment : null,
     createdAt: serverTimestamp(),
   })
 }
-
 
   const rejectDeposit = async (request: DepositRequest) => {
     await updateDoc(doc(db, "depositRequests", request.id), {
@@ -816,7 +851,7 @@ const filteredPlayers = useMemo(() => {
 
     const amount = Number(adjustValue)
     if (!amount || amount < 1) {
-      setAdjustError("金額は1以上で入力してください")
+      setAdjustError("数字は1以上で入力してください")
       return
     }
 
@@ -1375,6 +1410,9 @@ const rejectPlayer = async (playerId: string) => {
                         <FiClock size={16} />
                         <span>タイマーへ</span>
                       </button>
+
+
+
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           className="h-11 rounded-2xl bg-[#F2A900] hover:bg-[#D4910A] text-white font-medium text-[14px] transition-all shadow-md active:scale-98"
@@ -1390,6 +1428,14 @@ const rejectPlayer = async (playerId: string) => {
                           PRIZE
                         </button>
                       </div>
+
+
+
+
+
+
+
+
                     </div>
                     
                     {/* Timer Controls */}
@@ -1423,11 +1469,11 @@ const rejectPlayer = async (playerId: string) => {
         {withdrawRequests.length > 0 && (
   <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
     <div className="flex items-center gap-2 mb-4">
-      <div className="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center">
+      <div className="h-8 w-8 rounded-full bg-red-700 flex items-center justify-center">
         <FiMinus size={16} className="text-white" />
       </div>
-      <p className="text-[16px] font-semibold text-gray-900">出金申請</p>
-      <span className="ml-auto bg-red-500 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
+      <p className="text-[16px] font-semibold text-gray-900">ひきだしたい！</p>
+      <span className="ml-auto bg-red-700 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
         {withdrawRequests.length}
       </span>
     </div>
@@ -1440,31 +1486,81 @@ const rejectPlayer = async (playerId: string) => {
         >
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-[14px] font-semibold text-gray-900">
+              <p className="text-[14px] font-semibold text-gray-700">
                 {playerMap[req.playerId]?.name ?? req.playerId}
               </p>
             </div>
-            <p className="text-[18px] font-bold text-red-500">
+            <p className="text-[18px] font-bold text-red-900">
               ¥{req.amount.toLocaleString()}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => approveWithdraw(req)}
-              className="rounded-xl bg-green-500 py-2.5 text-[12px] font-medium text-white"
-            >
-              承認
-            </button>
-            <button
-              type="button"
-              onClick={() => rejectWithdraw(req)}
-              className="rounded-xl bg-gray-200 py-2.5 text-[12px] font-medium text-gray-700"
-            >
-              却下
-            </button>
-          </div>
+
+
+
+
+
+<div className="grid grid-cols-3 gap-2">
+
+<button onClick={() => approveWithdrawWithType(req, "buyin")} className="rounded-xl bg-red-700 text-white py-2 text-sm font-medium">Buy-in</button>
+<button onClick={() => approveWithdrawWithType(req, "tE")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメE</button>
+<button onClick={() => approveWithdrawWithType(req, "tR")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメR</button>
+<button onClick={() => approveWithdrawWithType(req, "tA")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメA</button>
+<button onClick={() => setWithdrawOtherOpenId(req.id)} className="rounded-xl bg-red-700 text-white py-2 text-sm">その他</button>
+<button onClick={() => rejectWithdraw(req)} className="rounded-xl border border-red-400 text-red-500 py-2 text-sm font-medium">却下</button>
+
+</div>
+
+{withdrawOtherOpenId === req.id && (
+
+
+
+
+<div className="mt-3 p-3 rounded-2xl bg-[#F2A900]/10 border border-[#F2A900]/30 space-y-3">
+
+  <label className="flex items-center gap-2 text-sm text-gray-700">
+    <input
+      type="checkbox"
+      checked={withdrawOtherNetGain}
+      onChange={(e) => setWithdrawOtherNetGain(e.target.checked)}
+      className="accent-[#F2A900]"
+    />
+    純増する
+  </label>
+
+  <input
+    value={withdrawOtherComment}
+    onChange={(e) => setWithdrawOtherComment(e.target.value)}
+    className="w-full h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#F2A900]/40"
+    placeholder="コメントを入力"
+  />
+
+  <button
+    onClick={() => approveWithdrawWithType(req, "other")}
+    className="w-full h-10 rounded-xl bg-[#F2A900] text-white text-sm font-medium shadow-sm hover:bg-[#D4910A] active:scale-95 transition-all"
+  >
+    確定する
+  </button>
+
+</div>
+
+
+
+
+)}
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
       ))}
     </div>
@@ -1475,11 +1571,11 @@ const rejectPlayer = async (playerId: string) => {
         {depositRequests.length > 0 && (
           <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-full bg-[#F2A900] flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center">
                 <FiDollarSign size={16} className="text-white" />
               </div>
-              <p className="text-[16px] font-semibold text-gray-900">Cash</p>
-              <span className="ml-auto bg-[#F2A900] text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
+              <p className="text-[16px] font-semibold text-gray-900">あずけたい！</p>
+              <span className="ml-auto bg-green-500 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
                 {depositRequests.length}
               </span>
             </div>
@@ -1500,38 +1596,96 @@ const rejectPlayer = async (playerId: string) => {
                           {playerMap[req.playerId]?.name ?? req.playerId}
                         </p>
                         <p className="text-[12px] text-gray-500">
-                          {req.comment || "コメントなし"}
+                          {req.comment || ""}
                         </p>
                       </div>
                     </div>
-                    <p className="text-[18px] font-bold text-[#F2A900]">
+                    <p className="text-[18px] font-bold text-green-500">
                       ¥{req.amount.toLocaleString()}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => approveDeposit(req, "purchase")}
-                      className="rounded-xl bg-green-500 hover:bg-green-600 py-2.5 text-[12px] font-medium text-white transition-all active:scale-95"
-                    >
-                      購入
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => approveDeposit(req, "pure_increase")}
-                      className="rounded-xl bg-blue-500 hover:bg-blue-600 py-2.5 text-[12px] font-medium text-white transition-all active:scale-95"
-                    >
-                      純増
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => rejectDeposit(req)}
-                      className="rounded-xl bg-gray-200 hover:bg-gray-300 py-2.5 text-[12px] font-medium text-gray-700 transition-all active:scale-95"
-                    >
-                      却下
-                    </button>
-                  </div>
+                    <div className="grid grid-cols-2 gap-2">
+
+
+
+
+<button
+  onClick={() => approveDepositWithType(req, "cashout")}
+  className="rounded-xl bg-green-500 text-white py-2 text-sm font-medium"
+>
+CashOut
+</button>
+
+<button
+  onClick={() => approveDepositWithType(req, "chip")}
+  className="rounded-xl bg-green-500 text-white py-2 text-sm"
+>
+チップ購入
+</button>
+
+<button
+  onClick={() => setDepositOtherOpenId(req.id)}
+  className="rounded-xl bg-green-500 text-white py-2 text-sm"
+>
+その他
+</button>
+
+<button
+  onClick={() => rejectDeposit(req)}
+  className="rounded-xl border border-red-400 text-red-500 py-2 text-sm font-medium"
+>
+却下
+</button>
+
+
+
+
+
+                    </div>
+
+                    {depositOtherOpenId === req.id && (
+
+
+             <div className="mt-3 p-3 rounded-2xl bg-[#F2A900]/10 border border-[#F2A900]/30 space-y-3">
+
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={depositOtherNetGain}
+                      onChange={(e) => setDepositOtherNetGain(e.target.checked)}
+                      className="accent-[#F2A900]"
+                    />
+                    純増する
+                  </label>
+
+                  <input
+                    value={depositOtherComment}
+                    onChange={(e) => setDepositOtherComment(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#F2A900]/40"
+                    placeholder="コメントを入力"
+                  />
+
+                  <button
+                    onClick={() => approveDepositWithType(req, "other")}
+                    className="w-full h-10 rounded-xl bg-[#F2A900] text-white text-sm font-medium shadow-sm hover:bg-[#D4910A] active:scale-95 transition-all"
+                  >
+                    確定する
+                  </button>
+
+                </div>
+
+
+
+                    )}
+
+
+
+
+
+
+
+
                 </div>
               ))}
             </div>
@@ -1641,7 +1795,7 @@ const rejectPlayer = async (playerId: string) => {
                       </button>
                     </div>
 
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
 
 
 
@@ -1734,14 +1888,14 @@ const merged = [
                             onClick={() => setHistoryPlayerId(player.id)}
                             className="h-8 px-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-[12px] font-medium hover:bg-gray-50 transition-all"
                           >
-                            履歴
+                            りれき
                           </button>
 
                           <button
                             onClick={() => setAdjustModalPlayer(player)}
                             className="h-8 px-3 rounded-xl bg-[#F2A900] text-white text-[12px] font-medium hover:bg-[#D4910A] transition-all"
                           >
-                            調整
+                            chip
                           </button>
 
                           {player.isInStore && (
@@ -1764,7 +1918,7 @@ const merged = [
                                   setRemovingAdjustmentPlayerIds(prev => prev.filter(id => id !== player.id))
                                 }, 300)
                               }}
-                              className="h-8 w-8 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-sm hover:bg-red-600 transition-all"
+                              className="h-8 w-8 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-sm hover:bg-red-900 transition-all"
                             >
                               <FiLogOut size={14} />
                             </button>
@@ -1848,7 +2002,7 @@ const merged = [
         value={adjustValue}
         onChange={e => setAdjustValue(e.target.value)}
         className="w-full h-12 rounded-xl border border-gray-300 px-4 text-center text-lg font-semibold text-gray-900 mb-4 focus:outline-none focus:ring-2 focus:ring-[#F2A900]"
-        placeholder="金額を入力"
+        placeholder="数字を入力"
       />
 
 
@@ -1860,23 +2014,23 @@ const merged = [
     onClick={async () => {
       await runStoreAdjustment("buyin")
     }}
-    className="h-10 rounded-xl bg-red-500 text-white text-sm font-medium"
+    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
   >
-    バイイン
+    Buy-in
   </button>
   <button
     onClick={async () => {
       await runStoreAdjustment("cashout")
     }}
-    className="h-10 rounded-xl bg-green-500 text-white text-sm font-medium"
+    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
   >
-    キャッシュアウト
+    CashOut
   </button>
   <button
     onClick={async () => {
       await runStoreAdjustment("chip")
     }}
-    className="h-10 rounded-xl bg-blue-500 text-white text-sm font-medium"
+    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
   >
     チップ購入
   </button>
@@ -1922,7 +2076,7 @@ const merged = [
       setAdjustModalPlayer(null)
       setAdjustValue("")
     }}
-    className="h-10 rounded-xl bg-[#F2A900] text-white text-sm font-medium"
+    className="h-10 rounded-xl bg-blue-900 text-white text-sm font-medium"
   >
     ＋(加算する)
   </button>
@@ -1933,7 +2087,7 @@ const merged = [
       setAdjustModalPlayer(null)
       setAdjustValue("")
     }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
+    className="h-10 rounded-xl bg-red-900 text-white text-sm font-medium"
   >
     ー(減算する)
   </button>

@@ -167,8 +167,8 @@ setParticipants(list)
     for (const r of rows) {
       if (r.amount === "") continue
       const n = Number(r.amount)
-      if (!Number.isFinite(n)) return "金額が数値ではありません"
-      if (n < 0) return "金額にマイナスは入力できません"
+      if (!Number.isFinite(n)) return "入力が数値ではありません"
+      if (n < 0) return "マイナスは入力できません"
     }
     // 重複選択禁止（空は除外）
     const chosen = rows.map(r => r.playerId).filter(Boolean)
