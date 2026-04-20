@@ -84,6 +84,11 @@ export default function TournamentsPage() {
 
   const unsub = onSnapshot(refCol, async (snap) => {
 
+    console.log("RAW DATA ↓↓↓")
+snap.forEach(d => {
+  console.log(d.id, d.data())
+})
+
 const normalize = (v: any) => {
   // Firestore Timestamp
   if (v?.toDate) return v.toDate()
@@ -106,24 +111,34 @@ const normalize = (v: any) => {
     const data = d.data()
 
     list.push({
-      id: d.id,
-      name: data.name ?? "",
-      status: data.status ?? "",
-      startTime: data.startTime ?? "",
-      date: normalize(data.date),
-      createdAt: normalize(data.createdAt),
-      startedAt: normalize(data.startedAt),
-      updatedAt: normalize(data.updatedAt),
-      payouts: Array.isArray(data.payouts)
-        ? data.payouts.map((p: any) => ({
-            playerId: p.playerId ?? "",
-            rank: p.rank ?? 0,
-            amount: p.amount ?? 0,
-            createdAt: normalize(p.createdAt),
-            updatedAt: normalize(p.updatedAt)
-          }))
-        : []
-    })
+  id: d.id,
+  name: data.name ?? "",
+  status: data.status ?? "",
+  startTime:
+    typeof data.startTime === "string"
+      ? data.startTime
+      : "",
+  date:
+    typeof data.date === "string"
+      ? data.date
+      : "",
+  createdAt: null,
+  startedAt: null,
+  updatedAt: null,
+  payouts: Array.isArray(data.payouts)
+    ? data.payouts.map((p: any) => ({
+        playerId: p.playerId ?? "",
+        rank: p.rank ?? 0,
+        amount: p.amount ?? 0,
+        createdAt: null,
+        updatedAt: null
+      }))
+    : []
+})
+
+
+
+
   })
 
   setTournaments(list)
@@ -148,13 +163,16 @@ map[t.id] = entriesSnap.docs.map(d => {
   return {
     id: d.id,
     name: typeof data.name === "string" ? data.name : "",
-        entryCount: data.entryCount ?? 0,
-        reentryCount: data.reentryCount ?? 0,
-        addonCount: data.addonCount ?? 0,
-        createdAt: normalize(data.createdAt),
-        updatedAt: normalize(data.updatedAt)
-      }
-    })
+    entryCount: data.entryCount ?? 0,
+    reentryCount: data.reentryCount ?? 0,
+    addonCount: data.addonCount ?? 0,
+    createdAt: null,
+    updatedAt: null
+  }
+})
+
+
+
   }
 
   setEntriesMap(map)
@@ -265,9 +283,7 @@ map[t.id] = entriesSnap.docs.map(d => {
     setImagePreview(t.flyerUrl || null)
     setForm({
       name: t.name ?? "",
-      date: t.date?.toDate
-        ? t.date.toDate().toISOString().slice(0, 10)
-        : t.date ?? "",
+      date: typeof t.date === "string" ? t.date : "",
       startTime: t.startTime ?? "",
       rcTime: t.rcTime ?? "",
       entryFee: String(t.entryFee ?? ""),
@@ -381,73 +397,91 @@ map[t.id] = entriesSnap.docs.map(d => {
         </div>
 
         <div className="space-y-4">
+
 {/* 現在のトーナメント */}
 {tournaments
   .filter(t => t.status !== "finished")
-  .map((t, index) => (
-    <div
-      key={t.id}
-      className="tournament-card rounded-3xl p-5 animate-slideUp"
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="text-[18px] font-bold text-gray-900 mb-2">
-            {t.name}
-          </h3>
-          <div className="flex items-center gap-4 text-[13px] text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <FiCalendar size={14} className="text-[#F2A900]" />
-              <span>
-                {t.date instanceof Date
-                  ? t.date.toLocaleDateString()
-                  : ""}
+  .map((t, index) => {
+
+    const entries = entriesMap[t.id] ?? []
+
+    const totalEntry = entries.reduce(
+      (sum: number, e: any) =>
+        sum + (e.entryCount ?? 0) + (e.reentryCount ?? 0),
+      0
+    )
+
+    const totalReentry = entries.reduce(
+      (sum: number, e: any) =>
+        sum + (e.reentryCount ?? 0),
+      0
+    )
+
+    const totalAddon = entries.reduce(
+      (sum: number, e: any) =>
+        sum + (e.addonCount ?? 0),
+      0
+    )
+
+    return (
+      <div
+        key={t.id}
+        className="tournament-card rounded-3xl p-5 animate-slideUp"
+        style={{ animationDelay: `${index * 0.05}s` }}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <div className="flex items-center flex-wrap gap-2 mb-2">
+              <h3 className="text-[18px] font-bold text-gray-900">
+                {t.name}
+              </h3>
+              <span className="text-[12px] text-gray-500 font-medium">
+                E: {totalEntry} / R: {totalReentry} / A: {totalAddon}
               </span>
             </div>
-            {t.startTime && (
+
+            <div className="flex items-center gap-4 text-[13px] text-gray-600">
               <div className="flex items-center gap-1.5">
-                <FiClock size={14} className="text-[#F2A900]" />
-                <span>{t.startTime}</span>
+                <FiCalendar size={14} className="text-[#F2A900]" />
+                <span>
+                  {t.date instanceof Date
+                    ? t.date.toLocaleDateString()
+                    : ""}
+                </span>
               </div>
-            )}
+              {t.startTime && (
+                <div className="flex items-center gap-1.5">
+                  <FiClock size={14} className="text-[#F2A900]" />
+                  <span>{t.startTime}</span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {t.status === "scheduled" && (
+            <div className="flex items-center gap-2">
+              <button onClick={() => handleEdit(t)} className="action-button h-9 w-9 rounded-full bg-gray-100">
+                <FiSettings size={16} />
+              </button>
+              <button onClick={() => handleDelete(t.id)} className="action-button h-9 w-9 rounded-full bg-red-50">
+                <FiTrash2 size={16} />
+              </button>
+            </div>
+          )}
         </div>
+
         {t.status === "scheduled" && (
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => handleEdit(t)}
-              className="action-button h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600"
-            >
-              <FiSettings size={16} />
-            </button>
-            <button 
-              onClick={() => handleDelete(t.id)}
-              className="action-button h-9 w-9 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500"
-            >
-              <FiTrash2 size={16} />
-            </button>
-          </div>
+          <button
+            className="action-button w-full h-12 rounded-2xl bg-gray-900 text-white"
+            onClick={() => handleStartTournament(t.id)}
+            disabled={!!startingId}
+          >
+            {startingId === t.id ? "Starting..." : "Start Tournament !"}
+          </button>
         )}
       </div>
-
-      {t.status === "scheduled" && (
-        <button
-          className="action-button w-full h-12 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => handleStartTournament(t.id)}
-          disabled={!!startingId}
-        >
-          {startingId === t.id ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
-              Starting...
-            </div>
-          ) : (
-            "Start Tournament !"
-          )}
-        </button>
-      )}
-    </div>
-))}
+    )
+})}
 
 {/* 履歴セクション */}
 {tournaments.filter(t => t.status === "finished").length > 0 && (
@@ -461,20 +495,45 @@ map[t.id] = entriesSnap.docs.map(d => {
     {tournaments
       .filter(t => t.status === "finished")
       .map((t, index) => {
+
+        const entries = entriesMap[t.id] ?? []
+
+const totalEntry = entries.reduce(
+  (sum: number, e: any) =>
+    sum + (e.entryCount ?? 0) + (e.reentryCount ?? 0),
+  0
+)
+
+const totalReentry = entries.reduce(
+  (sum: number, e: any) =>
+    sum + (e.reentryCount ?? 0),
+  0
+)
+
+const totalAddon = entries.reduce(
+  (sum: number, e: any) =>
+    sum + (e.addonCount ?? 0),
+  0
+)
+
         return (
           <div key={t.id} className="history-card rounded-3xl p-5 animate-slideUp" style={{ animationDelay: `${index * 0.05}s` }}>
             
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h4 className="text-[16px] font-bold text-gray-900 mb-1">
-                  {t.name}
-                </h4>
-                <div className="flex items-center gap-2 text-[12px] text-gray-500">
-                  <FiClock size={12} />
-                  {t.startedAt instanceof Date
-                    ? t.startedAt.toLocaleString()
-                    : ""}
-                </div>
+
+<div className="flex items-center flex-wrap gap-2 mb-1">
+  <h4 className="text-[16px] font-bold text-gray-900">
+    {t.name}
+  </h4>
+
+  
+  <span className="text-[12px] text-gray-500 font-medium">
+    E: {totalEntry} / R: {totalReentry} / A: {totalAddon}
+  </span>
+</div>
+
+
               </div>
               <button 
                 onClick={() => handleEdit(t)}
