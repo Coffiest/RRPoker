@@ -280,15 +280,19 @@ const [entryStack,setEntryStack]=useState(0)
 const [reentryStack,setReentryStack]=useState(0)
 const [addonStack,setAddonStack]=useState(0)
 
-const [prizePool,setPrizePool]=useState<Record<string,number>>({
-"1":0,
-"2":0,
-"3":0,
-"4":0,
-"5":0,
-"6":0
+const [prizePool,setPrizePool]=useState<Record<string,{
+  amount:number
+  text?:string
+}>>({
+"1":{amount:0},
+"2":{amount:0},
+"3":{amount:0},
+"4":{amount:0},
+"5":{amount:0},
+"6":{amount:0}
 })
 
+const [comment,setComment]=useState("")
 const [blindPresets,setBlindPresets]=useState<any[]>([])
 const [selectedPreset,setSelectedPreset]=useState<string>("")
 const [customBlindLevels,setCustomBlindLevels]=useState<Level[]|null>(null)
@@ -375,6 +379,7 @@ const ref=doc(db,"stores",storeId,"tournaments",tournamentId)
 const unsub=onSnapshot(ref,(snap)=>{
   const d=snap.data()
   if(!d) return
+  setComment(d.comment ?? "")
 
   if (typeof d.timerRunning === "boolean") {
   setIsRunning(d.timerRunning)
@@ -398,10 +403,17 @@ if (typeof d.timeRemaining === "number") {
   setReentryStack(d.reentryStack ?? 0)
   setAddonStack(d.addonStack ?? 0)
 
-  setPrizePool(d.prizePool ?? {
-    "1":0,"2":0,"3":0,"4":0,"5":0,"6":0
-  })
-
+setPrizePool(
+  Object.fromEntries(
+    Object.entries(d.prizePool ?? {}).map(([k,v]:any)=>[
+      k,
+      {
+        amount: typeof v?.amount === "number" ? v.amount : 0,
+        text: v?.text ?? ""
+      }
+    ])
+  )
+)
 
 
 
@@ -432,7 +444,7 @@ return ()=>unsub()
 
 },[storeId,tournamentId])
 
-const updatePrize=async(place:string,value:number)=>{
+const updatePrize=async(place:string,value:any)=>{
 
 if(!storeId) return
 
@@ -567,8 +579,41 @@ const nextLevel =
 const minutes=Math.floor(timeRemaining/60)
 const seconds=timeRemaining%60
 
-const totalPrize=
-Object.values(prizePool).reduce((a,b)=>a+b,0)
+const currentLevel = levelsToUse[currentLevelIndex]
+
+const totalLevelSeconds =
+  typeof currentLevel?.duration === "number"
+    ? currentLevel.duration * 60
+    : 1
+
+const progress =
+  totalLevelSeconds > 0
+    ? (timeRemaining / totalLevelSeconds) * 100
+    : 0
+
+// 次のBREAKまでの残り秒数を計算
+const nextBreakSeconds = (() => {
+  let total = timeRemaining
+
+  for (let i = currentLevelIndex + 1; i < levelsToUse.length; i++) {
+    const lv = levelsToUse[i]
+
+    if (lv.type === "break") break
+
+    if (typeof lv.duration === "number") {
+      total += lv.duration * 60
+    }
+  }
+
+  return total
+})()
+
+// mm:ssに変換
+const nextBreakMin = Math.floor(nextBreakSeconds / 60)
+const nextBreakSec = nextBreakSeconds % 60
+
+const totalPrize =
+Object.values(prizePool).reduce((a,b)=>a + (b.amount ?? 0),0)
 
 const isPresetSelected = levelsToUse.length > 0 && level !== null
 
@@ -739,8 +784,30 @@ className="menu-btn"
 
 </div>
 
-<div className="text-center mb-6">
+<div className="text-center mb-2">
+
+  {level?.type === "level" && (
+    <div className="inline-block px-4 py-1 rounded-full bg-[#F2A900]/10 border border-[#F2A900]/30 text-[#F2A900] text-[25px] font-semibold tracking-wide">
+      LEVEL {currentLevelIndex + 1}
+    </div>
+  )}
+
+  {level?.type === "break" && (
+    <div className="inline-block px-4 py-1 rounded-full bg-gray-200 text-gray-700 text-[18px] font-semibold tracking-wide">
+      BREAK
+    </div>
+  )}
+
+</div>
+
+<div className="relative text-center mb-6">
+
+  
   <div className="flex items-baseline justify-center gap-2">
+
+ 
+
+    
 
     {level?.type === "break" ? (
       <span className="text-[64px] font-semibold text-[#F2A900]">
@@ -749,7 +816,7 @@ className="menu-btn"
     ) : (
       <>
         <span className="text-[56px] font-light text-gray-600">
-          {level?.smallBlind ?? "-"}
+         Blinds : {level?.smallBlind ?? "-"}
         </span>
 
         <span className="text-[56px] text-gray-600"> / </span>
@@ -758,20 +825,66 @@ className="menu-btn"
           {level?.bigBlind ?? "-"}
         </span>
 
-        <span className="text-[40px] text-gray-600 ml-1">
-          ({level?.ante ?? "-"})
+        <span className="text-[52px] text-gray-600 ml-1">
+          (ante : {level?.ante ?? "-"})
         </span>
       </>
     )}
 
+    
+
   </div>
+
+  
 </div>
 
 
 
 
 <div className="text-center mb-6">
-  <div className="flex items-baseline justify-center gap-2">
+
+  {isPresetSelected && nextLevel && (
+  <div className="text-center mb-2">
+
+    <div className="text-[40px] font-light text-gray-600">
+      Next Level :{" "}
+      {nextLevel.type === "break" ? (
+        "Break"
+      ) : (
+        <>
+          {nextLevel.smallBlind}
+          <span className="text-gray-600"> / </span>
+          {nextLevel.bigBlind}
+          <span className="text-gray-600"> ({nextLevel.ante})</span>
+        </>
+      )}
+    </div>
+
+  </div>
+)}
+
+  <div className="relative flex items-baseline justify-center gap-2">
+    {!isRunning && isPresetSelected && (
+  <div className="
+    absolute inset-0
+    flex items-center justify-center
+    pointer-events-none
+  ">
+    <div className="
+      px-10 py-3
+      text-[80px]
+      font-semibold
+      text-[#F2A900]/90
+      border-4 border-[#F2A900]/70
+      rounded-2xl
+      bg-white/30 backdrop-blur-md
+      shadow-xl
+    ">
+      PAUSE
+    </div>
+  </div>
+)}
+
     {isPresetSelected ? (
       <>
         <span className="text-[200px] font-light text-[#F2A900] tabular-nums">
@@ -787,28 +900,74 @@ className="menu-btn"
         WELCOME
       </span>
     )}
+
+
+
+
   </div>
+
+  <div className="w-full max-w-3xl mx-auto mt-6">
+
+  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+
+    <div
+      className="h-full bg-[#F2A900] transition-all duration-1000"
+      style={{ width: `${progress}%` }}
+    />
+
+  </div>
+
 </div>
+
+  
+</div>
+
+
+
 
 
 <div className="text-center mb-12 text-[25px] text-gray-600">
 
+
+
+
+
 {isPresetSelected && nextLevel && (
-  <>
-    <span className="font-medium">Next:</span>{" "}
 
-    {nextLevel.type === "break" ? (
-      <>Break</>
-    ) : (
-      <>
-        {nextLevel.smallBlind}
-        <span className="text-gray-600"> / </span>
-        {nextLevel.bigBlind}
-        <span className="text-gray-600"> ({nextLevel.ante})</span>
-      </>
-    )}
 
-  </>
+<div className="flex flex-col items-center gap-2">
+
+
+
+  {/* NEXT BREAK */}
+  <div className="flex items-center gap-2 text-gray-600">
+
+    <span className="text-[25px] tracking-wide">
+      Next Break : 
+    </span>
+
+    <span className="text-[25px] font-light text-[#F2A900] tabular-nums">
+      {nextBreakMin.toString().padStart(2,"0")}:
+      {nextBreakSec.toString().padStart(2,"0")}
+    </span>
+
+    
+
+  </div>
+
+</div>
+
+
+)}
+
+
+
+
+
+  {comment && (
+  <div className="mt-4 text-[25px] text-[#F2A900] whitespace-pre-wrap">
+    {comment}
+  </div>
 )}
 
 </div>
@@ -859,33 +1018,55 @@ className="menu-btn"
 
 <div className="w-1/5 min-w-[240px] p-8 flex flex-col justify-center border-l border-gray-200/60">
 
-<h2 className="text-[14px] font-medium text-gray-500 mb-6 uppercase tracking-wide">
+<h2 className="text-[14px] font-medium text-gray-700 mb-6 uppercase tracking-wide">
 Prize Pool
 </h2>
 
 <div className="space-y-3">
 
-{Object.entries(prizePool).map(([place,amount])=>(
 
-<div
-key={place}
-className="flex items-center justify-between py-2"
->
+{Object.entries(prizePool).map(([place,data],index,arr)=>(
+  <div
+    key={place}
+    className={`flex items-center py-2 ${
+      index !== arr.length - 1 ? "border-b border-gray-400" : ""
+    }`}
+  >
 
-<span className="text-[15px] text-gray-600">
-{place}th
-</span>
+    {/* 左：順位 */}
+    <div className="flex items-center gap-1 min-w-[90px]">
 
-<input
-type="number"
-value={amount}
-onChange={(e)=>updatePrize(place,Number(e.target.value))}
-className="w-28 text-right text-[17px] font-medium text-gray-900 border border-gray-200 rounded px-2 py-1"
-/>
+      <span className="text-[15px] text-gray-700 w-[40px]">
+        {place}th : 
+      </span>
 
-</div>
+       <input
+      type="number"
+      value={data?.amount ?? ""}
+      onChange={(e)=>updatePrize(place,{
+        ...data,
+        amount:Number(e.target.value)
+      })}
+    className="w-[60px] text-right text-[16px] font-medium text-gray-500 bg-transparent outline-none"
+    />
 
+      
+
+    </div>
+
+    {/* 右：テキスト */}
+   
+
+    {data?.text && (
+       <span className="text-[16px] text-gray-500 whitespace-nowrap ml-1">
+         + {data.text}
+        </span>
+      )}
+
+  </div>
 ))}
+
+
 
 </div>
 
@@ -893,11 +1074,14 @@ className="w-28 text-right text-[17px] font-medium text-gray-900 border border-g
 
 <div className="flex justify-between">
 
-<span className="text-[13px] font-medium text-gray-500 uppercase">
+<span className="text-[13px] font-medium text-gray-700 uppercase">
 Total
 </span>
 
 <span className="text-[19px] font-semibold text-[#F2A900]">
+
+  
+
 
 ¥{totalPrize.toLocaleString()}
 
@@ -997,6 +1181,52 @@ Total
     document.body
   )
 }
+
+<div
+  className="
+    fixed bottom-8 right-8
+    flex items-center gap-4
+    px-5 py-3
+    rounded-2xl
+    bg-white/40 backdrop-blur-xl
+    border border-white/50
+    shadow-[0_8px_30px_rgba(0,0,0,0.15)]
+    z-[200]
+  "
+>
+
+  <div
+    className="
+      h-12 w-12
+      rounded-xl
+      overflow-hidden
+      bg-white
+      flex items-center justify-center
+      shadow-[0_0_20px_rgba(242,169,0,0.5)]
+    "
+  >
+    <img
+      src="/logo.png"
+      alt="RRPoker"
+      className="h-9 w-9 object-contain"
+    />
   </div>
+
+  <span
+    className="
+      text-[22px]
+      font-bold
+      tracking-widest
+      text-gray-900
+    "
+  >
+    RRPOKER
+  </span>
+
+</div>
+
+  </div>
+
+  
 )
 }

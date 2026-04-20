@@ -122,9 +122,9 @@ const normalize = (v: any) => {
     typeof data.date === "string"
       ? data.date
       : "",
-  createdAt: null,
-  startedAt: null,
-  updatedAt: null,
+createdAt: normalize(data.createdAt)?.toLocaleDateString?.() ?? "",
+startedAt: normalize(data.startedAt)?.toLocaleDateString?.() ?? "",
+updatedAt: normalize(data.updatedAt)?.toLocaleDateString?.() ?? "",
   payouts: Array.isArray(data.payouts)
     ? data.payouts.map((p: any) => ({
         playerId: p.playerId ?? "",
@@ -523,6 +523,8 @@ const totalAddon = entries.reduce(
               <div className="flex-1">
 
 <div className="flex items-center flex-wrap gap-2 mb-1">
+
+  
   <h4 className="text-[16px] font-bold text-gray-900">
     {t.name}
   </h4>
@@ -531,6 +533,11 @@ const totalAddon = entries.reduce(
   <span className="text-[12px] text-gray-500 font-medium">
     E: {totalEntry} / R: {totalReentry} / A: {totalAddon}
   </span>
+</div>
+
+<div className="flex items-center gap-2 text-[12px] text-gray-500 mt-1">
+  <FiClock size={12} />
+  <span>{t.startedAt || t.createdAt}</span>
 </div>
 
 

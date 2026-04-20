@@ -30,6 +30,8 @@ type Row = {
   rank: number
   playerId: string
   amount: string
+  text: string
+  showText: boolean
 }
 
 export default function PrizeDistributeModal({ tournamentId, storeId, onClose }: Props) {
@@ -47,12 +49,13 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
   const [totalReentry, setTotalReentry] = useState(0)
   const [totalAddon, setTotalAddon] = useState(0)
   const [status, setStatus] = useState<string>("active")
+  const [comment, setComment] = useState("")
 
   const [rows, setRows] = useState<Row[]>([
-    { rank: 1, playerId: "", amount: "" },
-    { rank: 2, playerId: "", amount: "" },
-    { rank: 3, playerId: "", amount: "" },
-  ])
+  { rank: 1, playerId: "", amount: "", text: "", showText: false },
+  { rank: 2, playerId: "", amount: "", text: "", showText: false },
+  { rank: 3, playerId: "", amount: "", text: "", showText: false },
+])
 
   const totalPrize = useMemo(() => {
     return (entryFee * totalEntry) + (reentryFee * totalReentry) + (addonFee * totalAddon)
@@ -70,14 +73,32 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
         const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
         const tSnap = await getDoc(tournamentRef)
         if (tSnap.exists()) {
-          const d: any = tSnap.data()
+           const d: any = tSnap.data()
+            setComment(d.comment ?? "")
 
           if (d.prizePool) {
-  const restoredRows = Object.entries(d.prizePool).map(([rank, amount]) => ({
-    rank: Number(rank),
-    playerId: "",
-    amount: String(amount),
-  }))
+
+  const restoredRows = Object.entries(d.prizePool).map(([rank, val]: any) => {
+  if (typeof val === "number") {
+    return {
+      rank: Number(rank),
+      playerId: "",
+      amount: String(val),
+      text: "",
+      showText: false
+    }
+  } else {
+    return {
+      rank: Number(rank),
+      playerId: "",
+      amount: String(val.amount ?? ""),
+      text: val.text ?? "",
+      showText: Boolean(val.text) // ←ここ重要
+    }
+  }
+})
+
+
 
   if (restoredRows.length > 0) {
     setRows(restoredRows)
@@ -159,8 +180,14 @@ setParticipants(list)
   }, [storeId, tournamentId])
 
   const addRow = () => {
-    setRows(prev => [...prev, { rank: prev.length + 1, playerId: "", amount: "" }])
-  }
+  setRows(prev => [...prev, {
+    rank: prev.length + 1,
+    playerId: "",
+    amount: "",
+    text: "",
+    showText: false
+  }])
+}
 
   const validate = (): string | null => {
     // マイナス禁止 & 数値チェック
@@ -188,18 +215,26 @@ setParticipants(list)
 
   const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
 
-  const prizePool: Record<string, number> = {}
+  const prizePool: Record<string, any> = {}
 
-  rows.forEach(r => {
-    if (r.amount !== "") {
-      prizePool[String(r.rank)] = Number(r.amount)
+rows.forEach(r => {
+  if (r.amount !== "" || r.text !== "") {
+    prizePool[String(r.rank)] = {
+      amount: r.amount === "" ? 0 : Number(r.amount),
+      text: r.text ?? ""
     }
-  })
+  }
+})
 
   try {
-    await updateDoc(tournamentRef, {
-      prizePool: prizePool
-    })
+
+await updateDoc(tournamentRef, {
+  prizePool: prizePool,
+  comment: comment
+})
+
+
+
   } catch (e) {
     console.error(e)
     setError("下書き保存に失敗しました")
@@ -505,13 +540,37 @@ for (const p of players) {
 
   return (
     <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 animate-fadeIn">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[16px] font-semibold text-gray-900">Prize / Finish</h2>
-          <button type="button" onClick={onClose} className="text-gray-500 text-[22px] p-1 hover:bg-gray-100 rounded-full">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L14 14M14 6L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          </button>
-        </div>
+   
+
+<div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-[0_25px_80px_rgba(0,0,0,0.18)] border border-gray-200">
+
+  {/* ヘッダー */}
+  <div className="flex items-center justify-between mb-3">
+
+    {/* 左：閉じる */}
+    <button
+      onClick={onClose}
+      className="h-9 w-9 rounded-full border border-gray-300 text-gray-700 flex items-center justify-center text-[16px] hover:bg-gray-100"
+    >
+      ×
+    </button>
+
+    <h2 className="text-[17px] font-bold text-gray-900">
+      Pay Out
+    </h2>
+
+    {/* 右：保存 */}
+    <button
+      onClick={async () => {
+        await saveDraft()
+        onClose()
+      }}
+      className="h-9 w-9 rounded-full bg-green-500 text-white flex items-center justify-center text-[16px] font-bold hover:bg-green-600"
+    >
+      ✓
+    </button>
+
+  </div>
 
         {loading ? (
           <p className="text-gray-500 text-center">Loading...</p>
@@ -520,43 +579,101 @@ for (const p of players) {
         ) : (
           <>
             <div className="mb-3 text-[14px] text-gray-900 font-semibold">
-              総プライズ額: {totalPrize.toLocaleString()}
+         
+              <div className="mb-3 text-[13px] text-gray-500">
+  総プライズ：
+</div>
+<div className="text-[20px] font-bold text-gray-900">
+  {totalPrize.toLocaleString()}
+</div>
             </div>
 
-            <div className="space-y-2 max-h-[45vh] overflow-y-auto">
-              {rows.map((r, idx) => (
-                <div key={idx} className="grid grid-cols-[48px_1fr_120px] gap-2 items-center">
-                  <div className="text-[13px] text-gray-700">{r.rank}位</div>
-                  <select
-                    value={r.playerId}
-                    onChange={e => {
-                      const v = e.target.value
-                      setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: v } : x))
-                    }}
-                    className="h-10 rounded-xl border border-gray-200 bg-white px-2 text-[13px] text-gray-900"
-                    disabled={submitting}
-                  >
-                    <option value="">選択</option>
-                    {participants.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name ?? p.id}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    value={r.amount}
-                    onChange={e => {
-                      const v = e.target.value
-                      setRows(prev => prev.map((x, i) => i === idx ? { ...x, amount: v } : x))
-                    }}
-                    placeholder="金額"
-                    inputMode="numeric"
-                    className="h-10 rounded-xl border border-gray-200 bg-white px-2 text-[13px] text-gray-900"
-                    disabled={submitting}
-                  />
-                </div>
-              ))}
-            </div>
+
+<div className="space-y-2 max-h-[45vh] overflow-y-auto">
+  {rows.map((r, idx) => (
+    <div key={idx} className="space-y-2 pb-2 border-b border-gray-100">
+
+      {/* 1行目 */}
+      <div className="grid grid-cols-[40px_1fr_90px_40px] gap-2 items-center">
+
+        <div className="text-[13px] text-gray-700">{r.rank}位</div>
+
+        <select
+          value={r.playerId}
+          onChange={e => {
+            const v = e.target.value
+            setRows(prev => prev.map((x, i) =>
+              i === idx ? { ...x, playerId: v } : x
+            ))
+          }}
+          className="h-10 rounded-xl border border-gray-200 px-2 text-[13px] text-gray-900 bg-white"
+        >
+          <option value="">選択</option>
+          {participants.map(p => (
+            <option key={p.id} value={p.id}>
+              {p.name ?? p.id}
+            </option>
+          ))}
+        </select>
+
+        <input
+          value={r.amount}
+          onChange={e => {
+            const v = e.target.value
+            setRows(prev => prev.map((x, i) =>
+              i === idx ? { ...x, amount: v } : x
+            ))
+          }}
+          placeholder="金額"
+          inputMode="numeric"
+          className="h-10 rounded-xl border border-gray-200 px-2 text-[13px] text-gray-900 bg-white"
+        />
+
+        {/* ＋ボタン */}
+        <button
+          onClick={() => {
+            setRows(prev => prev.map((x, i) =>
+              i === idx ? { ...x, showText: !x.showText } : x
+            ))
+          }}
+          className="h-10 w-10 rounded-xl border border-gray-300 text-gray-900 font-bold bg-white hover:bg-gray-100"
+        >
+          ＋
+        </button>
+
+      </div>
+
+      {/* 2行目（条件付き表示） */}
+      {r.showText && (
+  <div className="pl-6 border-l-2 border-gray-200">
+    <input
+      value={r.text}
+      onChange={e => {
+        const v = e.target.value
+        setRows(prev => prev.map((x, i) =>
+          i === idx ? { ...x, text: v } : x
+        ))
+      }}
+      placeholder="景品・メモ"
+      className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[13px] text-gray-900 bg-white placeholder:text-gray-400"
+    />
+  </div>
+)}
+
+    </div>
+  ))}
+</div>
+
+
+
+<textarea
+  value={comment}
+  onChange={e => setComment(e.target.value)}
+  placeholder="コメント（タイマー画面に表示される）"
+  className="w-full h-20 rounded-xl border border-gray-300 px-3 py-2 text-[14px] text-gray-900 bg-white mt-3 placeholder:text-gray-400"
+/>
+
+
 
             <button
               type="button"
@@ -567,14 +684,8 @@ for (const p of players) {
               ＋入賞者追加
             </button>
 
-                        <button
-  type="button"
-  onClick={saveDraft}
-  className="mt-2 w-full rounded-full bg-[#F2A900] hover:bg-[#e29b00] text-white font-semibold py-2 text-[13px]"
-  disabled={submitting}
->
-  下書き保存
-</button>
+            
+
 
             <button
               type="button"
@@ -583,10 +694,10 @@ for (const p of players) {
                 if (v) { setError(v); return }
                 setConfirmOpen(true)
               }}
-              className="mt-3 w-full rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 text-[13px]"
+              className="mt-3 w-full rounded-full bg-[#F2A900] hover:bg-red-700 text-white font-semibold py-2 text-[13px]"
               disabled={submitting}
             >
-              終了する
+              Pay Out
             </button>
 
 
@@ -596,8 +707,8 @@ for (const p of players) {
             {confirmOpen && (
               <div className="fixed inset-0 z-[450] flex items-center justify-center bg-black/20 px-4">
                 <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-gray-200">
-                  <p className="text-[14px] font-semibold text-gray-900 text-center">
-                    この操作は取り消せません。終了しますか？
+                  <p className="text-[13px] font-semibold text-gray-900 text-center">
+                    この操作は取り消せません。プライズを配布しますか？
                   </p>
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     <button
