@@ -78,31 +78,41 @@ export default function PrizeDistributeModal({ tournamentId, storeId, onClose }:
 
           if (d.prizePool) {
 
-  const restoredRows = Object.entries(d.prizePool).map(([rank, val]: any) => {
-  if (typeof val === "number") {
-    return {
-      rank: Number(rank),
-      playerId: "",
-      amount: String(val),
-      text: "",
-      showText: false
+const restoredRows = Object.entries(d.prizePool)
+  .map(([rank, val]: any) => {
+    if (typeof val === "number") {
+      return {
+        rank: Number(rank),
+        playerId: "",
+        amount: String(val),
+        text: "",
+        showText: false
+      }
+    } else {
+      return {
+        rank: Number(rank),
+        playerId: "",
+        amount: String(val.amount ?? ""),
+        text: val.text ?? "",
+        showText: Boolean(val.text)
+      }
     }
-  } else {
-    return {
-      rank: Number(rank),
-      playerId: "",
-      amount: String(val.amount ?? ""),
-      text: val.text ?? "",
-      showText: Boolean(val.text) // ←ここ重要
-    }
+  })
+  .sort((a, b) => a.rank - b.rank)
+
+const base = [1, 2, 3].map(rank => {
+  const found = restoredRows.find(r => r.rank === rank)
+  return found ?? {
+    rank,
+    playerId: "",
+    amount: "",
+    text: "",
+    showText: false
   }
 })
 
+setRows(base)
 
-
-  if (restoredRows.length > 0) {
-    setRows(restoredRows)
-  }
 }
 
 

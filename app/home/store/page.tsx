@@ -22,8 +22,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore"
-import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign, FiClock, FiCheck, FiX, FiSearch, FiLogOut } from "react-icons/fi"
-
+import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign, FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3 } from "react-icons/fi"
 type StoreInfo = {
   name: string
   iconUrl?: string
@@ -67,6 +66,38 @@ export default function StorePage() {
 
 
     const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
+    const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
+    const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
+
+
+    const openAdjustModal = (tournamentId: string, currentSeconds: number) => {
+  setAdjustModalOpen(prev => ({ ...prev, [tournamentId]: true }))
+  setAdjustSeconds(prev => ({ ...prev, [tournamentId]: currentSeconds }))
+}
+
+const closeAdjustModal = (tournamentId: string) => {
+  setAdjustModalOpen(prev => ({ ...prev, [tournamentId]: false }))
+}
+
+const updateAdjustTime = (tournamentId: string, diff: number) => {
+  setAdjustSeconds(prev => ({
+    ...prev,
+    [tournamentId]: Math.max(0, (prev[tournamentId] ?? 0) + diff)
+  }))
+}
+
+const confirmAdjustTime = async (tournamentId: string) => {
+  if (!storeId) return
+
+  await updateDoc(
+    doc(db, "stores", storeId, "tournaments", tournamentId),
+    {
+      timeRemaining: adjustSeconds[tournamentId]
+    }
+  )
+
+  closeAdjustModal(tournamentId)
+}
 
 
 const toggleTimer = async (tournamentId: string) => {
@@ -1464,6 +1495,8 @@ const formatDateTime = (date?: Date | null) => {
                 const totalStack = (totalEntry * entryStack) + (totalReentry * reentryStack) + (totalAddon * addonStack)
                 const average = alive > 0 ? Math.floor(totalStack / alive) : 0
                 return (
+
+              
                   <div key={t.id} className="tournament-card rounded-3xl p-5 animate-slideUp">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-[17px] font-semibold text-gray-900">{t.name}</h3>
@@ -1472,21 +1505,21 @@ const formatDateTime = (date?: Date | null) => {
                     
                     {/* Stats Grid */}
                     <div className="grid grid-cols-3 gap-2 mb-4">
-                      <div className="stat-badge rounded-xl p-3 text-center">
+                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-center gap-1 mb-1">
                           <FiUsers size={14} className="text-[#F2A900]" />
                         </div>
                         <p className="text-[18px] font-bold text-gray-900">{alive}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">Players</p>
                       </div>
-                      <div className="stat-badge rounded-xl p-3 text-center">
+                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-center gap-1 mb-1">
                           <FiTrendingUp size={14} className="text-[#F2A900]" />
                         </div>
                         <p className="text-[18px] font-bold text-gray-900">{average.toLocaleString()}</p>
                         <p className="text-[11px] text-gray-500 mt-0.5">Average</p>
                       </div>
-                      <div className="stat-badge rounded-xl p-3 text-center">
+                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-center gap-1 mb-1">
                           <FiPlus size={14} className="text-[#F2A900]" />
                         </div>
@@ -1495,64 +1528,169 @@ const formatDateTime = (date?: Date | null) => {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="space-y-2 mb-3">
-                      <button
-                        onClick={() => openTimer(t.id)}
-                        className="w-full h-11 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white font-medium text-[14px] transition-all shadow-md active:scale-98 flex items-center justify-center gap-2"
-                      >
-                        <FiClock size={16} />
-                        <span>タイマーへ</span>
-                      </button>
-
-
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          className="h-11 rounded-2xl bg-[#F2A900] hover:bg-[#D4910A] text-white font-medium text-[14px] transition-all shadow-md active:scale-98"
-                          onClick={() => setShowPlayerModal(t.id)}
-                        >
-                          Players
-                        </button>
-                        <button
-                          className="h-11 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-medium text-[14px] transition-all shadow-md active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed"
-                          onClick={() => setShowPrizeModal(t.id)}
-                          disabled={t.status !== "active"}
-                        >
-                          PRIZE
-                        </button>
-                      </div>
 
 
 
 
+{/* Action Buttons（Apple風統一） */}
+<div className="grid grid-cols-2 gap-2 mb-3">
+
+  <button
+    onClick={() => openTimer(t.id)}
+    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
+  >
+    <FiClock size={16} />
+    Timer
+  </button>
+
+  <button
+    onClick={() => openAdjustModal(t.id, t.timeRemaining)}
+    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
+  >
+    <FiEdit3 size={16} />
+    Adjust
+  </button>
+
+  <button
+    onClick={() => setShowPlayerModal(t.id)}
+    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
+  >
+    <FiUsers size={16} />
+    Players
+  </button>
+
+  <button
+    onClick={() => setShowPrizeModal(t.id)}
+    disabled={t.status !== "active"}
+    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 disabled:opacity-40 active:scale-95"
+  >
+    <FiDollarSign size={16} />
+    Pay Out
+  </button>
+
+</div>
 
 
 
 
-                    </div>
+
+{adjustModalOpen[t.id] && (
+  <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
+
+    <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl p-6 animate-slideUp">
+
+      {/* header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => closeAdjustModal(t.id)}
+          className="text-gray-400 text-xl"
+        >
+          <FiX />
+        </button>
+
+        <button
+          onClick={() => confirmAdjustTime(t.id)}
+          className="text-[#F2A900] text-xl"
+        >
+          <FiCheck />
+        </button>
+      </div>
+
+      {/* time */}
+      <div className="text-center mb-6">
+        <p className="text-[36px] font-bold text-gray-900 tracking-wider">
+          {Math.floor((adjustSeconds[t.id] ?? 0) / 60)
+            .toString()
+            .padStart(2, "0")}
+          :
+          {((adjustSeconds[t.id] ?? 0) % 60)
+            .toString()
+            .padStart(2, "0")}
+        </p>
+      </div>
+
+      {/* ダイヤル */}
+      <input
+        type="range"
+        min={0}
+        max={7200}
+        step={10}
+        value={adjustSeconds[t.id] ?? 0}
+        onChange={(e) =>
+          setAdjustSeconds(prev => ({
+            ...prev,
+            [t.id]: Number(e.target.value)
+          }))
+        }
+        className="w-full mb-6 accent-[#F2A900]"
+      />
+
+      {/* ボタン */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => updateAdjustTime(t.id, -60)}
+          className="h-12 rounded-2xl bg-gray-100 text-gray-700 font-medium"
+        >
+          -1分
+        </button>
+
+        <button
+          onClick={() => updateAdjustTime(t.id, 60)}
+          className="h-12 rounded-2xl bg-gray-100 text-gray-700 font-medium"
+        >
+          +1分
+        </button>
+
+        <button
+          onClick={() => updateAdjustTime(t.id, -10)}
+          className="h-12 rounded-2xl bg-gray-200 text-gray-700 font-medium"
+        >
+          -10秒
+        </button>
+
+        <button
+          onClick={() => updateAdjustTime(t.id, 10)}
+          className="h-12 rounded-2xl bg-[#F2A900] text-white font-medium shadow-md"
+        >
+          +10秒
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+
+     
                     
-                    {/* Timer Controls */}
-                    <div className="flex items-center justify-center gap-2 pt-3 border-t border-gray-100">
-                      <button
-                        onClick={()=>prevLevel(t.id,t.currentLevelIndex ?? 0)}
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-all active:scale-95"
-                      >
-                        <FiSkipBack size={16} className="text-gray-700"/>
-                      </button>
-                      <button
-                        onClick={() => toggleTimer(t.id)}
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-900 text-white hover:bg-gray-800 transition-all shadow-md active:scale-95"
-                      >
-                        {timerRunning[t.id] ? <FiPause size={16}/> : <FiPlay size={16}/>} 
-                      </button>
-                      <button
-                        onClick={()=>nextLevel(t.id)}
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-all active:scale-95"
-                      >
-                        <FiSkipForward size={16} className="text-gray-700"/>
-                      </button>
-                    </div>
+                        {/* Timer Controls（Apple風） */}
+                            <div className="flex items-center justify-center gap-4 pt-3 border-t border-gray-100">
+
+                              <button
+                                onClick={()=>prevLevel(t.id,t.currentLevelIndex ?? 0)}
+                                className="h-11 w-11 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 active:scale-90"
+                              >
+                                <FiSkipBack size={18} className="text-gray-700"/>
+                              </button>
+
+                              <button
+                                onClick={() => toggleTimer(t.id)}
+                                className="h-14 w-14 flex items-center justify-center rounded-full bg-[#F2A900] text-white shadow-lg active:scale-90"
+                              >
+                                {timerRunning[t.id] ? <FiPause size={20}/> : <FiPlay size={20}/>} 
+                              </button>
+
+                              <button
+                                onClick={()=>nextLevel(t.id)}
+                                className="h-11 w-11 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 active:scale-90"
+                              >
+                                <FiSkipForward size={18} className="text-gray-700"/>
+                              </button>
+
+                            </div>
+
+
+
+
                   </div>
                 )
               })}
