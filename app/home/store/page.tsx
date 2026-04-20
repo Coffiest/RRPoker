@@ -1198,13 +1198,6 @@ await setDoc(balanceRef, {
 }, { merge: true })
 
 
-
-
-
-
-
-
-
   if (!storeData?.checkinBonusEnabled) return
 
   const stampRef = doc(db, "users", playerId, "storeStamp", storeId)

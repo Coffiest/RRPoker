@@ -25,8 +25,9 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [tournamentBust, setTournamentBust] = useState(0)
-  const [bustUpdating, setBustUpdating] = useState(false)
   const [newTempName, setNewTempName] = useState("")
+  const [localPlayers, setLocalPlayers] = useState<any[]>([])
+  const [localBust, setLocalBust] = useState(0)
 
   useEffect(() => {
     if (!storeId || !tournamentId) {
@@ -43,7 +44,9 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
     )
     const unsubTournament = onSnapshot(tournamentRef, snap => {
       if (snap.exists()) {
-        setTournamentBust(snap.data().bustCount ?? 0)
+        const bust = snap.data().bustCount ?? 0
+        setTournamentBust(bust)
+        setLocalBust(bust)
       }
     })
 
@@ -106,6 +109,7 @@ const unsub = onSnapshot(
       })
 
       setPlayers(list)
+      setLocalPlayers(list)
       setError("")
     } catch {
       setError("プレイヤー情報の取得に失敗しました")
@@ -114,12 +118,7 @@ const unsub = onSnapshot(
     setLoading(false)
   }
 )
-         
-
-
-
-
-
+        
     return () => {
       unsub()
       unsubTournament()
@@ -127,74 +126,61 @@ const unsub = onSnapshot(
   }, [storeId, tournamentId])
 
 
-  // トーナメント単位のBust更新
-  const handleTournamentBustChange = async (delta: number) => {
-    if (!storeId || !tournamentId) return
-    if (bustUpdating) return
-    if (delta < 0 && tournamentBust <= 0) return
+  const handleSave = async () => {
+  if (!storeId || !tournamentId) return
 
-    setBustUpdating(true)
-    try {
-      const tournamentRef = doc(
-        db,
-        "stores",
-        storeId,
-        "tournaments",
-        tournamentId
-      )
-      await updateDoc(tournamentRef, {
-        bustCount: increment(delta)
-      })
-      // bust値は onSnapshot(tournamentRef) からのみ反映させる（ここで setTournamentBust は絶対にしない）
-      setError("")
-    } catch (e) {
-      setError("bust更新に失敗しました")
-    } finally {
-      setBustUpdating(false)
-    }
+  const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
+
+  let totalEntry = 0
+  let totalReentry = 0
+  let totalAddon = 0
+
+  for (const p of localPlayers) {
+    const entryRef = doc(
+      db,
+      "stores",
+      storeId,
+      "tournaments",
+      tournamentId,
+      "entries",
+      p.id
+    )
+
+    await setDoc(entryRef, {
+      name: p.name,
+      isTemp: p.isTemp ?? false,
+      entryCount: p.entryCount ?? 0,
+      reentryCount: p.reentryCount ?? 0,
+      addonCount: p.addonCount ?? 0,
+    })
+
+    totalEntry += p.entryCount ?? 0
+    totalReentry += p.reentryCount ?? 0
+    totalAddon += p.addonCount ?? 0
   }
 
-const addTempPlayer = async () => {
-  if (!storeId || !tournamentId) return
+  await updateDoc(tournamentRef, {
+    totalEntry,
+    totalReentry,
+    totalAddon,
+    bustCount: localBust
+  })
+
+  onClose()
+}
+
+
+const handleTournamentBustChange = (delta: number) => {
+  if (delta < 0 && localBust <= 0) return
+  setLocalBust(prev => prev + delta)
+}
+
+const addTempPlayer = () => {
   if (!newTempName.trim()) return
 
   const id = "temp_" + Date.now()
 
-  // 🔴 usersにも作る（これが本質）
-await setDoc(
-  doc(db, "users", id),
-  {
-    name: newTempName,
-    isTemp: true,
-    createdAt: new Date(),
-  },
-  { merge: true }
-)
-
-  const entryRef = doc(
-    db,
-    "stores",
-    storeId,
-    "tournaments",
-    tournamentId,
-    "entries",
-    id
-  )
-
-  await setDoc(
-    entryRef,
-    {
-      name: newTempName,
-      isTemp: true,
-      entryCount: 0,
-      reentryCount: 0,
-      addonCount: 0,
-    },
-    { merge: true }
-  )
-
-  // 🔴これ追加（即UI反映）
-  setPlayers(prev => [
+  setLocalPlayers(prev => [
     ...prev,
     {
       id,
@@ -209,156 +195,100 @@ await setDoc(
   setNewTempName("")
 }
 
-const deleteTempPlayer = async (playerId: string) => {
-  if (!storeId || !tournamentId) return
 
-  const entryRef = doc(
-    db,
-    "stores",
-    storeId,
-    "tournaments",
-    tournamentId,
-    "entries",
-    playerId
-  )
-
-  // ① 0にリセット
-  await setDoc(
-    entryRef,
-    {
-      entryCount: 0,
-      reentryCount: 0,
-      addonCount: 0,
-    },
-    { merge: true }
-  )
-
-  // ② 削除
-  await deleteDoc(entryRef)
-
-  // ③ UI即反映
-  setPlayers(prev => prev.filter(p => p.id !== playerId))
+const deleteTempPlayer = (playerId: string) => {
+  setLocalPlayers(prev => prev.filter(p => p.id !== playerId))
 }
 
-const updateTempPlayerName = async (playerId: string, newName: string) => {
-  if (!storeId || !tournamentId) return
 
-  await updateDoc(
-    doc(
-      db,
-      "stores",
-      storeId,
-      "tournaments",
-      tournamentId,
-      "entries",
-      playerId
-    ),
-    {
-      name: newName
-    }
+
+const updateTempPlayerName = (playerId: string, newName: string) => {
+  setLocalPlayers(prev =>
+    prev.map(p =>
+      p.id === playerId ? { ...p, name: newName } : p
+    )
   )
 }
 
-const handleEntryChange = async (
+
+
+
+const handleEntryChange = (
   playerId: string,
   field: "entryCount" | "reentryCount" | "addonCount",
   delta: number
 ) => {
-  if (!storeId || !tournamentId) return
-
-  try {
-    const entryRef = doc(
-      db,
-      "stores",
-      storeId,
-      "tournaments",
-      tournamentId,
-      "entries",
-      playerId
+  setLocalPlayers(prev =>
+    prev.map(p =>
+      p.id === playerId
+        ? { ...p, [field]: Math.max(0, (p[field] ?? 0) + delta) }
+        : p
     )
-
-    // 🔴存在保証（これだけでいい）
-    const snap = await getDoc(entryRef)
-
-    if (!snap.exists()) {
-      await setDoc(
-        entryRef,
-        {
-          name: players.find(p => p.id === playerId)?.name ?? "ゲスト",
-          isTemp: true,
-          entryCount: 0,
-          reentryCount: 0,
-          addonCount: 0,
-        },
-        { merge: true }
-      )
-    }
-
-    // 🔴更新
-    await setDoc(
-      entryRef,
-      {
-        [field]: increment(delta)
-      },
-      { merge: true }
-    )
-
-    // 🔴合計再計算
-    const entriesRef = collection(
-      db,
-      "stores",
-      storeId,
-      "tournaments",
-      tournamentId,
-      "entries"
-    )
-
-    const entriesSnap = await getDocs(entriesRef)
-
-    let totalEntry = 0
-    let totalReentry = 0
-    let totalAddon = 0
-
-    entriesSnap.forEach(d => {
-      const data = d.data()
-      totalEntry += data.entryCount ?? 0
-      totalReentry += data.reentryCount ?? 0
-      totalAddon += data.addonCount ?? 0
-    })
-
-    await updateDoc(
-      doc(db, "stores", storeId, "tournaments", tournamentId),
-      {
-        totalEntry,
-        totalReentry,
-        totalAddon
-      }
-    )
-
-    setPlayers(players =>
-      players.map(p =>
-        p.id === playerId
-          ? { ...p, [field]: p[field] + delta }
-          : p
-      )
-    )
-
-  } catch {
-    setError("更新に失敗しました")
-  }
+  )
 }
 
-const allPlayers = players
+const allPlayers = localPlayers
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 animate-fadeIn">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[16px] font-semibold text-gray-900">Players:</h2>
-          <button type="button" onClick={onClose} className="text-gray-500 text-[22px] p-1 hover:bg-gray-100 rounded-full">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L14 14M14 6L6 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          </button>
-        </div>
+     
+     
+<div className="mb-4">
+  {/* 上段：× と ✓ */}
+  <div className="flex items-center justify-between mb-2">
+    <button
+      onClick={onClose}
+      className="text-gray-900 text-xl font-bold px-2 py-1 hover:bg-gray-100 rounded"
+    >
+      ×
+    </button>
+
+    <div />
+
+    <button
+      onClick={handleSave}
+      className="text-green-600 text-xl font-bold px-2 py-1 hover:bg-green-50 rounded"
+    >
+      ✓
+    </button>
+  </div>
+
+  {/* 下段：プレビューカード */}
+  <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 shadow-sm flex items-center justify-between">
+    
+    {/* Players */}
+    <div className="flex flex-col items-center">
+      <span className="text-[11px] text-gray-500">Players</span>
+      <span className="text-lg font-semibold text-gray-900">
+        {(() => {
+          const total = localPlayers.reduce(
+            (sum, p) => sum + (p.entryCount ?? 0) + (p.reentryCount ?? 0),
+            0
+          )
+          const alive = total - localBust
+          return `${alive}/${total}`
+        })()}
+      </span>
+    </div>
+
+    {/* 区切り */}
+    <div className="h-6 w-px bg-gray-200" />
+
+    {/* Addon */}
+    <div className="flex flex-col items-center">
+      <span className="text-[11px] text-gray-500">Add-on</span>
+      <span className="text-lg font-semibold text-gray-900">
+        {localPlayers.reduce((sum, p) => sum + (p.addonCount ?? 0), 0)}
+      </span>
+    </div>
+
+  </div>
+</div>
+
+
+
+
         {loading ? (
           <p className="text-gray-500 text-center">Loading...</p>
         ) : error ? (
@@ -371,15 +301,15 @@ const allPlayers = players
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleTournamentBustChange(-1)}
-                  disabled={tournamentBust <= 0 || bustUpdating}
+                  disabled={localBust <= 0}
                   className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition"
                 >ー</button>
                 <span className="text-xl font-bold text-gray-900 w-8 text-center">
-                  {tournamentBust}
+                  {localBust}
                 </span>
                 <button
                   onClick={() => handleTournamentBustChange(1)}
-                  disabled={bustUpdating}
+                  disabled={false}
                   className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition"
                 >＋</button>
               </div>
@@ -390,56 +320,88 @@ const allPlayers = players
                 <p className="text-gray-500 text-center">No Players</p>
               ) : (
                 allPlayers.map(player => (
-                  <div key={player.id} className="rounded-xl bg-gray-50 border border-gray-100 py-3 px-3">
-           <div className="flex items-center justify-between mb-2">
-  {player.isTemp ? (
-    <input
-      value={player.name}
-      onChange={(e) =>
-        updateTempPlayerName(player.id, e.target.value)
-      }
-      className="text-[14px] text-gray-900 border px-1 rounded w-full mr-2"
-    />
-  ) : (
-    <div className="text-[14px] text-gray-500">
-      {player.name}
-    </div>
-  )}
 
-  {player.isTemp && (
-    <button
-      onClick={() => deleteTempPlayer(player.id)}
-      className="text-[10px] px-1 py-[2px] text-red-500 border border-red-400 rounded"
-    >
-      削除
-    </button>
-  )}
+                  
+<div
+  key={player.id}
+  className="rounded-2xl bg-white border border-gray-200 px-4 py-3 shadow-sm"
+>
+  {/* 上段：名前＋削除 */}
+  <div className="flex items-center justify-between gap-2 mb-3">
+    {player.isTemp ? (
+      <input
+        value={player.name}
+        onChange={(e) =>
+          updateTempPlayerName(player.id, e.target.value)
+        }
+
+   className="text-base text-gray-900 font-semibold border-b border-gray-400 focus:outline-none w-full mr-2 bg-white"
+style={{ opacity: 1 }}
+   
+   />
+        
+    ) : (
+      <div className="text-sm text-gray-900 font-semibold">
+        {player.name}
+      </div>
+    )}
+
+{player.isTemp && (
+  <button
+    onClick={() => deleteTempPlayer(player.id)}
+    className="text-gray-400 hover:text-red-500 text-lg px-1"
+  >
+    ×
+  </button>
+)}
+
+
+  </div>
+
+  {/* 下段：数値 */}
+  <div className="flex items-center justify-between text-center">
+    {[
+      { label: "Entry", field: "entryCount" },
+      { label: "Reentry", field: "reentryCount" },
+      { label: "Addon", field: "addonCount" },
+    ].map(item => (
+      <div key={item.field} className="flex flex-col items-center flex-1">
+        
+        <span className="text-[10px] text-gray-500 mb-1">
+          {item.label}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleEntryChange(player.id, item.field as any, -1)}
+            disabled={player[item.field] <= 0}
+            className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 text-sm"
+          >
+            −
+          </button>
+
+          <span className="text-base font-semibold text-gray-900 w-6 text-center">
+            {player[item.field]}
+          </span>
+
+          <button
+            onClick={() => handleEntryChange(player.id, item.field as any, 1)}
+            className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-sm"
+          >
+            ＋
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
 </div>
 
 
 
-                    <div className="grid grid-cols-3 gap-2">
-                      {[{ label: "Entry", field: "entryCount" }, { label: "Reentry", field: "reentryCount" }, { label: "Addon", field: "addonCount" }].map(item => (
-                        <div key={item.field} className="flex flex-col items-center gap-1">
-                          <span className="text-[11px] text-gray-800">{item.label}</span>
-                          <div className="flex items-center text-gray-800 gap-2">
-                            <button
-                              onClick={() => handleEntryChange(player.id, item.field as any, -1)}
-                              disabled={player[item.field] <= 0}
-                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-orange-600 bg-orange-100  text-sm"
-                            >ー</button>
-                            <span className="w-6 text-center font-medium">
-                              {player[item.field]}
-                            </span>
-                            <button
-                              onClick={() => handleEntryChange(player.id, item.field as any, 1)}
-                              className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-orange-600 bg-orange-100  text-sm"
-                            >＋</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+
+
+
+
                 ))
               )}
 
@@ -448,13 +410,13 @@ const allPlayers = players
       value={newTempName}
       onChange={(e)=>setNewTempName(e.target.value)}
       placeholder="仮プレイヤー名"
-      className="w-full h-10 border rounded-lg px-2 text-sm"
+      className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm text-gray-500 placeholder:text-gray-400"
     />
     <button
       onClick={addTempPlayer}
-      className="w-full mt-2 h-10 rounded-xl bg-red-500 text-white text-sm"
+      className="w-full mt-2 h-10 rounded-xl bg-[#F5A900] text-white text-sm"
     >
-      ＋プレイヤーを追加
+      ＋ Add Players
     </button>
   </div>
 
