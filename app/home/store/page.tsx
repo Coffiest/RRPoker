@@ -10,413 +10,175 @@ import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import { Timestamp } from "firebase/firestore"
 import {
-  collection,
-  doc,
-  deleteField,
-  getDoc,
-  increment,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where,
+  collection, doc, deleteField, getDoc, increment,
+  onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
 } from "firebase/firestore"
-import { FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause, FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign, FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3 } from "react-icons/fi"
-type StoreInfo = {
-  name: string
-  iconUrl?: string
-  code: string
-}
+import {
+  FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
+  FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign,
+  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight,
+} from "react-icons/fi"
 
-type DepositRequest = {
-  id: string
-  playerId: string
-  amount: number
-  comment?: string
-}
-
-type WithdrawRequest = {
-  id: string
-  playerId: string
-  amount: number
-  comment?: string
-}
-
-type PlayerInfo = {
-  id: string
-  name?: string
-  iconUrl?: string
-  visitCount?: number
-  lastVisitedAt?: Date | null
-}
+type StoreInfo = { name: string; iconUrl?: string; code: string }
+type DepositRequest = { id: string; playerId: string; amount: number; comment?: string }
+type WithdrawRequest = { id: string; playerId: string; amount: number; comment?: string }
+type PlayerInfo = { id: string; name?: string; iconUrl?: string; visitCount?: number; lastVisitedAt?: Date | null }
 
 export default function StorePage() {
-
   const getVisitCountResetBase = (date: Date) => {
-  const base = new Date(date)
-  base.setHours(3, 0, 0, 0)
-
-  if (date.getHours() < 3) {
-    base.setDate(base.getDate() - 1)
+    const base = new Date(date); base.setHours(3, 0, 0, 0)
+    if (date.getHours() < 3) base.setDate(base.getDate() - 1)
+    return base.getTime()
   }
 
-  return base.getTime()
-}
+  const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
+  const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
+  const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
 
-
-    const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
-    const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
-    const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
-
-
-    const openAdjustModal = (tournamentId: string, currentSeconds: number) => {
-  setAdjustModalOpen(prev => ({ ...prev, [tournamentId]: true }))
-  setAdjustSeconds(prev => ({ ...prev, [tournamentId]: currentSeconds }))
-}
-
-const closeAdjustModal = (tournamentId: string) => {
-  setAdjustModalOpen(prev => ({ ...prev, [tournamentId]: false }))
-}
-
-const updateAdjustTime = (tournamentId: string, diff: number) => {
-  setAdjustSeconds(prev => ({
-    ...prev,
-    [tournamentId]: Math.max(0, (prev[tournamentId] ?? 0) + diff)
-  }))
-}
-
-const confirmAdjustTime = async (tournamentId: string) => {
-  if (!storeId) return
-
-  await updateDoc(
-    doc(db, "stores", storeId, "tournaments", tournamentId),
-    {
-      timeRemaining: adjustSeconds[tournamentId]
-    }
-  )
-
-  closeAdjustModal(tournamentId)
-}
-
-
-const toggleTimer = async (tournamentId: string) => {
-  const running = timerRunning[tournamentId]
-
-  if (running) {
-    await pauseTimer(tournamentId)
-  } else {
-    await resumeTimer(tournamentId)
+  const openAdjustModal = (id: string, s: number) => {
+    setAdjustModalOpen(p => ({ ...p, [id]: true }))
+    setAdjustSeconds(p => ({ ...p, [id]: s }))
   }
-
-
-}
-
+  const closeAdjustModal = (id: string) => setAdjustModalOpen(p => ({ ...p, [id]: false }))
+  const updateAdjustTime = (id: string, diff: number) =>
+    setAdjustSeconds(p => ({ ...p, [id]: Math.max(0, (p[id] ?? 0) + diff) }))
+  const confirmAdjustTime = async (id: string) => {
+    if (!storeId) return
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timeRemaining: adjustSeconds[id] })
+    closeAdjustModal(id)
+  }
+  const toggleTimer = async (id: string) => {
+    timerRunning[id] ? await pauseTimer(id) : await resumeTimer(id)
+  }
 
   const router = useRouter()
 
-async function startTimer(tournamentId: string){
-  if(!storeId) return
-
-  await updateDoc(
-    doc(db,"stores",storeId,"tournaments",tournamentId),
-    {
-      timerRunning:true,
-      levelStartedAt:serverTimestamp(),
-      pausedAt:null
-    }
-  )
-}
-
-async function resumeTimer(tournamentId: string){
-  if(!storeId) return
-
-  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
-  const snap = await getDoc(ref)
-  const data = snap.data()
-
-  if(!data?.pausedAt || !data?.levelStartedAt) {
-    await startTimer(tournamentId)
-    return
+  async function startTimer(id: string) {
+    if (!storeId) return
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: true, levelStartedAt: serverTimestamp(), pausedAt: null })
   }
-
-const now = Timestamp.now().toMillis()
-const pausedMs = now - data.pausedAt.toMillis()
-
-let startedAtMs: number
-
-if (data.levelStartedAt?.toMillis) {
-  startedAtMs = data.levelStartedAt.toMillis()
-} else if (data.levelStartedAt instanceof Date) {
-  startedAtMs = data.levelStartedAt.getTime()
-} else if (typeof data.levelStartedAt === "number") {
-  startedAtMs = data.levelStartedAt
-} else {
-   await startTimer(tournamentId)
-  return
-}
-
-const newStart = startedAtMs + pausedMs
-
-  await updateDoc(ref,{
-    timerRunning:true,
-    levelStartedAt: Timestamp.fromMillis(newStart),
-    pausedAt:null
-  })
-}
-
-  async function stopTimer(tournamentId: string){
-    if(!storeId) return
-    await updateDoc(
-      doc(db,"stores",storeId,"tournaments",tournamentId),
-      {
-        timerRunning:false
-      }
-    )
+  async function resumeTimer(id: string) {
+    if (!storeId) return
+    const ref = doc(db, "stores", storeId, "tournaments", id)
+    const snap = await getDoc(ref); const data = snap.data()
+    if (!data?.pausedAt || !data?.levelStartedAt) { await startTimer(id); return }
+    const now = Timestamp.now().toMillis()
+    const pausedMs = now - data.pausedAt.toMillis()
+    let startedAtMs: number
+    if (data.levelStartedAt?.toMillis) startedAtMs = data.levelStartedAt.toMillis()
+    else if (data.levelStartedAt instanceof Date) startedAtMs = data.levelStartedAt.getTime()
+    else if (typeof data.levelStartedAt === "number") startedAtMs = data.levelStartedAt
+    else { await startTimer(id); return }
+    await updateDoc(ref, { timerRunning: true, levelStartedAt: Timestamp.fromMillis(startedAtMs + pausedMs), pausedAt: null })
+  }
+  async function stopTimer(id: string) {
+    if (!storeId) return
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false })
   }
   function getNextLevelDurationSeconds(tournament: any, nextIndex: number) {
-    const customLevels = Array.isArray(tournament.customBlindLevels)
-  ? tournament.customBlindLevels
-  : null
-
-    const defaultLevels = [
-      { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
-      { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
-      { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
-      { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
-      { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
-      { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
-      { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
-      { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+    const custom = Array.isArray(tournament.customBlindLevels) ? tournament.customBlindLevels : null
+    const defaults = [
+      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
+      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
+      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
+      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
     ]
-
-    const levelsToUse =
-      customLevels && customLevels.length > 0 ? customLevels : defaultLevels
-
-    const safeIndex = Math.min(nextIndex, levelsToUse.length - 1)
-    const nextLevel = levelsToUse[safeIndex]
-
-    if (!nextLevel) return 0
-
-    const durationMinutes =
-      typeof nextLevel.duration === "number" && nextLevel.duration > 0
-        ? nextLevel.duration
-        : 20
-
-    return durationMinutes * 60
+    const levels = custom && custom.length > 0 ? custom : defaults
+    const level = levels[Math.min(nextIndex, levels.length - 1)]
+    if (!level) return 0
+    return (typeof level.duration === "number" && level.duration > 0 ? level.duration : 20) * 60
+  }
+  async function nextLevel(id: string) {
+    if (!storeId) return
+    const ref = doc(db, "stores", storeId, "tournaments", id)
+    const snap = await getDoc(ref); const data = snap.data()
+    if (!data) return
+    const current = typeof data.currentLevelIndex === "number" ? data.currentLevelIndex : 0
+    const t = activeTournaments.find(t => t.id === id); if (!t) return
+    const custom = Array.isArray(t.customBlindLevels) ? t.customBlindLevels : null
+    const defaults = [
+      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
+      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
+      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
+      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
+    ]
+    const levels = custom && custom.length > 0 ? custom : defaults
+    const nextIdx = Math.min(current + 1, levels.length - 1)
+    const nextLevel = levels[nextIdx]
+    const dur = typeof nextLevel?.duration === "number" && nextLevel.duration > 0 ? nextLevel.duration * 60 : 1200
+    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: false })
+  }
+  async function pauseTimer(id: string) {
+    if (!storeId) return
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false, pausedAt: serverTimestamp() })
+  }
+  async function prevLevel(id: string, currentLevel: number) {
+    if (!storeId) return
+    const ref = doc(db, "stores", storeId, "tournaments", id)
+    const snap = await getDoc(ref); const data = snap.data()
+    if (!data) return
+    const t = activeTournaments.find(t => t.id === id); if (!t) return
+    const custom = Array.isArray(t.customBlindLevels) ? t.customBlindLevels : null
+    const defaults = [
+      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
+      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
+      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
+      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
+    ]
+    const levels = custom && custom.length > 0 ? custom : defaults
+    const prevIdx = Math.max(0, currentLevel - 1)
+    const prevLvl = levels[prevIdx]
+    const dur = typeof prevLvl?.duration === "number" && prevLvl.duration > 0 ? prevLvl.duration * 60 : 1200
+    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: false })
   }
 
-  async function nextLevel(tournamentId: string) {
-  if (!storeId) return
-
-  const ref = doc(db, "stores", storeId, "tournaments", tournamentId)
-
-  const snap = await getDoc(ref)
-  const data = snap.data()
-
-  if (!data) return
-
-  const currentLevel =
-    typeof data.currentLevelIndex === "number"
-      ? data.currentLevelIndex
-      : 0
-
-  const tournament = activeTournaments.find(
-    (t) => t.id === tournamentId
-  )
-
-  if (!tournament) return
-
-    const customLevels = Array.isArray(tournament.customBlindLevels)
-  ? tournament.customBlindLevels
-  : null
-
-  const defaultLevels = [
-    { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
-    { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
-    { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
-    { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
-    { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
-    { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
-    { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
-    { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
-  ]
-
-  const levelsToUse =
-    customLevels && customLevels.length > 0
-      ? customLevels
-      : defaultLevels
-
-  const lastIndex = Math.max(0, levelsToUse.length - 1)
-
-  const nextIndex = Math.min(currentLevel + 1, lastIndex)
-
-  const nextLevelData = levelsToUse[nextIndex]
-
-  const nextDurationSeconds =
-    typeof nextLevelData?.duration === "number" &&
-    nextLevelData.duration > 0
-      ? nextLevelData.duration * 60
-      : 20 * 60
-
-
-await updateDoc(ref, {
-  currentLevelIndex: nextIndex,
-  timeRemaining: nextDurationSeconds,
-  levelStartedAt: serverTimestamp(),
-  pausedAt: null,
-  timerRunning: false
-})
-
-}
-
-
-async function pauseTimer(tournamentId: string){
-  if(!storeId) return
-
-  await updateDoc(
-    doc(db,"stores",storeId,"tournaments",tournamentId),
-    {
-      timerRunning:false,
-      pausedAt:serverTimestamp()
-    }
-  )
-}
-
-async function prevLevel(tournamentId: string,currentLevel:number){
-  if(!storeId) return
-
-  const ref = doc(db,"stores",storeId,"tournaments",tournamentId)
-
-  const snap = await getDoc(ref)
-  const data = snap.data()
-  if(!data) return
-
-  const tournament = activeTournaments.find(t => t.id === tournamentId)
-  if(!tournament) return
-
-  const customLevels = Array.isArray(tournament.customBlindLevels)
-    ? tournament.customBlindLevels
-    : null
-
-  const defaultLevels = [
-    { smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
-    { smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
-    { smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
-    { smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
-    { smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
-    { smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
-    { smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
-    { smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
-  ]
-
-  const levelsToUse =
-    customLevels && customLevels.length > 0
-      ? customLevels
-      : defaultLevels
-
-  const prevIndex = Math.max(0, currentLevel - 1)
-
-  const prevLevelData = levelsToUse[prevIndex]
-
-  const prevDurationSeconds =
-    typeof prevLevelData?.duration === "number" && prevLevelData.duration > 0
-      ? prevLevelData.duration * 60
-      : 20 * 60
-
-  await updateDoc(ref, {
-    currentLevelIndex: prevIndex,
-    timeRemaining: prevDurationSeconds,
-    levelStartedAt: serverTimestamp(),
-    pausedAt: null,
-    timerRunning: false
-  })
-}
-
   const [role, setRole] = useState<string | null>(null)
-
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.replace("/")
-        return
-      }
-
+      if (!user) { router.replace("/"); return }
       const snap = await getDoc(doc(db, "users", user.uid))
-      const data = snap.data()
-      const userRole = data?.role ?? null
-
+      const userRole = snap.data()?.role ?? null
       setRole(userRole)
-
-      if (userRole !== "store") {
-        router.replace("/home")
-      }
+      if (userRole !== "store") router.replace("/home")
     })
-
     return () => unsub()
   }, [router])
 
-
   const [storeId, setStoreId] = useState<string | null>(null)
   const [activeTournaments, setActiveTournaments] = useState<any[]>([])
-  const [showPlayerModal, setShowPlayerModal] = useState<string|null>(null)
-  const [showPrizeModal, setShowPrizeModal] = useState<string|null>(null)
+  const [showPlayerModal, setShowPlayerModal] = useState<string | null>(null)
+  const [showPrizeModal, setShowPrizeModal] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"in" | "out">("in")
-  const [inStorePage, setInStorePage] = useState(1)
-  const [outStorePage, setOutStorePage] = useState(1)
-
-  
+  const [storePlayersPage, setStorePlayersPage] = useState(1)
+  const pageSize = 10
 
   useEffect(() => {
     if (!storeId) return
-    const tournamentsRef = collection(db, "stores", storeId, "tournaments")
-    const q = query(tournamentsRef, where("status", "==", "active"))
+    const q = query(collection(db, "stores", storeId, "tournaments"), where("status", "==", "active"))
     const unsub = onSnapshot(q, (snap) => {
       const list: any[] = []
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data()
-        const entry = (data.totalEntry ?? 0) as number
-        const reentry = (data.totalReentry ?? 0) as number
-        const addon = (data.totalAddon ?? 0) as number
-        const bustCount = (data.bustCount ?? 0) as number
-        const entryStack = (data.entryStack ?? 0) as number
-        const reentryStack = (data.reentryStack ?? 0) as number
-        const addonStack = (data.addonStack ?? 0) as number
-        const totalEntries = entry + reentry
-        const alive = totalEntries - bustCount
-  list.push({
-  id: docSnap.id,
-  name: data.name,
-  entry,
-  reentry,
-  addon,
-  bustCount,
-  entryStack,
-  reentryStack,
-  addonStack,
-  totalEntries,
-  alive,
-  status: data.status ?? "scheduled",
-  currentLevelIndex: data.currentLevelIndex ?? 0,
-  timeRemaining: data.timeRemaining ?? 1200,
-  selectedPreset: data.selectedPreset ?? "",
-  customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
-  timerRunning: data.timerRunning ?? false   // ← 追加
-})
+      for (const d of snap.docs) {
+        const data = d.data()
+        const entry = data.totalEntry ?? 0, reentry = data.totalReentry ?? 0, addon = data.totalAddon ?? 0
+        const bustCount = data.bustCount ?? 0
+        list.push({
+          id: d.id, name: data.name, entry, reentry, addon, bustCount,
+          entryStack: data.entryStack ?? 0, reentryStack: data.reentryStack ?? 0, addonStack: data.addonStack ?? 0,
+          totalEntries: entry + reentry, alive: (entry + reentry) - bustCount,
+          status: data.status ?? "scheduled", currentLevelIndex: data.currentLevelIndex ?? 0,
+          timeRemaining: data.timeRemaining ?? 1200, selectedPreset: data.selectedPreset ?? "",
+          customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
+          timerRunning: data.timerRunning ?? false,
+        })
       }
       setActiveTournaments(list)
-
-      const runningMap: Record<string, boolean> = {}
-
-list.forEach(t => {
-  runningMap[t.id] = t.timerRunning ?? false
-})
-
-setTimerRunning(runningMap)
-
+      const map: Record<string, boolean> = {}
+      list.forEach(t => { map[t.id] = t.timerRunning ?? false })
+      setTimerRunning(map)
     })
     return () => unsub()
   }, [storeId])
+
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
@@ -428,971 +190,463 @@ setTimerRunning(runningMap)
   const [selectedPlayerId, setSelectedPlayerId] = useState("")
   const [selectedPlayerBalance, setSelectedPlayerBalance] = useState(0)
   const [selectedPlayerNetGain, setSelectedPlayerNetGain] = useState(0)
-  const [adjustAmount, setAdjustAmount] = useState("")
+  const [adjustValue, setAdjustValue] = useState("")
   const [adjustError, setAdjustError] = useState("")
-  const [showAdjustmentConfirm, setShowAdjustmentConfirm] = useState(false)
-  const [showNetGainConfirm, setShowNetGainConfirm] = useState(false)
-  const [pendingAdjustment, setPendingAdjustment] = useState<{ direction: "add" | "subtract"; amount: string } | null>(null)
-
+  const [manualNetGain, setManualNetGain] = useState(false)
   const [storePlayers, setStorePlayers] = useState<any[]>([])
-  const [storePlayersPage, setStorePlayersPage] = useState(1)
-  const [removingPlayerIds, setRemovingPlayerIds] = useState<string[]>([])
   const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
-  const [removingHistoryPlayerIds, setRemovingHistoryPlayerIds] = useState<string[]>([])
-  const pageSize = 10
   const [adjustModalPlayer, setAdjustModalPlayer] = useState<any | null>(null)
-const [adjustValue, setAdjustValue] = useState("")
-const [manualNetGain, setManualNetGain] = useState(false)
-const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
-const [withdrawOtherOpenId, setWithdrawOtherOpenId] = useState<string | null>(null)
+  const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
+  const [withdrawOtherOpenId, setWithdrawOtherOpenId] = useState<string | null>(null)
+  const [depositOtherNetGain, setDepositOtherNetGain] = useState(false)
+  const [withdrawOtherNetGain, setWithdrawOtherNetGain] = useState(false)
+  const [depositOtherComment, setDepositOtherComment] = useState("")
+  const [withdrawOtherComment, setWithdrawOtherComment] = useState("")
+  const [copiedCode, setCopiedCode] = useState(false)
 
-const [depositOtherNetGain, setDepositOtherNetGain] = useState(false)
-const [withdrawOtherNetGain, setWithdrawOtherNetGain] = useState(false)
+  useEffect(() => {
+    if (!playerSearchInput) return
+    const kw = playerSearchInput.toLowerCase()
+    const hitIn = storePlayers.filter(p => p.isInStore && (p.name ?? "").toLowerCase().includes(kw))
+    const hitOut = storePlayers.filter(p => !p.isInStore && (p.name ?? "").toLowerCase().includes(kw))
+    if (hitOut.length > 0 && hitIn.length === 0) setActiveTab("out")
+    if (hitIn.length > 0 && hitOut.length === 0) setActiveTab("in")
+  }, [playerSearchInput, storePlayers])
 
-const [depositOtherComment, setDepositOtherComment] = useState("")
-const [withdrawOtherComment, setWithdrawOtherComment] = useState("")
-
-useEffect(() => {
-  if (!playerSearchInput) return
-
-  const keyword = playerSearchInput.toLowerCase()
-
-  const hitIn = storePlayers.filter(p =>
-    p.isInStore && (p.name ?? "").toLowerCase().includes(keyword)
-  )
-
-  const hitOut = storePlayers.filter(p =>
-    !p.isInStore && (p.name ?? "").toLowerCase().includes(keyword)
-  )
-
-  if (hitOut.length > 0 && hitIn.length === 0) {
-    setActiveTab("out")
-  }
-
-  if (hitIn.length > 0 && hitOut.length === 0) {
-    setActiveTab("in")
-  }
-
-}, [playerSearchInput, storePlayers])
-
-useEffect(() => {
-  if (!storeId) return
-
-  const unsub = onSnapshot(collection(db, "users"), async (usersSnap) => {
-    const list: any[] = []
-
-    for (const userDoc of usersSnap.docs) {
-      if (userDoc.id.startsWith("temp_")) continue
-
-      const userData = userDoc.data()
-
-      if (!userData.joinedStores?.includes(storeId)) continue
-
-      const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
-      const balanceSnap = await getDoc(balanceRef)
-
-      const balanceData = balanceSnap.exists() ? balanceSnap.data() : {}
-
-      list.push({
-        id: userDoc.id,
-        name: userData.name,
-        iconUrl: userData.iconUrl,
-        balance: balanceData.balance ?? 0,
-        netGain: balanceData.netGain ?? 0,
-        lastVisitedAt: balanceData.lastVisitedAt?.toDate?.() ?? null,
-        isInStore: userData.currentStoreId === storeId,
-      })
-    }
-
-    list.sort((a, b) => {
-      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
-      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
-      return atB - atA
+  useEffect(() => {
+    if (!storeId) return
+    const unsub = onSnapshot(collection(db, "users"), async (snap) => {
+      const list: any[] = []
+      for (const d of snap.docs) {
+        if (d.id.startsWith("temp_")) continue
+        const data = d.data()
+        if (!data.joinedStores?.includes(storeId)) continue
+        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", storeId))
+        const bal = balSnap.exists() ? balSnap.data() : {}
+        list.push({
+          id: d.id, name: data.name, iconUrl: data.iconUrl,
+          balance: bal.balance ?? 0, netGain: bal.netGain ?? 0,
+          lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
+          isInStore: data.currentStoreId === storeId,
+        })
+      }
+      list.sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+      setStorePlayers(list)
     })
-
-    setStorePlayers(list)
-  })
-
-  return () => unsub()
-}, [storeId])
+    return () => unsub()
+  }, [storeId])
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
       if (!user) return
       const snap = await getDoc(doc(db, "users", user.uid))
-      const data = snap.data()
-      setStoreId(data?.storeId ?? null)
+      setStoreId(snap.data()?.storeId ?? null)
     })
     return () => unsub()
   }, [])
 
   useEffect(() => {
     if (!storeId) return
-    const fetchStore = async () => {
-      const snap = await getDoc(doc(db, "stores", storeId))
-      const data = snap.data() as StoreInfo | undefined
-      if (!data) return
-      setStore(data)
-    }
-    fetchStore()
+    getDoc(doc(db, "stores", storeId)).then(snap => { if (snap.data()) setStore(snap.data() as StoreInfo) })
   }, [storeId])
 
   useEffect(() => {
     if (!storeId) return
-    const q = query(
-      collection(db, "depositRequests"),
-      where("storeId", "==", storeId),
-      where("status", "==", "pending")
-    )
-
-
+    const q = query(collection(db, "depositRequests"), where("storeId", "==", storeId), where("status", "==", "pending"))
     const unsub = onSnapshot(q, snap => {
       const list: DepositRequest[] = []
-      snap.forEach(d => {
-        const data = d.data()
-        list.push({
-          id: d.id,
-          playerId: data.playerId,
-          amount: data.amount,
-          comment: data.comment,
-        })
-      })
+      snap.forEach(d => list.push({ id: d.id, playerId: d.data().playerId, amount: d.data().amount, comment: d.data().comment }))
       setDepositRequests(list)
     })
     return () => unsub()
   }, [storeId])
 
- useEffect(() => {
-  if (!storeId) return
-
-  const q = query(
-    collection(db, "withdrawRequests"),
-    where("storeId", "==", storeId),
-    where("status", "==", "pending")
-  )
-
-  const unsub = onSnapshot(q, snap => {
-    const list: WithdrawRequest[] = []
-    snap.forEach(d => {
-      const data = d.data()
-      list.push({
-        id: d.id,
-        playerId: data.playerId,
-        amount: data.amount,
-        comment: data.comment,
-      })
+  useEffect(() => {
+    if (!storeId) return
+    const q = query(collection(db, "withdrawRequests"), where("storeId", "==", storeId), where("status", "==", "pending"))
+    const unsub = onSnapshot(q, snap => {
+      const list: WithdrawRequest[] = []
+      snap.forEach(d => list.push({ id: d.id, playerId: d.data().playerId, amount: d.data().amount, comment: d.data().comment }))
+      setWithdrawRequests(list)
     })
-    setWithdrawRequests(list)
-  })
+    return () => unsub()
+  }, [storeId])
 
-  return () => unsub()
-}, [storeId])
-
- useEffect(() => {
-  if (!storeId) return
-
-  const q = query(
-    collection(db, "users"),
-    where("currentStoreId", "==", storeId)
-  )
-
-  const unsub = onSnapshot(q, snap => {
-    const list: PlayerInfo[] = []
-    snap.forEach(d => {
-      const data = d.data()
-      list.push({
-        id: d.id,
-        name: data.name,
-        iconUrl: data.iconUrl,
-      })
+  useEffect(() => {
+    if (!storeId) return
+    const q = query(collection(db, "users"), where("currentStoreId", "==", storeId))
+    const unsub = onSnapshot(q, snap => {
+      const list: PlayerInfo[] = []
+      snap.forEach(d => list.push({ id: d.id, name: d.data().name, iconUrl: d.data().iconUrl }))
+      setPlayers(list)
     })
-    setPlayers(list)
-  })
+    return () => unsub()
+  }, [storeId])
 
-  return () => unsub()
-}, [storeId])
-
-useEffect(() => {
-  if (!storeId) return
-
-  const q = query(
-    collection(db, "users"),
-    where("pendingStoreId", "==", storeId)
-  )
-
-const unsub = onSnapshot(q, async snap => {
-  const list: PlayerInfo[] = []
-
-  for (const d of snap.docs) {
-    const data = d.data()
-    if (data.checkinStatus !== "pending") continue
-
-    const balanceRef = doc(db, "users", d.id, "storeBalances", storeId)
-    const balanceSnap = await getDoc(balanceRef)
-
-    let visitCount = 0
-    let lastVisitedAt: Date | null = null
-
-    if (balanceSnap.exists()) {
-      const b = balanceSnap.data()
-      visitCount = b.visitCount ?? 0
-      lastVisitedAt = b.lastVisitedAt?.toDate?.() ?? null
-    }
-
-    list.push({
-      id: d.id,
-      name: data.name,
-      iconUrl: data.iconUrl,
-      visitCount,
-      lastVisitedAt,
-    })
-  }
-
-  setPendingPlayers(list.reverse())
-})
-
-  return () => unsub()
-}, [storeId])
-
-useEffect(() => {
-  if (!storeId) return
-
-  const unsub = onSnapshot(collection(db, "users"), async (snap) => {
-    const map: Record<string, number> = {}
-
-    for (const userDoc of snap.docs) {
-      if (userDoc.id.startsWith("temp_")) continue
-      const ref = doc(db, "users", userDoc.id, "storeBalances", storeId)
-      const s = await getDoc(ref)
-      if (s.exists()) {
-        map[userDoc.id] = s.data()?.balance ?? 0
+  useEffect(() => {
+    if (!storeId) return
+    const q = query(collection(db, "users"), where("pendingStoreId", "==", storeId))
+    const unsub = onSnapshot(q, async snap => {
+      const list: PlayerInfo[] = []
+      for (const d of snap.docs) {
+        const data = d.data()
+        if (data.checkinStatus !== "pending") continue
+        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", storeId))
+        const b = balSnap.exists() ? balSnap.data() : {}
+        list.push({ id: d.id, name: data.name, iconUrl: data.iconUrl, visitCount: b.visitCount ?? 0, lastVisitedAt: b.lastVisitedAt?.toDate?.() ?? null })
       }
-    }
-
-    setPlayerBalances(map)
-  })
-
-  return () => unsub()
-}, [storeId])
-
-
-
-  const playerMap = useMemo(() => {
-    const map: Record<string, PlayerInfo> = {}
-    storePlayers.forEach(p => (map[p.id] = p))
-    return map
-  }, [storePlayers])
-
-const inPlayers = useMemo(() => {
-  const list = storePlayers
-    .filter(p => p.isInStore)
-    .sort((a, b) => {
-      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
-      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
-      return atB - atA
+      setPendingPlayers(list.reverse())
     })
+    return () => unsub()
+  }, [storeId])
 
-  if (!playerSearchInput) return list
+  const playerMap = useMemo(() => { const m: Record<string, any> = {}; storePlayers.forEach(p => (m[p.id] = p)); return m }, [storePlayers])
 
-  const keyword = playerSearchInput.toLowerCase()
+  const inPlayers = useMemo(() => {
+    const list = storePlayers.filter(p => p.isInStore).sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+    if (!playerSearchInput) return list
+    const kw = playerSearchInput.toLowerCase()
+    const exact = list.filter(p => (p.name ?? "").toLowerCase() === kw)
+    const partial = list.filter(p => (p.name ?? "").toLowerCase().includes(kw) && (p.name ?? "").toLowerCase() !== kw)
+    const others = list.filter(p => !(p.name ?? "").toLowerCase().includes(kw))
+    return [...exact, ...partial, ...others]
+  }, [storePlayers, playerSearchInput])
 
-const exact = list.filter(p =>
-  (p.name ?? "").toLowerCase() === keyword
-)
+  const outPlayers = useMemo(() => {
+    const list = storePlayers.filter(p => !p.isInStore).sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+    if (!playerSearchInput) return list
+    const kw = playerSearchInput.toLowerCase()
+    const exact = list.filter(p => (p.name ?? "").toLowerCase() === kw)
+    const partial = list.filter(p => (p.name ?? "").toLowerCase().includes(kw) && (p.name ?? "").toLowerCase() !== kw)
+    const others = list.filter(p => !(p.name ?? "").toLowerCase().includes(kw))
+    return [...exact, ...partial, ...others]
+  }, [storePlayers, playerSearchInput])
 
-const partial = list.filter(p =>
-  (p.name ?? "").toLowerCase().includes(keyword) &&
-  (p.name ?? "").toLowerCase() !== keyword
-)
-
-const others = list.filter(p =>
-  !(p.name ?? "").toLowerCase().includes(keyword)
-)
-
-return [...exact, ...partial, ...others]
-}, [storePlayers, playerSearchInput])
-
-const outPlayers = useMemo(() => {
-  const list = storePlayers
-    .filter(p => !p.isInStore)
-    .sort((a, b) => {
-      const atA = a.lastVisitedAt ? a.lastVisitedAt.getTime() : 0
-      const atB = b.lastVisitedAt ? b.lastVisitedAt.getTime() : 0
-      return atB - atA
-    })
-
-  if (!playerSearchInput) return list
-
-  const keyword = playerSearchInput.toLowerCase()
-
-const exact = list.filter(p =>
-  (p.name ?? "").toLowerCase() === keyword
-)
-
-const partial = list.filter(p =>
-  (p.name ?? "").toLowerCase().includes(keyword) &&
-  (p.name ?? "").toLowerCase() !== keyword
-)
-
-const others = list.filter(p =>
-  !(p.name ?? "").toLowerCase().includes(keyword)
-)
-
-return [...exact, ...partial, ...others]
-}, [storePlayers, playerSearchInput])
-
-const filteredPlayers = useMemo(() => {
-  const q = playerSearchInput.toLowerCase()
-
-  if (!q) return storePlayers
-
-  return storePlayers.filter(
-    p =>
-      (p.name ?? "").toLowerCase().includes(q) ||
-      p.id.toLowerCase().includes(q)
-  )
-}, [playerSearchInput, storePlayers])
+  const filteredPlayers = useMemo(() => {
+    if (!playerSearchInput) return storePlayers
+    const q = playerSearchInput.toLowerCase()
+    return storePlayers.filter(p => (p.name ?? "").toLowerCase().includes(q) || p.id.toLowerCase().includes(q))
+  }, [playerSearchInput, storePlayers])
 
   const selectPlayer = async (playerId: string) => {
-    setSelectedPlayerId(playerId)
-    setPlayerSearchInput("")
+    setSelectedPlayerId(playerId); setPlayerSearchInput("")
     if (!storeId) return
-    const snap = await getDoc(
-      doc(db, "users", playerId, "storeBalances", storeId)
-    )
-    if (snap.exists()) {
-      setSelectedPlayerBalance(snap.data()?.balance ?? 0)
-      setSelectedPlayerNetGain(snap.data()?.netGain ?? 0)
-    } else {
-      setSelectedPlayerBalance(0)
-      setSelectedPlayerNetGain(0)
-    }
+    const snap = await getDoc(doc(db, "users", playerId, "storeBalances", storeId))
+    if (snap.exists()) { setSelectedPlayerBalance(snap.data()?.balance ?? 0); setSelectedPlayerNetGain(snap.data()?.netGain ?? 0) }
+    else { setSelectedPlayerBalance(0); setSelectedPlayerNetGain(0) }
   }
 
-const approveDepositWithType = async (
-  request: DepositRequest,
-  type: "cashout" | "chip" | "other"
-) => {
-  if (!storeId) return
-
-  const balanceRef = doc(db, "users", request.playerId, "storeBalances", storeId)
-
-  let balanceDiff = 0
-  let netDiff = 0
-  let txType = ""
-
-  if (type === "cashout") {
-    balanceDiff = request.amount
-    netDiff = request.amount
-    txType = "store_cashout"
-  }
-
-  if (type === "chip") {
-    balanceDiff = request.amount
-    netDiff = 0
-    txType = "store_chip_purchase"
-  }
-
-  if (type === "other") {
-    balanceDiff = request.amount
-    netDiff = depositOtherNetGain ? request.amount : 0
-    txType = "other"
-  }
-
-  const updates: any = {
-    balance: increment(balanceDiff),
-  }
-
-  if (netDiff !== 0) {
-    updates.netGain = increment(netDiff)
-  }
-
-  await updateDoc(balanceRef, updates)
-
-  await updateDoc(doc(db, "depositRequests", request.id), {
-    status: "approved",
-  })
-
-  await setDoc(doc(collection(db, "transactions")), {
-    storeId,
-    playerId: request.playerId,
-    playerName: playerMap[request.playerId]?.name ?? null,
-    amount: request.amount,
-    direction: "add",
-    type: txType,
-    comment: type === "other" ? depositOtherComment : null,
-    createdAt: serverTimestamp(),
-  })
-}
-const approveWithdrawWithType = async (
-  request: WithdrawRequest,
-  type: "buyin" | "tE" | "tR" | "tA" | "other"
-) => {
-  if (!storeId) return
-
-  const balanceRef = doc(db, "users", request.playerId, "storeBalances", storeId)
-
-  let balanceDiff = 0
-  let netDiff = 0
-  let txType = ""
-
-  if (type === "buyin") {
-    balanceDiff = -request.amount
-    netDiff = -request.amount
-    txType = "store_buyin"
-  }
-
-  if (type === "tE") {
-    balanceDiff = -request.amount
-    netDiff = -request.amount
-    txType = "store_tournament_entry"
-  }
-
-  if (type === "tR") {
-    balanceDiff = -request.amount
-    netDiff = -request.amount
-    txType = "store_tournament_reentry"
-  }
-
-  if (type === "tA") {
-    balanceDiff = -request.amount
-    netDiff = -request.amount
-    txType = "store_tournament_addon"
-  }
-
-  if (type === "other") {
-    balanceDiff = -request.amount
-    netDiff = withdrawOtherNetGain ? -request.amount : 0
-    txType = "other"
-  }
-
-  const updates: any = {
-    balance: increment(balanceDiff),
-  }
-
-  if (netDiff !== 0) {
-    updates.netGain = increment(netDiff)
-  }
-
-  await updateDoc(balanceRef, updates)
-
-  await updateDoc(doc(db, "withdrawRequests", request.id), {
-    status: "approved",
-  })
-
-  await setDoc(doc(collection(db, "transactions")), {
-    storeId,
-    playerId: request.playerId,
-    playerName: playerMap[request.playerId]?.name ?? null,
-    amount: request.amount,
-    direction: "subtract",
-    type: txType,
-    comment: type === "other" ? withdrawOtherComment : null,
-    createdAt: serverTimestamp(),
-  })
-}
-
-  const rejectDeposit = async (request: DepositRequest) => {
-    await updateDoc(doc(db, "depositRequests", request.id), {
-      status: "rejected",
-    })
-  }
-
-  const rejectWithdraw = async (request: WithdrawRequest) => {
-  await updateDoc(doc(db, "withdrawRequests", request.id), {
-    status: "rejected",
-  })
-}
-
-  const runAdjustment = async (
-    direction: "add" | "subtract",
-    isNetGain: boolean
-  ) => {
-    if (!storeId || !adjustModalPlayer) {
-      setAdjustError("プレイヤーを選択してください")
-      return
-    }
-
-    const amount = Number(adjustValue)
-    if (!amount || amount < 1) {
-      setAdjustError("数字は1以上で入力してください")
-      return
-    }
-
-    
-
-    setAdjustError("")
-
-const playerId = adjustModalPlayer.id
-
-const balanceRef = doc(
-  db,
-  "users",
-  playerId,
-  "storeBalances",
-  storeId
-)
-
-
-    const balanceSnap = await getDoc(balanceRef)
-    const current = balanceSnap.data()?.balance ?? 0
-    const currentNetGain = balanceSnap.data()?.netGain ?? 0
-
-    if (direction === "subtract" && current < amount) {
-      setAdjustError("残高が不足しています")
-      return
-    }
-
-    let newBalance = current
-    let newNetGain = currentNetGain
-
-    if (!balanceSnap.exists()) {
-      newBalance = direction === "add" ? amount : 0
-      newNetGain =
-        isNetGain && direction === "add" ? amount : 0
-
-      await setDoc(
-        balanceRef,
-        {
-          balance: newBalance,
-          netGain: newNetGain,
-          storeId,
-        },
-        { merge: true }
-      )
-    } else {
-      newBalance =
-        direction === "add" ? current + amount : current - amount
-
-      if (isNetGain) {
-        newNetGain =
-          direction === "add"
-            ? currentNetGain + amount
-            : currentNetGain - amount
-      }
-
-      const updates: Record<string, any> = {
-        balance: increment(direction === "add" ? amount : -amount),
-      }
-
-      if (isNetGain) {
-        updates.netGain = increment(
-          direction === "add" ? amount : -amount
-        )
-      }
-
-      await updateDoc(balanceRef, updates)
-    }
-
-    
-
+  const approveDepositWithType = async (req: DepositRequest, type: "cashout" | "chip" | "other") => {
+    if (!storeId) return
+    const balRef = doc(db, "users", req.playerId, "storeBalances", storeId)
+    let bDiff = 0, nDiff = 0, txType = ""
+    if (type === "cashout") { bDiff = req.amount; nDiff = req.amount; txType = "store_cashout" }
+    if (type === "chip") { bDiff = req.amount; nDiff = 0; txType = "store_chip_purchase" }
+    if (type === "other") { bDiff = req.amount; nDiff = depositOtherNetGain ? req.amount : 0; txType = "other" }
+    const updates: any = { balance: increment(bDiff) }
+    if (nDiff !== 0) updates.netGain = increment(nDiff)
+    await updateDoc(balRef, updates)
+    await updateDoc(doc(db, "depositRequests", req.id), { status: "approved" })
     await setDoc(doc(collection(db, "transactions")), {
-      storeId,
-playerId,
-playerName: adjustModalPlayer.name ?? null,
-      amount,
-      direction,
-      type: isNetGain
-        ? "manual_adjustment_net_gain"
-        : "manual_adjustment",
-      createdAt: serverTimestamp(),
+      storeId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
+      amount: req.amount, direction: "add", type: txType,
+      comment: type === "other" ? depositOtherComment : null, createdAt: serverTimestamp(),
     })
+  }
 
-    setAdjustValue("")
-    setSelectedPlayerBalance(newBalance)
-    setSelectedPlayerNetGain(newNetGain)
+  const approveWithdrawWithType = async (req: WithdrawRequest, type: "buyin" | "tE" | "tR" | "tA" | "other") => {
+    if (!storeId) return
+    const balRef = doc(db, "users", req.playerId, "storeBalances", storeId)
+    let bDiff = 0, nDiff = 0, txType = ""
+    if (type === "buyin") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_buyin" }
+    if (type === "tE") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_entry" }
+    if (type === "tR") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_reentry" }
+    if (type === "tA") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_addon" }
+    if (type === "other") { bDiff = -req.amount; nDiff = withdrawOtherNetGain ? -req.amount : 0; txType = "other" }
+    const updates: any = { balance: increment(bDiff) }
+    if (nDiff !== 0) updates.netGain = increment(nDiff)
+    await updateDoc(balRef, updates)
+    await updateDoc(doc(db, "withdrawRequests", req.id), { status: "approved" })
+    await setDoc(doc(collection(db, "transactions")), {
+      storeId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
+      amount: req.amount, direction: "subtract", type: txType,
+      comment: type === "other" ? withdrawOtherComment : null, createdAt: serverTimestamp(),
+    })
+  }
+
+  const rejectDeposit = async (req: DepositRequest) => { await updateDoc(doc(db, "depositRequests", req.id), { status: "rejected" }) }
+  const rejectWithdraw = async (req: WithdrawRequest) => { await updateDoc(doc(db, "withdrawRequests", req.id), { status: "rejected" }) }
+
+  const runAdjustment = async (direction: "add" | "subtract", isNetGain: boolean) => {
+    if (!storeId || !adjustModalPlayer) { setAdjustError("プレイヤーを選択してください"); return }
+    const amount = Number(adjustValue)
+    if (!amount || amount < 1) { setAdjustError("数字は1以上で入力してください"); return }
+    setAdjustError("")
+    const pid = adjustModalPlayer.id
+    const balRef = doc(db, "users", pid, "storeBalances", storeId)
+    const balSnap = await getDoc(balRef)
+    const current = balSnap.data()?.balance ?? 0
+    const currentNG = balSnap.data()?.netGain ?? 0
+    if (direction === "subtract" && current < amount) { setAdjustError("残高が不足しています"); return }
+    if (!balSnap.exists()) {
+      const newBal = direction === "add" ? amount : 0
+      const newNG = isNetGain && direction === "add" ? amount : 0
+      await setDoc(balRef, { balance: newBal, netGain: newNG, storeId }, { merge: true })
+      setSelectedPlayerBalance(newBal); setSelectedPlayerNetGain(newNG)
+    } else {
+      const updates: Record<string, any> = { balance: increment(direction === "add" ? amount : -amount) }
+      if (isNetGain) updates.netGain = increment(direction === "add" ? amount : -amount)
+      await updateDoc(balRef, updates)
+      setSelectedPlayerBalance(direction === "add" ? current + amount : current - amount)
+      if (isNetGain) setSelectedPlayerNetGain(direction === "add" ? currentNG + amount : currentNG - amount)
+    }
+    await setDoc(doc(collection(db, "transactions")), {
+      storeId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction,
+      type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment", createdAt: serverTimestamp(),
+    })
+    setAdjustValue(""); setSelectedPlayerBalance(direction === "add" ? current + amount : current - amount)
   }
 
   const runStoreAdjustment = async (adjustType: string) => {
-
-  if (!storeId || !adjustModalPlayer) return
-
-  const amount = Number(adjustValue)
-  if (!amount || amount < 1) return
-
-  const playerId = adjustModalPlayer.id
-
-  const balanceRef = doc(db, "users", playerId, "storeBalances", storeId)
-
-  let balanceDiff = 0
-
-  let netDiff = 0
-
-  let type = ""
-
-  let direction: "add" | "subtract" = "add"
-
-  switch (adjustType) {
-
-    case "buyin":
-
-      balanceDiff = -amount
-
-      netDiff = -amount
-
-      type = "store_buyin"
-
-      direction = "subtract"
-
-      break
-
-    case "cashout":
-
-      balanceDiff = amount
-
-      netDiff = amount
-
-      type = "store_cashout"
-
-      direction = "add"
-
-      break
-
-    case "chip":
-
-      balanceDiff = amount
-
-      netDiff = 0
-
-      type = "store_chip_purchase"
-
-      direction = "add"
-
-      break
-
-    case "tE":
-
-      balanceDiff = -amount
-
-      netDiff = -amount
-
-      type = "store_tournament_entry"
-
-      direction = "subtract"
-
-      break
-
-    case "tR":
-
-      balanceDiff = -amount
-
-      netDiff = -amount
-
-      type = "store_tournament_reentry"
-
-      direction = "subtract"
-
-      break
-
-    case "tA":
-
-      balanceDiff = -amount
-
-      netDiff = -amount
-
-      type = "store_tournament_addon"
-
-      direction = "subtract"
-
-      break
-
-    default:
-
-      return
-
-  }
-
-  const updates: any = {
-  balance: increment(balanceDiff),
-}
-
-if (netDiff !== 0) {
-  updates.netGain = increment(netDiff)
-}
-
-  await updateDoc(balanceRef, updates)
-
-  
-
-setStorePlayers(prev =>
-
-  prev.map(p =>
-
-    p.id === playerId
-
-      ? {
-
-          ...p,
-
-          balance: p.balance + balanceDiff,
-
-          netGain: netDiff !== 0 ? p.netGain + netDiff : p.netGain,
-
-        }
-
-      : p
-
-  )
-
-)
-
-  await setDoc(doc(collection(db, "transactions")), {
-
-    storeId,
-
-    playerId,
-
-    playerName: adjustModalPlayer.name ?? null,
-
-    amount,
-
-    direction,
-
-    type,
-
-    createdAt: serverTimestamp(),
-
-  })
-
-  setAdjustModalPlayer(null)
-
-  setAdjustValue("")
-
-
-
-}
-
-
-
-const approvePlayer = async (playerId: string) => {
-  if (!storeId) return
-
-  const storeRef = doc(db, "stores", storeId)
-  const storeSnap = await getDoc(storeRef)
-  const storeData = storeSnap.data()
-
-  await setDoc(doc(db, "users", playerId), {
-    currentStoreId: storeId,
-    checkinStatus: "approved",
-    pendingStoreId: null,
-  }, { merge: true })
-
-
-
-
-
-
-
-
-
-const balanceRef = doc(db, "users", playerId, "storeBalances", storeId)
-const balanceSnap = await getDoc(balanceRef)
-
-const now = new Date()
-const nowFirestoreTimestamp = serverTimestamp()
-
-let currentBalance = 0
-let currentNetGain = 0
-let currentVisitCount = 0
-let shouldIncrementVisitCount = true
-
-if (balanceSnap.exists()) {
-  const balanceData = balanceSnap.data()
-
-  currentBalance = balanceData.balance ?? 0
-  currentNetGain = balanceData.netGain ?? 0
-  currentVisitCount = balanceData.visitCount ?? 0
-
-  const lastVisitCountedAt = balanceData.lastVisitCountedAt?.toDate?.() ?? null
-
-  if (lastVisitCountedAt) {
-    const currentBase = getVisitCountResetBase(now)
-    const lastBase = getVisitCountResetBase(lastVisitCountedAt)
-
-    if (currentBase === lastBase) {
-      shouldIncrementVisitCount = false
+    if (!storeId || !adjustModalPlayer) return
+    const amount = Number(adjustValue)
+    if (!amount || amount < 1) return
+    const pid = adjustModalPlayer.id
+    const balRef = doc(db, "users", pid, "storeBalances", storeId)
+    let bDiff = 0, nDiff = 0, type = "", direction: "add" | "subtract" = "add"
+    switch (adjustType) {
+      case "buyin": bDiff = -amount; nDiff = -amount; type = "store_buyin"; direction = "subtract"; break
+      case "cashout": bDiff = amount; nDiff = amount; type = "store_cashout"; break
+      case "chip": bDiff = amount; nDiff = 0; type = "store_chip_purchase"; break
+      case "tE": bDiff = -amount; nDiff = -amount; type = "store_tournament_entry"; direction = "subtract"; break
+      case "tR": bDiff = -amount; nDiff = -amount; type = "store_tournament_reentry"; direction = "subtract"; break
+      case "tA": bDiff = -amount; nDiff = -amount; type = "store_tournament_addon"; direction = "subtract"; break
+      default: return
     }
+    const updates: any = { balance: increment(bDiff) }
+    if (nDiff !== 0) updates.netGain = increment(nDiff)
+    await updateDoc(balRef, updates)
+    setStorePlayers(prev => prev.map(p => p.id === pid ? { ...p, balance: p.balance + bDiff, netGain: nDiff !== 0 ? p.netGain + nDiff : p.netGain } : p))
+    await setDoc(doc(collection(db, "transactions")), { storeId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction, type, createdAt: serverTimestamp() })
+    setAdjustModalPlayer(null); setAdjustValue("")
   }
-}
 
-await setDoc(balanceRef, {
-  balance: currentBalance,
-  netGain: currentNetGain,
-  storeId,
-  lastVisitedAt: nowFirestoreTimestamp,
-  ...(shouldIncrementVisitCount
-    ? {
-        visitCount: currentVisitCount + 1,
-        lastVisitCountedAt: nowFirestoreTimestamp,
+  const approvePlayer = async (playerId: string) => {
+    if (!storeId) return
+    const storeSnap = await getDoc(doc(db, "stores", storeId)); const storeData = storeSnap.data()
+    await setDoc(doc(db, "users", playerId), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
+    const balRef = doc(db, "users", playerId, "storeBalances", storeId)
+    const balSnap = await getDoc(balRef); const now = new Date(); const ts = serverTimestamp()
+    let cb = 0, cn = 0, vc = 0, incr = true
+    if (balSnap.exists()) {
+      const b = balSnap.data(); cb = b.balance ?? 0; cn = b.netGain ?? 0; vc = b.visitCount ?? 0
+      const lv = b.lastVisitCountedAt?.toDate?.() ?? null
+      if (lv && getVisitCountResetBase(now) === getVisitCountResetBase(lv)) incr = false
+    }
+    await setDoc(balRef, { balance: cb, netGain: cn, storeId, lastVisitedAt: ts, ...(incr ? { visitCount: vc + 1, lastVisitCountedAt: ts } : {}) }, { merge: true })
+    if (!storeData?.checkinBonusEnabled) return
+    const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
+    const stampSnap = await getDoc(stampRef); let canStamp = true
+    if (stampSnap.exists()) {
+      const data = stampSnap.data()
+      if (data.lastStampAt?.toMillis) {
+        const getBase = (d: Date) => { const b = new Date(d); b.setHours(3,0,0,0); if (d.getHours() < 3) b.setDate(b.getDate()-1); return b.getTime() }
+        if (getBase(now) === getBase(new Date(data.lastStampAt.toMillis()))) canStamp = false
       }
-    : {}),
-}, { merge: true })
-
-
-  if (!storeData?.checkinBonusEnabled) return
-
-  const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
-  const stampSnap = await getDoc(stampRef)
-
-
-
-  let canStamp = true
-
-  if (stampSnap.exists()) {
-    const data = stampSnap.data()
-    if (data.lastStampAt?.toMillis) {
-      const last = data.lastStampAt.toMillis()
-
-      const nowDate = new Date(now)
-      const lastDate = new Date(last)
-
-      const getResetBase = (d: Date) => {
-        const base = new Date(d)
-        base.setHours(3, 0, 0, 0)
-        if (d.getHours() < 3) base.setDate(base.getDate() - 1)
-        return base.getTime()
-      }
-
-      if (getResetBase(nowDate) === getResetBase(lastDate)) {
-        canStamp = false
-      }
+    }
+    if (!canStamp) return
+    let newCount = 1
+    if (stampSnap.exists()) newCount = (stampSnap.data().stampCount ?? 0) + 1
+    if (newCount >= 12) {
+      await setDoc(doc(collection(db, "users", playerId, "coupons")), { name: storeData.checkinBonusCouponName, storeId, createdAt: serverTimestamp() })
+      await setDoc(stampRef, { stampCount: 0, lastStampAt: serverTimestamp() })
+    } else {
+      await setDoc(stampRef, { stampCount: newCount, lastStampAt: serverTimestamp() })
     }
   }
 
-  if (!canStamp) return
-
-  let newCount = 1
-
-  if (stampSnap.exists()) {
-    const current = stampSnap.data().stampCount ?? 0
-    newCount = current + 1
+  const rejectPlayer = async (playerId: string) => {
+    await setDoc(doc(db, "users", playerId), { checkinStatus: "none", pendingStoreId: null }, { merge: true })
   }
 
-  if (newCount >= 12) {
-    await setDoc(doc(collection(db, "users", playerId, "coupons")), {
-      name: storeData.checkinBonusCouponName,
-      storeId: storeId,
-      createdAt: serverTimestamp(),
-    })
-
-    await setDoc(stampRef, {
-      stampCount: 0,
-      lastStampAt: serverTimestamp(),
-    })
-  } else {
-    await setDoc(stampRef, {
-      stampCount: newCount,
-      lastStampAt: serverTimestamp(),
-    })
+  const formatDateTime = (date?: Date | null) => {
+    if (!date) return "なし"
+    const p = (n: number) => n.toString().padStart(2, "0")
+    return `${date.getFullYear()}/${p(date.getMonth()+1)}/${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}`
   }
-}
-
-const rejectPlayer = async (playerId: string) => {
-  await setDoc(doc(db, "users", playerId), {
-    checkinStatus: "none",
-    pendingStoreId: null,
-  }, { merge: true })
-}
-
-
-const formatDateTime = (date?: Date | null) => {
-  if (!date) return "なし"
-
-  const pad = (n: number) => n.toString().padStart(2, "0")
-
-  return `${date.getFullYear()}/${pad(date.getMonth()+1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
 
   const copyCode = async () => {
     if (!store?.code) return
     try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(store.code)
-      } else {
-        const textarea = document.createElement("textarea")
-        textarea.value = store.code
-        textarea.setAttribute("readonly", "")
-        textarea.style.position = "fixed"
-        textarea.style.opacity = "0"
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand("copy")
-        document.body.removeChild(textarea)
+      if (navigator?.clipboard?.writeText) await navigator.clipboard.writeText(store.code)
+      else {
+        const t = document.createElement("textarea"); t.value = store.code
+        t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select()
+        document.execCommand("copy"); document.body.removeChild(t)
       }
+      setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000)
     } catch {}
   }
 
-  if (role === null) {
-    return <div className="p-6 bg-[#FFFBF5] min-h-screen flex items-center justify-center"><p className="text-gray-600">Loading...</p></div>
+  const openTimer = async (id: string) => {
+    if (!storeId) { window.open(`/home/store/timer/${id}`, "_blank", "width=1200,height=900"); return }
+    try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false }) } catch {}
+    window.open(`/home/store/timer/${id}`, "_blank", "width=1200,height=900")
   }
 
-  if (role !== "store") {
-    return null
-  }
+  if (role === null) return (
+    <div style={{ minHeight: '100dvh', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .7s linear infinite' }}/>
+    </div>
+  )
+  if (role !== "store") return null
 
-  const openTimer = async (tournamentId:string) => {
-    if (!storeId) {
-      window.open(
-        `/home/store/timer/${tournamentId}`,
-        "_blank",
-        "width=1200,height=900"
-      )
-      return;
-    }
-    try {
-      await updateDoc(
-        doc(db,"stores",storeId,"tournaments",tournamentId),
-        {
-          timerRunning:false
-        }
-      )
-    } catch(e) {
-      console.error("timerRunning reset error",e)
-    }
-    window.open(
-      `/home/store/timer/${tournamentId}`,
-      "_blank",
-      "width=1200,height=900"
-    )
-  }
+  const notifCount = depositRequests.length + withdrawRequests.length + pendingPlayers.length
 
   return (
-    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-[#FFFBF5] pb-32">
+    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: '#F2F2F7' }}>
       <style>{`
+        :root {
+          --gold:#F2A900; --gold-dk:#D4910A;
+          --label:#1C1C1E; --label2:rgba(60,60,67,0.6); --label3:rgba(60,60,67,0.3);
+          --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
+          --green:#34C759; --red:#FF3B30;
+        }
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity:0; transform:translateY(12px) scale(0.98); }
+          to   { opacity:1; transform:translateY(0) scale(1); }
         }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes pulse-dot {
+          0%,100%{ opacity:1; transform:scale(1); }
+          50%    { opacity:0.4; transform:scale(0.7); }
         }
-        .stat-badge {
-          background: linear-gradient(145deg, rgba(242, 169, 0, 0.08) 0%, rgba(242, 169, 0, 0.03) 100%);
-          border: 1px solid rgba(242, 169, 0, 0.15);
+        @keyframes shimmer {
+          0%  { background-position:-200% center; }
+          100%{ background-position:200% center; }
         }
-        .tournament-card {
-          background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-          box-shadow: 
-            0 2px 8px rgba(242, 169, 0, 0.06),
-            0 8px 24px rgba(0, 0, 0, 0.04);
+        @keyframes badge-pop {
+          0%  { transform:scale(0.6); opacity:0; }
+          70% { transform:scale(1.15); }
+          100%{ transform:scale(1); opacity:1; }
         }
-        .cash-alert {
-          background: linear-gradient(145deg, #FFF8ED 0%, #FFFBF5 100%);
-          border: 1.5px solid rgba(242, 169, 0, 0.25);
+
+        .su  { opacity:0; animation:slideUp .4s cubic-bezier(.22,1,.36,1) forwards; }
+        .d0  { animation-delay:.03s; }
+        .d1  { animation-delay:.09s; }
+        .d2  { animation-delay:.15s; }
+        .d3  { animation-delay:.21s; }
+        .d4  { animation-delay:.27s; }
+        .d5  { animation-delay:.33s; }
+
+        .ios-card {
+          background:#fff; border-radius:20px;
+          box-shadow:0 2px 10px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
         }
-        .glass-card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
+        .section-hd {
+          font-size:11px; font-weight:700; letter-spacing:.06em;
+          text-transform:uppercase; color:var(--label2);
+          padding:0 2px; margin-bottom:10px;
         }
+
+        /* Gold accent line */
+        .gold-line {
+          height:3px;
+          background:linear-gradient(90deg,#F2A900,#FFE07A,#F2A900);
+          background-size:200% auto;
+          animation:shimmer 3s linear infinite;
+        }
+
+        /* Stat chip */
+        .stat-chip {
+          background:#F2F2F7; border-radius:14px; padding:10px 8px; text-align:center;
+        }
+
+        /* Action btn */
+        .action-btn {
+          height:44px; border-radius:12px; border:none; cursor:pointer;
+          font-size:13px; font-weight:700; display:flex; align-items:center;
+          justify-content:center; gap:6px; transition:transform .12s ease, opacity .12s ease;
+        }
+        .action-btn:active { transform:scale(0.96); opacity:.85; }
+
+        /* Gold btn */
+        .btn-gold {
+          background:linear-gradient(135deg,#F2A900,#D4910A);
+          color:#1a1a1a;
+          box-shadow:0 3px 10px rgba(242,169,0,0.28);
+        }
+
+        /* Outline btn */
+        .btn-outline-gold {
+          background:#fff; border:1.5px solid rgba(242,169,0,0.45); color:#D4910A;
+        }
+
+        /* Danger btn */
+        .btn-danger { background:rgba(255,59,48,0.09); color:#FF3B30; border:1.5px solid rgba(255,59,48,0.2); }
+
+        /* Timer controls */
+        .timer-btn {
+          display:flex; align-items:center; justify-content:center;
+          border:none; cursor:pointer; transition:transform .12s ease;
+        }
+        .timer-btn:active { transform:scale(0.9); }
+
+        /* Player row */
+        .player-row {
+          display:flex; align-items:center; justify-content:space-between;
+          padding:12px 14px; background:#fff; transition:background .12s;
+        }
+        .player-row:not(:last-child) { border-bottom:1px solid var(--sep); }
+        .player-row:active { background:#F2F2F7; }
+
+        /* Tab bar */
+        .tab-item {
+          flex:1; padding:10px 0; font-size:13px; font-weight:600;
+          background:none; border:none; cursor:pointer; position:relative;
+          transition:color .15s;
+        }
+
+        /* Request card */
+        .req-card {
+          background:#fff; border-radius:16px; padding:14px;
+          box-shadow:0 1px 4px rgba(0,0,0,0.05);
+        }
+        .req-action {
+          height:38px; border-radius:10px; border:none; cursor:pointer;
+          font-size:12px; font-weight:700; transition:transform .12s ease;
+          display:flex; align-items:center; justify-content:center;
+        }
+        .req-action:active { transform:scale(0.95); }
+
+        /* Pending player */
+        .pending-row {
+          background:#F2F2F7; border-radius:14px; padding:12px 14px;
+          display:flex; align-items:center; justify-content:space-between;
+        }
+
+        /* Glass nav */
+        .glass-nav {
+          background:rgba(255,255,255,0.85);
+          backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+        }
+
+        /* Adjust modal */
+        .adj-btn {
+          height:44px; border-radius:12px; border:none; cursor:pointer;
+          font-size:13px; font-weight:700; transition:transform .12s, opacity .12s;
+        }
+        .adj-btn:active { transform:scale(0.96); opacity:.85; }
+        .adj-btn-dark { background:#1C1C1E; color:#fff; }
+        .adj-btn-gold { background:linear-gradient(135deg,#F2A900,#D4910A); color:#1a1a1a; box-shadow:0 2px 8px rgba(242,169,0,0.25); }
+        .adj-btn-add  { background:linear-gradient(135deg,#007AFF,#0066DD); color:#fff; }
+        .adj-btn-sub  { background:rgba(255,59,48,0.1); color:#FF3B30; border:1.5px solid rgba(255,59,48,0.2); }
+
+        .divider { height:1px; background:var(--sep); }
+        .pulse { animation:pulse-dot 1.8s ease-in-out infinite; }
+        button { -webkit-tap-highlight-color:transparent; }
       `}</style>
-      
+
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -1400,297 +654,129 @@ const formatDateTime = (date?: Date | null) => {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="mx-auto max-w-sm px-4">
-        {showPlayerModal && (
-          <PlayerManageModal
-            tournamentId={showPlayerModal}
-            storeId={storeId}
-            onClose={() => setShowPlayerModal(null)}
-          />
-        )}
-        {showPrizeModal && (
-          <PrizeDistributeModal
-            tournamentId={showPrizeModal}
-            storeId={storeId}
-            onClose={() => setShowPrizeModal(null)}
-          />
-        )}
-        
-{historyPlayerId && storeId && (
-  <PlayerHistoryModal
-    playerId={historyPlayerId}
-    storeId={storeId}
-    onClose={() => setHistoryPlayerId(null)}
-  />
-)}
+      {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} onClose={() => setShowPlayerModal(null)} />}
+      {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} onClose={() => setShowPrizeModal(null)} />}
+      {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} onClose={() => setHistoryPlayerId(null)} />}
 
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
-        {/* Store Header */}
-        <div className="mt-6 tournament-card rounded-3xl p-6 animate-slideUp">
-          <div className="flex items-center gap-4">
-            {store?.iconUrl ? (
-              <div className="relative">
-                <img
-                  src={store.iconUrl}
-                  alt={store?.name}
-                  className="h-16 w-16 rounded-2xl object-cover shadow-md"
-                />
-                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-white"></div>
-              </div>
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-[16px] font-semibold text-white shadow-md">
-                店
-              </div>
-            )}
-            <div className="flex-1">
-              <p className="text-[19px] font-semibold text-gray-900">
-                {store?.name ?? ""}
-              </p>
-              <div className="mt-1.5 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-1.5 w-fit">
-                <span className="text-[13px] font-mono text-gray-600">
-                  {store?.code ?? ""}
-                </span>
-                <button
-                  type="button"
-                  onClick={copyCode}
-                  className="text-[#F2A900] hover:text-[#D4910A] transition-colors"
+        {/* ── Store Header Card ── */}
+        <div className="su d0" style={{ marginTop: 16 }}>
+          <div className="ios-card" style={{ overflow: 'hidden' }}>
+            <div className="gold-line"/>
+            <div style={{ padding: '18px 18px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              {store?.iconUrl ? (
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <img src={store.iconUrl} alt={store.name} style={{ width: 60, height: 60, borderRadius: 18, objectFit: 'cover', boxShadow: '0 3px 10px rgba(0,0,0,0.1)' }}/>
+                  <div style={{ position: 'absolute', bottom: 2, right: 2, width: 12, height: 12, borderRadius: '50%', background: '#34C759', border: '2px solid white' }} className="pulse"/>
+                </div>
+              ) : (
+                <div style={{ width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)' }}>店</div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 6 }}>{store?.name ?? ""}</p>
+                <button onClick={copyCode}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 10, padding: '5px 10px', border: 'none', cursor: 'pointer', transition: 'background .2s' }}
                 >
-                  <FiCopy size={14} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{store?.code ?? ""}</span>
+                  {copiedCode
+                    ? <FiCheck size={12} style={{ color: '#28A745' }}/>
+                    : <FiCopy size={12} style={{ color: 'var(--label3)' }}/>
+                  }
                 </button>
               </div>
+              {/* 通知バッジ */}
+              {notifCount > 0 && (
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', flexShrink: 0, animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>
+                  {notifCount}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Tournaments Section */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[18px] font-semibold text-gray-900">Today's Tournaments</h2>
+        {/* ── Tournaments ── */}
+        <div className="su d1" style={{ marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
+            <p className="section-hd" style={{ marginBottom: 0 }}>Today's Tournaments</p>
             {activeTournaments.length > 0 && (
-              <span className="text-[13px] font-medium text-gray-500">
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.1)', borderRadius: 99, padding: '3px 8px' }}>
                 {activeTournaments.length} Active
               </span>
             )}
           </div>
-          
+
           {activeTournaments.length === 0 ? (
-            <div className="tournament-card rounded-3xl p-8 text-center">
-              <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                <FiClock size={28} className="text-gray-300" />
+            <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                <FiClock size={22} style={{ color: 'var(--label3)' }}/>
               </div>
-              <p className="text-[14px] text-gray-500">開催中のトーナメントはありません</p>
+              <p style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {activeTournaments.map(t => {
-                const totalEntry = t.entry ?? 0
-                const totalReentry = t.reentry ?? 0
-                const totalAddon = t.addon ?? 0
-                const bustCount = t.bustCount ?? 0
-                const entryStack = t.entryStack ?? 0
-                const reentryStack = t.reentryStack ?? 0
-                const addonStack = t.addonStack ?? 0
-                const alive = (totalEntry + totalReentry) - bustCount
-                const totalEntries = totalEntry + totalReentry
-                const totalStack = (totalEntry * entryStack) + (totalReentry * reentryStack) + (totalAddon * addonStack)
-                const average = alive > 0 ? Math.floor(totalStack / alive) : 0
+                const totalStack = (t.entry * t.entryStack) + (t.reentry * t.reentryStack) + (t.addon * t.addonStack)
+                const avg = t.alive > 0 ? Math.floor(totalStack / t.alive) : 0
                 return (
+                  <div key={t.id} className="ios-card su" style={{ overflow: 'hidden' }}>
+                    <div className="gold-line"/>
+                    <div style={{ padding: '16px 16px 14px' }}>
 
-              
-                  <div key={t.id} className="tournament-card rounded-3xl p-5 animate-slideUp">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-[17px] font-semibold text-gray-900">{t.name}</h3>
-                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+                      {/* ヘッダー */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                        <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{t.name}</p>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34C759' }} className="pulse"/>
+                      </div>
+
+                      {/* Stats */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
+                        {[
+                          { icon: <FiUsers size={13} style={{ color: 'var(--gold)' }}/>, val: t.alive, label: 'Players' },
+                          { icon: <FiTrendingUp size={13} style={{ color: 'var(--gold)' }}/>, val: avg.toLocaleString(), label: 'Avg Stack' },
+                          { icon: <FiPlus size={13} style={{ color: 'var(--gold)' }}/>, val: t.addon, label: 'Add-on' },
+                        ].map((s, i) => (
+                          <div key={i} className="stat-chip">
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>{s.icon}</div>
+                            <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1 }}>{s.val}</p>
+                            <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 3, fontWeight: 600 }}>{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Action buttons */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                        <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
+                          <FiClock size={14}/> Timer
+                        </button>
+                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, t.timeRemaining)}>
+                          <FiEdit3 size={14}/> Adjust
+                        </button>
+                        <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
+                          <FiUsers size={14}/> Players
+                        </button>
+                        <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
+                          <FiDollarSign size={14}/> Pay Out
+                        </button>
+                      </div>
+
+                      {/* Timer controls */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
+                        <button className="timer-btn" onClick={() => prevLevel(t.id, t.currentLevelIndex ?? 0)}
+                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+                        ><FiSkipBack size={17} style={{ color: 'var(--label)' }}/></button>
+
+                        <button className="timer-btn" onClick={() => toggleTimer(t.id)}
+                          style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 4px 14px rgba(242,169,0,0.32)' }}
+                        >
+                          {timerRunning[t.id] ? <FiPause size={20} style={{ color: 'white' }}/> : <FiPlay size={20} style={{ color: 'white', marginLeft: 2 }}/>}
+                        </button>
+
+                        <button className="timer-btn" onClick={() => nextLevel(t.id)}
+                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+                        ><FiSkipForward size={17} style={{ color: 'var(--label)' }}/></button>
+                      </div>
                     </div>
-                    
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-2 mb-4">
-                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <FiUsers size={14} className="text-[#F2A900]" />
-                        </div>
-                        <p className="text-[18px] font-bold text-gray-900">{alive}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Players</p>
-                      </div>
-                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <FiTrendingUp size={14} className="text-[#F2A900]" />
-                        </div>
-                        <p className="text-[18px] font-bold text-gray-900">{average.toLocaleString()}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Average</p>
-                      </div>
-                      <div className="rounded-xl p-3 text-center bg-white border border-gray-100 shadow-sm">
-                        <div className="flex items-center justify-center gap-1 mb-1">
-                          <FiPlus size={14} className="text-[#F2A900]" />
-                        </div>
-                        <p className="text-[18px] font-bold text-gray-900">{totalAddon}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Add-on</p>
-                      </div>
-                    </div>
-
-
-
-
-
-{/* Action Buttons（Apple風統一） */}
-<div className="grid grid-cols-2 gap-2 mb-3">
-
-  <button
-    onClick={() => openTimer(t.id)}
-    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
-  >
-    <FiClock size={16} />
-    Timer
-  </button>
-
-  <button
-    onClick={() => openAdjustModal(t.id, t.timeRemaining)}
-    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
-  >
-    <FiEdit3 size={16} />
-    Adjust
-  </button>
-
-  <button
-    onClick={() => setShowPlayerModal(t.id)}
-    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 active:scale-95"
-  >
-    <FiUsers size={16} />
-    Players
-  </button>
-
-  <button
-    onClick={() => setShowPrizeModal(t.id)}
-    disabled={t.status !== "active"}
-    className="h-12 rounded-2xl bg-[#F2A900] text-white font-semibold text-[14px] shadow-md flex items-center justify-center gap-2 disabled:opacity-40 active:scale-95"
-  >
-    <FiDollarSign size={16} />
-    Pay Out
-  </button>
-
-</div>
-
-
-
-
-
-{adjustModalOpen[t.id] && (
-  <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
-
-    <div className="w-full max-w-sm rounded-3xl bg-white shadow-2xl p-6 animate-slideUp">
-
-      {/* header */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => closeAdjustModal(t.id)}
-          className="text-gray-400 text-xl"
-        >
-          <FiX />
-        </button>
-
-        <button
-          onClick={() => confirmAdjustTime(t.id)}
-          className="text-[#F2A900] text-xl"
-        >
-          <FiCheck />
-        </button>
-      </div>
-
-      {/* time */}
-      <div className="text-center mb-6">
-        <p className="text-[36px] font-bold text-gray-900 tracking-wider">
-          {Math.floor((adjustSeconds[t.id] ?? 0) / 60)
-            .toString()
-            .padStart(2, "0")}
-          :
-          {((adjustSeconds[t.id] ?? 0) % 60)
-            .toString()
-            .padStart(2, "0")}
-        </p>
-      </div>
-
-      {/* ダイヤル */}
-      <input
-        type="range"
-        min={0}
-        max={7200}
-        step={10}
-        value={adjustSeconds[t.id] ?? 0}
-        onChange={(e) =>
-          setAdjustSeconds(prev => ({
-            ...prev,
-            [t.id]: Number(e.target.value)
-          }))
-        }
-        className="w-full mb-6 accent-[#F2A900]"
-      />
-
-      {/* ボタン */}
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={() => updateAdjustTime(t.id, -60)}
-          className="h-12 rounded-2xl bg-gray-100 text-gray-700 font-medium"
-        >
-          -1分
-        </button>
-
-        <button
-          onClick={() => updateAdjustTime(t.id, 60)}
-          className="h-12 rounded-2xl bg-gray-100 text-gray-700 font-medium"
-        >
-          +1分
-        </button>
-
-        <button
-          onClick={() => updateAdjustTime(t.id, -10)}
-          className="h-12 rounded-2xl bg-gray-200 text-gray-700 font-medium"
-        >
-          -10秒
-        </button>
-
-        <button
-          onClick={() => updateAdjustTime(t.id, 10)}
-          className="h-12 rounded-2xl bg-[#F2A900] text-white font-medium shadow-md"
-        >
-          +10秒
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
-
-     
-                    
-                        {/* Timer Controls（Apple風） */}
-                            <div className="flex items-center justify-center gap-4 pt-3 border-t border-gray-100">
-
-                              <button
-                                onClick={()=>prevLevel(t.id,t.currentLevelIndex ?? 0)}
-                                className="h-11 w-11 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 active:scale-90"
-                              >
-                                <FiSkipBack size={18} className="text-gray-700"/>
-                              </button>
-
-                              <button
-                                onClick={() => toggleTimer(t.id)}
-                                className="h-14 w-14 flex items-center justify-center rounded-full bg-[#F2A900] text-white shadow-lg active:scale-90"
-                              >
-                                {timerRunning[t.id] ? <FiPause size={20}/> : <FiPlay size={20}/>} 
-                              </button>
-
-                              <button
-                                onClick={()=>nextLevel(t.id)}
-                                className="h-11 w-11 flex items-center justify-center rounded-full bg-white shadow-md border border-gray-200 active:scale-90"
-                              >
-                                <FiSkipForward size={18} className="text-gray-700"/>
-                              </button>
-
-                            </div>
-
-
-
-
                   </div>
                 )
               })}
@@ -1698,657 +784,385 @@ const formatDateTime = (date?: Date | null) => {
           )}
         </div>
 
-        {withdrawRequests.length > 0 && (
-  <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="h-8 w-8 rounded-full bg-red-700 flex items-center justify-center">
-        <FiMinus size={16} className="text-white" />
-      </div>
-      <p className="text-[16px] font-semibold text-gray-900">ひきだしたい！</p>
-      <span className="ml-auto bg-red-700 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
-        {withdrawRequests.length}
-      </span>
-    </div>
-
-    <div className="space-y-3">
-      {withdrawRequests.map(req => (
-        <div
-          key={req.id}
-          className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-[14px] font-semibold text-gray-700">
-                {playerMap[req.playerId]?.name ?? req.playerId}
-              </p>
-            </div>
-            <p className="text-[18px] font-bold text-red-900">
-              ¥{req.amount.toLocaleString()}
-            </p>
-          </div>
-
-
-
-
-
-
-<div className="grid grid-cols-3 gap-2">
-
-<button onClick={() => approveWithdrawWithType(req, "buyin")} className="rounded-xl bg-red-700 text-white py-2 text-sm font-medium">Buy-in</button>
-<button onClick={() => approveWithdrawWithType(req, "tE")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメE</button>
-<button onClick={() => approveWithdrawWithType(req, "tR")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメR</button>
-<button onClick={() => approveWithdrawWithType(req, "tA")} className="rounded-xl bg-red-700 text-white py-2 text-sm">トナメA</button>
-<button onClick={() => setWithdrawOtherOpenId(req.id)} className="rounded-xl bg-red-700 text-white py-2 text-sm">その他</button>
-<button onClick={() => rejectWithdraw(req)} className="rounded-xl border border-red-400 text-red-500 py-2 text-sm font-medium">却下</button>
-
-</div>
-
-{withdrawOtherOpenId === req.id && (
-
-
-
-
-<div className="mt-3 p-3 rounded-2xl bg-[#F2A900]/10 border border-[#F2A900]/30 space-y-3">
-
-  <label className="flex items-center gap-2 text-sm text-gray-700">
-    <input
-      type="checkbox"
-      checked={withdrawOtherNetGain}
-      onChange={(e) => setWithdrawOtherNetGain(e.target.checked)}
-      className="accent-[#F2A900]"
-    />
-    純増する
-  </label>
-
-  <input
-    value={withdrawOtherComment}
-    onChange={(e) => setWithdrawOtherComment(e.target.value)}
-    className="w-full h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#F2A900]/40"
-    placeholder="コメントを入力"
-  />
-
-  <button
-    onClick={() => approveWithdrawWithType(req, "other")}
-    className="w-full h-10 rounded-xl bg-[#F2A900] text-white text-sm font-medium shadow-sm hover:bg-[#D4910A] active:scale-95 transition-all"
-  >
-    確定する
-  </button>
-
-</div>
-
-
-
-
-)}
-
-
-
-
-
-
-
-
-
-
-
-
-
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-        {/* Cash Requests */}
-        {depositRequests.length > 0 && (
-          <div className="mt-6 cash-alert rounded-3xl p-5 animate-slideUp">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center">
-                <FiDollarSign size={16} className="text-white" />
-              </div>
-              <p className="text-[16px] font-semibold text-gray-900">あずけたい！</p>
-              <span className="ml-auto bg-green-500 text-white text-[12px] font-bold px-2.5 py-0.5 rounded-full">
-                {depositRequests.length}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {depositRequests.map(req => (
-                <div
-                  key={req.id}
-                  className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
-                        <FiUser size={16} className="text-gray-600" />
-                      </div>
-                      <div>
-                        <p className="text-[14px] font-semibold text-gray-900">
-                          {playerMap[req.playerId]?.name ?? req.playerId}
-                        </p>
-                        <p className="text-[12px] text-gray-500">
-                          {req.comment || ""}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-[18px] font-bold text-green-500">
-                      ¥{req.amount.toLocaleString()}
-                    </p>
-                  </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-
-
-
-
-<button
-  onClick={() => approveDepositWithType(req, "cashout")}
-  className="rounded-xl bg-green-500 text-white py-2 text-sm font-medium"
->
-CashOut
-</button>
-
-<button
-  onClick={() => approveDepositWithType(req, "chip")}
-  className="rounded-xl bg-green-500 text-white py-2 text-sm"
->
-チップ購入
-</button>
-
-<button
-  onClick={() => setDepositOtherOpenId(req.id)}
-  className="rounded-xl bg-green-500 text-white py-2 text-sm"
->
-その他
-</button>
-
-<button
-  onClick={() => rejectDeposit(req)}
-  className="rounded-xl border border-red-400 text-red-500 py-2 text-sm font-medium"
->
-却下
-</button>
-
-
-
-
-
-                    </div>
-
-                    {depositOtherOpenId === req.id && (
-
-
-             <div className="mt-3 p-3 rounded-2xl bg-[#F2A900]/10 border border-[#F2A900]/30 space-y-3">
-
-                  <label className="flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={depositOtherNetGain}
-                      onChange={(e) => setDepositOtherNetGain(e.target.checked)}
-                      className="accent-[#F2A900]"
-                    />
-                    純増する
-                  </label>
-
-                  <input
-                    value={depositOtherComment}
-                    onChange={(e) => setDepositOtherComment(e.target.value)}
-                    className="w-full h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#F2A900]/40"
-                    placeholder="コメントを入力"
-                  />
-
-                  <button
-                    onClick={() => approveDepositWithType(req, "other")}
-                    className="w-full h-10 rounded-xl bg-[#F2A900] text-white text-sm font-medium shadow-sm hover:bg-[#D4910A] active:scale-95 transition-all"
-                  >
-                    確定する
-                  </button>
-
+        {/* ── Adjust Time Modal ── */}
+        {activeTournaments.map(t => adjustModalOpen[t.id] && (
+          <div key={`adj-${t.id}`} className="fixed inset-0 z-[999] flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
+            <div className="ios-card su" style={{ width: '100%', maxWidth: 360, padding: '22px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>タイム調整</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => closeAdjustModal(t.id)}
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                  <button onClick={() => confirmAdjustTime(t.id)}
+                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
                 </div>
+              </div>
 
+              <div style={{ textAlign: 'center', marginBottom: 18 }}>
+                <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                  {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
+                  <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
+                  {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
+                </p>
+              </div>
 
+              <input type="range" min={0} max={7200} step={10}
+                value={adjustSeconds[t.id] ?? 0}
+                onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
+                style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
+              />
 
-                    )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
+                  <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
+                    style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'transform .12s' }}
+                  >{b.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
 
-
-
-
-
-
-
-
+        {/* ── Withdraw Requests ── */}
+        {withdrawRequests.length > 0 && (
+          <div className="su d2" style={{ marginTop: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+              <p className="section-hd" style={{ marginBottom: 0 }}>引き出しリクエスト</p>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#FF3B30', borderRadius: 99, padding: '2px 7px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{withdrawRequests.length}</span>
+            </div>
+            <div className="ios-card" style={{ overflow: 'hidden' }}>
+              {withdrawRequests.map((req, idx) => (
+                <div key={req.id} style={{ padding: '14px 16px', borderBottom: idx < withdrawRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiMinus size={14} style={{ color: '#FF3B30' }}/>
+                      </div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{playerMap[req.playerId]?.name ?? req.playerId}</p>
+                    </div>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: '#FF3B30', letterSpacing: '-0.3px' }}>¥{req.amount.toLocaleString()}</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                    {[
+                      { label: 'Buy-in', type: 'buyin' as const },
+                      { label: 'トナメ E', type: 'tE' as const },
+                      { label: 'トナメ R', type: 'tR' as const },
+                      { label: 'トナメ A', type: 'tA' as const },
+                      { label: 'その他', type: 'other' as const, special: true },
+                      { label: '却下', type: null },
+                    ].map((b, i) => (
+                      <button key={i}
+                        className="req-action"
+                        onClick={() => b.type === null ? rejectWithdraw(req) : b.special ? setWithdrawOtherOpenId(req.id) : approveWithdrawWithType(req, b.type as any)}
+                        style={{ background: b.type === null ? 'rgba(255,59,48,0.07)' : 'rgba(255,59,48,0.85)', color: b.type === null ? '#FF3B30' : '#fff', border: b.type === null ? '1px solid rgba(255,59,48,0.2)' : 'none' }}
+                      >{b.label}</button>
+                    ))}
+                  </div>
+                  {withdrawOtherOpenId === req.id && (
+                    <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
+                        <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
+                        純増する
+                      </label>
+                      <input value={withdrawOtherComment} onChange={e => setWithdrawOtherComment(e.target.value)}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        placeholder="コメントを入力"
+                      />
+                      <button onClick={() => approveWithdrawWithType(req, "other")}
+                        style={{ height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                      >確定する</button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
+        {/* ── Deposit Requests ── */}
+        {depositRequests.length > 0 && (
+          <div className="su d2" style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+              <p className="section-hd" style={{ marginBottom: 0 }}>預け入れリクエスト</p>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#34C759', borderRadius: 99, padding: '2px 7px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{depositRequests.length}</span>
+            </div>
+            <div className="ios-card" style={{ overflow: 'hidden' }}>
+              {depositRequests.map((req, idx) => (
+                <div key={req.id} style={{ padding: '14px 16px', borderBottom: idx < depositRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(52,199,89,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiPlus size={14} style={{ color: '#34C759' }}/>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{playerMap[req.playerId]?.name ?? req.playerId}</p>
+                        {req.comment && <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 1 }}>{req.comment}</p>}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: '#34C759', letterSpacing: '-0.3px' }}>¥{req.amount.toLocaleString()}</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+                    {[
+                      { label: 'Cash Out', type: 'cashout' as const },
+                      { label: 'チップ購入', type: 'chip' as const },
+                      { label: 'その他', type: 'other' as const, special: true },
+                      { label: '却下', type: null },
+                    ].map((b, i) => (
+                      <button key={i}
+                        className="req-action"
+                        onClick={() => b.type === null ? rejectDeposit(req) : b.special ? setDepositOtherOpenId(req.id) : approveDepositWithType(req, b.type as any)}
+                        style={{ background: b.type === null ? 'rgba(255,59,48,0.07)' : 'rgba(52,199,89,0.85)', color: b.type === null ? '#FF3B30' : '#fff', border: b.type === null ? '1px solid rgba(255,59,48,0.2)' : 'none' }}
+                      >{b.label}</button>
+                    ))}
+                  </div>
+                  {depositOtherOpenId === req.id && (
+                    <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
+                        <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
+                        純増する
+                      </label>
+                      <input value={depositOtherComment} onChange={e => setDepositOtherComment(e.target.value)}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        placeholder="コメントを入力"
+                      />
+                      <button onClick={() => approveDepositWithType(req, "other")}
+                        style={{ height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                      >確定する</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* ── Pending Players ── */}
         {pendingPlayers.length > 0 && (
-            <div className="mt-6 tournament-card rounded-3xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <p className="text-[15px] font-semibold text-gray-900">入店申請中のプレイヤー</p>
-                <span className="ml-auto bg-yellow-100 text-yellow-700 text-[12px] font-bold px-2.5 py-0.5 rounded-full">
-                  {pendingPlayers.length}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {pendingPlayers.map(player => (
-                  <div key={player.id} className="rounded-xl bg-gray-50 p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {player.iconUrl ? (
-                          <img src={player.iconUrl} className="h-8 w-8 rounded-full"/>
-                        ) : (
-                          <FiUser />
-                        )}
-                        <div>
-                            <span className="text-[14px] text-gray-900">{player.name}</span>
-                            <div className="text-[11px] text-gray-500">
-                              来店回数：{player.visitCount ?? 0}回
-                            </div>
-                            <div className="text-[11px] text-gray-500">
-                              前回の来店：{formatDateTime(player.lastVisitedAt)}
-                            </div>
-                          </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => approvePlayer(player.id)}
-                          className="px-2 py-1 text-xs bg-green-500 text-white rounded"
-                        >
-                          許可
-                        </button>
-                        <button
-                          onClick={() => rejectPlayer(player.id)}
-                          className="px-2 py-1 text-xs bg-gray-400 text-white rounded"
-                        >
-                          却下
-                        </button>
-                      </div>
+          <div className="su d3" style={{ marginTop: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+              <p className="section-hd" style={{ marginBottom: 0 }}>入店申請</p>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1a1a1a', background: '#FFD60A', borderRadius: 99, padding: '2px 7px' }}>{pendingPlayers.length}</span>
+            </div>
+            <div className="ios-card" style={{ overflow: 'hidden' }}>
+              {pendingPlayers.map((player, idx) => (
+                <div key={player.id} style={{ padding: '12px 16px', borderBottom: idx < pendingPlayers.length - 1 ? '1px solid var(--sep)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    {player.iconUrl
+                      ? <img src={player.iconUrl} style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }}/>
+                      : <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: 'var(--label2)' }}/></div>
+                    }
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{player.name}</p>
+                      <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 1 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => approvePlayer(player.id)}
+                      style={{ height: 32, width: 52, borderRadius: 10, background: '#34C759', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                    >許可</button>
+                    <button onClick={() => rejectPlayer(player.id)}
+                      style={{ height: 32, width: 52, borderRadius: 10, background: 'var(--fill)', color: 'var(--label2)', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                    >却下</button>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-
-  
-
-        {/* Manual Adjustment */}
-        <div className="mt-6 tournament-card rounded-3xl p-5">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <FiDollarSign size={16} className="text-blue-600" />
-            </div>
-            <p className="text-[16px] font-semibold text-gray-900">Players</p>
           </div>
+        )}
 
-          {/* Search Player */}
-          <div className="relative mb-4">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              value={playerSearchInput}
-              onChange={e => setPlayerSearchInput(e.target.value)}
-              placeholder="プレイヤー検索..."
-              className="h-12 w-full rounded-2xl border border-gray-200 bg-white pl-11 pr-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-            />
-            {playerSearchInput && filteredPlayers.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-10 mt-2 max-h-60 overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-xl">
-                {filteredPlayers.map(player => (
-                  <button
-                    key={player.id}
-                    type="button"
-                    onClick={() => selectPlayer(player.id)}
-                    className="block w-full border-b border-gray-100 px-4 py-3 text-left text-[14px] text-gray-900 hover:bg-gray-50 transition-colors last:border-b-0"
-                  >
-                    {player.name ?? player.id}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-         
-
-          {/* Player History */}
-          {storePlayers.length > 0 && (
-            <div className="pt-5 border-t border-gray-100">
-
-              {/* タブ */}
-                    <div className="flex mb-3">
-                      <button
-                        onClick={() => setActiveTab("in")}
-                        className={`flex-1 py-2 text-sm ${activeTab === "in" ? "text-black font-bold" : "text-gray-400"}`}
-                      >
-                        入店中
-                      </button>
-                      <button
-                        onClick={() => setActiveTab("out")}
-                        className={`flex-1 py-2 text-sm ${activeTab === "out" ? "text-black font-bold" : "text-gray-400"}`}
-                      >
-                        退店済
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 max-h-[500px] overflow-y-auto">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{(() => {
-  const list = activeTab === "in" ? inPlayers : outPlayers
-  const keyword = playerSearchInput.toLowerCase()
-
-  const hit = list.filter(p =>
-    (p.name ?? "").toLowerCase().includes(keyword)
-  )
-
-  const paginated = list.slice(0, storePlayersPage * pageSize)
-
-const selected = list.find(p => p.id === selectedPlayerId)
-
-const merged = [
-  ...(selected ? [selected] : []),
-  ...hit.filter(p => p.id !== selectedPlayerId),
-  ...paginated.filter(
-    p =>
-      p.id !== selectedPlayerId &&
-      !hit.some(h => h.id === p.id)
-  )
-]
-
-  return merged.map(player => (
-             
-                 <div
-                  key={player.id}
-                  className={`w-full rounded-xl p-3 transition-all duration-300 ${
-                    removingAdjustmentPlayerIds.includes(player.id)
-                      ? "opacity-0 translate-x-10 scale-95"
-                      : selectedPlayerId === player.id
-                      ? "bg-[#F2A900]/10 border border-[#F2A900]/30"
-                      : "bg-gray-50 border border-transparent hover:bg-gray-100"
-                  }`}
->
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            
-
-                            <div className="relative">
-                              {player.iconUrl ? (
-                                <img src={player.iconUrl} className="h-10 w-10 rounded-full object-cover" />
-                              ) : (
-                                <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                  <FiUser size={16} className="text-gray-500" />
-                                </div>
-                              )}
-
-                              {player.isInStore && (
-                                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
-                              )}
-                            </div>
-
-
-
-
-                            <div>
-                              <p className="text-[14px] font-semibold text-gray-900">
-                                {player.name || player.id}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="text-right">
-                            <p className="text-[14px] font-bold text-gray-900">
-                              ¥{player.balance.toLocaleString()}
-                            </p>
-                            <p className={`text-[12px] font-semibold ${player.netGain >= 0 ? "text-green-600" : "text-red-600"}`}>
-                              {player.netGain >= 0 ? "+" : ""}¥{player.netGain.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-
-                            <div className="flex gap-2 mt-2 justify-end">
-
-                          <button
-                            onClick={() => setHistoryPlayerId(player.id)}
-                            className="h-8 px-3 rounded-xl bg-white border border-gray-200 text-gray-700 text-[12px] font-medium hover:bg-gray-50 transition-all"
-                          >
-                            りれき
-                          </button>
-
-                          <button
-                            onClick={() => setAdjustModalPlayer(player)}
-                            className="h-8 px-3 rounded-xl bg-[#F2A900] text-white text-[12px] font-medium hover:bg-[#D4910A] transition-all"
-                          >
-                            chip
-                          </button>
-
-                          {player.isInStore && (
-                            <button
-                              type="button"
-                             onClick={async () => {
-                                setRemovingAdjustmentPlayerIds(prev => [...prev, player.id])
-
-                                setTimeout(async () => {
-                                  await setDoc(
-                                    doc(db, "users", player.id),
-                                    {
-                                      currentStoreId: deleteField(),
-                                      checkinStatus: "none",
-                                      pendingStoreId: null,
-                                    },
-                                    { merge: true }
-                                  )
-
-                                  setRemovingAdjustmentPlayerIds(prev => prev.filter(id => id !== player.id))
-                                }, 300)
-                              }}
-                              className="h-8 w-8 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-sm hover:bg-red-900 transition-all"
-                            >
-                              <FiLogOut size={14} />
-                            </button>
-                          )}
-
-                        </div>
-                      </div>
-                
-
-  ))
-})()}
-
-
-                
-                {storePlayers.length > storePlayersPage * pageSize && (
-                  <button
-                    type="button"
-                    className="w-full mt-3 h-10 rounded-xl border border-gray-200 bg-white text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-all"
-                    onClick={() => setStorePlayersPage(p => p + 1)}
-                  >
-                    もっと見る
-                  </button>
+        {/* ── Players Section ── */}
+        <div className="su d4" style={{ marginTop: 20 }}>
+          <p className="section-hd">Players</p>
+          <div className="ios-card" style={{ overflow: 'hidden' }}>
+            {/* 検索 */}
+            <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--sep)' }}>
+              <div style={{ position: 'relative' }}>
+                <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--label3)' }}/>
+                <input
+                  type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
+                  placeholder="プレイヤーを検索…"
+                  style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px solid var(--sep)', background: '#F2F2F7', paddingLeft: 34, paddingRight: 12, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                />
+                {playerSearchInput && filteredPlayers.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, marginTop: 4, background: '#fff', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
+                    {filteredPlayers.map(p => (
+                      <button key={p.id} onClick={() => selectPlayer(p.id)}
+                        style={{ display: 'block', width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--sep)', fontSize: 14, fontWeight: 600, color: 'var(--label)', cursor: 'pointer' }}
+                      >{p.name ?? p.id}</button>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
-          )}
+
+            {/* タブ */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--sep)' }}>
+              {(['in', 'out'] as const).map(tab => (
+                <button key={tab} className="tab-item" onClick={() => setActiveTab(tab)}
+                  style={{ color: activeTab === tab ? 'var(--gold-dk)' : 'var(--label3)', fontWeight: activeTab === tab ? 700 : 500 }}
+                >
+                  {tab === 'in' ? `入店中 (${inPlayers.length})` : `退店済 (${outPlayers.length})`}
+                  {activeTab === tab && <div style={{ position: 'absolute', bottom: 0, left: '25%', right: '25%', height: 2, background: 'var(--gold)', borderRadius: 1 }}/>}
+                </button>
+              ))}
+            </div>
+
+            {/* プレイヤーリスト */}
+            {(() => {
+              const list = activeTab === "in" ? inPlayers : outPlayers
+              const kw = playerSearchInput.toLowerCase()
+              const hit = kw ? list.filter(p => (p.name ?? "").toLowerCase().includes(kw)) : list
+              const paginated = list.slice(0, storePlayersPage * pageSize)
+              const selected = list.find(p => p.id === selectedPlayerId)
+              const merged = [
+                ...(selected ? [selected] : []),
+                ...hit.filter(p => p.id !== selectedPlayerId),
+                ...paginated.filter(p => p.id !== selectedPlayerId && !hit.some(h => h.id === p.id)),
+              ]
+              return (
+                <>
+                  {merged.map(player => (
+                    <div key={player.id} className="player-row"
+                      style={{ background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.05)' : removingAdjustmentPlayerIds.includes(player.id) ? 'transparent' : '#fff', opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1, transition: 'opacity .3s, background .15s' }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ position: 'relative' }}>
+                          {player.iconUrl
+                            ? <img src={player.iconUrl} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}/>
+                            : <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: 'var(--label2)' }}/></div>
+                          }
+                          {player.isInStore && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#34C759', border: '1.5px solid white' }}/>}
+                        </div>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{player.name || player.id}</p>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ textAlign: 'right', marginRight: 4 }}>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>¥{player.balance.toLocaleString()}</p>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
+                            {player.netGain >= 0 ? '+' : ''}¥{player.netGain.toLocaleString()}
+                          </p>
+                        </div>
+                        <button onClick={() => setHistoryPlayerId(player.id)}
+                          style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                        ><FiClock size={13} style={{ color: 'var(--label2)' }}/></button>
+                        <button onClick={() => setAdjustModalPlayer(player)}
+                          style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                        ><FiDollarSign size={13} style={{ color: '#D4910A' }}/></button>
+                        {player.isInStore && (
+                          <button
+                            onClick={async () => {
+                              setRemovingAdjustmentPlayerIds(p => [...p, player.id])
+                              setTimeout(async () => {
+                                await setDoc(doc(db, "users", player.id), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }, { merge: true })
+                                setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
+                              }, 280)
+                            }}
+                            style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,59,48,0.09)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                          ><FiLogOut size={13} style={{ color: '#FF3B30' }}/></button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {list.length > storePlayersPage * pageSize && (
+                    <button onClick={() => setStorePlayersPage(p => p + 1)}
+                      style={{ width: '100%', height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#007AFF', borderTop: '1px solid var(--sep)' }}
+                    >もっと見る</button>
+                  )}
+                </>
+              )
+            })()}
+          </div>
         </div>
       </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
-        <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
-          <button
-            type="button"
-            onClick={() => router.push("/home/store")}
-            className="flex flex-col items-center text-[#F2A900] transition-all"
+      {/* ── Bottom Nav（変更なし） ── */}
+      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-nav border-t" style={{ borderTopColor: 'rgba(60,60,67,0.1)' }}>
+        <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 32px 12px' }}>
+          <button type="button" onClick={() => router.push("/home/store")}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900' }}
           >
-            <FiHome size={22} />
-            <span className="mt-1 text-[11px] font-medium">ホーム</span>
+            <FiHome size={22}/><span style={{ marginTop: 3, fontSize: 11, fontWeight: 700 }}>ホーム</span>
           </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/tournaments")}
-            className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
+          <button type="button" onClick={() => router.push("/home/store/tournaments")}
+            style={{ position: 'absolute', left: '50%', top: 0, transform: 'translate(-50%,-50%)', width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 6px 20px rgba(242,169,0,0.35)' }}
+          ><FiPlus size={26} style={{ color: 'white' }}/></button>
+          <button type="button" onClick={() => router.push("/home/store/mypage")}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label3)' }}
           >
-            <FiPlus size={28} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/mypage")}
-            className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
-          >
-            <FiUser size={22} />
-            <span className="mt-1 text-[11px]">マイページ</span>
+            <FiUser size={22}/><span style={{ marginTop: 3, fontSize: 11, fontWeight: 500 }}>マイページ</span>
           </button>
         </div>
       </nav>
 
-{adjustModalPlayer && (
-  <div className="fixed inset-0 z-[999] bg-black/60 flex items-center justify-center px-4">
-    
-    <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl p-6 animate-slideUp">
-      
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between mb-5">
-        <p className="text-lg font-semibold text-gray-900">
-          手動調整
-        </p>
-        <button
-          onClick={() => setAdjustModalPlayer(null)}
-          className="text-gray-400 hover:text-gray-700 text-xl"
-        >
-          ×
-        </button>
-      </div>
+      {/* ── Adjust Modal ── */}
+      {adjustModalPlayer && (
+        <div className="fixed inset-0 z-[999] flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
+          <div className="ios-card su" style={{ width: '100%', maxWidth: 480, borderRadius: '24px 24px 0 0', padding: '22px 18px 40px', overflow: 'hidden' }}>
+            <div className="gold-line" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}/>
 
-      {/* 金額入力 */}
-      <input
-        value={adjustValue}
-        onChange={e => setAdjustValue(e.target.value)}
-        className="w-full h-12 rounded-xl border border-gray-300 px-4 text-center text-lg font-semibold text-gray-900 mb-4 focus:outline-none focus:ring-2 focus:ring-[#F2A900]"
-        placeholder="数字を入力"
-      />
+            {/* ドラッグハンドル */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--sep)', margin: '0 auto 18px' }}/>
 
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {adjustModalPlayer.iconUrl
+                  ? <img src={adjustModalPlayer.iconUrl} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}/>
+                  : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={15} style={{ color: 'var(--label2)' }}/></div>
+                }
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)' }}>{adjustModalPlayer.name}</p>
+                  <p style={{ fontSize: 11, color: 'var(--label2)' }}>手動調整</p>
+                </div>
+              </div>
+              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue("") }}
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+            </div>
 
+            {/* 金額入力 */}
+            <input
+              value={adjustValue} onChange={e => setAdjustValue(e.target.value)}
+              placeholder="金額を入力"
+              style={{ width: '100%', height: 52, borderRadius: 14, border: '1.5px solid var(--sep)', background: '#F2F2F7', padding: '0 16px', fontSize: 20, fontWeight: 800, textAlign: 'center', color: 'var(--label)', outline: 'none', marginBottom: 16, boxSizing: 'border-box', letterSpacing: '-0.5px' }}
+            />
 
-{/* 通常操作 */}
-<p className="text-sm text-gray-500 mb-2">リングゲーム</p>
-<div className="grid grid-cols-3 gap-2 mb-4">
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("buyin")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
-  >
-    Buy-in
-  </button>
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("cashout")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
-  >
-    CashOut
-  </button>
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("chip")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm font-medium"
-  >
-    チップ購入
-  </button>
-</div>
+            {/* リングゲーム */}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>リングゲーム</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
+              {[{ l: 'Buy-in', t: 'buyin' }, { l: 'Cash Out', t: 'cashout' }, { l: 'チップ購入', t: 'chip' }].map(b => (
+                <button key={b.t} className="adj-btn adj-btn-dark" onClick={() => runStoreAdjustment(b.t)}>{b.l}</button>
+              ))}
+            </div>
 
-{/* トナメ */}
-<p className="text-sm text-gray-500 mb-2">トーナメント</p>
-<div className="grid grid-cols-3 gap-2 mb-6">
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("tE")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm"
-  >
-    トナメE
-  </button>
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("tR")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm"
-  >
-    トナメR
-  </button>
-  <button
-    onClick={async () => {
-      await runStoreAdjustment("tA")
-    }}
-    className="h-10 rounded-xl bg-gray-800 text-white text-sm"
-  >
-    トナメA
-  </button>
-</div>
+            {/* トーナメント */}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>トーナメント</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
+              {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
+                <button key={b.t} className="adj-btn adj-btn-dark" onClick={() => runStoreAdjustment(b.t)}>{b.l}</button>
+              ))}
+            </div>
 
-
-      {/* 手動調整 */}
-<p className="text-sm text-gray-500 mb-2">手動調整</p>
-
-<div className="grid grid-cols-2 gap-2 mb-3">
-  <button
-    onClick={async () => {
-      await runAdjustment("add", manualNetGain)
-      setAdjustModalPlayer(null)
-      setAdjustValue("")
-    }}
-    className="h-10 rounded-xl bg-blue-900 text-white text-sm font-medium"
-  >
-    ＋(加算する)
-  </button>
-
-  <button
-    onClick={async () => {
-      await runAdjustment("subtract", manualNetGain)
-      setAdjustModalPlayer(null)
-      setAdjustValue("")
-    }}
-    className="h-10 rounded-xl bg-red-900 text-white text-sm font-medium"
-  >
-    ー(減算する)
-  </button>
-</div>
-
-<label className="flex items-center gap-2 text-sm text-gray-700 mb-6">
-  <input
-    type="checkbox"
-    checked={manualNetGain}
-    onChange={(e) => setManualNetGain(e.target.checked)}
-  />
-  純増値も更新する
-</label>
-
-
-
-    </div>
-  </div>
-)}
-
-      
+            {/* 手動調整 */}
+            <div style={{ height: 1, background: 'var(--sep)', margin: '4px 0 14px' }}/>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>手動調整</p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+              <button className="adj-btn adj-btn-add" onClick={async () => { await runAdjustment("add", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}>
+                ＋ 加算
+              </button>
+              <button className="adj-btn adj-btn-sub" onClick={async () => { await runAdjustment("subtract", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}>
+                − 減算
+              </button>
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label2)', fontWeight: 500 }}>
+              <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
+              純増値も更新する
+            </label>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
