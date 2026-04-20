@@ -28,6 +28,7 @@ type UserProfile = {
   iconUrl?: string
   playerId?: string
   rrRating?: number
+  birthday?: string
 }
 
 export default function MyPage() {
@@ -49,6 +50,7 @@ export default function MyPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [birthday, setBirthday] = useState("")
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -81,6 +83,15 @@ export default function MyPage() {
       }
     }
   }, [previewUrl])
+
+  const saveBirthday = async () => {
+  const user = auth.currentUser
+  if (!user || !birthday) return
+
+  await setDoc(doc(db, "users", user.uid), {
+    birthday
+  }, { merge: true })
+}
 
   const openNameEdit = () => {
     setError("")
@@ -380,6 +391,32 @@ export default function MyPage() {
                 </button>
               </div>
             )}
+
+            <div className="mt-4">
+                {!profile.birthday ? (
+                  <>
+                    <input
+                      type="date"
+                      value={birthday}
+                      onChange={(e) => setBirthday(e.target.value)}
+                      className="h-10 w-full rounded-xl border px-3"
+                    />
+                    <button
+                      onClick={saveBirthday}
+                      className="mt-2 w-full h-10 bg-[#F2A900] rounded-xl"
+                    >
+                      保存
+                    </button>
+                    <p className="text-[12px] text-red-500">
+                      ※一度設定すると変更できません
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-[14px] text-gray-700">
+                    誕生日：{profile.birthday}
+                  </p>
+                )}
+              </div>
 
             {/* Player ID */}
             <div className="mt-3 flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3">

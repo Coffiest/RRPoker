@@ -2,7 +2,7 @@
 
           import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
           import { auth, db } from "@/lib/firebase"
-          import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore"
+          import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
           import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2 } from "react-icons/fi"
           import HomeHeader from "@/components/HomeHeader"
           import { useRouter } from "next/navigation"
@@ -174,6 +174,9 @@
 
             useEffect(() => {
               const unsub = auth.onAuthStateChanged(user => {
+
+
+                
                 setUserId(user?.uid ?? null)
               })
               return () => unsub()
@@ -203,6 +206,64 @@
 
               const unsub = onSnapshot(ref, async (snap) => {
                 const data = snap.data()
+
+
+
+                                  // ===== 誕生日クーポン付与 START =====
+                  const today = new Date()
+                  const todayStr = today.toISOString().slice(5, 10)
+
+                  const birthday = data?.birthday?.slice(5, 10)
+
+                  if (birthday === todayStr && userId) {
+                    const storeId = data?.currentStoreId
+                    if (storeId) {
+
+                      const storeSnap = await getDoc(doc(db, "stores", storeId))
+                      const store = storeSnap.data()
+
+                      if (store?.birthdayCouponEnabled) {
+
+                        const ticketSnap = await getDocs(collection(db, "users", userId, "tickets"))
+
+                        const alreadyHas = ticketSnap.docs.some(docSnap =>
+                          docSnap.data().name === store.birthdayCouponName
+                        )
+
+                        if (!alreadyHas) {
+                      await addDoc(collection(db, "users", userId, "tickets"), {
+                            name: store.birthdayCouponName,
+                            storeId: storeId,
+                            createdAt: serverTimestamp(),
+                            expiresAt: (() => {
+                              if (store.birthdayCouponUnlimited) return null
+
+                              const now = new Date()
+                              const value = Number(store.birthdayCouponExpiryValue ?? 0)
+
+                              if (!value || value <= 0) return null
+
+                              if (store.birthdayCouponExpiryUnit === "day") {
+                                return new Date(now.getTime() + value * 24 * 60 * 60 * 1000)
+                              }
+
+                              if (store.birthdayCouponExpiryUnit === "month") {
+                                const d = new Date(now)
+                                d.setMonth(d.getMonth() + value)
+                                return d
+                              }
+
+                              return null
+                            })(),
+                            isUsed: false
+                          })
+                        }
+                      }
+                    }
+                  }
+// ===== 誕生日クーポン付与 END =====
+
+
 
                 const userRole = data?.role ?? null
                 setRole(userRole)

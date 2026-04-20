@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+
 import {
   addDoc,
   collection,
@@ -19,7 +20,8 @@ import {
   updateDoc,
   setDoc
 } from "firebase/firestore"
-import { FiArrowLeft, FiTrash2, FiHome, FiCreditCard, FiUser } from "react-icons/fi"
+
+import { FiArrowLeft, FiTrash2, FiHome, FiCreditCard, FiUser, FiPlus } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -52,6 +54,14 @@ export default function StoreSettingsPage() {
   const [couponError, setCouponError] = useState("")
   const [couponSuccess, setCouponSuccess] = useState("")
   const [isApprovalRequired, setIsApprovalRequired] = useState(true)
+  const [birthdayCouponEnabled, setBirthdayCouponEnabled] = useState(false)
+  const [birthdayCouponName, setBirthdayCouponName] = useState("")
+  const [birthdayCouponExpiryValue, setBirthdayCouponExpiryValue] = useState("")
+  const [birthdayCouponExpiryUnit, setBirthdayCouponExpiryUnit] = useState<"day" | "month">("day")
+  const [birthdayCouponUnlimited, setBirthdayCouponUnlimited] = useState(false)
+  const [birthdayCouponSuccess, setBirthdayCouponSuccess] = useState("")
+  const [birthdayCouponError, setBirthdayCouponError] = useState("")
+
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -76,6 +86,11 @@ export default function StoreSettingsPage() {
       setCheckinBonusEnabled(data?.checkinBonusEnabled ?? false)
       setCouponName(data?.checkinBonusCouponName ?? "")
       setIsApprovalRequired(data?.isApprovalRequired ?? true)
+      setBirthdayCouponEnabled(data?.birthdayCouponEnabled ?? false)
+      setBirthdayCouponName(data?.birthdayCouponName ?? "")
+      setBirthdayCouponExpiryValue(data?.birthdayCouponExpiryValue?.toString() ?? "")
+      setBirthdayCouponExpiryUnit(data?.birthdayCouponExpiryUnit ?? "day")
+      setBirthdayCouponUnlimited(data?.birthdayCouponUnlimited ?? false)
     }
     fetchStore()
   }, [storeId])
@@ -180,6 +195,43 @@ export default function StoreSettingsPage() {
   await updateDoc(doc(db, "stores", storeId), {
     checkinBonusEnabled: next
   })
+}
+
+const toggleBirthdayCoupon = async () => {
+  if (!storeId) return
+  const next = !birthdayCouponEnabled
+  setBirthdayCouponEnabled(next)
+
+  await updateDoc(doc(db, "stores", storeId), {
+    birthdayCouponEnabled: next
+  })
+}
+
+const saveBirthdayCoupon = async () => {
+  if (!storeId) return
+
+  if (!birthdayCouponName.trim()) {
+    setBirthdayCouponError("クーポン名を入力してください")
+    return
+  }
+
+  if (!birthdayCouponUnlimited && !birthdayCouponExpiryValue) {
+    setBirthdayCouponError("有効期限を入力してください")
+    return
+  }
+
+  setBirthdayCouponError("")
+  setBirthdayCouponSuccess("")
+
+  await updateDoc(doc(db, "stores", storeId), {
+    birthdayCouponName,
+    birthdayCouponExpiryValue: birthdayCouponUnlimited ? null : Number(birthdayCouponExpiryValue),
+    birthdayCouponExpiryUnit,
+    birthdayCouponUnlimited
+  })
+
+  setBirthdayCouponSuccess("保存しました")
+  setTimeout(() => setBirthdayCouponSuccess(""), 2000)
 }
 
 const toggleApprovalRequired = async () => {
@@ -316,6 +368,15 @@ const saveCouponName = async () => {
 
   return (
     <main className="min-h-screen bg-white pb-28">
+
+      <style>{`
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+`}</style>
+
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -433,6 +494,102 @@ const saveCouponName = async () => {
   </div>
 
 </div>
+
+
+<div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+
+  <p className="text-[14px] font-semibold text-gray-900">
+    誕生日クーポン
+  </p>
+
+  <p className="text-[12px] text-gray-500 mt-1">
+    誕生日にクーポンを自動配布
+  </p>
+
+  <div className="mt-4 flex items-center justify-between">
+    <span className="text-[14px] text-gray-800">有効にする</span>
+
+    <button
+      role="switch"
+      aria-checked={birthdayCouponEnabled}
+      onClick={toggleBirthdayCoupon}
+      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
+        birthdayCouponEnabled ? "bg-[#34C759]" : "bg-gray-900"
+      }`}
+    >
+      <span
+        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
+          birthdayCouponEnabled ? "translate-x-5" : ""
+        }`}
+      />
+    </button>
+  </div>
+
+  {birthdayCouponEnabled && (
+    <div className="mt-4 space-y-3">
+
+<input
+  value={birthdayCouponName}
+  onChange={(e) => setBirthdayCouponName(e.target.value)}
+  placeholder="クーポン名"
+  className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
+/>
+
+      <div className="flex gap-2">
+<input
+  value={birthdayCouponExpiryValue}
+  onChange={(e) => setBirthdayCouponExpiryValue(e.target.value)}
+  placeholder="7"
+  className="w-20 h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
+  disabled={birthdayCouponUnlimited}
+/>
+
+          <select
+            value={birthdayCouponExpiryUnit}
+            onChange={(e) => setBirthdayCouponExpiryUnit(e.target.value as any)}
+            className="h-10 rounded-xl border border-gray-200 px-2 text-[14px] text-gray-900"
+            disabled={birthdayCouponUnlimited}
+          >
+          <option value="day">日</option>
+          <option value="month">ヶ月</option>
+        </select>
+      </div>
+
+      <label className="flex items-center gap-2 text-[13px] text-gray-700">
+        <input
+          type="checkbox"
+          checked={birthdayCouponUnlimited}
+          onChange={(e) => setBirthdayCouponUnlimited(e.target.checked)}
+        />
+        無期限
+      </label>
+
+      <button
+        onClick={saveBirthdayCoupon}
+
+        
+        className="mt-3 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+      >
+        保存する
+      </button>
+
+      {birthdayCouponError && (
+  <p className="text-[12px] text-red-500">
+    {birthdayCouponError}
+  </p>
+)}
+
+{birthdayCouponSuccess && (
+  <p className="text-[12px] text-green-600">
+    {birthdayCouponSuccess}
+  </p>
+)}
+
+    </div>
+  )}
+</div>
+
+
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <p className="text-[14px] font-semibold text-gray-900">
@@ -732,6 +889,39 @@ const saveCouponName = async () => {
           </div>
         </div>
       )}
+
+      
+
+      {/* Bottom Navigation */}
+<nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
+  <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
+    <button
+      type="button"
+      onClick={() => router.push("/home/store")}
+      className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
+    >
+      <FiHome size={22} />
+      <span className="mt-1 text-[11px] font-medium">ホーム</span>
+    </button>
+
+    <button
+      type="button"
+      onClick={() => router.push("/home/store/tournaments")}
+      className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
+    >
+      <FiPlus size={28} />
+    </button>
+
+    <button
+      type="button"
+      onClick={() => router.push("/home/store/mypage")}
+      className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
+    >
+      <FiUser size={22} />
+      <span className="mt-1 text-[11px]">マイページ</span>
+    </button>
+  </div>
+</nav>
 
       
     </main>

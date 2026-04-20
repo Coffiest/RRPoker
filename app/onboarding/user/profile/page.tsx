@@ -23,6 +23,7 @@ export default function UserProfileOnboardingPage() {
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const idCheckTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [birthday, setBirthday] = useState("")
   
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -181,15 +182,16 @@ export default function UserProfileOnboardingPage() {
 
       const finalPlayerId = `@${playerId.replace(/^@/, '')}`
 
-      await setDoc(
-        doc(db, 'users', userId),
-        { 
-          name: name.trim(), 
-          playerId: finalPlayerId,
-          ...(iconUrl ? { iconUrl } : {}) 
-        },
-        { merge: true }
-      )
+await setDoc(
+  doc(db, 'users', userId),
+  { 
+    name: name.trim(), 
+    playerId: finalPlayerId,
+    birthday,
+    ...(iconUrl ? { iconUrl } : {}) 
+  },
+  { merge: true }
+)
 
       setIsExiting(true)
       window.setTimeout(() => {
@@ -325,6 +327,22 @@ export default function UserProfileOnboardingPage() {
           {idStatus === 'available' && !idError && (
             <p className="mt-2 text-[12px] text-green-600">このIDは利用可能です</p>
           )}
+
+
+          <div className="mt-6">
+  <p className="text-[14px] text-gray-900">誕生日</p>
+
+  <input
+    type="date"
+    value={birthday}
+    onChange={(e) => setBirthday(e.target.value)}
+    className="mt-3 h-12 w-full rounded-2xl border border-gray-200 px-4 text-[16px]"
+  />
+
+  <p className="mt-1 text-[12px] text-red-500">
+    ※誕生日は後から変更できません
+  </p>
+</div>
 
           {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
 
