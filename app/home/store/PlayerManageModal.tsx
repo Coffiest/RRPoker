@@ -146,13 +146,13 @@ const unsub = onSnapshot(
       p.id
     )
 
-    await setDoc(entryRef, {
-      name: p.name,
-      isTemp: p.isTemp ?? false,
-      entryCount: p.entryCount ?? 0,
-      reentryCount: p.reentryCount ?? 0,
-      addonCount: p.addonCount ?? 0,
-    })
+await setDoc(entryRef, {
+  name: p.name ?? "",
+  isTemp: p.isTemp ?? false,
+  entryCount: p.entryCount ?? 0,
+  reentryCount: p.reentryCount ?? 0,
+  addonCount: p.addonCount ?? 0,
+})
 
     totalEntry += p.entryCount ?? 0
     totalReentry += p.reentryCount ?? 0
@@ -176,7 +176,7 @@ const handleTournamentBustChange = (delta: number) => {
 }
 
 const addTempPlayer = () => {
-  if (!newTempName.trim()) return
+  if (!newTempName || !newTempName.trim()) return
 
   const id = "temp_" + Date.now()
 
