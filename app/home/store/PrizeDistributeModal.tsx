@@ -158,23 +158,28 @@ for (const d of entriesSnap.docs) {
 
   
 
-  // 仮プレイヤー
-  if (userId.startsWith("temp_")) {
-    list.push({
-      id: userId,
-      name: data.name ?? "TEMP",
-    })
-  } else {
-    const uSnap = await getDoc(doc(db, "users", userId))
-    const ud: any = uSnap.data()
+// 仮プレイヤーは完全除外
+if (userId.startsWith("temp_")) continue
 
-    list.push({
-      id: userId,
-      name: ud?.name ?? "Unknown",
-      iconUrl: ud?.iconUrl,
-    })
-  }
+const uSnap = await getDoc(doc(db, "users", userId))
+const ud: any = uSnap.data()
+
+list.push({
+  id: userId,
+  name: ud?.name ?? "Unknown",
+  iconUrl: ud?.iconUrl,
+})
+
+
+
+
 }
+
+
+
+
+
+
 
 setParticipants(list)
 

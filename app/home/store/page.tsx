@@ -431,6 +431,46 @@ export default function StorePage() {
     setAdjustModalPlayer(null); setAdjustValue("")
   }
 
+  const runPrizeAdjustment = async () => {
+  if (!storeId || !adjustModalPlayer) return
+
+  const amount = Number(adjustValue)
+  if (!amount || amount < 1) return
+
+  const pid = adjustModalPlayer.id
+
+  const balRef = doc(db, "users", pid, "storeBalances", storeId)
+
+  // バンクロール & 純増 両方加算
+  await updateDoc(balRef, {
+    balance: increment(amount),
+    netGain: increment(amount),
+  })
+
+  // トランザクション履歴
+  await setDoc(doc(collection(db, "transactions")), {
+    storeId,
+    playerId: pid,
+    playerName: adjustModalPlayer.name ?? null,
+    amount: amount,
+    direction: "add",
+    type: "tournament_payout",
+    createdAt: serverTimestamp(),
+  })
+
+  // UI更新
+  setStorePlayers(prev =>
+    prev.map(p =>
+      p.id === pid
+        ? { ...p, balance: p.balance + amount, netGain: p.netGain + amount }
+        : p
+    )
+  )
+
+  setAdjustModalPlayer(null)
+  setAdjustValue("")
+}
+
   const approvePlayer = async (playerId: string) => {
     if (!storeId) return
     const storeSnap = await getDoc(doc(db, "stores", storeId)); const storeData = storeSnap.data()
@@ -1144,6 +1184,16 @@ export default function StorePage() {
                 <button key={b.t} className="adj-btn adj-btn-dark" onClick={() => runStoreAdjustment(b.t)}>{b.l}</button>
               ))}
             </div>
+
+            <button
+              className="adj-btn adj-btn-gold"
+              onClick={runPrizeAdjustment}
+              style={{ width: "100%", marginBottom: 14 }}
+            >
+              PRIZE
+            </button>
+
+
 
             {/* 手動調整 */}
             <div style={{ height: 1, background: 'var(--sep)', margin: '4px 0 14px' }}/>

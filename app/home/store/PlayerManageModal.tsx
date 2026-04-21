@@ -28,6 +28,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [newTempName, setNewTempName] = useState("")
   const [localPlayers, setLocalPlayers] = useState<any[]>([])
   const [localBust, setLocalBust] = useState(0)
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     if (!storeId || !tournamentId) {
@@ -54,59 +55,61 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
 if (!storeId || !tournamentId) return
 
 
+
+
+
+
+
 const unsub = onSnapshot(
   query(collection(db, "users"), where("currentStoreId", "==", storeId)),
   async (usersSnap) => {
     try {
+      const listMap: Record<string, any> = {}
 
-      const list: any[] = []
-
-      for (const userDoc of usersSnap.docs) {
-        const userData = userDoc.data()
-
-        
-
-        const entryRef = doc(
-          db,
-          "stores",
-          storeId,
-          "tournaments",
-          tournamentId,
-          "entries",
-          userDoc.id
-        )
-
-        const entrySnap = await getDoc(entryRef)
-        const entryData = entrySnap.exists() ? entrySnap.data() : {}
-
-        list.push({
-          id: userDoc.id,
-          name: userData.name,
-          iconUrl: userData.iconUrl,
-          entryCount: entryData.entryCount ?? 0,
-          reentryCount: entryData.reentryCount ?? 0,
-          addonCount: entryData.addonCount ?? 0,
-        })
-      }
-
-      // 仮プレイヤー追加
+      // ① entriesを先に全部取得（これがベース）
       const entriesSnap = await getDocs(
         collection(db, "stores", storeId, "tournaments", tournamentId, "entries")
       )
 
       entriesSnap.forEach(d => {
-        if (d.id.startsWith("temp_")) {
-          const data = d.data()
-          list.push({
-            id: d.id,
-            name: data.name,
-            isTemp: true,
-            entryCount: data.entryCount ?? 0,
-            reentryCount: data.reentryCount ?? 0,
-            addonCount: data.addonCount ?? 0,
-          })
+        const data = d.data()
+
+        listMap[d.id] = {
+          id: d.id,
+          name: data.name ?? "",
+          isTemp: d.id.startsWith("temp_"),
+          entryCount: data.entryCount ?? 0,
+          reentryCount: data.reentryCount ?? 0,
+          addonCount: data.addonCount ?? 0,
         }
       })
+
+      // ② 現在入店ユーザーをマージ
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data()
+        const id = userDoc.id
+
+        if (listMap[id]) {
+          // 既存（entriesにいる）→ 名前など更新
+          listMap[id] = {
+            ...listMap[id],
+            name: userData.name ?? listMap[id].name,
+            iconUrl: userData.iconUrl,
+          }
+        } else {
+          // 新規（まだエントリーしてないが入店中）
+          listMap[id] = {
+            id,
+            name: userData.name,
+            iconUrl: userData.iconUrl,
+            entryCount: 0,
+            reentryCount: 0,
+            addonCount: 0,
+          }
+        }
+      }
+
+      const list = Object.values(listMap)
 
       setPlayers(list)
       setLocalPlayers(list)
@@ -118,7 +121,7 @@ const unsub = onSnapshot(
     setLoading(false)
   }
 )
-        
+
     return () => {
       unsub()
       unsubTournament()
@@ -227,7 +230,9 @@ const handleEntryChange = (
   )
 }
 
-const allPlayers = localPlayers
+const allPlayers = localPlayers.filter(p =>
+  (p.name ?? "").toLowerCase().includes(search.toLowerCase())
+)
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
@@ -314,10 +319,20 @@ const allPlayers = localPlayers
                 >＋</button>
               </div>
             </div>
+
+            <div className="mb-3">
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="プレイヤー検索"
+                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm text-gray-900 placeholder:text-gray-400"
+              />
+            </div>
+
             {/* プレイヤー表示（コンパクト・横並び・スクロール対応） */}
             <div className="max-h-[50vh] overflow-y-auto space-y-3">
               {allPlayers.length === 0 ? (
-                <p className="text-gray-500 text-center">No Players</p>
+                <p className="text-gray-500 text-center">プレイヤーが見つからなかったよ... </p>
               ) : (
                 allPlayers.map(player => (
 

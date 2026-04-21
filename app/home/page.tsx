@@ -85,6 +85,7 @@ export default function HomePage() {
   const [hasShownStamp, setHasShownStamp] = useState(false)
   const shownWithdrawIdsRef = useRef<Set<string>>(new Set())
   const [withdrawNotice, setWithdrawNotice] = useState<{ type: "approved" | "rejected" | "pending"; amount: number } | null>(null)
+  const prevCurrentStoreIdRef = useRef<string | null>(null)
 
   // ── すべての useEffect（ロジック完全保持）──────────────────────────
   useEffect(() => {
@@ -323,6 +324,17 @@ export default function HomePage() {
   }, [userId])
 
   useEffect(() => { setIsHistoryFlipped(false) }, [currentStoreId])
+
+  useEffect(() => {
+  const prev = prevCurrentStoreIdRef.current
+
+  // null → 値あり（入店した瞬間）
+  if (prev === null && currentStoreId !== null) {
+    setSelectedStore(null)
+  }
+
+  prevCurrentStoreIdRef.current = currentStoreId
+}, [currentStoreId])
 
   // ── ロジック関数（完全保持）──────────────────────────────────────
   const currentStore = currentStoreId ? stores[currentStoreId] : null
