@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
+import { createPortal } from "react-dom"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
-import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2 } from "react-icons/fi"
+import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -24,6 +25,22 @@ type StoreInfo = {
 type UserProfile = { name?: string; iconUrl?: string }
 type StorePlayer = { id: string; name?: string; iconUrl?: string }
 type RRPlayer = { id: string; name?: string; iconUrl?: string; roi: number; rrRating: number; rank: number }
+type HAction = { street: string; position: string; action: string; amount?: number }
+
+const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
+const HAND_SUITS = ["s","h","d","c"]
+const HAND_SUIT_SYM: Record<string,string> = { s:"♠", h:"♥", d:"♦", c:"♣" }
+const HAND_SUIT_CLR: Record<string,string> = { s:"#374151", h:"#e84040", d:"#3b7dd8", c:"#2da44e" }
+const HAND_POSITIONS: Record<number,string[]> = {
+  2:["SB","BB"], 3:["BTN","SB","BB"], 4:["CO","BTN","SB","BB"],
+  5:["HJ","CO","BTN","SB","BB"], 6:["MP","HJ","CO","BTN","SB","BB"],
+  7:["UTG","MP","HJ","CO","BTN","SB","BB"],
+  8:["UTG","UTG+1","HJ","CO","BTN","SB","BB"],
+  9:["UTG","UTG+1","MP","HJ","CO","BTN","SB","BB"],
+}
+const HAND_ACT_TYPES = ["fold","check","call","bet","raise","allin"]
+const HAND_ACT_SHORT: Record<string,string> = { fold:"F", check:"X", call:"C", bet:"B", raise:"R", allin:"A" }
+const HAND_ACT_JP: Record<string,string> = { fold:"フォールド", check:"チェック", call:"コール", bet:"ベット", raise:"レイズ", allin:"オールイン" }
 
 export default function HomePage() {
   const getVisitCountResetBase = (date: Date) => {
@@ -86,6 +103,45 @@ export default function HomePage() {
   const shownWithdrawIdsRef = useRef<Set<string>>(new Set())
   const [withdrawNotice, setWithdrawNotice] = useState<{ type: "approved" | "rejected" | "pending"; amount: number } | null>(null)
   const prevCurrentStoreIdRef = useRef<string | null>(null)
+
+  // ── チップ増減グラフ
+  const [chipGraphTab, setChipGraphTab] = useState<"7" | "1m" | "all">("all")
+
+  // ── カレンダー
+  const now = new Date()
+  const [calYear, setCalYear] = useState(now.getFullYear())
+  const [calMonth, setCalMonth] = useState(now.getMonth())
+  const [calFavTournaments, setCalFavTournaments] = useState<any[]>([])
+  const [calDetailTournament, setCalDetailTournament] = useState<any | null>(null)
+  const [calDetailPreset, setCalDetailPreset] = useState<any | null>(null)
+
+  // ── ハンドレビュー
+  const [isHandModalOpen, setIsHandModalOpen] = useState(false)
+  const [handStep, setHandStep] = useState(1)
+  const [hTitle, setHTitle] = useState("")
+  const [hSb, setHSb] = useState("")
+  const [hBb, setHBb] = useState("")
+  const [hPlayerCount, setHPlayerCount] = useState(6)
+  const [hHeroPos, setHHeroPos] = useState("BTN")
+  const [hHeroCards, setHHeroCards] = useState<(string|null)[]>([null, null])
+  const [hFlop, setHFlop] = useState<(string|null)[]>([null, null, null])
+  const [hTurn, setHTurn] = useState<string|null>(null)
+  const [hRiver, setHRiver] = useState<string|null>(null)
+  const [hVillainCards, setHVillainCards] = useState<Record<string,(string|null)[]>>({})
+  const [hHasFlop, setHHasFlop] = useState(false)
+  const [hHasTurn, setHHasTurn] = useState(false)
+  const [hHasRiver, setHHasRiver] = useState(false)
+  const [hPickerTarget, setHPickerTarget] = useState<string|null>(null)
+  const [hActions, setHActions] = useState<HAction[]>([])
+  const [hActionStreet, setHActionStreet] = useState<"preflop"|"flop"|"turn"|"river">("preflop")
+  const [hNewActionPos, setHNewActionPos] = useState("")
+  const [hNewActionType, setHNewActionType] = useState("")
+  const [hNewActionAmount, setHNewActionAmount] = useState("")
+  const [hShowNewAction, setHShowNewAction] = useState(false)
+  const [hNote, setHNote] = useState("")
+  const [hSaving, setHSaving] = useState(false)
+  const [hSavedId, setHSavedId] = useState<string|null>(null)
+  const [hError, setHError] = useState("")
 
   // ── すべての useEffect（ロジック完全保持）──────────────────────────
   useEffect(() => {
@@ -326,6 +382,26 @@ export default function HomePage() {
   useEffect(() => { setIsHistoryFlipped(false) }, [currentStoreId])
 
   useEffect(() => {
+    const loadCalTournaments = async () => {
+      if (favoriteStores.length === 0) { setCalFavTournaments([]); return }
+      try {
+        const all: any[] = []
+        await Promise.all(favoriteStores.map(async sid => {
+          const storeSnap = await getDoc(doc(db, "stores", sid))
+          const storeName = storeSnap.data()?.name ?? "店舗"
+          const snap = await getDocs(collection(db, "stores", sid, "tournaments"))
+          snap.forEach(d => {
+            const data = d.data()
+            all.push({ id: d.id, storeId: sid, storeName, ...data })
+          })
+        }))
+        setCalFavTournaments(all)
+      } catch {}
+    }
+    loadCalTournaments()
+  }, [favoriteStores])
+
+  useEffect(() => {
   const prev = prevCurrentStoreIdRef.current
 
   // null → 値あり（入店した瞬間）
@@ -460,6 +536,153 @@ export default function HomePage() {
     if (rank === 2) return "medal-silver"
     if (rank === 3) return "medal-bronze"
     return "bg-white border border-gray-200 shadow-sm"
+  }
+
+  // ── チップグラフ用データ計算
+  const chipGraphData = useMemo(() => {
+    const nowSec = Date.now() / 1000
+    const items = [...tournamentHistoryItems].sort((a, b) => (a.startedAt?.seconds ?? 0) - (b.startedAt?.seconds ?? 0))
+    const filtered = (() => {
+      if (chipGraphTab === "7") return items.slice(-7)
+      if (chipGraphTab === "1m") return items.filter(i => (i.startedAt?.seconds ?? 0) >= nowSec - 30 * 86400)
+      return items
+    })()
+    let running = 0
+    const points: number[] = [0]
+    filtered.forEach(item => {
+      const entryFee = item.entryFee ?? 0, reentryFee = item.reentryFee ?? 0, addonFee = item.addonFee ?? 0
+      const cost = (item.entryCount ?? 0) * entryFee + (item.reentryCount ?? 0) * reentryFee + (item.addonCount ?? 0) * addonFee
+      running += (item.prize ?? 0) - cost
+      points.push(running)
+    })
+    return points
+  }, [tournamentHistoryItems, chipGraphTab])
+
+  // ── カレンダー用エントリー生成
+  const calEntries = useMemo(() => {
+    const map: Record<string, any[]> = {}
+    const firstDay = new Date(calYear, calMonth, 1)
+    const lastDay = new Date(calYear, calMonth + 1, 0)
+    calFavTournaments.forEach(t => {
+      if (!t.date) return
+      if (t.repeatWeekly) {
+        const base = new Date(t.date + "T00:00:00")
+        const dow = base.getDay()
+        const cur = new Date(firstDay)
+        while (cur.getDay() !== dow) cur.setDate(cur.getDate() + 1)
+        while (cur <= lastDay) {
+          const ds = cur.toISOString().slice(0, 10)
+          if (!map[ds]) map[ds] = []
+          map[ds].push({ ...t, date: ds })
+          cur.setDate(cur.getDate() + 7)
+        }
+      } else {
+        const monthStr = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`
+        if (t.date.startsWith(monthStr)) {
+          if (!map[t.date]) map[t.date] = []
+          map[t.date].push(t)
+        }
+      }
+    })
+    return map
+  }, [calFavTournaments, calYear, calMonth])
+
+  // ── ハンドレビュー computed
+  const hPositions = useMemo(() => HAND_POSITIONS[hPlayerCount] ?? HAND_POSITIONS[6], [hPlayerCount])
+  const hUsedCards = useMemo(() => {
+    const s = new Set<string>()
+    hHeroCards.forEach(c => { if (c) s.add(c) })
+    if (hHasFlop) hFlop.forEach(c => { if (c) s.add(c) })
+    if (hHasTurn && hTurn) s.add(hTurn)
+    if (hHasRiver && hRiver) s.add(hRiver)
+    Object.values(hVillainCards).forEach(vc => vc.forEach(c => { if (c) s.add(c) }))
+    return s
+  }, [hHeroCards, hFlop, hTurn, hRiver, hVillainCards, hHasFlop, hHasTurn, hHasRiver])
+
+  const resetHand = () => {
+    setHandStep(1); setHTitle(""); setHSb(""); setHBb(""); setHPlayerCount(6); setHHeroPos("BTN")
+    setHHeroCards([null, null]); setHFlop([null, null, null]); setHTurn(null); setHRiver(null)
+    setHVillainCards({}); setHHasFlop(false); setHHasTurn(false); setHHasRiver(false); setHPickerTarget(null)
+    setHActions([]); setHActionStreet("preflop"); setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount(""); setHShowNewAction(false)
+    setHNote(""); setHSaving(false); setHSavedId(null); setHError("")
+  }
+
+  const saveHand = async () => {
+    if (!userId) return
+    if (hHeroCards.some(c => !c)) { setHError("ヒーローカードを2枚選んでください"); return }
+    setHSaving(true); setHError("")
+    try {
+      const ref = await addDoc(collection(db, "handHistories"), {
+        creatorId: userId,
+        creatorName: profile.name ?? "Unknown",
+        createdAt: serverTimestamp(),
+        title: hTitle.trim(),
+        stakes: { sb: Number(hSb) || 0, bb: Number(hBb) || 0 },
+        heroPosition: hHeroPos,
+        playerPositions: hPositions,
+        heroCards: hHeroCards.filter(Boolean),
+        villainCards: Object.fromEntries(
+          Object.entries(hVillainCards)
+            .map(([p, cs]) => [p, cs.filter(Boolean)])
+            .filter(([, cs]) => (cs as string[]).length === 2)
+        ),
+        board: {
+          flop: hHasFlop ? hFlop.filter(Boolean) : null,
+          turn: hHasTurn ? hTurn : null,
+          river: hHasRiver ? hRiver : null,
+        },
+        actions: hActions,
+        note: hNote.trim(),
+      })
+      setHSavedId(ref.id)
+    } catch { setHError("保存に失敗しました") } finally { setHSaving(false) }
+  }
+
+  const shareHand = async () => {
+    if (!hSavedId) return
+    const url = `${window.location.origin}/hand/${hSavedId}`
+    if (navigator.share) {
+      try { await navigator.share({ title: hTitle || "ハンドレビュー", url }) } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(url) } catch {}
+    }
+  }
+
+  const hSetCardAtTarget = (target: string, card: string | null) => {
+    if (target === "hero0") setHHeroCards(prev => [card, prev[1]])
+    else if (target === "hero1") setHHeroCards(prev => [prev[0], card])
+    else if (target === "flop0") setHFlop(prev => [card, prev[1], prev[2]])
+    else if (target === "flop1") setHFlop(prev => [prev[0], card, prev[2]])
+    else if (target === "flop2") setHFlop(prev => [prev[0], prev[1], card])
+    else if (target === "turn") setHTurn(card)
+    else if (target === "river") setHRiver(card)
+    else if (target.startsWith("villain_")) {
+      const parts = target.split("_")
+      const pos = parts.slice(1, -1).join("_")
+      const idx = Number(parts[parts.length - 1])
+      setHVillainCards(prev => {
+        const cards: (string|null)[] = prev[pos] ? [...prev[pos]] : [null, null]
+        cards[idx] = card
+        return { ...prev, [pos]: cards }
+      })
+    }
+  }
+
+  const hGetCardAtTarget = (target: string): string | null => {
+    if (target === "hero0") return hHeroCards[0]
+    if (target === "hero1") return hHeroCards[1]
+    if (target === "flop0") return hFlop[0]
+    if (target === "flop1") return hFlop[1]
+    if (target === "flop2") return hFlop[2]
+    if (target === "turn") return hTurn
+    if (target === "river") return hRiver
+    if (target.startsWith("villain_")) {
+      const parts = target.split("_")
+      const pos = parts.slice(1, -1).join("_")
+      const idx = Number(parts[parts.length - 1])
+      return hVillainCards[pos]?.[idx] ?? null
+    }
+    return null
   }
 
   // ════════════════════════════════════════════════════
@@ -637,6 +860,20 @@ export default function HomePage() {
         .net-positive { color:#10b981; }
         .net-negative { color:#ef4444; }
         .net-neutral  { color:#6b7280; }
+
+        /* ── チップグラフ ── */
+        @keyframes drawLine {
+          from { stroke-dashoffset: 1; }
+          to   { stroke-dashoffset: 0; }
+        }
+        .chart-line {
+          stroke-dasharray: 1;
+          stroke-dashoffset: 1;
+          animation: drawLine 0.9s ease-out forwards;
+        }
+
+        /* ── カレンダー ── */
+        .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F2A900; margin:0 auto; }
       `}</style>
 
       {/* ヘッダー（変更なし） */}
@@ -762,6 +999,61 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* チップ増減グラフ */}
+            {tournamentHistoryItems.length >= 2 && (() => {
+              const pts = chipGraphData
+              if (pts.length < 2) return null
+              const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
+              const minV = Math.min(...pts), maxV = Math.max(...pts)
+              const range = maxV - minV || 1
+              const xs = pts.map((_, i) => PL + (i / (pts.length - 1)) * (W - PL - PR))
+              const ys = pts.map(v => PT + ((maxV - v) / range) * (H - PT - PB))
+              const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")
+              const zeroY = PT + ((maxV - 0) / range) * (H - PT - PB)
+              const lastVal = pts[pts.length - 1]
+              const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
+              return (
+                <div className="section-card animate-slideUp">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
+                      <p className="text-[13px] font-semibold text-gray-900">トナメ収支グラフ</p>
+                    </div>
+                    <div className="flex gap-1">
+                      {(["7", "1m", "all"] as const).map(tab => (
+                        <button key={tab} type="button" onClick={() => setChipGraphTab(tab)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${chipGraphTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
+                          {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
+                    {/* zero line */}
+                    {zeroY >= PT && zeroY <= H - PB && (
+                      <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+                    )}
+                    {/* Y axis labels */}
+                    <text x={PL - 4} y={PT + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{maxV.toLocaleString()}</text>
+                    <text x={PL - 4} y={H - PB} textAnchor="end" fontSize="9" fill="#9ca3af">{minV.toLocaleString()}</text>
+                    {/* line */}
+                    <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={chipGraphTab} />
+                    {/* dots */}
+                    {xs.map((x, i) => (
+                      <circle key={i} cx={x.toFixed(1)} cy={ys[i].toFixed(1)} r="2.5" fill={lineColor} />
+                    ))}
+                  </svg>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-[10px] text-gray-400">{pts.length - 1}回参加</p>
+                    <p className={`text-[12px] font-bold ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
+                      {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* クイックスタット（入店中） */}
             <div className="grid grid-cols-2 gap-2">
               <div className="stat-chip">
@@ -876,6 +1168,62 @@ export default function HomePage() {
               )}
             </div>
 
+            {/* カレンダー（お気に入り店舗のトーナメント） */}
+            {favoriteStores.length > 0 && (() => {
+              const DOW_LABELS = ["日", "月", "火", "水", "木", "金", "土"]
+              const firstDow = new Date(calYear, calMonth, 1).getDay()
+              const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
+              const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+              return (
+                <div className="section-card animate-slideUp">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <FiCalendar className="text-[15px] text-[#F2A900]" />
+                      <p className="text-[13px] font-semibold text-gray-900">スケジュール</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={() => {
+                        const d = new Date(calYear, calMonth - 1, 1)
+                        setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
+                      }} className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center">
+                        <FiChevronLeft size={13} />
+                      </button>
+                      <span className="text-[13px] font-semibold text-gray-700 min-w-[64px] text-center">{calYear}/{String(calMonth + 1).padStart(2, "0")}</span>
+                      <button type="button" onClick={() => {
+                        const d = new Date(calYear, calMonth + 1, 1)
+                        setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
+                      }} className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center">
+                        <FiChevronRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                  {/* 曜日ヘッダー */}
+                  <div className="grid grid-cols-7 mb-1">
+                    {DOW_LABELS.map((l, i) => (
+                      <div key={l} className={`text-center text-[10px] font-semibold py-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"}`}>{l}</div>
+                    ))}
+                  </div>
+                  {/* 日グリッド */}
+                  <div className="grid grid-cols-7 gap-y-1">
+                    {Array.from({ length: firstDow }).map((_, i) => <div key={`e${i}`} />)}
+                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                      const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+                      const entries = calEntries[ds] ?? []
+                      const isToday = ds === todayStr
+                      return (
+                        <button key={ds} type="button"
+                          onClick={() => entries.length > 0 ? setCalDetailTournament({ date: ds, entries }) : null}
+                          className={`flex flex-col items-center py-1 rounded-xl transition-all ${entries.length > 0 ? "cursor-pointer hover:bg-amber-50" : "cursor-default"} ${isToday ? "bg-[#F2A900]/15" : ""}`}>
+                          <span className={`text-[12px] font-medium ${isToday ? "font-bold text-[#D4910A]" : new Date(ds).getDay() === 0 ? "text-red-400" : new Date(ds).getDay() === 6 ? "text-blue-400" : "text-gray-700"}`}>{day}</span>
+                          {entries.length > 0 && <div className="cal-day-dot mt-0.5" />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* RR Rating セクション */}
             <div>
               <div className="relative flex items-center gap-2 mb-3">
@@ -907,7 +1255,7 @@ export default function HomePage() {
                         </p>
                         {rrMyEntry && (
                           <div className="mb-1 rounded-full bg-white/20 px-2 py-0.5">
-                            <p className="text-[11px] font-bold text-white">{rrMyEntry.rank}位</p>
+                            <p className="text-[11px] font-bold text-white">全国{rrMyEntry.rank}位</p>
                           </div>
                         )}
                       </div>
@@ -1304,6 +1652,455 @@ export default function HomePage() {
             <button onClick={() => setWithdrawNotice(null)} className="mt-5 w-full h-11 rounded-2xl gold-btn text-gray-900 font-semibold text-[14px]">OK</button>
           </div>
         </div>
+      )}
+
+      {/* カレンダー詳細モーダル */}
+      {calDetailTournament && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center modal-overlay px-0" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }}>
+          <div className="w-full max-w-sm rounded-t-[28px] bg-white p-6 shadow-2xl animate-slideUp" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[16px] font-semibold text-gray-900">
+                {calDetailTournament.date}
+              </p>
+              <button type="button" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }} className="text-gray-400"><FiX size={20} /></button>
+            </div>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              {calDetailTournament.entries.map((entry: any, idx: number) => (
+                <div key={idx} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[14px] font-semibold text-gray-900">{entry.name || "トーナメント"}</p>
+                      <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}{entry.startTime ? ` • ${entry.startTime}` : ""}</p>
+                    </div>
+                    {entry.repeatWeekly && (
+                      <span className="rounded-full bg-[#F2A900]/15 px-2 py-0.5 text-[10px] font-bold text-[#D4910A]">毎週</span>
+                    )}
+                  </div>
+                  {entry.blindPresetId && (
+                    <button type="button"
+                      onClick={async () => {
+                        if (calDetailPreset?.tournamentId === `${entry.storeId}_${entry.id}`) { setCalDetailPreset(null); return }
+                        try {
+                          const snap = await getDoc(doc(db, "stores", entry.storeId, "blindPresets", entry.blindPresetId))
+                          if (snap.exists()) setCalDetailPreset({ tournamentId: `${entry.storeId}_${entry.id}`, ...snap.data() })
+                        } catch {}
+                      }}
+                      className="mt-2 text-[11px] font-semibold text-[#F2A900] underline underline-offset-2">
+                      ブラインド構成を見る
+                    </button>
+                  )}
+                  {calDetailPreset?.tournamentId === `${entry.storeId}_${entry.id}` && calDetailPreset.levels && (
+                    <div className="mt-2 rounded-xl bg-white border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                      {(calDetailPreset.levels as any[]).map((lv: any, li: number) => (
+                        <div key={li} className="px-3 py-2 flex items-center gap-3 text-[11px]">
+                          {lv.type === "break" ? (
+                            <span className="text-gray-400">☕ Break {lv.duration}min</span>
+                          ) : (
+                            <>
+                              <span className="font-bold text-gray-500 w-8">L{li + 1}</span>
+                              <span className="text-gray-700">{lv.smallBlind}/{lv.bigBlind}{lv.ante ? `+${lv.ante}` : ""}</span>
+                              <span className="ml-auto text-gray-400">{lv.duration}min</span>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ハンドレビュー FAB */}
+      <button
+        type="button"
+        onClick={() => setIsHandModalOpen(true)}
+        className="fixed bottom-[88px] right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
+      >
+        <FiFileText size={22} />
+      </button>
+
+      {/* ハンドレビューモーダル */}
+      {typeof window !== "undefined" && isHandModalOpen && createPortal(
+        <>
+          <div className="fixed inset-0 z-[200] bg-black/50" onClick={() => { if (!hSaving) { setIsHandModalOpen(false); resetHand() } }} />
+          <div className="fixed bottom-0 left-0 right-0 z-[201] mx-auto max-w-sm rounded-t-[28px] bg-white shadow-2xl flex flex-col" style={{ maxHeight: "92vh" }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-3">
+                {handStep > 1 && !hSavedId && (
+                  <button type="button" onClick={() => setHandStep(s => s - 1)} className="text-gray-400"><FiArrowLeft size={20} /></button>
+                )}
+                <div>
+                  <p className="text-[15px] font-semibold text-gray-900">
+                    {hSavedId ? "保存完了" : ["基本設定","カード","アクション","メモ & 保存"][handStep - 1]}
+                  </p>
+                  {!hSavedId && <p className="text-[11px] text-gray-400">{handStep} / 4</p>}
+                </div>
+              </div>
+              <button type="button" onClick={() => { if (!hSaving) { setIsHandModalOpen(false); resetHand() } }} className="text-gray-400"><FiX size={20} /></button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              {hSavedId ? (
+                <div className="text-center py-6">
+                  <p className="text-[48px] mb-3">🃏</p>
+                  <p className="text-[18px] font-bold text-gray-900 mb-1">保存しました！</p>
+                  <p className="text-[13px] text-gray-400 mb-5">リンクを共有できます</p>
+                  <button onClick={shareHand} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] mb-3 flex items-center justify-center gap-2 active:scale-95 transition-all">
+                    <FiShare2 size={16} />シェアする
+                  </button>
+                  <button onClick={() => { setIsHandModalOpen(false); resetHand() }} className="w-full h-12 rounded-2xl border border-gray-200 text-gray-600 font-medium text-[14px]">
+                    閉じる
+                  </button>
+                </div>
+              ) : handStep === 1 ? (
+                /* ── Step 1: 基本設定 ── */
+                <div className="space-y-4 pb-4">
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">タイトル（任意）</p>
+                    <input type="text" value={hTitle} onChange={e => setHTitle(e.target.value)} placeholder="例: JJでのスリーベット"
+                      className="w-full h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900]" />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">ステークス</p>
+                    <div className="flex items-center gap-2">
+                      <input type="number" value={hSb} onChange={e => setHSb(e.target.value)} placeholder="SB"
+                        className="flex-1 h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-center outline-none focus:border-[#F2A900]" />
+                      <span className="text-gray-400">/</span>
+                      <input type="number" value={hBb} onChange={e => setHBb(e.target.value)} placeholder="BB"
+                        className="flex-1 h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-center outline-none focus:border-[#F2A900]" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">プレイヤー人数</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {[2,3,4,5,6,7,8,9].map(n => (
+                        <button key={n} type="button" onClick={() => {
+                          setHPlayerCount(n)
+                          const pos = HAND_POSITIONS[n] ?? HAND_POSITIONS[6]
+                          if (!pos.includes(hHeroPos)) setHHeroPos(pos[0])
+                        }}
+                          className={`h-10 w-10 rounded-xl text-[14px] font-semibold border transition-colors
+                            ${hPlayerCount === n ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
+                        >{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">ヒーローポジション</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {hPositions.map(pos => (
+                        <button key={pos} type="button" onClick={() => setHHeroPos(pos)}
+                          className={`h-9 px-3 rounded-xl text-[13px] font-semibold border transition-colors
+                            ${hHeroPos === pos ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
+                        >{pos}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setHandStep(2)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all">次へ</button>
+                </div>
+              ) : handStep === 2 ? (
+                /* ── Step 2: カード ── */
+                <div className="space-y-5 pb-4">
+                  {/* Hero cards */}
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ヒーローカード</p>
+                    <div className="flex gap-2">
+                      {[0,1].map(i => {
+                        const card = hHeroCards[i]
+                        return (
+                          <button key={i} type="button" onClick={() => setHPickerTarget(`hero${i}`)}
+                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold transition-all active:scale-95
+                              ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
+                            style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
+                          >
+                            {card ? <><span className="text-[14px]">{card.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Board */}
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ボードカード</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[13px] text-gray-700">フロップ</p>
+                      <button type="button" onClick={() => setHHasFlop(v => !v)}
+                        className={`w-11 h-6 rounded-full transition-colors ${hHasFlop ? "bg-[#F2A900]" : "bg-gray-200"}`}>
+                        <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasFlop ? "translate-x-5" : "translate-x-0"}`} />
+                      </button>
+                    </div>
+                    {hHasFlop && (
+                      <div className="flex gap-2 mb-3">
+                        {[0,1,2].map(i => {
+                          const card = hFlop[i]
+                          return (
+                            <button key={i} type="button" onClick={() => setHPickerTarget(`flop${i}`)}
+                              className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold transition-all active:scale-95
+                                ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
+                              style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
+                            >
+                              {card ? <><span className="text-[14px]">{card.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                    {hHasFlop && (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[13px] text-gray-700">ターン</p>
+                          <button type="button" onClick={() => setHHasTurn(v => !v)}
+                            className={`w-11 h-6 rounded-full transition-colors ${hHasTurn ? "bg-[#F2A900]" : "bg-gray-200"}`}>
+                            <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasTurn ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
+                        </div>
+                        {hHasTurn && (
+                          <button type="button" onClick={() => setHPickerTarget("turn")}
+                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold mb-3 transition-all active:scale-95
+                              ${hTurn ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
+                            style={hTurn ? { color: HAND_SUIT_CLR[hTurn.slice(-1)] } : undefined}
+                          >
+                            {hTurn ? <><span className="text-[14px]">{hTurn.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[hTurn.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
+                          </button>
+                        )}
+                      </>
+                    )}
+                    {hHasFlop && hHasTurn && (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-[13px] text-gray-700">リバー</p>
+                          <button type="button" onClick={() => setHHasRiver(v => !v)}
+                            className={`w-11 h-6 rounded-full transition-colors ${hHasRiver ? "bg-[#F2A900]" : "bg-gray-200"}`}>
+                            <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasRiver ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
+                        </div>
+                        {hHasRiver && (
+                          <button type="button" onClick={() => setHPickerTarget("river")}
+                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold mb-3 transition-all active:scale-95
+                              ${hRiver ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
+                            style={hRiver ? { color: HAND_SUIT_CLR[hRiver.slice(-1)] } : undefined}
+                          >
+                            {hRiver ? <><span className="text-[14px]">{hRiver.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[hRiver.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Villain cards */}
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ヴィランカード（任意）</p>
+                    <div className="space-y-2">
+                      {hPositions.filter(p => p !== hHeroPos).map(pos => (
+                        <div key={pos} className="flex items-center gap-3">
+                          <span className="text-[13px] font-medium text-gray-600 w-12 shrink-0">{pos}</span>
+                          <div className="flex gap-1.5">
+                            {[0,1].map(i => {
+                              const card = hVillainCards[pos]?.[i] ?? null
+                              return (
+                                <button key={i} type="button" onClick={() => setHPickerTarget(`villain_${pos}_${i}`)}
+                                  className={`flex flex-col items-center justify-center w-10 h-12 rounded-xl border-2 font-bold transition-all active:scale-95
+                                    ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
+                                  style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
+                                >
+                                  {card ? <><span className="text-[12px]">{card.slice(0,-1)}</span><span className="text-[10px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[16px]">?</span>}
+                                </button>
+                              )
+                            })}
+                          </div>
+                          {hVillainCards[pos]?.some(c => c) && (
+                            <button type="button" onClick={() => setHVillainCards(prev => { const n = {...prev}; delete n[pos]; return n })}
+                              className="text-[11px] text-red-400">クリア</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button type="button" onClick={() => setHandStep(3)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all">次へ</button>
+                </div>
+              ) : handStep === 3 ? (
+                /* ── Step 3: アクション ── */
+                <div className="space-y-3 pb-4">
+                  {/* Street tabs */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                    {(["preflop", ...(hHasFlop ? ["flop"] : []), ...(hHasTurn ? ["turn"] : []), ...(hHasRiver ? ["river"] : [])] as ("preflop"|"flop"|"turn"|"river")[]).map(street => (
+                      <button key={street} type="button" onClick={() => { setHActionStreet(street); setHShowNewAction(false) }}
+                        className={`shrink-0 px-4 h-9 rounded-2xl text-[12px] font-semibold border transition-colors
+                          ${hActionStreet === street ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
+                      >
+                        {street === "preflop" ? "プリフロップ" : street === "flop" ? "フロップ" : street === "turn" ? "ターン" : "リバー"}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Board cards for current street */}
+                  {hActionStreet !== "preflop" && (
+                    <div className="flex gap-1.5">
+                      {hActionStreet === "flop" && hFlop.map((c, i) => c ? (
+                        <span key={i} className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[c.slice(-1)] }}>
+                          <span>{c.slice(0,-1)}</span><span>{HAND_SUIT_SYM[c.slice(-1)]}</span>
+                        </span>
+                      ) : null)}
+                      {hActionStreet === "turn" && hTurn && (
+                        <span className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[hTurn.slice(-1)] }}>
+                          <span>{hTurn.slice(0,-1)}</span><span>{HAND_SUIT_SYM[hTurn.slice(-1)]}</span>
+                        </span>
+                      )}
+                      {hActionStreet === "river" && hRiver && (
+                        <span className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[hRiver.slice(-1)] }}>
+                          <span>{hRiver.slice(0,-1)}</span><span>{HAND_SUIT_SYM[hRiver.slice(-1)]}</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action list */}
+                  <div className="space-y-1.5 min-h-[40px]">
+                    {hActions.filter(a => a.street === hActionStreet).length === 0 && !hShowNewAction && (
+                      <p className="text-[12px] text-gray-400 py-2">アクションなし</p>
+                    )}
+                    {hActions.filter(a => a.street === hActionStreet).map((a) => {
+                      const idx = hActions.indexOf(a)
+                      return (
+                        <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                          <span className={`text-[12px] font-bold w-12 shrink-0 ${a.position === hHeroPos ? "text-[#D4910A]" : "text-gray-500"}`}>{a.position}</span>
+                          <span className={`text-[12px] font-semibold flex-1 ${a.action === "fold" ? "text-gray-400" : a.action === "allin" ? "text-red-500" : "text-gray-800"}`}>
+                            {HAND_ACT_JP[a.action]}{a.amount ? ` ${a.amount.toLocaleString()}` : ""}
+                          </span>
+                          <button type="button" onClick={() => setHActions(prev => prev.filter((_, pi) => pi !== idx))} className="text-gray-300 hover:text-red-400"><FiX size={14} /></button>
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Add action form */}
+                  {hShowNewAction ? (
+                    <div className="border border-gray-200 rounded-2xl p-3 space-y-2">
+                      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                        {hPositions.map(pos => (
+                          <button key={pos} type="button" onClick={() => setHNewActionPos(pos)}
+                            className={`shrink-0 px-3 h-8 rounded-xl text-[12px] font-semibold border
+                              ${hNewActionPos === pos ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
+                          >{pos}</button>
+                        ))}
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {HAND_ACT_TYPES.map(act => (
+                          <button key={act} type="button" onClick={() => setHNewActionType(act)}
+                            className={`px-3 h-8 rounded-xl text-[12px] font-semibold border transition-colors
+                              ${hNewActionType === act ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
+                          >{HAND_ACT_SHORT[act]} {HAND_ACT_JP[act]}</button>
+                        ))}
+                      </div>
+                      {(hNewActionType === "bet" || hNewActionType === "raise" || hNewActionType === "allin") && (
+                        <input type="number" value={hNewActionAmount} onChange={e => setHNewActionAmount(e.target.value)} placeholder="金額"
+                          className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] outline-none focus:border-[#F2A900]" />
+                      )}
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => { setHShowNewAction(false); setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount("") }}
+                          className="flex-1 h-10 rounded-xl border border-gray-200 text-[13px] text-gray-500">キャンセル</button>
+                        <button type="button" disabled={!hNewActionPos || !hNewActionType}
+                          onClick={() => {
+                            if (!hNewActionPos || !hNewActionType) return
+                            const amount = (hNewActionType === "bet" || hNewActionType === "raise" || hNewActionType === "allin") && hNewActionAmount ? Number(hNewActionAmount) : undefined
+                            setHActions(prev => [...prev, { street: hActionStreet, position: hNewActionPos, action: hNewActionType, amount }])
+                            setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount("")
+                          }}
+                          className="flex-1 h-10 rounded-xl bg-[#F2A900] text-gray-900 font-semibold text-[13px] disabled:opacity-50">追加</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => { setHShowNewAction(true); setHNewActionPos(hPositions[0]) }}
+                      className="w-full h-10 rounded-2xl border-2 border-dashed border-gray-200 text-[13px] font-semibold text-gray-400 active:scale-95 transition-all">
+                      ＋ アクション追加
+                    </button>
+                  )}
+
+                  <button type="button" onClick={() => setHandStep(4)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all mt-2">次へ</button>
+                </div>
+              ) : (
+                /* ── Step 4: メモ & 保存 ── */
+                <div className="space-y-4 pb-4">
+                  <div>
+                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">メモ（任意）</p>
+                    <textarea value={hNote} onChange={e => setHNote(e.target.value)} placeholder="このハンドについての考察..."
+                      rows={4} className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-[14px] text-gray-900 outline-none focus:border-[#F2A900] resize-none" />
+                  </div>
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    <p className="text-[12px] font-semibold text-gray-500 mb-2">確認</p>
+                    <div className="space-y-1 text-[13px] text-gray-700">
+                      {hTitle && <p>タイトル: {hTitle}</p>}
+                      <p>ステークス: {hSb || "?"}/{hBb || "?"}</p>
+                      <p>ポジション: {hHeroPos} ({hPlayerCount}人)</p>
+                      <p>ヒーロー: {hHeroCards.map(c => c || "?").join(" ")}</p>
+                      {hHasFlop && <p>フロップ: {hFlop.map(c => c || "?").join(" ")}</p>}
+                      {hHasTurn && hTurn && <p>ターン: {hTurn}</p>}
+                      {hHasRiver && hRiver && <p>リバー: {hRiver}</p>}
+                      <p>アクション: {hActions.length}件</p>
+                    </div>
+                  </div>
+                  {hError && <p className="text-[13px] text-red-500 text-center">{hError}</p>}
+                  <button type="button" disabled={hSaving || hHeroCards.some(c => !c)} onClick={saveHand}
+                    className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] disabled:opacity-50 shadow-md active:scale-95 transition-all">
+                    {hSaving ? "保存中..." : "保存する"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* カードピッカー */}
+          {hPickerTarget && (
+            <div className="fixed inset-0 z-[210] flex flex-col bg-white">
+              <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
+                <p className="text-[15px] font-semibold text-gray-900">カードを選択</p>
+                <button type="button" onClick={() => setHPickerTarget(null)} className="text-gray-400"><FiX size={20} /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                {HAND_SUITS.map(suit => (
+                  <div key={suit} className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+                    {HAND_RANKS.map(rank => {
+                      const card = `${rank}${suit}`
+                      const currentCard = hGetCardAtTarget(hPickerTarget)
+                      const isUsed = hUsedCards.has(card) && currentCard !== card
+                      return (
+                        <button key={card} type="button" disabled={isUsed}
+                          onClick={() => {
+                            if (!hPickerTarget) return
+                            const curr = hGetCardAtTarget(hPickerTarget)
+                            if (curr === card) { hSetCardAtTarget(hPickerTarget, null); setHPickerTarget(null); return }
+                            hSetCardAtTarget(hPickerTarget, card)
+                            const nextMap: Record<string,string> = { "hero0":"hero1", "flop0":"flop1", "flop1":"flop2" }
+                            const isV0 = hPickerTarget.startsWith("villain_") && hPickerTarget.endsWith("_0")
+                            if (isV0) setHPickerTarget(hPickerTarget.slice(0,-1) + "1")
+                            else if (nextMap[hPickerTarget]) setHPickerTarget(nextMap[hPickerTarget])
+                            else setHPickerTarget(null)
+                          }}
+                          className={`shrink-0 flex flex-col items-center justify-center rounded-xl border font-bold transition-all active:scale-95
+                            ${isUsed ? "border-gray-100 bg-gray-50 opacity-30 cursor-not-allowed" :
+                              currentCard === card ? "border-[#F2A900] bg-[#FFF8E7] shadow" :
+                              "border-gray-200 bg-white"}`}
+                          style={{ width: 44, height: 52, fontSize: 12, color: isUsed ? undefined : HAND_SUIT_CLR[suit] }}
+                        >
+                          <span className="text-[13px]">{rank}</span>
+                          <span>{HAND_SUIT_SYM[suit]}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>,
+        document.body
       )}
 
       {/* フッター（変更なし） */}
