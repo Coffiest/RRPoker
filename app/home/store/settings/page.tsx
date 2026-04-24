@@ -61,7 +61,10 @@ export default function StoreSettingsPage() {
   const [birthdayCouponUnlimited, setBirthdayCouponUnlimited] = useState(false)
   const [birthdayCouponSuccess, setBirthdayCouponSuccess] = useState("")
   const [birthdayCouponError, setBirthdayCouponError] = useState("")
-
+  const [noticeMessage, setNoticeMessage] = useState("")
+  const [noticeSending, setNoticeSending] = useState(false)
+  const [noticeSuccess, setNoticeSuccess] = useState("")
+  const [noticeError, setNoticeError] = useState("")
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -307,6 +310,28 @@ const saveCouponName = async () => {
   setCouponSuccess("保存しました")
   setTimeout(() => setCouponSuccess(""), 2000)
 }
+
+  const sendNotice = async () => {
+    if (!storeId || !noticeMessage.trim()) {
+      setNoticeError("メッセージを入力してください")
+      return
+    }
+    setNoticeSending(true)
+    setNoticeError("")
+    try {
+      await addDoc(collection(db, "stores", storeId, "notices"), {
+        message: noticeMessage.trim(),
+        createdAt: serverTimestamp(),
+      })
+      setNoticeMessage("")
+      setNoticeSuccess("送信しました")
+      setTimeout(() => setNoticeSuccess(""), 2500)
+    } catch {
+      setNoticeError("送信に失敗しました")
+    } finally {
+      setNoticeSending(false)
+    }
+  }
 
   const sendExpiryChangeNotification = async (
     storeId: string,
@@ -590,6 +615,28 @@ const saveCouponName = async () => {
 </div>
 
 
+
+        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+          <p className="text-[14px] font-semibold text-gray-900">お知らせ配信</p>
+          <p className="text-[12px] text-gray-500 mt-1">お気に入り登録しているプレイヤーに通知が届きます</p>
+          <textarea
+            value={noticeMessage}
+            onChange={e => setNoticeMessage(e.target.value)}
+            placeholder="メッセージを入力..."
+            rows={3}
+            className="mt-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-[14px] text-gray-900 placeholder:text-gray-400 resize-none focus:border-[#F2A900] focus:outline-none"
+          />
+          {noticeError && <p className="mt-1 text-[12px] text-red-500">{noticeError}</p>}
+          {noticeSuccess && <p className="mt-1 text-[12px] text-green-600">{noticeSuccess}</p>}
+          <button
+            type="button"
+            onClick={sendNotice}
+            disabled={noticeSending}
+            className="mt-3 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900 disabled:opacity-50"
+          >
+            {noticeSending ? "送信中..." : "送信する"}
+          </button>
+        </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <p className="text-[14px] font-semibold text-gray-900">

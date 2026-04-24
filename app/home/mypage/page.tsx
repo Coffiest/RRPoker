@@ -117,30 +117,69 @@ export default function MyPage() {
     }
   }, [previewUrl])
 
-  useEffect(() => {
-    const user = auth.currentUser
-    if (!user) return
-    const loadHands = async () => {
-      setHandLoading(true)
-      try {
-        const q = query(collection(db, "handHistories"), where("creatorId", "==", user.uid), orderBy("createdAt", "desc"))
-        const snap = await getDocs(q)
-        const items: HandItem[] = snap.docs.map(d => ({ id: d.id, favorite: false, ...(d.data() as Omit<HandItem,"id"|"favorite">) }))
-        const favSnap = await getDocs(collection(db, "users", user.uid, "handFavorites"))
-        const favSet = new Set<string>(favSnap.docs.map(d => d.id))
-        setHandFavorites(favSet)
-        items.sort((a, b) => {
-          const af = favSet.has(a.id) ? 1 : 0
-          const bf = favSet.has(b.id) ? 1 : 0
-          if (bf !== af) return bf - af
-          return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
-        })
-        setHandItems(items)
-      } catch {}
-      setHandLoading(false)
+
+
+useEffect(() => {
+  const user = auth.currentUser
+  if (!user) return
+
+  const loadHands = async () => {
+    setHandLoading(true)
+
+    try {
+      const q = query(
+        collection(db, "handHistories"),
+        where("creatorId", "==", user.uid)
+      )
+
+      const snap = await getDocs(q)
+
+      console.log("uid", user.uid)
+      console.log("docs", snap.docs.map(d => d.data()))
+
+      const items: HandItem[] = snap.docs.map(d => {
+        const data = d.data()
+        return {
+          id: d.id,
+          favorite: false,
+          title: data.title ?? "",
+          stakes: data.stakes ?? { sb: 0, bb: 0 },
+          heroPosition: data.heroPosition ?? "",
+          heroCards: data.heroCards ?? [],
+          createdAt: data.createdAt ?? null,
+          note: data.note ?? "",
+        }
+      })
+
+      const favSnap = await getDocs(
+        collection(db, "users", user.uid, "handFavorites")
+      )
+
+      const favSet = new Set<string>(favSnap.docs.map(d => d.id))
+      setHandFavorites(favSet)
+
+      items.sort((a, b) => {
+        const af = favSet.has(a.id) ? 1 : 0
+        const bf = favSet.has(b.id) ? 1 : 0
+        if (bf !== af) return bf - af
+        return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
+      })
+
+      setHandItems(items)
+
+    } catch (e) {
+      console.log("hand load error", e)
     }
-    loadHands()
-  }, [])
+
+    setHandLoading(false)
+  }
+
+  loadHands()
+}, [])
+
+
+
+
 
   const toggleHandFavorite = async (handId: string) => {
     const user = auth.currentUser

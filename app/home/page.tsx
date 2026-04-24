@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
-import { createPortal } from "react-dom"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
 import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2 } from "react-icons/fi"
@@ -10,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, NetGainPlayer } from "@/lib/netGainRanking"
+import HandHistoryModal from "./HandHistoryModal"
 
 type StoreInfo = {
   id: string
@@ -25,22 +25,22 @@ type StoreInfo = {
 type UserProfile = { name?: string; iconUrl?: string }
 type StorePlayer = { id: string; name?: string; iconUrl?: string }
 type RRPlayer = { id: string; name?: string; iconUrl?: string; roi: number; rrRating: number; rank: number }
-type HAction = { street: string; position: string; action: string; amount?: number }
 
-const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
-const HAND_SUITS = ["s","h","d","c"]
-const HAND_SUIT_SYM: Record<string,string> = { s:"♠", h:"♥", d:"♦", c:"♣" }
-const HAND_SUIT_CLR: Record<string,string> = { s:"#374151", h:"#e84040", d:"#3b7dd8", c:"#2da44e" }
-const HAND_POSITIONS: Record<number,string[]> = {
-  2:["SB","BB"], 3:["BTN","SB","BB"], 4:["CO","BTN","SB","BB"],
-  5:["HJ","CO","BTN","SB","BB"], 6:["MP","HJ","CO","BTN","SB","BB"],
-  7:["UTG","MP","HJ","CO","BTN","SB","BB"],
-  8:["UTG","UTG+1","HJ","CO","BTN","SB","BB"],
-  9:["UTG","UTG+1","MP","HJ","CO","BTN","SB","BB"],
+function txNetGainDelta(tx: any): number | null {
+  const amt = tx.amount ?? 0
+  switch (tx.type) {
+    case "store_cashout": return amt
+    case "store_buyin": return -amt
+    case "store_tournament_entry": return -amt
+    case "store_tournament_reentry": return -amt
+    case "store_tournament_addon": return -amt
+    case "tournament_payout": return amt
+    case "manual_adjustment_net_gain": return tx.direction === "add" ? amt : -amt
+    case "withdraw_approved": return -amt
+    case "other_net_gain": return tx.direction === "add" ? amt : -amt
+    default: return null
+  }
 }
-const HAND_ACT_TYPES = ["fold","check","call","bet","raise","allin"]
-const HAND_ACT_SHORT: Record<string,string> = { fold:"F", check:"X", call:"C", bet:"B", raise:"R", allin:"A" }
-const HAND_ACT_JP: Record<string,string> = { fold:"フォールド", check:"チェック", call:"コール", bet:"ベット", raise:"レイズ", allin:"オールイン" }
 
 export default function HomePage() {
   const getVisitCountResetBase = (date: Date) => {
@@ -114,34 +114,12 @@ export default function HomePage() {
   const [calFavTournaments, setCalFavTournaments] = useState<any[]>([])
   const [calDetailTournament, setCalDetailTournament] = useState<any | null>(null)
   const [calDetailPreset, setCalDetailPreset] = useState<any | null>(null)
+  const [calLiveData, setCalLiveData] = useState<Record<string, any>>({})
+  const [calAutoPresets, setCalAutoPresets] = useState<Record<string, any>>({})
+  const calLiveUnsubsRef = useRef<(() => void)[]>([])
 
-  // ── ハンドレビュー
-  const [isHandModalOpen, setIsHandModalOpen] = useState(false)
-  const [handStep, setHandStep] = useState(1)
-  const [hTitle, setHTitle] = useState("")
-  const [hSb, setHSb] = useState("")
-  const [hBb, setHBb] = useState("")
-  const [hPlayerCount, setHPlayerCount] = useState(6)
-  const [hHeroPos, setHHeroPos] = useState("BTN")
-  const [hHeroCards, setHHeroCards] = useState<(string|null)[]>([null, null])
-  const [hFlop, setHFlop] = useState<(string|null)[]>([null, null, null])
-  const [hTurn, setHTurn] = useState<string|null>(null)
-  const [hRiver, setHRiver] = useState<string|null>(null)
-  const [hVillainCards, setHVillainCards] = useState<Record<string,(string|null)[]>>({})
-  const [hHasFlop, setHHasFlop] = useState(false)
-  const [hHasTurn, setHHasTurn] = useState(false)
-  const [hHasRiver, setHHasRiver] = useState(false)
-  const [hPickerTarget, setHPickerTarget] = useState<string|null>(null)
-  const [hActions, setHActions] = useState<HAction[]>([])
-  const [hActionStreet, setHActionStreet] = useState<"preflop"|"flop"|"turn"|"river">("preflop")
-  const [hNewActionPos, setHNewActionPos] = useState("")
-  const [hNewActionType, setHNewActionType] = useState("")
-  const [hNewActionAmount, setHNewActionAmount] = useState("")
-  const [hShowNewAction, setHShowNewAction] = useState(false)
-  const [hNote, setHNote] = useState("")
-  const [hSaving, setHSaving] = useState(false)
-  const [hSavedId, setHSavedId] = useState<string|null>(null)
-  const [hError, setHError] = useState("")
+  // ── チップグラフ用全トランザクション
+  const [allNetGainTx, setAllNetGainTx] = useState<any[]>([])
 
   // ── すべての useEffect（ロジック完全保持）──────────────────────────
   useEffect(() => {
@@ -188,36 +166,41 @@ export default function HomePage() {
     if (userId.startsWith("temp_")) return
     const unsub = onSnapshot(ref, async (snap) => {
       const data = snap.data()
-      const today = new Date()
-      const todayStr = today.toISOString().slice(5, 10)
-      const birthday = data?.birthday?.slice(5, 10)
-      if (birthday === todayStr && userId) {
-        const storeId = data?.currentStoreId
-        if (storeId) {
-          const storeSnap = await getDoc(doc(db, "stores", storeId))
-          const store = storeSnap.data()
-          if (store?.birthdayCouponEnabled) {
-            const ticketSnap = await getDocs(collection(db, "users", userId, "tickets"))
-            const alreadyHas = ticketSnap.docs.some(docSnap => docSnap.data().name === store.birthdayCouponName)
-            if (!alreadyHas) {
-              await addDoc(collection(db, "users", userId, "tickets"), {
-                name: store.birthdayCouponName, storeId,
-                createdAt: serverTimestamp(),
-                expiresAt: (() => {
-                  if (store.birthdayCouponUnlimited) return null
-                  const now = new Date()
-                  const value = Number(store.birthdayCouponExpiryValue ?? 0)
-                  if (!value || value <= 0) return null
-                  if (store.birthdayCouponExpiryUnit === "day") return new Date(now.getTime() + value * 24 * 60 * 60 * 1000)
-                  if (store.birthdayCouponExpiryUnit === "month") { const d = new Date(now); d.setMonth(d.getMonth() + value); return d }
-                  return null
-                })(),
-                isUsed: false
-              })
+
+      // Birthday coupon — subcollection may lack rules, so isolate failures
+      try {
+        const today = new Date()
+        const todayStr = today.toISOString().slice(5, 10)
+        const birthday = data?.birthday?.slice(5, 10)
+        if (birthday === todayStr && userId) {
+          const storeId = data?.currentStoreId
+          if (storeId) {
+            const storeSnap = await getDoc(doc(db, "stores", storeId))
+            const store = storeSnap.data()
+            if (store?.birthdayCouponEnabled) {
+              const ticketSnap = await getDocs(collection(db, "users", userId, "tickets"))
+              const alreadyHas = ticketSnap.docs.some(docSnap => docSnap.data().name === store.birthdayCouponName)
+              if (!alreadyHas) {
+                await addDoc(collection(db, "users", userId, "tickets"), {
+                  name: store.birthdayCouponName, storeId,
+                  createdAt: serverTimestamp(),
+                  expiresAt: (() => {
+                    if (store.birthdayCouponUnlimited) return null
+                    const now = new Date()
+                    const value = Number(store.birthdayCouponExpiryValue ?? 0)
+                    if (!value || value <= 0) return null
+                    if (store.birthdayCouponExpiryUnit === "day") return new Date(now.getTime() + value * 24 * 60 * 60 * 1000)
+                    if (store.birthdayCouponExpiryUnit === "month") { const d = new Date(now); d.setMonth(d.getMonth() + value); return d }
+                    return null
+                  })(),
+                  isUsed: false
+                })
+              }
             }
           }
         }
-      }
+      } catch {}
+
       const userRole = data?.role ?? null
       setRole(userRole)
       if (userRole === "store") { router.replace("/home/store"); return }
@@ -225,24 +208,31 @@ export default function HomePage() {
       const prevStatus = prevCheckinStatusRef.current
       setCheckinStatus(status)
       setPendingStoreId(data?.pendingStoreId ?? null)
+
+      // Checkin complete + stamp modal — must run before status dispatch resets flags
       if (prevStatus === "pending" && status === "approved" && !hasShownCheckinComplete) {
         setIsCheckinCompleteModalOpen(true)
         setHasShownCheckinComplete(true)
         localStorage.setItem("hasShownCheckinComplete", "true")
         if (data?.currentStoreId) {
-          const storeSnap = await getDoc(doc(db, "stores", data.currentStoreId))
-          const storeData = storeSnap.data()
-          if (storeData?.checkinBonusEnabled && !hasShownStamp) {
-            const stampSnap = await getDoc(doc(db, "users", userId, "storeStamp", data.currentStoreId))
-            if (stampSnap.exists()) {
-              setStampCount(stampSnap.data().stampCount ?? 0)
-              setShowStampModal(true)
-              setHasShownStamp(true)
-              localStorage.setItem("hasShownStamp", "true")
+          // storeStamp subcollection may lack rules — wrap so status dispatch always runs
+          try {
+            const storeSnap = await getDoc(doc(db, "stores", data.currentStoreId))
+            const storeData = storeSnap.data()
+            if (storeData?.checkinBonusEnabled && !hasShownStamp) {
+              const stampSnap = await getDoc(doc(db, "users", userId, "storeStamp", data.currentStoreId))
+              if (stampSnap.exists()) {
+                setStampCount(stampSnap.data().stampCount ?? 0)
+                setShowStampModal(true)
+                setHasShownStamp(true)
+                localStorage.setItem("hasShownStamp", "true")
+              }
             }
-          }
+          } catch {}
         }
       }
+
+      // Status dispatch — guaranteed to run regardless of errors above
       prevCheckinStatusRef.current = status
       if (status === "approved") {
         setCurrentStoreId(data?.currentStoreId ?? null)
@@ -388,18 +378,74 @@ export default function HomePage() {
         const all: any[] = []
         await Promise.all(favoriteStores.map(async sid => {
           const storeSnap = await getDoc(doc(db, "stores", sid))
-          const storeName = storeSnap.data()?.name ?? "店舗"
+          const storeData = storeSnap.data()
+          const storeName = storeData?.name ?? "店舗"
+          const storeIconUrl = storeData?.iconUrl ?? null
           const snap = await getDocs(collection(db, "stores", sid, "tournaments"))
+
           snap.forEach(d => {
             const data = d.data()
-            all.push({ id: d.id, storeId: sid, storeName, ...data })
+
+            all.push({
+              id: d.id,
+              storeId: sid,
+              storeName,
+              storeIconUrl,
+              ...data,
+              createdAt: toDateSafe(data.createdAt),
+              startedAt: toDateSafe(data.startedAt)
+            })
           })
+
+
         }))
         setCalFavTournaments(all)
       } catch {}
     }
     loadCalTournaments()
   }, [favoriteStores])
+
+  // ── カレンダー詳細モーダルが開いたときリアルタイム購読
+  useEffect(() => {
+    calLiveUnsubsRef.current.forEach(u => u())
+    calLiveUnsubsRef.current = []
+    setCalLiveData({})
+    setCalAutoPresets({})
+    if (!calDetailTournament) return
+
+    const unsubs: (() => void)[] = []
+    calDetailTournament.entries.forEach((entry: any) => {
+      const key = `${entry.storeId}_${entry.id}`
+      const unsub = onSnapshot(
+        doc(db, "stores", entry.storeId, "tournaments", entry.id),
+        (snap) => { if (snap.exists()) setCalLiveData(prev => ({ ...prev, [key]: snap.data() })) },
+        () => {}
+      )
+      unsubs.push(unsub)
+      if (entry.blindPresetId) {
+        getDoc(doc(db, "stores", entry.storeId, "blindPresets", entry.blindPresetId))
+          .then(snap => { if (snap.exists()) setCalAutoPresets(prev => ({ ...prev, [key]: snap.data() })) })
+          .catch(() => {})
+      }
+    })
+    calLiveUnsubsRef.current = unsubs
+    return () => { unsubs.forEach(u => u()) }
+  }, [calDetailTournament])
+
+  useEffect(() => {
+    if (!userId) return
+    const unsub = onSnapshot(
+      query(collection(db, "transactions"), where("playerId", "==", userId)),
+      snap => {
+        const list: any[] = []
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }))
+        list.sort((a, b) => (a.createdAt?.seconds ?? 0) - (b.createdAt?.seconds ?? 0))
+        setAllNetGainTx(list)
+      },
+      () => {}
+    )
+    return () => unsub()
+  }, [userId])
 
   useEffect(() => {
   const prev = prevCurrentStoreIdRef.current
@@ -456,11 +502,33 @@ export default function HomePage() {
   }, [tournamentItems])
 
   const getHistoryLabel = (type: string, comment?: string) => {
-    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "預入（購入）", deposit_approved_pure_increase: "預入（純増）", withdraw_approved: "引き出し", withdraw_request: "引き出し申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "プライズ(トーナメント)", other: comment ?? "その他" }
+    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "預入（購入）", deposit_approved_pure_increase: "預入（純増）", withdraw_approved: "引き出し", withdraw_request: "引き出し申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "プライズ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
     return map[type] ?? "不明"
   }
   const getHistoryAmount = (item: any) => { if (item.type === "withdraw") return formatSignedChipValue(-item.amount); if (item.type === "manual_adjustment") { const signedValue = item.direction === "subtract" ? -item.amount : item.amount; return formatSignedChipValue(signedValue) }; return formatSignedChipValue(item.amount) }
-  const formatDateTime = (seconds?: number) => { if (!seconds) return ""; const date = new Date(seconds * 1000); const pad = (v: number) => v.toString().padStart(2, "0"); return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}` }
+  
+  function toDateSafe(t: any): Date | null {
+  if (!t) return null
+
+  // Firestore Timestamp
+  if (typeof t.toDate === "function") return t.toDate()
+
+  // {seconds, nanoseconds}
+  if (typeof t.seconds === "number") return new Date(t.seconds * 1000)
+
+  // すでにDate
+  if (t instanceof Date) return t
+
+  return null
+}
+  
+const formatDateTime = (t?: any) => {
+  const date = toDateSafe(t)
+  if (!date) return ""
+
+  const pad = (v: number) => v.toString().padStart(2, "0")
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
   const joinStore = async (storeId: string) => {
     if (!userId) return
@@ -531,32 +599,35 @@ export default function HomePage() {
   }, [favoriteStores, joinedStores])
 
   // ── メダルクラスヘルパー
-  const medalClass = (rank: number) => {
+const medalClass = (rank: number) => {
     if (rank === 1) return "medal-gold"
     if (rank === 2) return "medal-silver"
     if (rank === 3) return "medal-bronze"
     return "bg-white border border-gray-200 shadow-sm"
   }
 
-  // ── チップグラフ用データ計算
+// ── チップグラフ用データ計算（全トランザクション純増値）
   const chipGraphData = useMemo(() => {
     const nowSec = Date.now() / 1000
-    const items = [...tournamentHistoryItems].sort((a, b) => (a.startedAt?.seconds ?? 0) - (b.startedAt?.seconds ?? 0))
+
+    const withDelta = allNetGainTx
+  .filter(tx => tx.storeId === currentStoreId)
+  .map(tx => ({ tx, delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
+  .filter(x => x.delta !== null)
+
+
     const filtered = (() => {
-      if (chipGraphTab === "7") return items.slice(-7)
-      if (chipGraphTab === "1m") return items.filter(i => (i.startedAt?.seconds ?? 0) >= nowSec - 30 * 86400)
-      return items
+      if (chipGraphTab === "7") return withDelta.slice(-7)
+      if (chipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
+      return withDelta
     })()
     let running = 0
     const points: number[] = [0]
-    filtered.forEach(item => {
-      const entryFee = item.entryFee ?? 0, reentryFee = item.reentryFee ?? 0, addonFee = item.addonFee ?? 0
-      const cost = (item.entryCount ?? 0) * entryFee + (item.reentryCount ?? 0) * reentryFee + (item.addonCount ?? 0) * addonFee
-      running += (item.prize ?? 0) - cost
-      points.push(running)
-    })
+    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
     return points
-  }, [tournamentHistoryItems, chipGraphTab])
+  }, [allNetGainTx, currentStoreId, chipGraphTab])
+
+
 
   // ── カレンダー用エントリー生成
   const calEntries = useMemo(() => {
@@ -564,7 +635,7 @@ export default function HomePage() {
     const firstDay = new Date(calYear, calMonth, 1)
     const lastDay = new Date(calYear, calMonth + 1, 0)
     calFavTournaments.forEach(t => {
-      if (!t.date) return
+      if (!t.date || typeof t.date !== "string") return
       if (t.repeatWeekly) {
         const base = new Date(t.date + "T00:00:00")
         const dow = base.getDay()
@@ -586,104 +657,6 @@ export default function HomePage() {
     })
     return map
   }, [calFavTournaments, calYear, calMonth])
-
-  // ── ハンドレビュー computed
-  const hPositions = useMemo(() => HAND_POSITIONS[hPlayerCount] ?? HAND_POSITIONS[6], [hPlayerCount])
-  const hUsedCards = useMemo(() => {
-    const s = new Set<string>()
-    hHeroCards.forEach(c => { if (c) s.add(c) })
-    if (hHasFlop) hFlop.forEach(c => { if (c) s.add(c) })
-    if (hHasTurn && hTurn) s.add(hTurn)
-    if (hHasRiver && hRiver) s.add(hRiver)
-    Object.values(hVillainCards).forEach(vc => vc.forEach(c => { if (c) s.add(c) }))
-    return s
-  }, [hHeroCards, hFlop, hTurn, hRiver, hVillainCards, hHasFlop, hHasTurn, hHasRiver])
-
-  const resetHand = () => {
-    setHandStep(1); setHTitle(""); setHSb(""); setHBb(""); setHPlayerCount(6); setHHeroPos("BTN")
-    setHHeroCards([null, null]); setHFlop([null, null, null]); setHTurn(null); setHRiver(null)
-    setHVillainCards({}); setHHasFlop(false); setHHasTurn(false); setHHasRiver(false); setHPickerTarget(null)
-    setHActions([]); setHActionStreet("preflop"); setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount(""); setHShowNewAction(false)
-    setHNote(""); setHSaving(false); setHSavedId(null); setHError("")
-  }
-
-  const saveHand = async () => {
-    if (!userId) return
-    if (hHeroCards.some(c => !c)) { setHError("ヒーローカードを2枚選んでください"); return }
-    setHSaving(true); setHError("")
-    try {
-      const ref = await addDoc(collection(db, "handHistories"), {
-        creatorId: userId,
-        creatorName: profile.name ?? "Unknown",
-        createdAt: serverTimestamp(),
-        title: hTitle.trim(),
-        stakes: { sb: Number(hSb) || 0, bb: Number(hBb) || 0 },
-        heroPosition: hHeroPos,
-        playerPositions: hPositions,
-        heroCards: hHeroCards.filter(Boolean),
-        villainCards: Object.fromEntries(
-          Object.entries(hVillainCards)
-            .map(([p, cs]) => [p, cs.filter(Boolean)])
-            .filter(([, cs]) => (cs as string[]).length === 2)
-        ),
-        board: {
-          flop: hHasFlop ? hFlop.filter(Boolean) : null,
-          turn: hHasTurn ? hTurn : null,
-          river: hHasRiver ? hRiver : null,
-        },
-        actions: hActions,
-        note: hNote.trim(),
-      })
-      setHSavedId(ref.id)
-    } catch { setHError("保存に失敗しました") } finally { setHSaving(false) }
-  }
-
-  const shareHand = async () => {
-    if (!hSavedId) return
-    const url = `${window.location.origin}/hand/${hSavedId}`
-    if (navigator.share) {
-      try { await navigator.share({ title: hTitle || "ハンドレビュー", url }) } catch {}
-    } else {
-      try { await navigator.clipboard.writeText(url) } catch {}
-    }
-  }
-
-  const hSetCardAtTarget = (target: string, card: string | null) => {
-    if (target === "hero0") setHHeroCards(prev => [card, prev[1]])
-    else if (target === "hero1") setHHeroCards(prev => [prev[0], card])
-    else if (target === "flop0") setHFlop(prev => [card, prev[1], prev[2]])
-    else if (target === "flop1") setHFlop(prev => [prev[0], card, prev[2]])
-    else if (target === "flop2") setHFlop(prev => [prev[0], prev[1], card])
-    else if (target === "turn") setHTurn(card)
-    else if (target === "river") setHRiver(card)
-    else if (target.startsWith("villain_")) {
-      const parts = target.split("_")
-      const pos = parts.slice(1, -1).join("_")
-      const idx = Number(parts[parts.length - 1])
-      setHVillainCards(prev => {
-        const cards: (string|null)[] = prev[pos] ? [...prev[pos]] : [null, null]
-        cards[idx] = card
-        return { ...prev, [pos]: cards }
-      })
-    }
-  }
-
-  const hGetCardAtTarget = (target: string): string | null => {
-    if (target === "hero0") return hHeroCards[0]
-    if (target === "hero1") return hHeroCards[1]
-    if (target === "flop0") return hFlop[0]
-    if (target === "flop1") return hFlop[1]
-    if (target === "flop2") return hFlop[2]
-    if (target === "turn") return hTurn
-    if (target === "river") return hRiver
-    if (target.startsWith("villain_")) {
-      const parts = target.split("_")
-      const pos = parts.slice(1, -1).join("_")
-      const idx = Number(parts[parts.length - 1])
-      return hVillainCards[pos]?.[idx] ?? null
-    }
-    return null
-  }
 
   // ════════════════════════════════════════════════════
   // JSX
@@ -722,9 +695,14 @@ export default function HomePage() {
           100% { background-position: 200% center; }
         }
         @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes chipIn {
+          from { transform:scale(0.2) translateY(4px); opacity:0; }
+          to   { transform:scale(1)   translateY(0);   opacity:1; }
+        }
 
         .animate-slideUp  { animation:slideUp  0.35s ease-out; }
         .animate-bounceIn { animation:bounceIn 0.4s  ease-out; }
+        .animate-chipIn   { animation:chipIn   0.25s ease-out; }
         .animate-stampPop { animation:stampPop 0.35s ease-out; }
         .ticker-animate   { display:inline-block; animation:tickerPulse 0.6s ease; }
 
@@ -874,6 +852,26 @@ export default function HomePage() {
 
         /* ── カレンダー ── */
         .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F2A900; margin:0 auto; }
+
+        /* ── スタンプ ── */
+        @keyframes stampPress {
+          0%   { transform:scale(2.4) rotate(-18deg); opacity:0; filter:blur(3px); }
+          30%  { transform:scale(0.76) rotate(-3deg);  opacity:1; filter:blur(0); }
+          52%  { transform:scale(1.12) rotate(2.5deg); }
+          72%  { transform:scale(0.94) rotate(-0.5deg); }
+          100% { transform:scale(1)   rotate(0deg); }
+        }
+        @keyframes inkSpread {
+          0%   { transform:scale(0.4); opacity:0.65; }
+          100% { transform:scale(3.8); opacity:0; }
+        }
+        @keyframes stampCardIn {
+          0%   { transform:scale(0.88) translateY(16px); opacity:0; }
+          100% { transform:scale(1)    translateY(0);    opacity:1; }
+        }
+        .stamp-new-press { animation:stampPress 0.58s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+        .ink-spread      { animation:inkSpread  0.75s ease-out 0.08s both; }
+        .stamp-card-in   { animation:stampCardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
       `}</style>
 
       {/* ヘッダー（変更なし） */}
@@ -987,8 +985,8 @@ export default function HomePage() {
                       ) : sortedTransactionItems.map(item => (
                         <div key={item.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
                           <div>
-                            <p className="text-[11px] text-white/70">{getHistoryLabel(item.type)}</p>
-                            <p className="text-[10px] text-white/40">{formatDateTime(item.createdAt?.seconds)}</p>
+                            <p className="text-[11px] text-white/70">{getHistoryLabel(item.type, item.comment)}</p>
+                            <p className="text-[10px] text-white/40">{formatDateTime(item.createdAt)}</p>
                           </div>
                           <p className="text-[12px] font-semibold text-white">{getHistoryAmount(item)}</p>
                         </div>
@@ -1017,7 +1015,7 @@ export default function HomePage() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">トナメ収支グラフ</p>
+                      <p className="text-[13px] font-semibold text-gray-900">収支グラフ</p>
                     </div>
                     <div className="flex gap-1">
                       {(["7", "1m", "all"] as const).map(tab => (
@@ -1185,14 +1183,14 @@ export default function HomePage() {
                       <button type="button" onClick={() => {
                         const d = new Date(calYear, calMonth - 1, 1)
                         setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
-                      }} className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center">
+                      }} className="h-7 w-7 rounded-full bg-[#F2A900] flex items-center justify-center">
                         <FiChevronLeft size={13} />
                       </button>
                       <span className="text-[13px] font-semibold text-gray-700 min-w-[64px] text-center">{calYear}/{String(calMonth + 1).padStart(2, "0")}</span>
                       <button type="button" onClick={() => {
                         const d = new Date(calYear, calMonth + 1, 1)
                         setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
-                      }} className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center">
+                      }} className="h-7 w-7 rounded-full bg-[#F2A900] flex items-center justify-center">
                         <FiChevronRight size={13} />
                       </button>
                     </div>
@@ -1215,7 +1213,18 @@ export default function HomePage() {
                           onClick={() => entries.length > 0 ? setCalDetailTournament({ date: ds, entries }) : null}
                           className={`flex flex-col items-center py-1 rounded-xl transition-all ${entries.length > 0 ? "cursor-pointer hover:bg-amber-50" : "cursor-default"} ${isToday ? "bg-[#F2A900]/15" : ""}`}>
                           <span className={`text-[12px] font-medium ${isToday ? "font-bold text-[#D4910A]" : new Date(ds).getDay() === 0 ? "text-red-400" : new Date(ds).getDay() === 6 ? "text-blue-400" : "text-gray-700"}`}>{day}</span>
-                          {entries.length > 0 && <div className="cal-day-dot mt-0.5" />}
+                          {entries.length > 0 && (
+                            <div className="flex justify-center gap-px mt-0.5">
+                              {entries
+                                .filter((e: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.storeId === e.storeId) === i)
+                                .slice(0, 3)
+                                .map((e: any, i: number) => (
+                                  e.storeIconUrl
+                                    ? <img key={i} src={e.storeIconUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                                    : <div key={i} className="h-3 w-3 rounded-full bg-[#F2A900]" />
+                                ))}
+                            </div>
+                          )}
                         </button>
                       )
                     })}
@@ -1430,7 +1439,7 @@ export default function HomePage() {
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <p className="text-[13px] font-semibold text-gray-900 leading-tight">{item.tournamentName ?? ""}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{formatDateTime(item.startedAt?.seconds)} · {item.storeName ?? ""}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{formatDateTime(item.startedAt)} · {item.storeName ?? ""}</p>
                           </div>
                           {rank !== "-" && (
                             <div className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm flex-shrink-0">
@@ -1521,17 +1530,74 @@ export default function HomePage() {
 
       {showStampModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center modal-overlay">
-          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-bounceIn shadow-2xl border-2 border-[#F2A900]">
-            <p className="text-[20px] font-bold text-[#F2A900] mb-1">スタンプ獲得！</p>
-            <p className="text-[12px] text-gray-400 mb-4">{stampCount} 個貯まりました</p>
-            <div className="grid grid-cols-4 gap-2 mb-5">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className={`h-14 w-14 rounded-2xl flex items-center justify-center text-[18px] border-2 transition-all duration-300 ${i < stampCount ? "bg-[#F2A900] border-[#F2A900] shadow-lg animate-stampPop" : "bg-gray-50 border-gray-200 text-gray-300"}`}>
-                  {i < stampCount ? "✓" : ""}
+          <div className="w-[88%] max-w-sm stamp-card-in">
+            {/* カード本体 */}
+            <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: "linear-gradient(160deg,#FEFAF4 0%,#F5EDD8 100%)", border: "1px solid rgba(139,90,43,0.18)" }}>
+              {/* ヘッダーバー */}
+              <div className="px-5 py-3 text-center" style={{ background: "linear-gradient(90deg,#7B1818,#B22222)" }}>
+                <p className="text-white font-bold text-[12px] tracking-[0.2em] uppercase">Stamp Card</p>
+                {currentStore?.name && <p className="text-white/65 text-[11px] mt-0.5">{currentStore.name}</p>}
+              </div>
+
+              <div className="px-5 pt-4 pb-5">
+                {/* タイトル */}
+                <div className="text-center mb-4">
+                  <p className="text-[21px] font-bold text-gray-900">スタンプ獲得！</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">{stampCount} / 12</p>
                 </div>
-              ))}
+
+                {/* スタンプグリッド */}
+                <div className="grid grid-cols-4 gap-2.5 mb-5">
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const isStamped = i < stampCount
+                    const isNew = i === stampCount - 1
+                    return (
+                      <div key={i} className="relative flex items-center justify-center">
+                        {/* スタンプ枠 */}
+                        <div
+                          className={`relative h-[58px] w-[58px] rounded-full overflow-hidden flex items-center justify-center ${isNew ? "stamp-new-press" : ""}`}
+                          style={isStamped
+                            ? { border: "3px solid #7B1818", boxShadow: "0 3px 10px rgba(123,24,24,0.28), inset 0 1px 2px rgba(0,0,0,0.12)" }
+                            : { border: "2px dashed #E8D5A8", background: "rgba(242,169,0,0.04)" }}
+                        >
+                          {isStamped ? (
+                            <>
+                              {currentStore?.iconUrl
+                                ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover"
+                                    style={{ filter: isNew ? "sepia(0.15)" : "sepia(0.55) saturate(0.7)" }} />
+                                : <div className="h-full w-full flex items-center justify-center text-[12px] font-bold text-white"
+                                    style={{ background: "linear-gradient(135deg,#B22222,#7B1818)" }}>
+                                    {currentStore?.name?.slice(0, 2) ?? "★"}
+                                  </div>
+                              }
+                              {/* インクオーバーレイ */}
+                              <div className="absolute inset-0 rounded-full pointer-events-none"
+                                style={{ background: isNew ? "rgba(123,24,24,0.08)" : "rgba(123,24,24,0.22)" }} />
+                            </>
+                          ) : (
+                            <span className="text-[11px] font-bold" style={{ color: "#E8D5A8" }}>{i + 1}</span>
+                          )}
+                        </div>
+
+                        {/* インク広がりエフェクト（新スタンプのみ） */}
+                        {isNew && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="h-[58px] w-[58px] rounded-full ink-spread"
+                              style={{ background: "radial-gradient(circle, rgba(123,24,24,0.45) 0%, transparent 70%)" }} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <button onClick={() => setShowStampModal(false)}
+                  className="w-full h-12 rounded-2xl font-bold text-[15px] text-white"
+                  style={{ background: "linear-gradient(135deg,#B22222,#7B1818)", boxShadow: "0 4px 14px rgba(123,24,24,0.3)" }}>
+                  OK
+                </button>
+              </div>
             </div>
-            <button onClick={() => setShowStampModal(false)} className="w-full h-11 rounded-2xl gold-btn text-gray-900 font-semibold text-[14px]">OK</button>
           </div>
         </div>
       )}
@@ -1656,56 +1722,211 @@ export default function HomePage() {
 
       {/* カレンダー詳細モーダル */}
       {calDetailTournament && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center modal-overlay px-0" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }}>
-          <div className="w-full max-w-sm rounded-t-[28px] bg-white p-6 shadow-2xl animate-slideUp" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[16px] font-semibold text-gray-900">
-                {calDetailTournament.date}
-              </p>
-              <button type="button" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }} className="text-gray-400"><FiX size={20} /></button>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center px-0" style={{ background: "rgba(0,0,0,0.45)" }}
+          onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }}>
+          <div className="w-full max-w-sm rounded-t-[32px] bg-white shadow-2xl animate-slideUp flex flex-col" style={{ maxHeight: "82vh" }}
+            onClick={e => e.stopPropagation()}>
+            {/* Handle bar */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-9 h-1 rounded-full bg-gray-200" />
             </div>
-            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-2 pb-4 shrink-0">
+              <div>
+                <p className="text-[18px] font-bold text-gray-900">{calDetailTournament.date}</p>
+                <p className="text-[12px] text-gray-400 mt-0.5">{calDetailTournament.entries.length}件のトーナメント</p>
+              </div>
+              <button type="button" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><FiX size={16} /></button>
+            </div>
+
+            {/* Entry list */}
+            <div className="overflow-y-auto px-4 pb-8 space-y-3">
               {calDetailTournament.entries.map((entry: any, idx: number) => (
-                <div key={idx} className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[14px] font-semibold text-gray-900">{entry.name || "トーナメント"}</p>
-                      <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}{entry.startTime ? ` • ${entry.startTime}` : ""}</p>
+                <div key={idx} className="rounded-3xl bg-gray-50 border border-gray-100 overflow-hidden shadow-sm">
+                  {/* Flyer image */}
+                  {entry.flyerUrl && (
+                    <div className="w-full aspect-[2/1] bg-gray-100 overflow-hidden">
+                      <img src={entry.flyerUrl} alt="flyer" className="w-full h-full object-cover" />
                     </div>
-                    {entry.repeatWeekly && (
-                      <span className="rounded-full bg-[#F2A900]/15 px-2 py-0.5 text-[10px] font-bold text-[#D4910A]">毎週</span>
-                    )}
-                  </div>
-                  {entry.blindPresetId && (
-                    <button type="button"
-                      onClick={async () => {
-                        if (calDetailPreset?.tournamentId === `${entry.storeId}_${entry.id}`) { setCalDetailPreset(null); return }
-                        try {
-                          const snap = await getDoc(doc(db, "stores", entry.storeId, "blindPresets", entry.blindPresetId))
-                          if (snap.exists()) setCalDetailPreset({ tournamentId: `${entry.storeId}_${entry.id}`, ...snap.data() })
-                        } catch {}
-                      }}
-                      className="mt-2 text-[11px] font-semibold text-[#F2A900] underline underline-offset-2">
-                      ブラインド構成を見る
-                    </button>
                   )}
-                  {calDetailPreset?.tournamentId === `${entry.storeId}_${entry.id}` && calDetailPreset.levels && (
-                    <div className="mt-2 rounded-xl bg-white border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-                      {(calDetailPreset.levels as any[]).map((lv: any, li: number) => (
-                        <div key={li} className="px-3 py-2 flex items-center gap-3 text-[11px]">
-                          {lv.type === "break" ? (
-                            <span className="text-gray-400">☕ Break {lv.duration}min</span>
-                          ) : (
-                            <>
-                              <span className="font-bold text-gray-500 w-8">L{li + 1}</span>
-                              <span className="text-gray-700">{lv.smallBlind}/{lv.bigBlind}{lv.ante ? `+${lv.ante}` : ""}</span>
-                              <span className="ml-auto text-gray-400">{lv.duration}min</span>
-                            </>
+                  <div className="p-4">
+                    {/* Title row */}
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[15px] font-bold text-gray-900 leading-tight">{entry.name || "トーナメント"}</p>
+                        <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}</p>
+                      </div>
+                      {entry.repeatWeekly && (
+                        <span className="shrink-0 rounded-full bg-[#F2A900]/15 px-2.5 py-1 text-[10px] font-bold text-[#D4910A]">毎週</span>
+                      )}
+                    </div>
+
+                    {/* Info grid */}
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+
+                      {entry.startTime && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">開始日時</p>
+                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">
+                            {formatDateTime(entry.startTime)}
+                          </p>
+                        </div>
+                      )}
+
+
+                      {entry.rcTime && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">RC</p>
+                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{entry.rcTime}</p>
+                        </div>
+                      )}
+                      {entry.entryFee != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">エントリー金額</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.entryFee).toLocaleString()}円</p>
+                        </div>
+                      )}
+                      {entry.entryStack != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">スタートスタック</p>
+                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.entryStack).toLocaleString()}</p>
+                        </div>
+                      )}
+                      {entry.reentryFee != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">リエントリー金額</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.reentryFee).toLocaleString()}円</p>
+                        </div>
+                      )}
+                      {entry.reentryStack != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">リエントリー スタック</p>
+                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.reentryStack).toLocaleString()}</p>
+                        </div>
+                      )}
+                      {entry.addonFee != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">アドオン</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.addonFee).toLocaleString()}円</p>
+                        </div>
+                      )}
+                      {entry.addonStack != null && (
+                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">アドオン スタック</p>
+                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.addonStack).toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Live data (active/finished tournaments) */}
+                    {(() => {
+                      const key = `${entry.storeId}_${entry.id}`
+                      const live = calLiveData[key]
+                      if (!live || live.status === "scheduled") return null
+                      const totalEntry = live.totalEntry ?? 0
+                      const totalReentry = live.totalReentry ?? 0
+                      const totalAddon = live.totalAddon ?? 0
+                      const bustCount = live.bustCount ?? 0
+                      const alivePlayers = Math.max(0, totalEntry + totalReentry - bustCount)
+                      const entryStackVal = Number(live.entryStack ?? entry.entryStack ?? 0)
+                      const reentryStackVal = Number(live.reentryStack ?? entry.reentryStack ?? 0)
+                      const addonStackVal = Number(live.addonStack ?? entry.addonStack ?? 0)
+                      const totalChips = totalEntry * entryStackVal + totalReentry * reentryStackVal + totalAddon * addonStackVal
+                      const avgStack = alivePlayers > 0 ? Math.floor(totalChips / alivePlayers) : 0
+                      const levelIndex = live.currentLevelIndex ?? 0
+                      const presetLevels = calAutoPresets[key]?.levels
+                      const levels: any[] = presetLevels ?? live.customBlindLevels ?? []
+                      const currentLevel = levels[levelIndex]
+                      const isActive = live.status === "active"
+                      return (
+                        <div className="mb-3 rounded-2xl bg-amber-50 border border-amber-100 p-3">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            {isActive && <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />}
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{isActive ? "ライブ" : "終了"}</p>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5 mb-1.5">
+                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
+                              <p className="text-[8px] text-gray-400">Entry</p>
+                              <p className="text-[13px] font-bold text-gray-900">{totalEntry}</p>
+                            </div>
+                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
+                              <p className="text-[8px] text-gray-400">Reentry</p>
+                              <p className="text-[13px] font-bold text-gray-900">{totalReentry}</p>
+                            </div>
+                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
+                              <p className="text-[8px] text-gray-400">Addon</p>
+                              <p className="text-[13px] font-bold text-gray-900">{totalAddon}</p>
+                            </div>
+                          </div>
+                          {(currentLevel || avgStack > 0) && (
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {currentLevel && (
+                                <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
+                                  <p className="text-[8px] text-gray-400">現在のブラインド</p>
+                                  <p className="text-[12px] font-bold text-gray-900">
+                                    {currentLevel.type === "break" ? "Break" : `${currentLevel.smallBlind} / ${currentLevel.bigBlind}${currentLevel.ante ? ` ante : ${currentLevel.ante}` : ""}`}
+                                  </p>
+                                </div>
+                              )}
+                              {avgStack > 0 && (
+                                <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
+                                  <p className="text-[8px] text-gray-400">Avg Stack</p>
+                                  <p className="text-[12px] font-bold text-gray-900">{avgStack.toLocaleString()}</p>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )
+                    })()}
+
+                    {/* Blind structure */}
+                    {(() => {
+                      const key = `${entry.storeId}_${entry.id}`
+                      const live = calLiveData[key]
+                      const autoPreset = calAutoPresets[key]
+                      const levels: any[] | undefined = autoPreset?.levels ?? live?.customBlindLevels ?? undefined
+                      if (!entry.blindPresetId && !levels?.length) return null
+                      return (
+                        <>
+                          <button type="button"
+                            onClick={async () => {
+                              if (calDetailPreset?.tournamentId === key) { setCalDetailPreset(null); return }
+                              if (levels?.length) { setCalDetailPreset({ tournamentId: key, levels }); return }
+                              try {
+                                const snap = await getDoc(doc(db, "stores", entry.storeId, "blindPresets", entry.blindPresetId))
+                                if (snap.exists()) setCalDetailPreset({ tournamentId: key, ...snap.data() })
+                              } catch {}
+                            }}
+                            className="flex items-center gap-1.5 text-[12px] font-semibold text-[#F2A900]">
+                            <FiChevronRight size={14} className={calDetailPreset?.tournamentId === key ? "rotate-90" : ""} />
+                            ブラインド構成
+                          </button>
+                          {calDetailPreset?.tournamentId === key && calDetailPreset.levels && (
+                            <div className="mt-2 rounded-2xl bg-white border border-gray-100 divide-y divide-gray-50 overflow-hidden">
+                              <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+                                <span>Level</span><span>Blinds</span><span className="text-right">Time</span>
+                              </div>
+                              {(calDetailPreset.levels as any[]).map((lv: any, li: number) => (
+                                <div key={li} className="px-3 py-2 flex items-center gap-3 text-[11px]">
+                                  {lv.type === "break" ? (
+                                    <span className="text-gray-400 col-span-3"> Break : {lv.duration}min</span>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-gray-400 w-8">Lv.{li + 1}</span>
+                                      <span className="flex-1 text-gray-700 font-medium">{lv.smallBlind} / {lv.bigBlind}{lv.ante ? ` ante : ${lv.ante}` : ""}</span>
+                                      <span className="text-gray-400">{lv.duration}min</span>
+                                    </>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
                 </div>
               ))}
             </div>
@@ -1713,395 +1934,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ハンドレビュー FAB */}
-      <button
-        type="button"
-        onClick={() => setIsHandModalOpen(true)}
-        className="fixed bottom-[88px] right-4 z-[70] flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
-      >
-        <FiFileText size={22} />
-      </button>
-
-      {/* ハンドレビューモーダル */}
-      {typeof window !== "undefined" && isHandModalOpen && createPortal(
-        <>
-          <div className="fixed inset-0 z-[200] bg-black/50" onClick={() => { if (!hSaving) { setIsHandModalOpen(false); resetHand() } }} />
-          <div className="fixed bottom-0 left-0 right-0 z-[201] mx-auto max-w-sm rounded-t-[28px] bg-white shadow-2xl flex flex-col" style={{ maxHeight: "92vh" }}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 shrink-0">
-              <div className="flex items-center gap-3">
-                {handStep > 1 && !hSavedId && (
-                  <button type="button" onClick={() => setHandStep(s => s - 1)} className="text-gray-400"><FiArrowLeft size={20} /></button>
-                )}
-                <div>
-                  <p className="text-[15px] font-semibold text-gray-900">
-                    {hSavedId ? "保存完了" : ["基本設定","カード","アクション","メモ & 保存"][handStep - 1]}
-                  </p>
-                  {!hSavedId && <p className="text-[11px] text-gray-400">{handStep} / 4</p>}
-                </div>
-              </div>
-              <button type="button" onClick={() => { if (!hSaving) { setIsHandModalOpen(false); resetHand() } }} className="text-gray-400"><FiX size={20} /></button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-              {hSavedId ? (
-                <div className="text-center py-6">
-                  <p className="text-[48px] mb-3">🃏</p>
-                  <p className="text-[18px] font-bold text-gray-900 mb-1">保存しました！</p>
-                  <p className="text-[13px] text-gray-400 mb-5">リンクを共有できます</p>
-                  <button onClick={shareHand} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] mb-3 flex items-center justify-center gap-2 active:scale-95 transition-all">
-                    <FiShare2 size={16} />シェアする
-                  </button>
-                  <button onClick={() => { setIsHandModalOpen(false); resetHand() }} className="w-full h-12 rounded-2xl border border-gray-200 text-gray-600 font-medium text-[14px]">
-                    閉じる
-                  </button>
-                </div>
-              ) : handStep === 1 ? (
-                /* ── Step 1: 基本設定 ── */
-                <div className="space-y-4 pb-4">
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">タイトル（任意）</p>
-                    <input type="text" value={hTitle} onChange={e => setHTitle(e.target.value)} placeholder="例: JJでのスリーベット"
-                      className="w-full h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900]" />
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">ステークス</p>
-                    <div className="flex items-center gap-2">
-                      <input type="number" value={hSb} onChange={e => setHSb(e.target.value)} placeholder="SB"
-                        className="flex-1 h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-center outline-none focus:border-[#F2A900]" />
-                      <span className="text-gray-400">/</span>
-                      <input type="number" value={hBb} onChange={e => setHBb(e.target.value)} placeholder="BB"
-                        className="flex-1 h-12 rounded-2xl border border-gray-200 px-4 text-[14px] text-center outline-none focus:border-[#F2A900]" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">プレイヤー人数</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {[2,3,4,5,6,7,8,9].map(n => (
-                        <button key={n} type="button" onClick={() => {
-                          setHPlayerCount(n)
-                          const pos = HAND_POSITIONS[n] ?? HAND_POSITIONS[6]
-                          if (!pos.includes(hHeroPos)) setHHeroPos(pos[0])
-                        }}
-                          className={`h-10 w-10 rounded-xl text-[14px] font-semibold border transition-colors
-                            ${hPlayerCount === n ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
-                        >{n}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">ヒーローポジション</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {hPositions.map(pos => (
-                        <button key={pos} type="button" onClick={() => setHHeroPos(pos)}
-                          className={`h-9 px-3 rounded-xl text-[13px] font-semibold border transition-colors
-                            ${hHeroPos === pos ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
-                        >{pos}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <button type="button" onClick={() => setHandStep(2)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all">次へ</button>
-                </div>
-              ) : handStep === 2 ? (
-                /* ── Step 2: カード ── */
-                <div className="space-y-5 pb-4">
-                  {/* Hero cards */}
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ヒーローカード</p>
-                    <div className="flex gap-2">
-                      {[0,1].map(i => {
-                        const card = hHeroCards[i]
-                        return (
-                          <button key={i} type="button" onClick={() => setHPickerTarget(`hero${i}`)}
-                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold transition-all active:scale-95
-                              ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
-                            style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
-                          >
-                            {card ? <><span className="text-[14px]">{card.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Board */}
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ボードカード</p>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-[13px] text-gray-700">フロップ</p>
-                      <button type="button" onClick={() => setHHasFlop(v => !v)}
-                        className={`w-11 h-6 rounded-full transition-colors ${hHasFlop ? "bg-[#F2A900]" : "bg-gray-200"}`}>
-                        <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasFlop ? "translate-x-5" : "translate-x-0"}`} />
-                      </button>
-                    </div>
-                    {hHasFlop && (
-                      <div className="flex gap-2 mb-3">
-                        {[0,1,2].map(i => {
-                          const card = hFlop[i]
-                          return (
-                            <button key={i} type="button" onClick={() => setHPickerTarget(`flop${i}`)}
-                              className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold transition-all active:scale-95
-                                ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
-                              style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
-                            >
-                              {card ? <><span className="text-[14px]">{card.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                    {hHasFlop && (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[13px] text-gray-700">ターン</p>
-                          <button type="button" onClick={() => setHHasTurn(v => !v)}
-                            className={`w-11 h-6 rounded-full transition-colors ${hHasTurn ? "bg-[#F2A900]" : "bg-gray-200"}`}>
-                            <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasTurn ? "translate-x-5" : "translate-x-0"}`} />
-                          </button>
-                        </div>
-                        {hHasTurn && (
-                          <button type="button" onClick={() => setHPickerTarget("turn")}
-                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold mb-3 transition-all active:scale-95
-                              ${hTurn ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
-                            style={hTurn ? { color: HAND_SUIT_CLR[hTurn.slice(-1)] } : undefined}
-                          >
-                            {hTurn ? <><span className="text-[14px]">{hTurn.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[hTurn.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
-                          </button>
-                        )}
-                      </>
-                    )}
-                    {hHasFlop && hHasTurn && (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[13px] text-gray-700">リバー</p>
-                          <button type="button" onClick={() => setHHasRiver(v => !v)}
-                            className={`w-11 h-6 rounded-full transition-colors ${hHasRiver ? "bg-[#F2A900]" : "bg-gray-200"}`}>
-                            <span className={`block h-5 w-5 rounded-full bg-white shadow transition-transform mx-0.5 ${hHasRiver ? "translate-x-5" : "translate-x-0"}`} />
-                          </button>
-                        </div>
-                        {hHasRiver && (
-                          <button type="button" onClick={() => setHPickerTarget("river")}
-                            className={`flex flex-col items-center justify-center w-12 h-14 rounded-xl border-2 font-bold mb-3 transition-all active:scale-95
-                              ${hRiver ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
-                            style={hRiver ? { color: HAND_SUIT_CLR[hRiver.slice(-1)] } : undefined}
-                          >
-                            {hRiver ? <><span className="text-[14px]">{hRiver.slice(0,-1)}</span><span className="text-[12px]">{HAND_SUIT_SYM[hRiver.slice(-1)]}</span></> : <span className="text-[22px]">?</span>}
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  {/* Villain cards */}
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">ヴィランカード（任意）</p>
-                    <div className="space-y-2">
-                      {hPositions.filter(p => p !== hHeroPos).map(pos => (
-                        <div key={pos} className="flex items-center gap-3">
-                          <span className="text-[13px] font-medium text-gray-600 w-12 shrink-0">{pos}</span>
-                          <div className="flex gap-1.5">
-                            {[0,1].map(i => {
-                              const card = hVillainCards[pos]?.[i] ?? null
-                              return (
-                                <button key={i} type="button" onClick={() => setHPickerTarget(`villain_${pos}_${i}`)}
-                                  className={`flex flex-col items-center justify-center w-10 h-12 rounded-xl border-2 font-bold transition-all active:scale-95
-                                    ${card ? "border-gray-200 bg-white shadow-sm" : "border-dashed border-gray-200 bg-gray-50 text-gray-300"}`}
-                                  style={card ? { color: HAND_SUIT_CLR[card.slice(-1)] } : undefined}
-                                >
-                                  {card ? <><span className="text-[12px]">{card.slice(0,-1)}</span><span className="text-[10px]">{HAND_SUIT_SYM[card.slice(-1)]}</span></> : <span className="text-[16px]">?</span>}
-                                </button>
-                              )
-                            })}
-                          </div>
-                          {hVillainCards[pos]?.some(c => c) && (
-                            <button type="button" onClick={() => setHVillainCards(prev => { const n = {...prev}; delete n[pos]; return n })}
-                              className="text-[11px] text-red-400">クリア</button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button type="button" onClick={() => setHandStep(3)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all">次へ</button>
-                </div>
-              ) : handStep === 3 ? (
-                /* ── Step 3: アクション ── */
-                <div className="space-y-3 pb-4">
-                  {/* Street tabs */}
-                  <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                    {(["preflop", ...(hHasFlop ? ["flop"] : []), ...(hHasTurn ? ["turn"] : []), ...(hHasRiver ? ["river"] : [])] as ("preflop"|"flop"|"turn"|"river")[]).map(street => (
-                      <button key={street} type="button" onClick={() => { setHActionStreet(street); setHShowNewAction(false) }}
-                        className={`shrink-0 px-4 h-9 rounded-2xl text-[12px] font-semibold border transition-colors
-                          ${hActionStreet === street ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
-                      >
-                        {street === "preflop" ? "プリフロップ" : street === "flop" ? "フロップ" : street === "turn" ? "ターン" : "リバー"}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Board cards for current street */}
-                  {hActionStreet !== "preflop" && (
-                    <div className="flex gap-1.5">
-                      {hActionStreet === "flop" && hFlop.map((c, i) => c ? (
-                        <span key={i} className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[c.slice(-1)] }}>
-                          <span>{c.slice(0,-1)}</span><span>{HAND_SUIT_SYM[c.slice(-1)]}</span>
-                        </span>
-                      ) : null)}
-                      {hActionStreet === "turn" && hTurn && (
-                        <span className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[hTurn.slice(-1)] }}>
-                          <span>{hTurn.slice(0,-1)}</span><span>{HAND_SUIT_SYM[hTurn.slice(-1)]}</span>
-                        </span>
-                      )}
-                      {hActionStreet === "river" && hRiver && (
-                        <span className="flex flex-col items-center justify-center w-9 h-11 rounded-lg border border-gray-200 bg-white text-[11px] font-bold" style={{ color: HAND_SUIT_CLR[hRiver.slice(-1)] }}>
-                          <span>{hRiver.slice(0,-1)}</span><span>{HAND_SUIT_SYM[hRiver.slice(-1)]}</span>
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Action list */}
-                  <div className="space-y-1.5 min-h-[40px]">
-                    {hActions.filter(a => a.street === hActionStreet).length === 0 && !hShowNewAction && (
-                      <p className="text-[12px] text-gray-400 py-2">アクションなし</p>
-                    )}
-                    {hActions.filter(a => a.street === hActionStreet).map((a) => {
-                      const idx = hActions.indexOf(a)
-                      return (
-                        <div key={idx} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                          <span className={`text-[12px] font-bold w-12 shrink-0 ${a.position === hHeroPos ? "text-[#D4910A]" : "text-gray-500"}`}>{a.position}</span>
-                          <span className={`text-[12px] font-semibold flex-1 ${a.action === "fold" ? "text-gray-400" : a.action === "allin" ? "text-red-500" : "text-gray-800"}`}>
-                            {HAND_ACT_JP[a.action]}{a.amount ? ` ${a.amount.toLocaleString()}` : ""}
-                          </span>
-                          <button type="button" onClick={() => setHActions(prev => prev.filter((_, pi) => pi !== idx))} className="text-gray-300 hover:text-red-400"><FiX size={14} /></button>
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* Add action form */}
-                  {hShowNewAction ? (
-                    <div className="border border-gray-200 rounded-2xl p-3 space-y-2">
-                      <div className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                        {hPositions.map(pos => (
-                          <button key={pos} type="button" onClick={() => setHNewActionPos(pos)}
-                            className={`shrink-0 px-3 h-8 rounded-xl text-[12px] font-semibold border
-                              ${hNewActionPos === pos ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
-                          >{pos}</button>
-                        ))}
-                      </div>
-                      <div className="flex gap-1.5 flex-wrap">
-                        {HAND_ACT_TYPES.map(act => (
-                          <button key={act} type="button" onClick={() => setHNewActionType(act)}
-                            className={`px-3 h-8 rounded-xl text-[12px] font-semibold border transition-colors
-                              ${hNewActionType === act ? "border-[#F2A900] bg-[#FFF8E7] text-[#D4910A]" : "border-gray-200 text-gray-600"}`}
-                          >{HAND_ACT_SHORT[act]} {HAND_ACT_JP[act]}</button>
-                        ))}
-                      </div>
-                      {(hNewActionType === "bet" || hNewActionType === "raise" || hNewActionType === "allin") && (
-                        <input type="number" value={hNewActionAmount} onChange={e => setHNewActionAmount(e.target.value)} placeholder="金額"
-                          className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] outline-none focus:border-[#F2A900]" />
-                      )}
-                      <div className="flex gap-2">
-                        <button type="button" onClick={() => { setHShowNewAction(false); setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount("") }}
-                          className="flex-1 h-10 rounded-xl border border-gray-200 text-[13px] text-gray-500">キャンセル</button>
-                        <button type="button" disabled={!hNewActionPos || !hNewActionType}
-                          onClick={() => {
-                            if (!hNewActionPos || !hNewActionType) return
-                            const amount = (hNewActionType === "bet" || hNewActionType === "raise" || hNewActionType === "allin") && hNewActionAmount ? Number(hNewActionAmount) : undefined
-                            setHActions(prev => [...prev, { street: hActionStreet, position: hNewActionPos, action: hNewActionType, amount }])
-                            setHNewActionPos(""); setHNewActionType(""); setHNewActionAmount("")
-                          }}
-                          className="flex-1 h-10 rounded-xl bg-[#F2A900] text-gray-900 font-semibold text-[13px] disabled:opacity-50">追加</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button type="button" onClick={() => { setHShowNewAction(true); setHNewActionPos(hPositions[0]) }}
-                      className="w-full h-10 rounded-2xl border-2 border-dashed border-gray-200 text-[13px] font-semibold text-gray-400 active:scale-95 transition-all">
-                      ＋ アクション追加
-                    </button>
-                  )}
-
-                  <button type="button" onClick={() => setHandStep(4)} className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] shadow-md active:scale-95 transition-all mt-2">次へ</button>
-                </div>
-              ) : (
-                /* ── Step 4: メモ & 保存 ── */
-                <div className="space-y-4 pb-4">
-                  <div>
-                    <p className="text-[12px] font-semibold text-gray-500 mb-1.5">メモ（任意）</p>
-                    <textarea value={hNote} onChange={e => setHNote(e.target.value)} placeholder="このハンドについての考察..."
-                      rows={4} className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-[14px] text-gray-900 outline-none focus:border-[#F2A900] resize-none" />
-                  </div>
-                  <div className="bg-gray-50 rounded-2xl p-4">
-                    <p className="text-[12px] font-semibold text-gray-500 mb-2">確認</p>
-                    <div className="space-y-1 text-[13px] text-gray-700">
-                      {hTitle && <p>タイトル: {hTitle}</p>}
-                      <p>ステークス: {hSb || "?"}/{hBb || "?"}</p>
-                      <p>ポジション: {hHeroPos} ({hPlayerCount}人)</p>
-                      <p>ヒーロー: {hHeroCards.map(c => c || "?").join(" ")}</p>
-                      {hHasFlop && <p>フロップ: {hFlop.map(c => c || "?").join(" ")}</p>}
-                      {hHasTurn && hTurn && <p>ターン: {hTurn}</p>}
-                      {hHasRiver && hRiver && <p>リバー: {hRiver}</p>}
-                      <p>アクション: {hActions.length}件</p>
-                    </div>
-                  </div>
-                  {hError && <p className="text-[13px] text-red-500 text-center">{hError}</p>}
-                  <button type="button" disabled={hSaving || hHeroCards.some(c => !c)} onClick={saveHand}
-                    className="w-full h-12 rounded-2xl bg-[#F2A900] text-gray-900 font-semibold text-[15px] disabled:opacity-50 shadow-md active:scale-95 transition-all">
-                    {hSaving ? "保存中..." : "保存する"}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* カードピッカー */}
-          {hPickerTarget && (
-            <div className="fixed inset-0 z-[210] flex flex-col bg-white">
-              <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
-                <p className="text-[15px] font-semibold text-gray-900">カードを選択</p>
-                <button type="button" onClick={() => setHPickerTarget(null)} className="text-gray-400"><FiX size={20} /></button>
-              </div>
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-                {HAND_SUITS.map(suit => (
-                  <div key={suit} className="flex gap-1.5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-                    {HAND_RANKS.map(rank => {
-                      const card = `${rank}${suit}`
-                      const currentCard = hGetCardAtTarget(hPickerTarget)
-                      const isUsed = hUsedCards.has(card) && currentCard !== card
-                      return (
-                        <button key={card} type="button" disabled={isUsed}
-                          onClick={() => {
-                            if (!hPickerTarget) return
-                            const curr = hGetCardAtTarget(hPickerTarget)
-                            if (curr === card) { hSetCardAtTarget(hPickerTarget, null); setHPickerTarget(null); return }
-                            hSetCardAtTarget(hPickerTarget, card)
-                            const nextMap: Record<string,string> = { "hero0":"hero1", "flop0":"flop1", "flop1":"flop2" }
-                            const isV0 = hPickerTarget.startsWith("villain_") && hPickerTarget.endsWith("_0")
-                            if (isV0) setHPickerTarget(hPickerTarget.slice(0,-1) + "1")
-                            else if (nextMap[hPickerTarget]) setHPickerTarget(nextMap[hPickerTarget])
-                            else setHPickerTarget(null)
-                          }}
-                          className={`shrink-0 flex flex-col items-center justify-center rounded-xl border font-bold transition-all active:scale-95
-                            ${isUsed ? "border-gray-100 bg-gray-50 opacity-30 cursor-not-allowed" :
-                              currentCard === card ? "border-[#F2A900] bg-[#FFF8E7] shadow" :
-                              "border-gray-200 bg-white"}`}
-                          style={{ width: 44, height: 52, fontSize: 12, color: isUsed ? undefined : HAND_SUIT_CLR[suit] }}
-                        >
-                          <span className="text-[13px]">{rank}</span>
-                          <span>{HAND_SUIT_SYM[suit]}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>,
-        document.body
-      )}
+      <HandHistoryModal userId={userId} creatorName={profile.name ?? "Unknown"} />
 
       {/* フッター（変更なし） */}
       <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
@@ -2122,3 +1955,4 @@ export default function HomePage() {
     </main>
   )
 }
+

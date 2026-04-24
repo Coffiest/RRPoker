@@ -5,12 +5,12 @@ import {
   collection, onSnapshot, doc, getDoc, getDocs,
   addDoc, updateDoc, deleteDoc, serverTimestamp
 } from "firebase/firestore"
-import { db, auth } from "@/lib/firebase"
+import { db, auth, storage } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import {
   FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
-  FiHome, FiUser, FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch
+  FiHome, FiUser, FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap
 } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
@@ -51,6 +51,72 @@ const emptyForm = {
 
 const emptyBlindLevel: Level = { type: "level", smallBlind: null, bigBlind: null, ante: null, duration: null }
 
+// ── AI ストラクチャー生成アルゴリズム ────────────────────────────────────────
+const AI_CHIP_OPTIONS = [1, 5, 10, 25, 50, 100, 500, 1000, 5000]
+const AI_CLEAN_BLINDS = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,800,1000,1200,1500,2000,2500,3000,4000,5000,6000,8000,10000,12000,15000,20000,25000,30000,40000,50000]
+
+function aiRoundBB(target: number, minChip: number): number {
+  const valid = AI_CLEAN_BLINDS.filter(v => v % minChip === 0)
+  if (!valid.length) return Math.round(target / minChip) * minChip
+  return valid.reduce((p, c) => Math.abs(c - target) < Math.abs(p - target) ? c : p)
+}
+function aiSB(bb: number, minChip: number): number {
+  return Math.max(minChip, Math.floor(bb / 2 / minChip) * minChip)
+}
+function aiSimulate(lt: number, available: number) {
+  let clock = 0, play = 0, count = 0, lastBreak = 0
+  const breaks: number[] = []
+  while (clock + lt <= available) {
+    clock += lt; play += lt; count++
+    if (play >= 90 && count - lastBreak >= 4 && clock + 5 <= available) {
+      breaks.push(count); clock += 5; play = 0; lastBreak = count
+    }
+  }
+  return { n: count, breaks, time: clock }
+}
+function aiBestLT(available: number): number {
+  let best = 15, bestScore = Infinity
+  for (const lt of [8,10,15,20,25,30]) {
+    const { n, time } = aiSimulate(lt, available)
+    if (n < 2) continue
+    const score = (available - time) * 10 + Math.abs(lt - 20)
+    if (score < bestScore) { bestScore = score; best = lt }
+  }
+  return best
+}
+function aiGenerate(chips: number[], stack: number, rcHours: number): Level[] {
+  if (!chips.length || stack <= 0 || rcHours <= 0) return []
+  const sorted = [...chips].sort((a, b) => a - b)
+  const min = sorted[0]
+  const available = rcHours * 60 - 10
+  if (available <= 0) return []
+  const lt = aiBestLT(available)
+  const { n, breaks } = aiSimulate(lt, available)
+  if (!n) return []
+  const targetBB = aiRoundBB(stack / 10, min)
+  const startBB = aiRoundBB(min * 2, min)
+  const mult = n > 0 ? Math.pow(Math.max(targetBB / startBB, 1.01), 1 / n) : 1
+  const brkSet = new Set(breaks)
+  const levels: Level[] = []
+  let prevBB = 0
+  for (let i = 0; i < n; i++) {
+    let bb = aiRoundBB(startBB * Math.pow(mult, i), min)
+    if (bb <= prevBB) bb = AI_CLEAN_BLINDS.find(v => v % min === 0 && v > prevBB) ?? prevBB + min * 2
+    prevBB = bb
+    levels.push({ type: "level", smallBlind: aiSB(bb, min), bigBlind: bb, ante: null, duration: lt })
+    if (brkSet.has(i + 1)) levels.push({ type: "break", duration: 5 })
+  }
+  levels.push({ type: "break", duration: 10 })
+  let postPrev = prevBB
+  for (let i = 0; i < 10; i++) {
+    let bb = i === 0 ? Math.max(targetBB, prevBB + min) : aiRoundBB(targetBB * Math.pow(mult, i), min)
+    if (bb <= postPrev) bb = AI_CLEAN_BLINDS.find(v => v % min === 0 && v > postPrev) ?? postPrev + min * 2
+    postPrev = bb
+    levels.push({ type: "level", smallBlind: aiSB(bb, min), bigBlind: bb, ante: null, duration: lt })
+  }
+  return levels
+}
+
 export default function TournamentsPage() {
   const router = useRouter()
   const [storeId, setStoreId] = useState<string | null>(null)
@@ -77,13 +143,22 @@ export default function TournamentsPage() {
   const [blindDragIndex, setBlindDragIndex] = useState<number | null>(null)
   const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
 
+  // AI struct generator
+  const [isAiOpen, setIsAiOpen] = useState(false)
+  const [aiView, setAiView] = useState<"input" | "preview">("input")
+  const [aiPresetName, setAiPresetName] = useState("")
+  const [aiChips, setAiChips] = useState<number[]>([25, 100, 500])
+  const [aiStack, setAiStack] = useState("")
+  const [aiRcHours, setAiRcHours] = useState("")
+  const [aiPreviewLevels, setAiPreviewLevels] = useState<Level[]>([])
+  const [aiError, setAiError] = useState("")
+
   // UI state
   const [activeTab, setActiveTab] = useState<string>(() => DAYS[new Date().getDay()])
   const [startingId, setStartingId] = useState<string | null>(null)
   const [historySearch, setHistorySearch] = useState("")
 
   const generatingTemplates = useRef<Set<string>>(new Set())
-  const storage = getStorage()
 
   const bModalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
 
@@ -875,11 +950,18 @@ export default function TournamentsPage() {
             {/* Footer */}
             <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0">
               {blindModalView === "list" ? (
-                <button onClick={openNewBlindPreset}
-                  className="act-btn w-full py-3 rounded-2xl text-[14px] font-bold text-white transition-all"
-                  style={{ background: "linear-gradient(135deg,#F2A900,#D4910A)", boxShadow: "0 4px 14px rgba(242,169,0,0.28)" }}>
-                  ＋ 新規プリセット作成
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={openNewBlindPreset}
+                    className="act-btn flex-1 py-3 rounded-2xl text-[14px] font-bold text-white transition-all"
+                    style={{ background: "linear-gradient(135deg,#F2A900,#D4910A)", boxShadow: "0 4px 14px rgba(242,169,0,0.28)" }}>
+                    ＋ 新規作成
+                  </button>
+                  <button onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }}
+                    className="act-btn flex-1 py-3 rounded-2xl text-[14px] font-bold text-white transition-all flex items-center justify-center gap-1.5"
+                    style={{ background: "linear-gradient(135deg,#1f1b16,#3b2f22)", boxShadow: "0 4px 14px rgba(0,0,0,0.25)" }}>
+                    <FiZap size={13} /> AI作成
+                  </button>
+                </div>
               ) : (
                 <div className="flex gap-3">
                   <button onClick={saveBlindPreset}
@@ -890,6 +972,135 @@ export default function TournamentsPage() {
                   <button onClick={() => setBlindModalView("list")}
                     className="act-btn flex-1 py-3 rounded-2xl text-[14px] font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors">
                     キャンセル
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ── AI ストラクチャーモーダル ────────────────────────────────────── */}
+      {isAiOpen && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/50">
+          <div className="w-full max-w-sm rounded-t-[28px] bg-white overflow-hidden flex flex-col max-h-[90vh]">
+            {/* header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <FiZap size={16} className="text-[#F2A900]" />
+                <p className="text-[16px] font-bold text-gray-900">
+                  {aiView === "input" ? "AIストラクチャー生成" : "プレビュー"}
+                </p>
+              </div>
+              <button onClick={() => setIsAiOpen(false)} className="text-gray-400"><FiX size={20} /></button>
+            </div>
+
+            {aiView === "input" ? (
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {/* プリセット名 */}
+                <div>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">プリセット名</label>
+                  <input value={aiPresetName} onChange={e => setAiPresetName(e.target.value)} placeholder="例: 3時間RC構成"
+                    className="mt-1.5 w-full h-11 rounded-2xl border border-gray-200 px-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900]" />
+                </div>
+
+                {/* 使用チップ */}
+                <div>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">使用チップ</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {AI_CHIP_OPTIONS.map(chip => (
+                      <button key={chip} type="button"
+                        onClick={() => setAiChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip])}
+                        className={`h-9 px-3.5 rounded-full text-[13px] font-semibold transition-all border ${aiChips.includes(chip) ? "bg-[#F2A900] border-[#F2A900] text-gray-900" : "bg-white border-gray-200 text-gray-500"}`}>
+                        {chip.toLocaleString()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* スタートスタック */}
+                <div>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">スタートスタック（チップ合計）</label>
+                  <input type="number" value={aiStack} onChange={e => setAiStack(e.target.value)} placeholder="例: 30000"
+                    className="mt-1.5 w-full h-11 rounded-2xl border border-gray-200 px-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900]" />
+                </div>
+
+                {/* RC時間 */}
+                <div>
+                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">RC時間（スタートから何時間）</label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <input type="number" step="0.5" min="0.5" value={aiRcHours} onChange={e => setAiRcHours(e.target.value)} placeholder="例: 3"
+                      className="w-28 h-11 rounded-2xl border border-gray-200 px-4 text-[14px] text-gray-900 outline-none focus:border-[#F2A900]" />
+                    <span className="text-[13px] text-gray-500">時間</span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-gray-400">RC直前10分間のブレイク終了=RC時刻になるよう自動調整されます</p>
+                </div>
+
+                {aiError && <p className="text-[12px] text-red-500">{aiError}</p>}
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto p-5">
+                <p className="text-[12px] text-gray-500 mb-3">レベル数: {aiPreviewLevels.filter(l => l.type === "level").length} / ブレイク: {aiPreviewLevels.filter(l => l.type === "break").length}</p>
+                <div className="space-y-1.5">
+                  {aiPreviewLevels.map((lv, i) => (
+                    <div key={i} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-[12px] ${lv.type === "break" ? "bg-blue-50 text-blue-600 font-semibold" : "bg-gray-50 text-gray-700"}`}>
+                      {lv.type === "break" ? (
+                        <>
+                          <span className="w-5 text-center">☕</span>
+                          <span>{lv.duration === 10 ? "RC直前ブレイク" : "ブレイク"} {lv.duration}分</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-5 text-center font-bold text-gray-400">
+                            {aiPreviewLevels.slice(0, i).filter(l => l.type === "level").length + 1}
+                          </span>
+                          <span className="flex-1">{lv.smallBlind}/{lv.bigBlind}</span>
+                          <span className="text-gray-400">{lv.duration}min</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
+              {aiView === "input" ? (
+                <button onClick={() => {
+                  setAiError("")
+                  const stack = Number(aiStack)
+                  const rc = Number(aiRcHours)
+                  if (!aiChips.length) { setAiError("チップを1つ以上選択してください"); return }
+                  if (!stack || stack <= 0) { setAiError("スタートスタックを入力してください"); return }
+                  if (!rc || rc <= 0) { setAiError("RC時間を入力してください"); return }
+                  const result = aiGenerate(aiChips, stack, rc)
+                  if (!result.length) { setAiError("有効な構成を生成できませんでした。入力値を確認してください"); return }
+                  setAiPreviewLevels(result)
+                  setAiView("preview")
+                }}
+                  className="w-full h-12 rounded-2xl text-[15px] font-bold text-white transition-all flex items-center justify-center gap-2"
+                  style={{ background: "linear-gradient(135deg,#1f1b16,#3b2f22)" }}>
+                  <FiZap size={15} /> プレビューを生成
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => setAiView("input")}
+                    className="flex-1 h-12 rounded-2xl text-[14px] font-semibold text-gray-600 bg-gray-100">
+                    戻る
+                  </button>
+                  <button onClick={() => {
+                    setBlindPresetName(aiPresetName || "AIプリセット")
+                    setBlindLevels(aiPreviewLevels)
+                    setEditingBlindPresetId(null)
+                    setBlindModalView("edit")
+                    setIsAiOpen(false)
+                    setAiView("input")
+                  }}
+                    className="flex-1 h-12 rounded-2xl text-[15px] font-bold text-white transition-all"
+                    style={{ background: "linear-gradient(135deg,#F2A900,#D4910A)", boxShadow: "0 4px 14px rgba(242,169,0,0.28)" }}>
+                    適用する
                   </button>
                 </div>
               )}

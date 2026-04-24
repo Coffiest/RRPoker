@@ -583,7 +583,7 @@ export default function TimerClient() {
                         className="prize-input flex-1 text-right text-[14px] font-medium text-gray-700 bg-transparent outline-none"
                       />
                     </div>
-                    {data?.text && <span className="text-[11px] text-gray-400 ml-1 whitespace-nowrap">+{data.text}</span>}
+                    {data?.text && <span className="text-[14px] text-gray-700 ml-1 whitespace-nowrap">+{data.text}</span>}
                   </div>
                 ))}
               </div>

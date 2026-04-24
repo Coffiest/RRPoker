@@ -175,7 +175,7 @@ export default function PlayerHistoryModal({
                 <p className={`text-[14px] font-bold ${
                   isAdd ? "text-green-600" : "text-red-500"
                 }`}>
-                  {isAdd ? "+" : "-"}¥{item.amount?.toLocaleString()}
+                  {isAdd ? "+" : "-"}{item.amount?.toLocaleString()}
                 </p>
               </div>
             )

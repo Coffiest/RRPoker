@@ -464,8 +464,8 @@ export default function TopPage() {
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom:18, fontWeight:500 }}>○○ ポーカークラブ</p>
-            <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>¥ 24,500</p>
-            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+¥ 4,500</p>
+            <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>$ 24,500</p>
+            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+$ 4,500</p>
             <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
             <p style={{ marginTop:10, fontSize:9, color:'rgba(255,255,255,0.25)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
           </div>

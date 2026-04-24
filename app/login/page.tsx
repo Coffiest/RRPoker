@@ -550,8 +550,8 @@ export default function LoginPage() {
                 <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 7px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
               <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:14, fontWeight:500 }}>○○ ポーカークラブ</p>
-              <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>¥ 24,500</p>
-              <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:6 }}>+¥ 4,500</p>
+              <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
+              <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:6 }}>+ 4,500</p>
               <div style={{ marginTop:12, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.38),transparent)' }}/>
               <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>※ ログイン後、実際の残高が表示されます</p>
             </div>

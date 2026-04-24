@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiBell, FiTrash2, FiCreditCard } from 'react-icons/fi'
 import { auth, db } from '@/lib/firebase'
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, writeBatch } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore'
 
 import type { MenuItem } from './commonMenuItems'
 import { getCommonMenuItems } from './commonMenuItems'
@@ -67,26 +67,104 @@ export default function HomeHeader({
 	const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 	const [storeNotices, setStoreNotices] = useState<StoreNoticeItem[]>([])
 
+	const [authUserId, setAuthUserId] = useState<string | null>(null)
+	const [noticeFavoriteStores, setNoticeFavoriteStores] = useState<string[]>([])
+	const [storeNoticeItems, setStoreNoticeItems] = useState<Array<{
+		id: string; storeId: string; storeName: string; message: string; createdAt?: { seconds?: number }
+	}>>([])
+	const [noticeReadIds, setNoticeReadIds] = useState<Set<string>>(new Set())
+
 	const isUserVariant = variant === 'user'
 
-	// ---- 未読を既読化 ----
+	// ---- 未読を既読化（システム通知） ----
 	useEffect(() => {
 		if (!isNoticeOpen || !isUserVariant || userNotifications.length === 0) return
-
-		const markAllAsRead = async () => {
-			try {
-				const batch = writeBatch(db)
-				userNotifications.forEach(item => {
-					if (!item.read) {
-						batch.update(doc(db, 'notifications', item.id), { read: true })
-					}
-				})
-				await batch.commit()
-			} catch {}
-		}
-
-		markAllAsRead()
+		const batch = writeBatch(db)
+		userNotifications.forEach(item => {
+			if (!item.read) batch.update(doc(db, 'notifications', item.id), { read: true })
+		})
+		batch.commit().catch(() => {})
 	}, [isNoticeOpen, isUserVariant, userNotifications])
+
+	// ---- auth + favoriteStores 読み込み ----
+	useEffect(() => {
+		if (!isUserVariant) return
+		const unsub = auth.onAuthStateChanged(async user => {
+			if (!user) { setAuthUserId(null); setNoticeFavoriteStores([]); return }
+			setAuthUserId(user.uid)
+			try {
+				const userSnap = await getDoc(doc(db, 'users', user.uid))
+				const data = userSnap.data()
+				setNoticeFavoriteStores(Array.isArray(data?.favoriteStores) ? data.favoriteStores : [])
+			} catch {}
+		})
+		return () => unsub()
+	}, [isUserVariant])
+
+	// ---- お気に入り店舗のお知らせ読み込み ----
+	useEffect(() => {
+		if (!isUserVariant || noticeFavoriteStores.length === 0) { setStoreNoticeItems([]); return }
+		const storeItemsMap: Record<string, any[]> = {}
+		const unsubs = noticeFavoriteStores.map(storeId => {
+			const q = query(collection(db, 'stores', storeId, 'notices'), orderBy('createdAt', 'desc'), limit(20))
+			return onSnapshot(q, async snap => {
+				try {
+					const storeSnap = await getDoc(doc(db, 'stores', storeId))
+					const storeName = storeSnap.data()?.name ?? '店舗'
+					storeItemsMap[storeId] = snap.docs.map(d => ({
+						id: `${storeId}_${d.id}`,
+						storeId,
+						storeName,
+						message: d.data().message ?? '',
+						createdAt: d.data().createdAt,
+					}))
+					const all = Object.values(storeItemsMap).flat()
+					all.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
+					setStoreNoticeItems(all)
+				} catch {}
+			}, () => {})
+		})
+		return () => unsubs.forEach(u => u())
+	}, [isUserVariant, noticeFavoriteStores])
+
+	// ---- システム通知（チップ期限変更など）読み込み ----
+	useEffect(() => {
+		if (!authUserId || !isUserVariant) return
+		const q = query(collection(db, 'notifications'), where('userId', '==', authUserId))
+		const unsub = onSnapshot(q, snap => {
+			const list: UserNotificationItem[] = []
+			snap.forEach(d => {
+				const data = d.data()
+				list.push({ id: d.id, storeId: data.storeId, storeName: data.storeName, message: data.message, type: data.type, createdAt: data.createdAt, read: data.read ?? true })
+			})
+			list.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0))
+			setUserNotifications(list)
+		})
+		return () => unsub()
+	}, [authUserId, isUserVariant])
+
+	// ---- 既読ID読み込み ----
+	useEffect(() => {
+		if (!authUserId || !isUserVariant) return
+		const unsub = onSnapshot(collection(db, 'users', authUserId, 'readNotices'), snap => {
+			const ids = new Set<string>()
+			snap.forEach(d => ids.add(d.id))
+			setNoticeReadIds(ids)
+		}, () => {})
+		return () => unsub()
+	}, [authUserId, isUserVariant])
+
+	// ---- お知らせパネルを開いたら既読にする ----
+	useEffect(() => {
+		if (!isNoticeOpen || !isUserVariant || !authUserId) return
+		const unread = storeNoticeItems.filter(n => !noticeReadIds.has(n.id))
+		if (unread.length === 0) return
+		const batch = writeBatch(db)
+		unread.forEach(n => {
+			batch.set(doc(db, 'users', authUserId, 'readNotices', n.id), { readAt: serverTimestamp() })
+		})
+		batch.commit().catch(() => {})
+	}, [isNoticeOpen, authUserId, isUserVariant, storeNoticeItems, noticeReadIds])
 
 	const goTo = (path: string) => {
 		setIsMenuOpen(false)
@@ -180,7 +258,7 @@ export default function HomeHeader({
 						>
 							<FiBell className="text-[18px]" />
 							{(isUserVariant
-								? userNotifications.length > 0
+								? storeNoticeItems.some(n => !noticeReadIds.has(n.id)) || userNotifications.some(n => !n.read)
 								: storeNotices.length > 0) && (
 								<span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
 							)}
@@ -249,6 +327,47 @@ export default function HomeHeader({
 				<div className="fixed left-1/2 top-[70px] z-50 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-[12px] text-white shadow-lg">
 					{toastMessage}
 				</div>
+			)}
+
+			{/* お知らせパネル */}
+			{isNoticeOpen && (
+				<>
+					<div className="fixed inset-0 z-[60]" onClick={() => setIsNoticeOpen(false)} />
+					<div className="fixed left-0 right-0 top-[64px] z-[61] px-4">
+						<div className="mx-auto max-w-sm rounded-[20px] bg-white border border-gray-100 shadow-2xl overflow-hidden">
+							<div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
+								<p className="text-[15px] font-semibold text-gray-900">お知らせ</p>
+								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[12px] text-gray-400">閉じる</button>
+							</div>
+							<div className="max-h-[55vh] overflow-y-auto divide-y divide-gray-50">
+								{storeNoticeItems.length === 0 && userNotifications.length === 0 ? (
+									<p className="text-center text-[13px] text-gray-400 py-8">お知らせはありません</p>
+								) : (
+									<>
+										{storeNoticeItems.map(n => (
+											<div key={n.id} className={`px-4 py-3 ${!noticeReadIds.has(n.id) ? 'bg-[#FFF8E7]' : 'bg-white'}`}>
+												<div className="flex items-center justify-between mb-1">
+													<span className="text-[11px] font-bold text-[#D4910A]">{n.storeName}</span>
+													<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+												</div>
+												<p className="text-[13px] text-gray-700 leading-relaxed">{n.message}</p>
+											</div>
+										))}
+										{userNotifications.map(n => (
+											<div key={n.id} className={`px-4 py-3 ${!n.read ? 'bg-[#FFF8E7]' : 'bg-white'}`}>
+												<div className="flex items-center justify-between mb-1">
+													<span className="text-[11px] font-bold text-[#D4910A]">{n.storeName}</span>
+													<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+												</div>
+												<p className="text-[13px] text-gray-700 leading-relaxed">{n.message}</p>
+											</div>
+										))}
+									</>
+								)}
+							</div>
+						</div>
+					</div>
+				</>
 			)}
 		</header>
 	)

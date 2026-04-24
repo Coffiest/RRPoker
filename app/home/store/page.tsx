@@ -342,7 +342,7 @@ export default function StorePage() {
     let bDiff = 0, nDiff = 0, txType = ""
     if (type === "cashout") { bDiff = req.amount; nDiff = req.amount; txType = "store_cashout" }
     if (type === "chip") { bDiff = req.amount; nDiff = 0; txType = "store_chip_purchase" }
-    if (type === "other") { bDiff = req.amount; nDiff = depositOtherNetGain ? req.amount : 0; txType = "other" }
+    if (type === "other") { bDiff = req.amount; nDiff = depositOtherNetGain ? req.amount : 0; txType = depositOtherNetGain ? "other_net_gain" : "other" }
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
@@ -362,7 +362,7 @@ export default function StorePage() {
     if (type === "tE") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_entry" }
     if (type === "tR") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_reentry" }
     if (type === "tA") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_addon" }
-    if (type === "other") { bDiff = -req.amount; nDiff = withdrawOtherNetGain ? -req.amount : 0; txType = "other" }
+    if (type === "other") { bDiff = -req.amount; nDiff = withdrawOtherNetGain ? -req.amount : 0; txType = withdrawOtherNetGain ? "other_net_gain" : "other" }
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
@@ -882,7 +882,7 @@ export default function StorePage() {
                       </div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{playerMap[req.playerId]?.name ?? req.playerId}</p>
                     </div>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: '#FF3B30', letterSpacing: '-0.3px' }}>¥{req.amount.toLocaleString()}</p>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: '#FF3B30', letterSpacing: '-0.3px' }}>{req.amount.toLocaleString()}</p>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
                     {[
@@ -941,7 +941,7 @@ export default function StorePage() {
                         {req.comment && <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 1 }}>{req.comment}</p>}
                       </div>
                     </div>
-                    <p style={{ fontSize: 18, fontWeight: 900, color: '#34C759', letterSpacing: '-0.3px' }}>¥{req.amount.toLocaleString()}</p>
+                    <p style={{ fontSize: 18, fontWeight: 900, color: '#34C759', letterSpacing: '-0.3px' }}>{req.amount.toLocaleString()}</p>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
                     {[
@@ -1080,9 +1080,9 @@ export default function StorePage() {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <div style={{ textAlign: 'right', marginRight: 4 }}>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>¥{player.balance.toLocaleString()}</p>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{player.balance.toLocaleString()}</p>
                           <p style={{ fontSize: 11, fontWeight: 700, color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
-                            {player.netGain >= 0 ? '+' : ''}¥{player.netGain.toLocaleString()}
+                            {player.netGain >= 0 ? '+' : ''}{player.netGain.toLocaleString()}
                           </p>
                         </div>
                         <button onClick={() => setHistoryPlayerId(player.id)}
