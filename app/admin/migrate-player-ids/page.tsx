@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore'
+import { collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore'
 
 // Generate playerId from user's name
 const generatePlayerIdFromName = (name: string, index: number = 0): string => {
@@ -27,58 +27,36 @@ const generatePlayerIdFromName = (name: string, index: number = 0): string => {
 
 export default function MigrationPage() {
   const router = useRouter()
-  const [status, setStatus] = useState('準備中...')
+  const [status, setStatus] = useState('認証確認中...')
   const [progress, setProgress] = useState({ current: 0, total: 0 })
 
   useEffect(() => {
     const runMigration = async () => {
       try {
         setStatus('ユーザーデータを取得中...')
-        
         const usersRef = collection(db, 'users')
         const snapshot = await getDocs(usersRef)
-        
-        const usersWithoutId = snapshot.docs.filter(doc => !doc.data().playerId)
-        
+        const usersWithoutId = snapshot.docs.filter(d => !d.data().playerId)
         if (usersWithoutId.length === 0) {
           setStatus('すべてのユーザーがプレイヤーIDを持っています')
           setTimeout(() => router.push('/home'), 2000)
           return
         }
-
         setProgress({ current: 0, total: usersWithoutId.length })
         setStatus(`${usersWithoutId.length}人のユーザーにIDを付与中...`)
-
         const usedIds = new Set<string>()
-        snapshot.docs.forEach(doc => {
-          const playerId = doc.data().playerId
-          if (playerId) usedIds.add(playerId)
-        })
-
+        snapshot.docs.forEach(d => { const pid = d.data().playerId; if (pid) usedIds.add(pid) })
         for (let i = 0; i < usersWithoutId.length; i++) {
           const userDoc = usersWithoutId[i]
           const userData = userDoc.data()
           const userName = userData.name || 'user'
-          
           let playerId = generatePlayerIdFromName(userName)
           let counter = 1
-          
-          while (usedIds.has(playerId)) {
-            playerId = generatePlayerIdFromName(userName, counter)
-            counter++
-          }
-          
+          while (usedIds.has(playerId)) { playerId = generatePlayerIdFromName(userName, counter); counter++ }
           usedIds.add(playerId)
-          
-          await setDoc(
-            doc(db, 'users', userDoc.id),
-            { playerId },
-            { merge: true }
-          )
-          
+          await setDoc(doc(db, 'users', userDoc.id), { playerId }, { merge: true })
           setProgress({ current: i + 1, total: usersWithoutId.length })
         }
-
         setStatus('マイグレーション完了！')
         setTimeout(() => router.push('/home'), 2000)
       } catch (error) {
@@ -87,7 +65,13 @@ export default function MigrationPage() {
       }
     }
 
-    runMigration()
+    const unsub = auth.onAuthStateChanged(async user => {
+      if (!user) { router.replace('/home'); return }
+      const userSnap = await getDoc(doc(db, 'users', user.uid))
+      if (userSnap.data()?.role !== 'store') { router.replace('/home'); return }
+      runMigration()
+    })
+    return () => unsub()
   }, [router])
 
   return (

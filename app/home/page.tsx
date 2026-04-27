@@ -10,6 +10,7 @@ import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
+import PullToRefresh from "@/app/components/PullToRefresh"
 
 type StoreInfo = {
   id: string
@@ -51,6 +52,7 @@ export default function HomePage() {
   }
 
   const router = useRouter()
+  const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [currentStoreId, setCurrentStoreId] = useState<string | null>(null)
   const [joinedStores, setJoinedStores] = useState<string[]>([])
@@ -144,7 +146,10 @@ export default function HomePage() {
   }, [userId, currentStoreId])
 
   useEffect(() => {
-    const unsub = auth.onAuthStateChanged(user => setUserId(user?.uid ?? null))
+    const unsub = auth.onAuthStateChanged(user => {
+      setUserId(user?.uid ?? null)
+      setAuthReady(true)
+    })
     return () => unsub()
   }, [])
 
@@ -661,6 +666,29 @@ const medalClass = (rank: number) => {
   // ════════════════════════════════════════════════════
   // JSX
   // ════════════════════════════════════════════════════
+  if (!authReady) return (
+    <main className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#FFFBF5" }}>
+      <style>{`
+        @keyframes splashPulse {
+          0%,100% { opacity: 0.5; transform: scale(0.97); }
+          50%      { opacity: 1;   transform: scale(1); }
+        }
+        .splash-logo { animation: splashPulse 1.6s ease-in-out infinite; }
+      `}</style>
+      <div className="splash-logo flex flex-col items-center gap-4">
+        <div style={{
+          width: 72, height: 72, borderRadius: 20,
+          background: "linear-gradient(135deg,#F2A900 0%,#D4910A 100%)",
+          boxShadow: "0 8px 28px rgba(242,169,0,0.35)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <span style={{ fontSize: 36 }}>🃏</span>
+        </div>
+        <p style={{ fontSize: 13, color: "#AEAEB2", letterSpacing: "0.04em" }}>RR Poker</p>
+      </div>
+    </main>
+  )
+
   return (
     <main className="min-h-screen pb-32" style={{ background: "#FFFBF5" }}>
       <style>{`
@@ -873,6 +901,8 @@ const medalClass = (rank: number) => {
         .ink-spread      { animation:inkSpread  0.75s ease-out 0.08s both; }
         .stamp-card-in   { animation:stampCardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
       `}</style>
+
+      <PullToRefresh onRefresh={() => window.location.reload()} />
 
       {/* ヘッダー（変更なし） */}
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />

@@ -215,23 +215,22 @@ export default function StorePage() {
 
   useEffect(() => {
     if (!storeId) return
-    const unsub = onSnapshot(collection(db, "users"), async (snap) => {
-      const list: any[] = []
-      for (const d of snap.docs) {
-        if (d.id.startsWith("temp_")) continue
+    const q = query(collection(db, "users"), where("joinedStores", "array-contains", storeId))
+    const unsub = onSnapshot(q, async (snap) => {
+      const filtered = snap.docs.filter(d => !d.id.startsWith("temp_"))
+      const results = await Promise.all(filtered.map(async d => {
         const data = d.data()
-        if (!data.joinedStores?.includes(storeId)) continue
         const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", storeId))
         const bal = balSnap.exists() ? balSnap.data() : {}
-        list.push({
+        return {
           id: d.id, name: data.name, iconUrl: data.iconUrl,
           balance: bal.balance ?? 0, netGain: bal.netGain ?? 0,
           lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
           isInStore: data.currentStoreId === storeId,
-        })
-      }
-      list.sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
-      setStorePlayers(list)
+        }
+      }))
+      results.sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+      setStorePlayers(results)
     })
     return () => unsub()
   }, [storeId])

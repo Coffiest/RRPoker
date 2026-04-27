@@ -334,7 +334,7 @@ export default function UserProfileOnboardingPage() {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="例: ナオユキ"
+              placeholder="例: なおゆき"
               className={`field-input ${error && !name.trim() ? 'has-error' : ''}`}
             />
           </div>
@@ -342,7 +342,7 @@ export default function UserProfileOnboardingPage() {
           {/* Player ID */}
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">プレイヤーID</label>
+              <label className="text-[14px] font-medium text-gray-700">プレイヤーID(インスタのID的なやつ)</label>
               <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
             <div className="relative">
