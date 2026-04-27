@@ -21,7 +21,7 @@ import {
   setDoc
 } from "firebase/firestore"
 
-import { FiArrowLeft, FiTrash2, FiHome, FiCreditCard, FiUser, FiPlus } from "react-icons/fi"
+import { FiArrowLeft, FiTrash2, FiHome, FiUser, FiPlus } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -33,6 +33,108 @@ type RakeEntry = {
   amount: number
   memo?: string
   createdAt?: { seconds?: number }
+}
+
+const CLR = {
+  bg:      "#FFFBF5",
+  white:   "#FFFFFF",
+  surface: "#F5F3EF",
+  border:  "#E8E3DB",
+  gold:    "#F2A900",
+  goldDk:  "#D4910A",
+  ink:     "#1D1D1F",
+  gray2:   "#6E6E73",
+  gray3:   "#AEAEB2",
+  red:     "#E53E3A",
+}
+
+function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={on}
+      onClick={onToggle}
+      className="relative shrink-0 w-[46px] h-[27px] rounded-full transition-all duration-200"
+      style={{ background: on ? "#34C759" : CLR.border }}
+    >
+      <span
+        className="absolute top-[3px] left-[3px] w-[21px] h-[21px] bg-white rounded-full shadow-sm transition-all duration-200"
+        style={{ transform: on ? "translateX(19px)" : "translateX(0)" }}
+      />
+    </button>
+  )
+}
+
+function SectionCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-3xl p-5" style={{ background: CLR.white, border: `1px solid ${CLR.border}` }}>
+      {children}
+    </div>
+  )
+}
+
+function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="mb-4">
+      <p className="text-[15px] font-bold" style={{ color: CLR.ink }}>{title}</p>
+      {subtitle && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{subtitle}</p>}
+    </div>
+  )
+}
+
+function FieldInput({ value, onChange, placeholder, type = "text", disabled }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; type?: string; disabled?: boolean
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      disabled={disabled}
+      className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none transition-all disabled:opacity-40"
+      style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
+      onFocus={e => (e.target.style.borderColor = CLR.gold)}
+      onBlur={e => (e.target.style.borderColor = CLR.border)}
+    />
+  )
+}
+
+function PrimaryButton({ onClick, disabled, children }: {
+  onClick: () => void; disabled?: boolean; children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full h-11 rounded-2xl text-[14px] font-bold active:scale-95 transition-all disabled:opacity-40"
+      style={{ background: CLR.gold, color: CLR.ink }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function GhostButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full h-11 rounded-2xl text-[14px] font-semibold active:scale-95 transition-all"
+      style={{ background: CLR.surface, color: CLR.ink, border: `1px solid ${CLR.border}` }}
+    >
+      {children}
+    </button>
+  )
+}
+
+function FeedbackText({ text, color }: { text: string; color: "green" | "red" }) {
+  return (
+    <p className="text-[12px] mt-1.5 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
+      {text}
+    </p>
+  )
 }
 
 export default function StoreSettingsPage() {
@@ -130,9 +232,7 @@ export default function StoreSettingsPage() {
     if (!seconds) return ""
     const date = new Date(seconds * 1000)
     const pad = (v: number) => v.toString().padStart(2, "0")
-    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(
-      date.getDate()
-    )} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+    return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
   }
 
   const saveChipExpiry = async () => {
@@ -144,21 +244,13 @@ export default function StoreSettingsPage() {
     const previousValue = store?.chipExpiryMonths
 
     if (!raw) {
-      await updateDoc(doc(db, "stores", storeId), {
-        chipExpiryMonths: deleteField(),
-      })
+      await updateDoc(doc(db, "stores", storeId), { chipExpiryMonths: deleteField() })
       setChipExpirySuccess("保存しました")
       setChipExpiryInput("")
-      if (previousValue !== undefined) {
-        await sendExpiryChangeNotification(storeId, undefined, previousValue)
-      }
+      if (previousValue !== undefined) await sendExpiryChangeNotification(storeId, undefined, previousValue)
       setTimeout(() => setChipExpirySuccess(""), 3000)
       return
     }
-
-
-
-
 
     const months = Number(raw)
     if (!Number.isInteger(months) || months < 0) {
@@ -167,161 +259,91 @@ export default function StoreSettingsPage() {
     }
 
     if (months === 0) {
-      await updateDoc(doc(db, "stores", storeId), {
-        chipExpiryMonths: deleteField(),
-      })
+      await updateDoc(doc(db, "stores", storeId), { chipExpiryMonths: deleteField() })
       setChipExpirySuccess("保存しました")
       setChipExpiryInput("")
-      if (previousValue !== undefined && previousValue !== 0) {
-        await sendExpiryChangeNotification(storeId, undefined, previousValue)
-      }
+      if (previousValue !== undefined && previousValue !== 0) await sendExpiryChangeNotification(storeId, undefined, previousValue)
       setTimeout(() => setChipExpirySuccess(""), 3000)
       return
     }
 
-    await updateDoc(doc(db, "stores", storeId), {
-      chipExpiryMonths: months,
-    })
+    await updateDoc(doc(db, "stores", storeId), { chipExpiryMonths: months })
     setChipExpirySuccess("保存しました")
-    if (previousValue !== months) {
-      await sendExpiryChangeNotification(storeId, months, previousValue)
-    }
+    if (previousValue !== months) await sendExpiryChangeNotification(storeId, months, previousValue)
     setTimeout(() => setChipExpirySuccess(""), 3000)
   }
 
   const toggleCheckinBonus = async () => {
-  if (!storeId) return
-
-  const next = !checkinBonusEnabled
-  setCheckinBonusEnabled(next)
-
-  await updateDoc(doc(db, "stores", storeId), {
-    checkinBonusEnabled: next
-  })
-}
-
-const toggleBirthdayCoupon = async () => {
-  if (!storeId) return
-  const next = !birthdayCouponEnabled
-  setBirthdayCouponEnabled(next)
-
-  await updateDoc(doc(db, "stores", storeId), {
-    birthdayCouponEnabled: next
-  })
-}
-
-const saveBirthdayCoupon = async () => {
-  if (!storeId) return
-
-  if (!birthdayCouponName.trim()) {
-    setBirthdayCouponError("クーポン名を入力してください")
-    return
+    if (!storeId) return
+    const next = !checkinBonusEnabled
+    setCheckinBonusEnabled(next)
+    await updateDoc(doc(db, "stores", storeId), { checkinBonusEnabled: next })
   }
 
-  if (!birthdayCouponUnlimited && !birthdayCouponExpiryValue) {
-    setBirthdayCouponError("有効期限を入力してください")
-    return
+  const toggleBirthdayCoupon = async () => {
+    if (!storeId) return
+    const next = !birthdayCouponEnabled
+    setBirthdayCouponEnabled(next)
+    await updateDoc(doc(db, "stores", storeId), { birthdayCouponEnabled: next })
   }
 
-  setBirthdayCouponError("")
-  setBirthdayCouponSuccess("")
+  const saveBirthdayCoupon = async () => {
+    if (!storeId) return
+    if (!birthdayCouponName.trim()) { setBirthdayCouponError("クーポン名を入力してください"); return }
+    if (!birthdayCouponUnlimited && !birthdayCouponExpiryValue) { setBirthdayCouponError("有効期限を入力してください"); return }
+    setBirthdayCouponError("")
+    setBirthdayCouponSuccess("")
+    await updateDoc(doc(db, "stores", storeId), {
+      birthdayCouponName,
+      birthdayCouponExpiryValue: birthdayCouponUnlimited ? null : Number(birthdayCouponExpiryValue),
+      birthdayCouponExpiryUnit,
+      birthdayCouponUnlimited
+    })
+    setBirthdayCouponSuccess("保存しました")
+    setTimeout(() => setBirthdayCouponSuccess(""), 2000)
+  }
 
-  await updateDoc(doc(db, "stores", storeId), {
-    birthdayCouponName,
-    birthdayCouponExpiryValue: birthdayCouponUnlimited ? null : Number(birthdayCouponExpiryValue),
-    birthdayCouponExpiryUnit,
-    birthdayCouponUnlimited
-  })
-
-  setBirthdayCouponSuccess("保存しました")
-  setTimeout(() => setBirthdayCouponSuccess(""), 2000)
-}
-
-const toggleApprovalRequired = async () => {
-  if (!storeId) return
-
-  const next = !isApprovalRequired
-  setIsApprovalRequired(next)
-
-  await updateDoc(doc(db, "stores", storeId), {
-    isApprovalRequired: next
-  })
-
-  // OFFにした時だけ自動承認
-  if (!next) {
-    const usersSnap = await getDocs(collection(db, "users"))
-
-    for (const userDoc of usersSnap.docs) {
-      const data = userDoc.data()
-
-      if (
-        data.pendingStoreId === storeId &&
-        data.checkinStatus === "pending"
-      ) {
-        await updateDoc(doc(db, "users", userDoc.id), {
-          currentStoreId: storeId,
-          checkinStatus: "approved",
-          pendingStoreId: null
-        })
-
-        // storeBalancesなければ作る
-        const balanceRef = doc(
-          db,
-          "users",
-          userDoc.id,
-          "storeBalances",
-          storeId
-        )
-
-        const balanceSnap = await getDoc(balanceRef)
-
-        if (!balanceSnap.exists()) {
-          await setDoc(balanceRef, {
-            balance: 0,
-            netGain: 0,
-            createdAt: serverTimestamp()
+  const toggleApprovalRequired = async () => {
+    if (!storeId) return
+    const next = !isApprovalRequired
+    setIsApprovalRequired(next)
+    await updateDoc(doc(db, "stores", storeId), { isApprovalRequired: next })
+    if (!next) {
+      const usersSnap = await getDocs(collection(db, "users"))
+      for (const userDoc of usersSnap.docs) {
+        const data = userDoc.data()
+        if (data.pendingStoreId === storeId && data.checkinStatus === "pending") {
+          await updateDoc(doc(db, "users", userDoc.id), {
+            currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null
           })
+          const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
+          const balanceSnap = await getDoc(balanceRef)
+          if (!balanceSnap.exists()) {
+            await setDoc(balanceRef, { balance: 0, netGain: 0, createdAt: serverTimestamp() })
+          }
         }
       }
     }
   }
-}
 
-const saveCouponName = async () => {
-  if (!storeId) return
-
-  if (!couponName.trim()) {
-    setCouponError("クーポン名を入力してください")
-    return
+  const saveCouponName = async () => {
+    if (!storeId) return
+    if (!couponName.trim()) { setCouponError("クーポン名を入力してください"); return }
+    if (couponName.length > 20) { setCouponError("20文字以内で入力してください"); return }
+    setCouponError("")
+    setCouponSuccess("")
+    await updateDoc(doc(db, "stores", storeId), { checkinBonusCouponName: couponName })
+    setCouponSuccess("保存しました")
+    setTimeout(() => setCouponSuccess(""), 2000)
   }
-
-  if (couponName.length > 20) {
-    setCouponError("20文字以内で入力してください")
-    return
-  }
-
-  setCouponError("")
-  setCouponSuccess("")
-
-  await updateDoc(doc(db, "stores", storeId), {
-    checkinBonusCouponName: couponName
-  })
-
-  setCouponSuccess("保存しました")
-  setTimeout(() => setCouponSuccess(""), 2000)
-}
 
   const sendNotice = async () => {
-    if (!storeId || !noticeMessage.trim()) {
-      setNoticeError("メッセージを入力してください")
-      return
-    }
+    if (!storeId || !noticeMessage.trim()) { setNoticeError("メッセージを入力してください"); return }
     setNoticeSending(true)
     setNoticeError("")
     try {
       await addDoc(collection(db, "stores", storeId, "notices"), {
-        message: noticeMessage.trim(),
-        createdAt: serverTimestamp(),
+        message: noticeMessage.trim(), createdAt: serverTimestamp(),
       })
       setNoticeMessage("")
       setNoticeSuccess("送信しました")
@@ -333,58 +355,33 @@ const saveCouponName = async () => {
     }
   }
 
-  const sendExpiryChangeNotification = async (
-    storeId: string,
-    newValue?: number,
-    oldValue?: number
-  ) => {
+  const sendExpiryChangeNotification = async (storeId: string, newValue?: number, _oldValue?: number) => {
     try {
       const storeSnap = await getDoc(doc(db, "stores", storeId))
       const storeName = storeSnap.data()?.name ?? "店舗"
-
       const message = newValue
         ? `チップの有効期限が${newValue}ヶ月に変更されました`
         : `チップの有効期限が削除されました（期限なし）`
-
       const playerMessage = newValue
         ? `${storeName}のチップ有効期限が${newValue}ヶ月に変更されました`
         : `${storeName}のチップ有効期限が削除されました（期限なし）`
-
       const timestamp = serverTimestamp()
-
-      await addDoc(collection(db, "stores", storeId, "notices"), {
-        message,
-        createdAt: timestamp,
-        expiredAt: timestamp,
-      })
-
+      await addDoc(collection(db, "stores", storeId, "notices"), { message, createdAt: timestamp, expiredAt: timestamp })
       const usersSnap = await getDocs(collection(db, "users"))
       const promises: Promise<any>[] = []
-
       for (const userDoc of usersSnap.docs) {
         const userId = userDoc.id
-        const balanceSnap = await getDoc(
-          doc(db, "users", userId, "storeBalances", storeId)
-        )
-
+        const balanceSnap = await getDoc(doc(db, "users", userId, "storeBalances", storeId))
         if (balanceSnap.exists()) {
           const balance = balanceSnap.data()?.balance ?? 0
           if (balance >= 1) {
-            promises.push(
-              addDoc(collection(db, "notifications"), {
-                userId,
-                storeId,
-                storeName,
-                message: playerMessage,
-                type: "chip_expiry_change",
-                createdAt: timestamp,
-                read: false,
-              })
-            )
+            promises.push(addDoc(collection(db, "notifications"), {
+              userId, storeId, storeName, message: playerMessage,
+              type: "chip_expiry_change", createdAt: timestamp, read: false,
+            }))
           }
         }
       }
-
       await Promise.all(promises)
     } catch (error) {
       console.error("Failed to send expiry change notification:", error)
@@ -392,16 +389,7 @@ const saveCouponName = async () => {
   }
 
   return (
-    <main className="min-h-screen bg-white pb-28">
-
-      <style>{`
-  .glass-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-`}</style>
-
+    <main className="min-h-screen pb-28" style={{ background: CLR.bg }}>
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -413,438 +401,250 @@ const saveCouponName = async () => {
         <button
           type="button"
           onClick={() => router.push("/home/store")}
-          className="mt-6 inline-flex items-center gap-2 text-[14px] font-semibold text-gray-700 hover:text-gray-900"
+          className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold active:scale-95 transition-all"
+          style={{ color: CLR.gray2 }}
         >
-          <FiArrowLeft className="text-[16px]" />
+          <FiArrowLeft size={14} />
           戻る
         </button>
 
-        <h1 className="mt-4 text-[20px] font-bold text-gray-900">設定</h1>
+        <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
+        <div className="mt-6 space-y-4">
 
-  <p className="text-[14px] font-semibold text-gray-900">
-    入店ボーナス
-  </p>
+          {/* ── 入店ボーナス ── */}
+          <SectionCard>
+            <SectionTitle title="入店ボーナス" subtitle="入店時にスタンプを付与し、一定数でクーポンを配布します" />
+            <div className="flex items-center justify-between">
+              <span className="text-[14px]" style={{ color: CLR.ink }}>機能を有効にする</span>
+              <Toggle on={checkinBonusEnabled} onToggle={toggleCheckinBonus} />
+            </div>
+            {checkinBonusEnabled && (
+              <div className="mt-4 space-y-3">
+                <div>
+                  <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>クーポン名</p>
+                  <FieldInput
+                    value={couponName}
+                    onChange={setCouponName}
+                    placeholder="例：入店無料クーポン"
+                  />
+                  {couponError && <FeedbackText text={couponError} color="red" />}
+                  {couponSuccess && <FeedbackText text={couponSuccess} color="green" />}
+                </div>
+                <PrimaryButton onClick={saveCouponName}>保存する</PrimaryButton>
+              </div>
+            )}
+          </SectionCard>
 
-  <p className="text-[12px] text-gray-500 mt-1">
-    入店時にスタンプを付与し、一定数でクーポンを配布します
-  </p>
+          {/* ── 入店制限 ── */}
+          <SectionCard>
+            <SectionTitle title="入店制限" subtitle="ON：承認必要 / OFF：即入店" />
+            <div className="flex items-center justify-between">
+              <span className="text-[14px]" style={{ color: CLR.ink }}>承認を必要にする</span>
+              <Toggle on={isApprovalRequired} onToggle={toggleApprovalRequired} />
+            </div>
+          </SectionCard>
 
-  <div className="mt-4 flex items-center justify-between">
-    <span className="text-[14px] text-gray-800">機能を有効にする</span>
+          {/* ── 誕生日クーポン ── */}
+          <SectionCard>
+            <SectionTitle title="誕生日クーポン" subtitle="誕生日にクーポンを自動配布" />
+            <div className="flex items-center justify-between">
+              <span className="text-[14px]" style={{ color: CLR.ink }}>有効にする</span>
+              <Toggle on={birthdayCouponEnabled} onToggle={toggleBirthdayCoupon} />
+            </div>
+            {birthdayCouponEnabled && (
+              <div className="mt-4 space-y-3">
+                <FieldInput
+                  value={birthdayCouponName}
+                  onChange={setBirthdayCouponName}
+                  placeholder="クーポン名"
+                />
+                <div className="flex items-center gap-2">
+                  <div className="w-24 shrink-0">
+                    <FieldInput
+                      type="number"
+                      value={birthdayCouponExpiryValue}
+                      onChange={setBirthdayCouponExpiryValue}
+                      placeholder="7"
+                      disabled={birthdayCouponUnlimited}
+                    />
+                  </div>
+                  <select
+                    value={birthdayCouponExpiryUnit}
+                    onChange={e => setBirthdayCouponExpiryUnit(e.target.value as any)}
+                    disabled={birthdayCouponUnlimited}
+                    className="h-11 rounded-2xl px-3 text-[14px] outline-none disabled:opacity-40"
+                    style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
+                  >
+                    <option value="day">日</option>
+                    <option value="month">ヶ月</option>
+                  </select>
+                  <label className="flex items-center gap-1.5 shrink-0 text-[13px] cursor-pointer" style={{ color: CLR.gray2 }}>
+                    <input
+                      type="checkbox"
+                      checked={birthdayCouponUnlimited}
+                      onChange={e => setBirthdayCouponUnlimited(e.target.checked)}
+                      className="w-4 h-4 accent-[#F2A900]"
+                    />
+                    無期限
+                  </label>
+                </div>
+                {birthdayCouponError && <FeedbackText text={birthdayCouponError} color="red" />}
+                {birthdayCouponSuccess && <FeedbackText text={birthdayCouponSuccess} color="green" />}
+                <PrimaryButton onClick={saveBirthdayCoupon}>保存する</PrimaryButton>
+              </div>
+            )}
+          </SectionCard>
 
-    <button
-      role="switch"
-      aria-checked={checkinBonusEnabled}
-      onClick={toggleCheckinBonus}
-      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
-        checkinBonusEnabled ? "bg-[#34C759]" : "bg-gray-300"
-      }`}
-    >
-      <span
-        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
-          checkinBonusEnabled ? "translate-x-5" : ""
-        }`}
-      />
-    </button>
-  </div>
+          {/* ── お知らせ配信 ── */}
+          <SectionCard>
+            <SectionTitle title="お知らせ配信" subtitle="お気に入り登録しているプレイヤーに通知が届きます" />
+            <textarea
+              value={noticeMessage}
+              onChange={e => setNoticeMessage(e.target.value)}
+              placeholder="メッセージを入力..."
+              rows={3}
+              className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+              style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
+              onFocus={e => (e.target.style.borderColor = CLR.gold)}
+              onBlur={e => (e.target.style.borderColor = CLR.border)}
+            />
+            {noticeError && <FeedbackText text={noticeError} color="red" />}
+            {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
+            <div className="mt-3">
+              <PrimaryButton onClick={sendNotice} disabled={noticeSending}>
+                {noticeSending ? "送信中..." : "送信する"}
+              </PrimaryButton>
+            </div>
+          </SectionCard>
 
-  {checkinBonusEnabled && (
-    <div className="mt-4">
-      <label className="text-[12px] text-gray-500">
-        クーポン名
-      </label>
-
-<input
-  value={couponName}
-  onChange={(e) => setCouponName(e.target.value)}
-  placeholder="例：入店無料クーポン"
-  className="mt-2 w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
-/>
-
-      {couponError && (
-        <p className="mt-1 text-[12px] text-red-500">
-          {couponError}
-        </p>
-      )}
-
-      {couponSuccess && (
-  <p className="mt-1 text-[12px] text-green-600">
-    {couponSuccess}
-  </p>
-)}
-
-      <button
-        onClick={saveCouponName}
-        className="mt-3 w-full h-10 rounded-xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-      >
-        保存する
-      </button>
-    </div>
-  )}
-
-</div>
-
-
-<div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-
-  <p className="text-[14px] font-semibold text-gray-900">
-    入店制限
-  </p>
-
-  <p className="text-[12px] text-gray-500 mt-1">
-    ON：承認必要 / OFF：即入店
-  </p>
-
-  <div className="mt-4 flex items-center justify-between">
-    <span className="text-[14px] text-gray-800">
-      承認を必要にする
-    </span>
-
-    <button
-      role="switch"
-      aria-checked={isApprovalRequired}
-      onClick={toggleApprovalRequired}
-      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
-        isApprovalRequired ? "bg-[#34C759]" : "bg-gray-300"
-      }`}
-    >
-      <span
-        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
-          isApprovalRequired ? "translate-x-5" : ""
-        }`}
-      />
-    </button>
-  </div>
-
-</div>
-
-
-<div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-
-  <p className="text-[14px] font-semibold text-gray-900">
-    誕生日クーポン
-  </p>
-
-  <p className="text-[12px] text-gray-500 mt-1">
-    誕生日にクーポンを自動配布
-  </p>
-
-  <div className="mt-4 flex items-center justify-between">
-    <span className="text-[14px] text-gray-800">有効にする</span>
-
-    <button
-      role="switch"
-      aria-checked={birthdayCouponEnabled}
-      onClick={toggleBirthdayCoupon}
-      className={`relative w-12 h-7 rounded-full transition-all duration-200 ${
-        birthdayCouponEnabled ? "bg-[#34C759]" : "bg-gray-900"
-      }`}
-    >
-      <span
-        className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
-          birthdayCouponEnabled ? "translate-x-5" : ""
-        }`}
-      />
-    </button>
-  </div>
-
-  {birthdayCouponEnabled && (
-    <div className="mt-4 space-y-3">
-
-<input
-  value={birthdayCouponName}
-  onChange={(e) => setBirthdayCouponName(e.target.value)}
-  placeholder="クーポン名"
-  className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
-/>
-
-      <div className="flex gap-2">
-<input
-  value={birthdayCouponExpiryValue}
-  onChange={(e) => setBirthdayCouponExpiryValue(e.target.value)}
-  placeholder="7"
-  className="w-20 h-10 rounded-xl border border-gray-200 px-3 text-[14px] text-gray-900 placeholder:text-gray-400"
-  disabled={birthdayCouponUnlimited}
-/>
-
-          <select
-            value={birthdayCouponExpiryUnit}
-            onChange={(e) => setBirthdayCouponExpiryUnit(e.target.value as any)}
-            className="h-10 rounded-xl border border-gray-200 px-2 text-[14px] text-gray-900"
-            disabled={birthdayCouponUnlimited}
-          >
-          <option value="day">日</option>
-          <option value="month">ヶ月</option>
-        </select>
-      </div>
-
-      <label className="flex items-center gap-2 text-[13px] text-gray-700">
-        <input
-          type="checkbox"
-          checked={birthdayCouponUnlimited}
-          onChange={(e) => setBirthdayCouponUnlimited(e.target.checked)}
-        />
-        無期限
-      </label>
-
-      <button
-        onClick={saveBirthdayCoupon}
-
-        
-        className="mt-3 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-      >
-        保存する
-      </button>
-
-      {birthdayCouponError && (
-  <p className="text-[12px] text-red-500">
-    {birthdayCouponError}
-  </p>
-)}
-
-{birthdayCouponSuccess && (
-  <p className="text-[12px] text-green-600">
-    {birthdayCouponSuccess}
-  </p>
-)}
-
-    </div>
-  )}
-</div>
-
-
-
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <p className="text-[14px] font-semibold text-gray-900">お知らせ配信</p>
-          <p className="text-[12px] text-gray-500 mt-1">お気に入り登録しているプレイヤーに通知が届きます</p>
-          <textarea
-            value={noticeMessage}
-            onChange={e => setNoticeMessage(e.target.value)}
-            placeholder="メッセージを入力..."
-            rows={3}
-            className="mt-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-[14px] text-gray-900 placeholder:text-gray-400 resize-none focus:border-[#F2A900] focus:outline-none"
-          />
-          {noticeError && <p className="mt-1 text-[12px] text-red-500">{noticeError}</p>}
-          {noticeSuccess && <p className="mt-1 text-[12px] text-green-600">{noticeSuccess}</p>}
-          <button
-            type="button"
-            onClick={sendNotice}
-            disabled={noticeSending}
-            className="mt-3 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900 disabled:opacity-50"
-          >
-            {noticeSending ? "送信中..." : "送信する"}
-          </button>
-        </div>
-
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <p className="text-[14px] font-semibold text-gray-900">
-            チップの有効期限設定
-          </p>
-          <p className="mt-1 text-[12px] text-gray-500">
-            {store?.chipExpiryMonths
-              ? `現在の設定: ${store.chipExpiryMonths}ヶ月`
-              : "現在の設定: 期限なし"}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
+          {/* ── チップ有効期限 ── */}
+          <SectionCard>
+            <SectionTitle title="チップの有効期限設定" />
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[13px]" style={{ color: CLR.gray2 }}>現在の設定</span>
+              <span className="text-[14px] font-bold" style={{ color: CLR.ink }}>
+                {store?.chipExpiryMonths ? `${store.chipExpiryMonths}ヶ月` : "期限なし"}
+              </span>
+            </div>
+            <PrimaryButton onClick={() => {
               setChipExpiryError("")
               setChipExpirySuccess("")
-              setChipExpiryInput(
-                store?.chipExpiryMonths?.toString() ?? ""
-              )
+              setChipExpiryInput(store?.chipExpiryMonths?.toString() ?? "")
               setIsChipExpiryModalOpen(true)
-            }}
-            className="mt-3 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-          >
-            有効期限を変更する
-          </button>
-        </div>
+            }}>
+              有効期限を変更する
+            </PrimaryButton>
+          </SectionCard>
 
-        <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-          <p className="text-[14px] font-semibold text-gray-900">レーキ</p>
-          <button
-            type="button"
-            onClick={() => {
-              setRakeView("menu")
-              setRakeError("")
-              setIsRakeModalOpen(true)
-            }}
-            className="mt-3 h-11 w-full rounded-2xl border border-gray-200 text-[14px] font-semibold text-gray-800"
-          >
-            レーキを記録する
-          </button>
+          {/* ── レーキ ── */}
+          <SectionCard>
+            <SectionTitle title="レーキ" />
+            <GhostButton onClick={() => { setRakeView("menu"); setRakeError(""); setIsRakeModalOpen(true) }}>
+              レーキを記録する
+            </GhostButton>
+          </SectionCard>
+
         </div>
       </div>
 
+      {/* ── チップ有効期限モーダル ── */}
       {isChipExpiryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <p className="text-[16px] font-semibold text-gray-900">
-                チップの有効期限設定
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsChipExpiryModalOpen(false)}
-                className="text-[13px] text-gray-500"
-              >
-                閉じる
-              </button>
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-t-3xl p-6 pb-8" style={{ background: CLR.white }}>
+            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
+              <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
+                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
             </div>
 
-            <div className="mt-4">
-              <label className="text-[12px] text-gray-500">
-                チップの有効期限（ヶ月）
-              </label>
-              <div className="mt-2 flex items-center gap-2">
-                <input
+            <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>有効期限（ヶ月）　0で期限なし</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-28">
+                <FieldInput
                   type="number"
-                  min={0}
                   value={chipExpiryInput}
-                  onChange={e => setChipExpiryInput(e.target.value)}
+                  onChange={setChipExpiryInput}
                   placeholder="0"
-                  className="h-10 w-24 rounded-xl border border-gray-200 bg-gray-50 px-3 text-[14px] text-gray-950"
                 />
-                <span className="text-[12px] text-gray-500">ヶ月</span>
-                <span className="text-[11px] text-gray-400">
-                  0で期限なし
-                </span>
               </div>
-              {chipExpiryError && (
-                <p className="mt-2 text-[12px] text-red-500">
-                  {chipExpiryError}
-                </p>
-              )}
-              {chipExpirySuccess && (
-                <div className="mt-3 rounded-lg bg-green-50 border border-green-200 p-3">
-                  <p className="text-[12px] font-semibold text-green-700">
-                    {chipExpirySuccess}
-                  </p>
-                  <p className="mt-1 text-[11px] text-green-600">
-                    通知を送信しました
-                  </p>
-                </div>
-              )}
+              <span className="text-[13px]" style={{ color: CLR.gray2 }}>ヶ月</span>
             </div>
 
-            <button
-              type="button"
-              onClick={saveChipExpiry}
-              className="mt-4 h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-            >
-              保存する
-            </button>
+            {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
+            {chipExpirySuccess && (
+              <div className="mb-3 rounded-2xl p-3" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+                <p className="text-[12px] font-bold" style={{ color: "#15803D" }}>{chipExpirySuccess}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: "#16A34A" }}>通知を送信しました</p>
+              </div>
+            )}
+            <PrimaryButton onClick={saveChipExpiry}>保存する</PrimaryButton>
           </div>
         </div>
       )}
 
+      {/* ── レーキモーダル ── */}
       {isRakeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-5">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <p className="text-[16px] font-semibold text-gray-900">
-                レーキ管理
-              </p>
-              <button
-                type="button"
-                onClick={() => setIsRakeModalOpen(false)}
-                className="text-[13px] text-gray-500"
-              >
-                閉じる
-              </button>
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-t-3xl p-6 pb-8" style={{ background: CLR.white }}>
+            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
+              <button type="button" onClick={() => setIsRakeModalOpen(false)}
+                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
             </div>
 
-            <div className="mt-4 rounded-lg bg-gray-50 p-3 text-center">
-              <p className="text-[12px] text-gray-500">レーキ総数</p>
-              <p className="mt-1 text-[20px] font-semibold text-gray-900">
-                {rakeTotal}
-              </p>
+            {/* Total */}
+            <div className="rounded-2xl p-4 mb-4 text-center" style={{ background: CLR.surface }}>
+              <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>レーキ総数</p>
+              <p className="text-[28px] font-bold" style={{ color: CLR.ink }}>{rakeTotal.toLocaleString()}</p>
             </div>
 
             {rakeView === "menu" && (
-              <div className="mt-4 space-y-2">
-                <button
-                  type="button"
-                  onClick={() => setRakeView("add")}
-                  className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-                >
-                  レーキを追加する
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRakeView("history")}
-                  className="h-11 w-full rounded-2xl border border-gray-200 text-[14px] font-semibold text-gray-800"
-                >
-                  レーキ履歴
-                </button>
+              <div className="space-y-2">
+                <PrimaryButton onClick={() => setRakeView("add")}>レーキを追加する</PrimaryButton>
+                <GhostButton onClick={() => setRakeView("history")}>レーキ履歴を見る</GhostButton>
               </div>
             )}
 
             {rakeView === "add" && (
-              <div className="mt-4">
-                <input
-                  type="number"
-                  min={1}
-                  value={rakeAmount}
-                  onChange={e => setRakeAmount(e.target.value)}
-                  placeholder="レーキ額"
-                  className="h-11 w-full rounded-2xl border border-gray-200 px-3 text-[14px] text-gray-950"
-                />
+              <div className="space-y-3">
+                <FieldInput type="number" value={rakeAmount} onChange={setRakeAmount} placeholder="レーキ額" />
                 <textarea
                   value={rakeMemo}
                   onChange={e => setRakeMemo(e.target.value)}
                   placeholder="メモ（任意）"
-                  className="mt-3 h-20 w-full rounded-2xl border border-gray-200 px-3 py-2 text-[14px] text-gray-950"
+                  rows={3}
+                  className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+                  style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
+                  onFocus={e => (e.target.style.borderColor = CLR.gold)}
+                  onBlur={e => (e.target.style.borderColor = CLR.border)}
                 />
-                {rakeError && (
-                  <p className="mt-2 text-[12px] text-red-500">
-                    {rakeError}
-                  </p>
-                )}
-                <div className="mt-4 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRakeView("menu")}
-                    className="flex-1 rounded-2xl border border-gray-200 py-2 text-[14px] font-semibold text-gray-700"
-                  >
-                    戻る
-                  </button>
+                {rakeError && <FeedbackText text={rakeError} color="red" />}
+                <div className="flex gap-2 pt-1">
+                  <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
                   <button
                     type="button"
                     onClick={async () => {
                       if (!storeId) return
                       const amount = Number(rakeAmount)
-                      if (!amount || amount < 1) {
-                        setRakeError("金額は1以上で入力してください")
-                        return
-                      }
+                      if (!amount || amount < 1) { setRakeError("金額は1以上で入力してください"); return }
                       setRakeError("")
                       try {
-                        await addDoc(
-                          collection(db, "stores", storeId, "rakeEntries"),
-                          {
-                            amount,
-                            memo: rakeMemo.trim() || null,
-                            createdAt: serverTimestamp(),
-                          }
-                        )
+                        await addDoc(collection(db, "stores", storeId, "rakeEntries"), {
+                          amount, memo: rakeMemo.trim() || null, createdAt: serverTimestamp(),
+                        })
                         setRakeAmount("")
                         setRakeMemo("")
                         setRakeView("menu")
                       } catch (error) {
-                        console.error(
-                          "Failed to add rake entry:",
-                          error
-                        )
-                        setRakeError(
-                          "記録に失敗しました。権限を確認してください"
-                        )
+                        console.error("Failed to add rake entry:", error)
+                        setRakeError("記録に失敗しました。権限を確認してください")
                       }
                     }}
-                    className="flex-1 rounded-2xl bg-green-500 py-2 text-[14px] font-semibold text-white"
+                    className="flex-1 h-11 rounded-2xl text-[14px] font-bold text-white active:scale-95 transition-all"
+                    style={{ background: "#15803D" }}
                   >
                     記録する
                   </button>
@@ -853,124 +653,85 @@ const saveCouponName = async () => {
             )}
 
             {rakeView === "history" && (
-              <div className="mt-4">
+              <div>
                 {sortedRakeEntries.length === 0 ? (
-                  <p className="text-center text-[13px] text-gray-500">
-                    履歴がありません
-                  </p>
+                  <p className="text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-3">
                     {sortedRakeEntries.map(entry => (
                       <div
                         key={entry.id}
-                        className="flex items-center justify-between rounded-2xl border border-gray-200 px-3 py-2"
+                        className="flex items-center justify-between rounded-2xl px-4 py-3"
+                        style={{ background: CLR.surface }}
                       >
                         <div>
-                          <p className="text-[12px] text-gray-500">
-                            {formatDateTime(
-                              entry.createdAt?.seconds
-                            )}
-                          </p>
-                          {entry.memo && (
-                            <p className="text-[12px] text-gray-600">
-                              {entry.memo}
-                            </p>
-                          )}
+                          <p className="text-[11px]" style={{ color: CLR.gray3 }}>{formatDateTime(entry.createdAt?.seconds)}</p>
+                          {entry.memo && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{entry.memo}</p>}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-[13px] font-semibold text-gray-900">
-                            +{entry.amount}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>+{entry.amount.toLocaleString()}</p>
                           <button
                             type="button"
                             onClick={async () => {
                               if (!storeId) return
                               try {
-                                await deleteDoc(
-                                  doc(
-                                    db,
-                                    "stores",
-                                    storeId,
-                                    "rakeEntries",
-                                    entry.id
-                                  )
-                                )
+                                await deleteDoc(doc(db, "stores", storeId, "rakeEntries", entry.id))
                               } catch (error) {
-                                console.error(
-                                  "Failed to delete rake entry:",
-                                  error
-                                )
-                                setRakeError(
-                                  "削除に失敗しました。権限を確認してください"
-                                )
+                                console.error("Failed to delete rake entry:", error)
+                                setRakeError("削除に失敗しました。権限を確認してください")
                               }
                             }}
-                            className="text-gray-400 hover:text-red-500"
+                            className="active:scale-90 transition-all"
+                            style={{ color: CLR.gray3 }}
                             aria-label="削除"
                           >
-                            <FiTrash2 className="text-[14px]" />
+                            <FiTrash2 size={14} />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setRakeView("menu")}
-                  className="mt-4 w-full rounded-2xl border border-gray-200 py-2 text-[14px] font-semibold text-gray-700"
-                >
-                  戻る
-                </button>
+                <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
               </div>
-
-
-
-
-
-
-
-
-
             )}
           </div>
         </div>
       )}
 
-      
+      {/* ── Bottom Nav ── */}
+      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] border-t" style={{ background: "rgba(255,251,245,0.85)", backdropFilter: "blur(20px)", borderColor: CLR.border }}>
+        <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
+          <button
+            type="button"
+            onClick={() => router.push("/home/store")}
+            className="flex flex-col items-center gap-0.5 transition-all"
+            style={{ color: CLR.gray3 }}
+          >
+            <FiHome size={22} />
+            <span className="text-[10px] font-medium">ホーム</span>
+          </button>
 
-      {/* Bottom Navigation */}
-<nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
-  <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
-    <button
-      type="button"
-      onClick={() => router.push("/home/store")}
-      className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
-    >
-      <FiHome size={22} />
-      <span className="mt-1 text-[11px] font-medium">ホーム</span>
-    </button>
+          <button
+            type="button"
+            onClick={() => router.push("/home/store/tournaments")}
+            className="absolute left-1/2 top-0 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl text-white shadow-lg active:scale-95 transition-all"
+            style={{ background: CLR.gold }}
+          >
+            <FiPlus size={26} />
+          </button>
 
-    <button
-      type="button"
-      onClick={() => router.push("/home/store/tournaments")}
-      className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
-    >
-      <FiPlus size={28} />
-    </button>
-
-    <button
-      type="button"
-      onClick={() => router.push("/home/store/mypage")}
-      className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all"
-    >
-      <FiUser size={22} />
-      <span className="mt-1 text-[11px]">マイページ</span>
-    </button>
-  </div>
-</nav>
-
-      
+          <button
+            type="button"
+            onClick={() => router.push("/home/store/mypage")}
+            className="flex flex-col items-center gap-0.5 transition-all"
+            style={{ color: CLR.gray3 }}
+          >
+            <FiUser size={22} />
+            <span className="text-[10px] font-medium">マイページ</span>
+          </button>
+        </div>
+      </nav>
     </main>
   )
 }

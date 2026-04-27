@@ -530,7 +530,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.4.7</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.4.8</p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>

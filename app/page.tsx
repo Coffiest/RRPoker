@@ -545,7 +545,7 @@ export default function TopPage() {
           <img src="/logo.png" alt="RRPoker" style={{ width:28, height:28, borderRadius:8, objectFit:'cover' }}/>
           <span style={{ fontSize:13, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
         </div>
-        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.4.5</p>
+        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.4.8</p>
         <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize:10, color:'var(--label3)' }}>製作者 : なおゆき</p>
       </footer>

@@ -1,45 +1,105 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
     function isStoreOwner(storeId) {
       return isSignedIn()
+        && storeId is string
+        && exists(/databases/$(database)/documents/stores/$(storeId))
         && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid;
     }
 
+    function isStoreMember(storeId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && (
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.currentStoreId is string
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.currentStoreId == storeId
+          )
+          ||
+          (
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId is string
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId == storeId
+          )
+        );
+    }
+
+    match /checkins/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
     match /users/{userId} {
+
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow delete: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && (
-        request.auth.uid == userId
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentStoreId'])
-        || (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendRequests'])
-          && request.resource.data.friendRequests is list
-          && (!(resource.data.friendRequests is list) || request.resource.data.friendRequests.size() >= resource.data.friendRequests.size())
-        )
-        || (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends'])
-          && request.resource.data.friends is list
-          && (!(resource.data.friends is list) || request.resource.data.friends.size() >= resource.data.friends.size())
-        )
-      );
+
+      allow write: if isOwner(userId) || isSignedIn();
+
       match /storeBalances/{storeId} {
-        allow read, write: if isSignedIn()
-          && (request.auth.uid == userId || isStoreOwner(storeId));
+        allow read: if isOwner(userId) || isStoreMember(storeId);
+        allow write: if isOwner(userId) || isStoreOwner(storeId);
+      }
+
+      match /tournamentHistory/{tournamentId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) || isSignedIn();
+      }
+
+      match /tickets/{ticketId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /storeStamp/{storeId} {
+        allow read, write: if isOwner(userId) || isStoreOwner(storeId);
+      }
+
+      match /readNotices/{noticeId} {
+        allow read, write: if isOwner(userId);
       }
     }
 
-    match /stores/{storeId} {
+    match /rrLeaderboard/{userId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.code == storeId;
+      allow write: if isOwner(userId) || isSignedIn();
+    }
+
+    match /stores/{storeId} {
+
+      allow read: if isSignedIn();
       allow write: if isStoreOwner(storeId);
+
+      match /tournaments/{tournamentId} {
+        allow read: if isSignedIn();
+        allow write: if isStoreOwner(storeId);
+
+        match /players/{playerId} {
+          allow read: if isSignedIn();
+          allow write: if isStoreOwner(storeId);
+        }
+
+        match /entries/{userId} {
+          allow read: if isSignedIn();
+          allow write: if isOwner(userId) || isStoreOwner(storeId);
+        }
+
+        match /results/{userId} {
+          allow read: if isSignedIn();
+          allow write: if isStoreOwner(storeId);
+        }
+      }
+
+      match /blindPresets/{presetId} {
+        allow read: if isSignedIn();
+        allow write: if isStoreOwner(storeId);
+      }
 
       match /publicRanking/{rankingId} {
         allow read: if isSignedIn();
@@ -47,58 +107,56 @@ service cloud.firestore {
       }
 
       match /notices/{noticeId} {
-        allow read: if isStoreOwner(storeId);
+        allow read: if isSignedIn();
         allow write: if isStoreOwner(storeId);
       }
 
       match /rakeEntries/{entryId} {
-        allow read, write: if isSignedIn() && isStoreOwner(storeId);
+        allow read: if isSignedIn();
+        allow write: if isStoreOwner(storeId);
       }
-
-    }
-
-    match /depositRequests/{requestId} {
-      allow create: if isSignedIn() && request.resource.data.playerId == request.auth.uid;
-      allow read: if isSignedIn()
-        && (resource.data.playerId == request.auth.uid || isStoreOwner(resource.data.storeId));
-      allow update: if isSignedIn() && isStoreOwner(resource.data.storeId);
-    }
-
-    match /withdrawals/{withdrawalId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /transactions/{transactionId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /friendRequests/{requestId} {
-      allow create: if isSignedIn() && request.resource.data.fromUid == request.auth.uid;
-      allow update: if isSignedIn() && (
-        resource.data.fromUid == request.auth.uid ||
-        resource.data.toUid == request.auth.uid
-      );
-      allow read: if isSignedIn() && (
-        resource.data.fromUid == request.auth.uid ||
-        resource.data.toUid == request.auth.uid
-      );
-      allow delete: if isSignedIn() && (
-        resource.data.fromUid == request.auth.uid ||
-        resource.data.toUid == request.auth.uid
-      );
     }
 
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow write: if isSignedIn();
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow read, write: if isSignedIn();
     }
 
-    match /handHistories/{handId} {
-      allow read: if isSignedIn() && resource.data.creatorId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.creatorId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.creatorId == request.auth.uid;
+    match /depositRequests/{requestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isStoreOwner(request.resource.data.storeId);
     }
 
+    match /withdrawRequests/{requestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isStoreOwner(resource.data.storeId);
+    }
+
+    match /withdrawals/{withdrawalId} {
+      allow read: if isSignedIn();
+      allow write: if isStoreOwner(request.resource.data.storeId);
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isSignedIn();
+      allow write: if isStoreOwner(request.resource.data.storeId);
+    }
+
+    match /friendRequests/{requestId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /checkinRequests/{requestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isStoreOwner(resource.data.storeId);
+    }
+
+    match /handHistories/{docId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.creatorId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.creatorId;
+    }
   }
 }
