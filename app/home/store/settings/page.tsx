@@ -167,6 +167,10 @@ export default function StoreSettingsPage() {
   const [noticeSending, setNoticeSending] = useState(false)
   const [noticeSuccess, setNoticeSuccess] = useState("")
   const [noticeError, setNoticeError] = useState("")
+  const [chipUnitLabel, setChipUnitLabel] = useState("")
+  const [chipUnitBefore, setChipUnitBefore] = useState(true)
+  const [chipUnitSuccess, setChipUnitSuccess] = useState("")
+  const [chipUnitError, setChipUnitError] = useState("")
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -196,6 +200,8 @@ export default function StoreSettingsPage() {
       setBirthdayCouponExpiryValue(data?.birthdayCouponExpiryValue?.toString() ?? "")
       setBirthdayCouponExpiryUnit(data?.birthdayCouponExpiryUnit ?? "day")
       setBirthdayCouponUnlimited(data?.birthdayCouponUnlimited ?? false)
+      setChipUnitLabel(data?.chipUnitLabel ?? "")
+      setChipUnitBefore(data?.chipUnitBefore !== false)
     }
     fetchStore()
   }, [storeId])
@@ -388,6 +394,22 @@ export default function StoreSettingsPage() {
     }
   }
 
+  const saveChipUnit = async () => {
+    if (!storeId) return
+    setChipUnitError("")
+    setChipUnitSuccess("")
+    try {
+      await updateDoc(doc(db, "stores", storeId), {
+        chipUnitLabel: chipUnitLabel.trim(),
+        chipUnitBefore,
+      })
+      setChipUnitSuccess("保存しました")
+      setTimeout(() => setChipUnitSuccess(""), 3000)
+    } catch {
+      setChipUnitError("保存に失敗しました")
+    }
+  }
+
   return (
     <main className="min-h-screen pb-28" style={{ background: CLR.bg }}>
       <HomeHeader
@@ -515,6 +537,52 @@ export default function StoreSettingsPage() {
               <PrimaryButton onClick={sendNotice} disabled={noticeSending}>
                 {noticeSending ? "送信中..." : "送信する"}
               </PrimaryButton>
+            </div>
+          </SectionCard>
+
+          {/* ── 店内通貨単位 ── */}
+          <SectionCard>
+            <SectionTitle title="店内通貨の単位" subtitle="全画面でチップ量の横に表示されます" />
+            <div className="space-y-4">
+              <div>
+                <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
+                <FieldInput
+                  value={chipUnitLabel}
+                  onChange={setChipUnitLabel}
+                  placeholder="単位なしの場合は空欄"
+                />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>表示位置</p>
+                <div className="flex gap-3">
+                  {([{ v: true, label: "前（例: $500）" }, { v: false, label: "後（例: 500pt.）" }] as const).map(opt => (
+                    <button
+                      key={String(opt.v)}
+                      type="button"
+                      onClick={() => setChipUnitBefore(opt.v)}
+                      className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+                      style={{
+                        background: chipUnitBefore === opt.v ? CLR.gold : CLR.surface,
+                        color: chipUnitBefore === opt.v ? CLR.ink : CLR.gray2,
+                        border: `1.5px solid ${chipUnitBefore === opt.v ? CLR.goldDk : CLR.border}`,
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl p-4 text-center" style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}>
+                <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>プレビュー</p>
+                <p className="text-[24px] font-bold" style={{ color: CLR.ink }}>
+                  {chipUnitLabel
+                    ? chipUnitBefore ? `${chipUnitLabel}500` : `500${chipUnitLabel}`
+                    : "500"}
+                </p>
+              </div>
+              {chipUnitError && <FeedbackText text={chipUnitError} color="red" />}
+              {chipUnitSuccess && <FeedbackText text={chipUnitSuccess} color="green" />}
+              <PrimaryButton onClick={saveChipUnit}>保存する</PrimaryButton>
             </div>
           </SectionCard>
 

@@ -36,11 +36,12 @@ export default function TransactionsClient() {
   const [unitLabel, setUnitLabel] = useState("")
   const [blindBb, setBlindBb] = useState<number | null>(null)
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false)
+  const [uid, setUid] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchInfo = async () => {
-      const user = auth.currentUser
+    const unsub = auth.onAuthStateChanged(async user => {
       if (!user) return
+      setUid(user.uid)
       const userSnap = await getDoc(doc(db, "users", user.uid))
       const data = userSnap.data()
       const currentStoreId = data?.currentStoreId ?? null
@@ -56,9 +57,8 @@ export default function TransactionsClient() {
       const balanceSnap = await getDoc(doc(db, "users", user.uid, "storeBalances", currentStoreId))
       const balanceData = balanceSnap.data()
       setBalance(typeof balanceData?.balance === "number" ? balanceData.balance : 0)
-    }
-
-    fetchInfo()
+    })
+    return () => unsub()
   }, [])
 
   const formattedAmount = useMemo(() => {
@@ -92,8 +92,7 @@ export default function TransactionsClient() {
   }
 
   const submit = async () => {
-    const user = auth.currentUser
-    if (!user || !storeId) return
+    if (!uid || !storeId) return
     const numeric = Number(amount)
 
     if (!numeric || numeric < 1) {
@@ -111,7 +110,7 @@ export default function TransactionsClient() {
     if (mode === "deposit") {
       await setDoc(doc(collection(db, "depositRequests")), {
         storeId,
-        playerId: user.uid,
+        playerId: uid,
         amount: numeric,
         comment,
         status: "pending",
@@ -126,41 +125,35 @@ export default function TransactionsClient() {
   }
 
   const confirmWithdraw = async () => {
-  const user = auth.currentUser
-  if (!user || !storeId) return
-  const numeric = Number(amount)
+    if (!uid || !storeId) return
+    const numeric = Number(amount)
 
-  if (!numeric || numeric < 1) {
-    setError("数字は1以上で入力してください")
-    return
+    if (!numeric || numeric < 1) {
+      setError("数字は1以上で入力してください")
+      return
+    }
+
+    const balanceRef = doc(db, "users", uid, "storeBalances", storeId)
+    const balanceSnap = await getDoc(balanceRef)
+    const current = balanceSnap.data()?.balance ?? 0
+
+    if (!balanceSnap.exists() || current < numeric) {
+      setError("残高が不足しています")
+      return
+    }
+
+    await setDoc(doc(collection(db, "withdrawRequests")), {
+      storeId,
+      playerId: uid,
+      amount: numeric,
+      comment,
+      status: "pending",
+      createdAt: serverTimestamp(),
+    })
+
+    setIsWithdrawModalOpen(false)
+    router.replace("/home")
   }
-
-  const balanceRef = doc(db, "users", user.uid, "storeBalances", storeId)
-  const balanceSnap = await getDoc(balanceRef)
-  const current = balanceSnap.data()?.balance ?? 0
-
-  if (current < numeric) {
-    setError("残高が不足しています")
-    return
-  }
-
-  if (!balanceSnap.exists()) {
-    setError("残高が不足しています")
-    return
-  }
-
-await setDoc(doc(collection(db, "withdrawRequests")), {
-  storeId,
-  playerId: user.uid,
-  amount: numeric,
-  comment,
-  status: "pending",
-  createdAt: serverTimestamp(),
-})
-
-  setIsWithdrawModalOpen(false)
-  router.replace("/home")
-}
 
   if (!storeId) {
     return (

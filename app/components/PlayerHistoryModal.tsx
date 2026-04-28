@@ -23,6 +23,8 @@ type Transaction = {
 type Props = {
   playerId: string
   storeId: string
+  chipUnit?: string
+  chipUnitBefore?: boolean
   onClose: () => void
 }
 
@@ -83,9 +85,16 @@ function formatType(type: string, comment?: string) {
   }
 }
 
+function fmtChip(amount: number, unit?: string, before?: boolean): string {
+  if (!unit) return amount.toLocaleString()
+  return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
 export default function PlayerHistoryModal({
   playerId,
   storeId,
+  chipUnit,
+  chipUnitBefore,
   onClose
 }: Props) {
 
@@ -175,7 +184,7 @@ export default function PlayerHistoryModal({
                 <p className={`text-[14px] font-bold ${
                   isAdd ? "text-green-600" : "text-red-500"
                 }`}>
-                  {isAdd ? "+" : "-"}{item.amount?.toLocaleString()}
+                  {isAdd ? "+" : "-"}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                 </p>
               </div>
             )

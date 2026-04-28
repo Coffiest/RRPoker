@@ -84,6 +84,7 @@ export default function MyPage() {
   const [handLoading, setHandLoading] = useState(true)
   const [handDeleteConfirmId, setHandDeleteConfirmId] = useState<string|null>(null)
   const [handFavorites, setHandFavorites] = useState<Set<string>>(new Set())
+  const [uid, setUid] = useState<string | null>(null)
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -91,16 +92,16 @@ export default function MyPage() {
   const MAX_DATA_URL_LENGTH = 900000
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const user = auth.currentUser
+    const unsub = auth.onAuthStateChanged(async user => {
       if (!user) return
+      setUid(user.uid)
       const snap = await getDoc(doc(db, "users", user.uid))
       const data = snap.data() ?? {}
       setProfile(data)
       setDraftName(data.name ?? "")
       setEmail(user.email ?? "")
-    }
-    fetchProfile()
+    })
+    return () => unsub()
   }, [])
 
   useEffect(() => {
@@ -120,8 +121,7 @@ export default function MyPage() {
 
 
 useEffect(() => {
-  const user = auth.currentUser
-  if (!user) return
+  if (!uid) return
 
   const loadHands = async () => {
     setHandLoading(true)
@@ -129,13 +129,10 @@ useEffect(() => {
     try {
       const q = query(
         collection(db, "handHistories"),
-        where("creatorId", "==", user.uid)
+        where("creatorId", "==", uid)
       )
 
       const snap = await getDocs(q)
-
-      console.log("uid", user.uid)
-      console.log("docs", snap.docs.map(d => d.data()))
 
       const items: HandItem[] = snap.docs.map(d => {
         const data = d.data()
@@ -152,7 +149,7 @@ useEffect(() => {
       })
 
       const favSnap = await getDocs(
-        collection(db, "users", user.uid, "handFavorites")
+        collection(db, "users", uid, "handFavorites")
       )
 
       const favSet = new Set<string>(favSnap.docs.map(d => d.id))
@@ -168,14 +165,14 @@ useEffect(() => {
       setHandItems(items)
 
     } catch (e) {
-      console.log("hand load error", e)
+      console.error("hand load error", e)
     }
 
     setHandLoading(false)
   }
 
   loadHands()
-}, [])
+}, [uid])
 
 
 

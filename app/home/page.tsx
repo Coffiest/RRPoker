@@ -18,6 +18,7 @@ type StoreInfo = {
   iconUrl?: string
   address?: string
   chipUnitLabel?: string
+  chipUnitBefore?: boolean
   description?: string
   ringBlindSb?: number
   ringBlindBb?: number
@@ -53,6 +54,11 @@ export default function HomePage() {
 
   const router = useRouter()
   const [authReady, setAuthReady] = useState(false)
+  const [splashDone, setSplashDone] = useState(false)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('rrpoker_splash_shown')) setSplashDone(true)
+  }, [])
   const [userId, setUserId] = useState<string | null>(null)
   const [currentStoreId, setCurrentStoreId] = useState<string | null>(null)
   const [joinedStores, setJoinedStores] = useState<string[]>([])
@@ -148,7 +154,9 @@ export default function HomePage() {
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(user => {
       setUserId(user?.uid ?? null)
+      sessionStorage.setItem('rrpoker_splash_shown', '1')
       setAuthReady(true)
+      setSplashDone(true)
     })
     return () => unsub()
   }, [])
@@ -267,7 +275,7 @@ export default function HomePage() {
         const snap = await getDoc(doc(db, "stores", storeId))
         if (!snap.exists()) return
         const data = snap.data() as StoreInfo
-        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined }
+        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined }
       }))
       setStores(next)
     }
@@ -472,8 +480,10 @@ export default function HomePage() {
   const blindBb = typeof currentStore?.ringBlindBb === "number" ? currentStore.ringBlindBb : null
   const useBb = typeof blindBb === "number" && blindBb > 0
   const formatBbValue = (value: number) => { if (!blindBb) return "0"; const raw = value / blindBb; const rounded = Number.isInteger(raw) ? raw : Math.round(raw * 10) / 10; return rounded.toLocaleString() }
-  const formatChipValue = (value: number) => { if (showBB && useBb) return `${formatBbValue(value)}BB`; return `${unitLabel}${value.toLocaleString()}` }
-  const formatSignedChipValue = (value: number) => { const sign = value > 0 ? "+" : value < 0 ? "-" : "±"; const absValue = Math.abs(value); if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`; return `${sign}${unitLabel}${absValue.toLocaleString()}` }
+  const chipUnitBefore = currentStore?.chipUnitBefore !== false
+  const fmtChip = (v: number) => { if (!unitLabel) return v.toLocaleString(); return chipUnitBefore ? `${unitLabel}${v.toLocaleString()}` : `${v.toLocaleString()}${unitLabel}` }
+  const formatChipValue = (value: number) => { if (showBB && useBb) return `${formatBbValue(value)}BB`; return fmtChip(value) }
+  const formatSignedChipValue = (value: number) => { const sign = value > 0 ? "+" : value < 0 ? "-" : "±"; const absValue = Math.abs(value); if (showBB && useBb) return `${sign}${formatBbValue(absValue)}BB`; return `${sign}${fmtChip(absValue)}` }
 
   const sortedTransactionItems = useMemo(() => {
     const getSeconds = (t: any) => { if (!t) return 0; if (typeof t.seconds === "number") return t.seconds; if (typeof t.toDate === "function") return t.toDate().getTime() / 1000; return 0 }
@@ -566,7 +576,7 @@ const formatDateTime = (t?: any) => {
     if (allStores.length) return allStores
     const snap = await getDocs(collection(db, "stores"))
     const list: StoreInfo[] = []
-    snap.forEach(docSnap => { const data = docSnap.data(); list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined }) })
+    snap.forEach(docSnap => { const data = docSnap.data(); list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined }) })
     setAllStores(list); return list
   }
   const handleSearch = async () => {
@@ -667,25 +677,36 @@ const medalClass = (rank: number) => {
   // JSX
   // ════════════════════════════════════════════════════
   if (!authReady) return (
-    <main className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#FFFBF5" }}>
-      <style>{`
-        @keyframes splashPulse {
-          0%,100% { opacity: 0.5; transform: scale(0.97); }
-          50%      { opacity: 1;   transform: scale(1); }
-        }
-        .splash-logo { animation: splashPulse 1.6s ease-in-out infinite; }
-      `}</style>
-      <div className="splash-logo flex flex-col items-center gap-4">
-        <div style={{
-          width: 72, height: 72, borderRadius: 20,
-          background: "linear-gradient(135deg,#F2A900 0%,#D4910A 100%)",
-          boxShadow: "0 8px 28px rgba(242,169,0,0.35)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <span style={{ fontSize: 36 }}>🃏</span>
-        </div>
-        <p style={{ fontSize: 13, color: "#AEAEB2", letterSpacing: "0.04em" }}>RR Poker</p>
-      </div>
+    <main style={{ position: "fixed", inset: 0, background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      {!splashDone && (
+        <>
+          <style>{`
+            @keyframes splashLogoIn {
+              0%   { opacity: 0; transform: scale(0.72); }
+              60%  { opacity: 1; transform: scale(1.05); }
+              100% { opacity: 1; transform: scale(1); }
+            }
+            @keyframes splashNameIn {
+              0%   { opacity: 0; transform: translateY(6px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+            .splash-logo-anim { animation: splashLogoIn 0.48s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+            .splash-name-anim { animation: splashNameIn 0.36s ease-out 0.28s forwards; opacity: 0; }
+          `}</style>
+          <img
+            src="/logo.png"
+            alt="RRPoker"
+            className="splash-logo-anim"
+            style={{ width: 96, height: 96, objectFit: "contain" }}
+          />
+          <p
+            className="splash-name-anim"
+            style={{ marginTop: 16, fontSize: 18, fontWeight: 700, color: "#1D1D1F", letterSpacing: "0.06em" }}
+          >
+            RRPoker
+          </p>
+        </>
+      )}
     </main>
   )
 
@@ -1814,7 +1835,7 @@ const medalClass = (rank: number) => {
                       {entry.entryFee != null && (
                         <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
                           <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">エントリー金額</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.entryFee).toLocaleString()}円</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
                         </div>
                       )}
                       {entry.entryStack != null && (
@@ -1826,7 +1847,7 @@ const medalClass = (rank: number) => {
                       {entry.reentryFee != null && (
                         <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
                           <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">リエントリー金額</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.reentryFee).toLocaleString()}円</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
                         </div>
                       )}
                       {entry.reentryStack != null && (
@@ -1838,7 +1859,7 @@ const medalClass = (rank: number) => {
                       {entry.addonFee != null && (
                         <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
                           <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">アドオン</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{Number(entry.addonFee).toLocaleString()}円</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
                         </div>
                       )}
                       {entry.addonStack != null && (

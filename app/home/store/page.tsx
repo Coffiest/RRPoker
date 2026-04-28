@@ -19,10 +19,15 @@ import {
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight,
 } from "react-icons/fi"
 
-type StoreInfo = { name: string; iconUrl?: string; code: string }
+type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean }
 type DepositRequest = { id: string; playerId: string; amount: number; comment?: string }
 type WithdrawRequest = { id: string; playerId: string; amount: number; comment?: string }
 type PlayerInfo = { id: string; name?: string; iconUrl?: string; visitCount?: number; lastVisitedAt?: Date | null }
+
+function fmtChip(amount: number, unit?: string, before?: boolean): string {
+  if (!unit) return amount.toLocaleString()
+  return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
 
 export default function StorePage() {
   const getVisitCountResetBase = (date: Date) => {
@@ -693,9 +698,9 @@ export default function StorePage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} onClose={() => setShowPlayerModal(null)} />}
-      {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} onClose={() => setShowPrizeModal(null)} />}
-      {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} onClose={() => setHistoryPlayerId(null)} />}
+      {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
+      {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
+      {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
@@ -1079,9 +1084,9 @@ export default function StorePage() {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <div style={{ textAlign: 'right', marginRight: 4 }}>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{player.balance.toLocaleString()}</p>
+                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}</p>
                           <p style={{ fontSize: 11, fontWeight: 700, color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
-                            {player.netGain >= 0 ? '+' : ''}{player.netGain.toLocaleString()}
+                            {player.netGain >= 0 ? '+' : '-'}{fmtChip(Math.abs(player.netGain), store?.chipUnitLabel, store?.chipUnitBefore)}
                           </p>
                         </div>
                         <button onClick={() => setHistoryPlayerId(player.id)}

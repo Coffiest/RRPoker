@@ -76,15 +76,6 @@ export default function HomeHeader({
 
 	const isUserVariant = variant === 'user'
 
-	// ---- 未読を既読化（システム通知） ----
-	useEffect(() => {
-		if (!isNoticeOpen || !isUserVariant || userNotifications.length === 0) return
-		const batch = writeBatch(db)
-		userNotifications.forEach(item => {
-			if (!item.read) batch.update(doc(db, 'notifications', item.id), { read: true })
-		})
-		batch.commit().catch(() => {})
-	}, [isNoticeOpen, isUserVariant, userNotifications])
 
 	// ---- auth + favoriteStores 読み込み ----
 	useEffect(() => {
@@ -154,17 +145,31 @@ export default function HomeHeader({
 		return () => unsub()
 	}, [authUserId, isUserVariant])
 
-	// ---- お知らせパネルを開いたら既読にする ----
-	useEffect(() => {
-		if (!isNoticeOpen || !isUserVariant || !authUserId) return
-		const unread = storeNoticeItems.filter(n => !noticeReadIds.has(n.id))
-		if (unread.length === 0) return
+
+	const markAllRead = async () => {
+		const uid = authUserId ?? auth.currentUser?.uid
+		if (!uid) return
 		const batch = writeBatch(db)
-		unread.forEach(n => {
-			batch.set(doc(db, 'users', authUserId, 'readNotices', n.id), { readAt: serverTimestamp() })
+		storeNoticeItems.filter(n => !noticeReadIds.has(n.id)).forEach(n => {
+			batch.set(doc(db, 'users', uid, 'readNotices', n.id), { readAt: serverTimestamp() })
 		})
-		batch.commit().catch(() => {})
-	}, [isNoticeOpen, authUserId, isUserVariant, storeNoticeItems, noticeReadIds])
+		userNotifications.filter(n => !n.read).forEach(n => {
+			batch.update(doc(db, 'notifications', n.id), { read: true })
+		})
+		batch.commit().catch(e => console.error('markAllRead:', e))
+	}
+
+	const markStoreNoticeRead = (noticeId: string) => {
+		const uid = authUserId ?? auth.currentUser?.uid
+		if (!uid) return
+		const batch = writeBatch(db)
+		batch.set(doc(db, 'users', uid, 'readNotices', noticeId), { readAt: serverTimestamp() })
+		batch.commit().catch(e => console.error('markStoreNoticeRead:', e))
+	}
+
+	const markUserNotifRead = (notifId: string) => {
+		updateDoc(doc(db, 'notifications', notifId), { read: true }).catch(e => console.error('markUserNotifRead:', e))
+	}
 
 	const goTo = (path: string) => {
 		setIsMenuOpen(false)
@@ -335,36 +340,67 @@ export default function HomeHeader({
 					<div className="fixed inset-0 z-[60]" onClick={() => setIsNoticeOpen(false)} />
 					<div className="fixed left-0 right-0 top-[64px] z-[61] px-4">
 						<div className="mx-auto max-w-sm rounded-[20px] bg-white border border-gray-100 shadow-2xl overflow-hidden">
+
+							{/* ヘッダー */}
 							<div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
 								<p className="text-[15px] font-semibold text-gray-900">お知らせ</p>
-								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[12px] text-gray-400">閉じる</button>
+								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-gray-400 font-medium">閉じる</button>
 							</div>
-							<div className="max-h-[55vh] overflow-y-auto divide-y divide-gray-50">
+
+							{/* 全て既読ボタン */}
+							{(storeNoticeItems.some(n => !noticeReadIds.has(n.id)) || userNotifications.some(n => !n.read)) && (
+								<div className="px-4 py-2.5 border-b border-gray-100 flex justify-end">
+									<button
+										type="button"
+										onClick={markAllRead}
+										className="text-[12px] font-semibold text-[#D4910A] bg-[#FFF8E7] rounded-full px-4 py-1.5 active:bg-[#FFE9B0] transition-colors"
+									>
+										すべて既読にする
+									</button>
+								</div>
+							)}
+
+							{/* リスト */}
+							<div className="max-h-[55vh] overflow-y-auto">
 								{storeNoticeItems.length === 0 && userNotifications.length === 0 ? (
 									<p className="text-center text-[13px] text-gray-400 py-8">お知らせはありません</p>
 								) : (
 									<>
-										{storeNoticeItems.map(n => (
-											<div key={n.id} className={`px-4 py-3 ${!noticeReadIds.has(n.id) ? 'bg-[#FFF8E7]' : 'bg-white'}`}>
-												<div className="flex items-center justify-between mb-1">
-													<span className="text-[11px] font-bold text-[#D4910A]">{n.storeName}</span>
-													<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+										{storeNoticeItems.map(n => {
+											const isUnread = !noticeReadIds.has(n.id)
+											return (
+												<div
+													key={n.id}
+													className={`px-4 py-3.5 border-b border-gray-50 transition-colors ${isUnread ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+													onClick={() => { if (isUnread) markStoreNoticeRead(n.id) }}
+												>
+													<div className="flex items-center gap-2 mb-1">
+														{isUnread && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
+														<span className="text-[11px] font-bold text-[#D4910A] flex-1">{n.storeName}</span>
+														<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+													</div>
+													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 												</div>
-												<p className="text-[13px] text-gray-700 leading-relaxed">{n.message}</p>
-											</div>
-										))}
+											)
+										})}
 										{userNotifications.map(n => (
-											<div key={n.id} className={`px-4 py-3 ${!n.read ? 'bg-[#FFF8E7]' : 'bg-white'}`}>
-												<div className="flex items-center justify-between mb-1">
-													<span className="text-[11px] font-bold text-[#D4910A]">{n.storeName}</span>
+											<div
+												key={n.id}
+												className={`px-4 py-3.5 border-b border-gray-50 transition-colors ${!n.read ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+												onClick={() => { if (!n.read) markUserNotifRead(n.id) }}
+											>
+												<div className="flex items-center gap-2 mb-1">
+													{!n.read && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
+													<span className="text-[11px] font-bold text-[#D4910A] flex-1">{n.storeName}</span>
 													<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
-												<p className="text-[13px] text-gray-700 leading-relaxed">{n.message}</p>
+												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 											</div>
 										))}
 									</>
 								)}
 							</div>
+
 						</div>
 					</div>
 				</>

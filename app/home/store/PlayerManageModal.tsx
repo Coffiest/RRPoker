@@ -16,6 +16,8 @@ import { db } from "@/lib/firebase"
 type PlayerManageModalProps = {
   tournamentId: string
   storeId: string | null
+  chipUnit?: string
+  chipUnitBefore?: boolean
   onClose: () => void
 }
 
@@ -31,7 +33,12 @@ type InsufficientAlert = {
   fee: number
 }
 
-export default function PlayerManageModal({ tournamentId, storeId, onClose }: PlayerManageModalProps) {
+function fmtChip(amount: number, unit?: string, before?: boolean): string {
+  if (!unit) return amount.toLocaleString()
+  return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
+export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chipUnitBefore, onClose }: PlayerManageModalProps) {
   const [players, setPlayers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -50,6 +57,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   const [isSaving, setIsSaving] = useState(false)
 
   const balancesFetchedRef = useRef(false)
+  const bustDirtyRef = useRef(false)
 
   // ── Load tournament + players ──────────────────────────────────────────────
   useEffect(() => {
@@ -60,7 +68,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
     const unsubTournament = onSnapshot(tournamentRef, snap => {
       if (snap.exists()) {
         const d = snap.data()
-        setLocalBust(d.bustCount ?? 0)
+        if (!bustDirtyRef.current) setLocalBust(d.bustCount ?? 0)
         setEntryFee(Number(d.entryFee ?? 0))
         setReentryFee(Number(d.reentryFee ?? 0))
         setAddonFee(Number(d.addonFee ?? 0))
@@ -244,16 +252,17 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
     if (!storeId || !tournamentId) return
     setIsSaving(true)
     try {
-      const batch = writeBatch(db)
+      const CHUNK = 490
+      type WriteOp = (b: ReturnType<typeof writeBatch>) => void
+      const ops: WriteOp[] = []
+
       const tournamentRef = doc(db, "stores", storeId, "tournaments", tournamentId)
       let totalEntry = 0, totalReentry = 0, totalAddon = 0
 
       for (const player of localPlayers) {
-        // Always save entry doc
-        batch.set(
-          doc(db, "stores", storeId, "tournaments", tournamentId, "entries", player.id),
-          { name: player.name ?? "", isTemp: player.isTemp ?? false, entryCount: player.entryCount ?? 0, reentryCount: player.reentryCount ?? 0, addonCount: player.addonCount ?? 0 }
-        )
+        const entryRef = doc(db, "stores", storeId, "tournaments", tournamentId, "entries", player.id)
+        const entryData = { name: player.name ?? "", isTemp: player.isTemp ?? false, entryCount: player.entryCount ?? 0, reentryCount: player.reentryCount ?? 0, addonCount: player.addonCount ?? 0 }
+        ops.push(b => b.set(entryRef, entryData))
         totalEntry   += player.entryCount   ?? 0
         totalReentry += player.reentryCount ?? 0
         totalAddon   += player.addonCount   ?? 0
@@ -285,19 +294,15 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
           const balRef = doc(db, "users", player.id, "storeBalances", storeId)
           const upd: any = { balance: increment(balanceDelta) }
           if (netGainDelta !== 0) upd.netGain = increment(netGainDelta)
-          batch.update(balRef, upd)
+          ops.push(b => b.update(balRef, upd))
         }
 
-        // Chip purchase transactions
         for (const purchase of extra.pendingPurchases) {
-          batch.set(doc(collection(db, "transactions")), {
-            storeId, playerId: player.id, playerName: player.name ?? null,
-            amount: purchase.amount, direction: "add", type: "store_chip_purchase",
-            tournamentId, createdAt: serverTimestamp(),
-          })
+          const txRef = doc(collection(db, "transactions"))
+          const txData = { storeId, playerId: player.id, playerName: player.name ?? null, amount: purchase.amount, direction: "add", type: "store_chip_purchase", tournamentId, createdAt: serverTimestamp() }
+          ops.push(b => b.set(txRef, txData))
         }
 
-        // Entry/reentry/addon transactions
         const txDefs = [
           { diff: entryDiff,   fee: entryFee,   type: "store_tournament_entry" },
           { diff: reentryDiff, fee: reentryFee, type: "store_tournament_reentry" },
@@ -305,18 +310,21 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
         ]
         for (const tx of txDefs) {
           if (tx.diff === 0 || tx.fee === 0) continue
-          batch.set(doc(collection(db, "transactions")), {
-            storeId, playerId: player.id, playerName: player.name ?? null,
-            amount: Math.abs(tx.diff) * tx.fee,
-            direction: tx.diff > 0 ? "subtract" : "add",
-            type: tx.type,
-            tournamentId, createdAt: serverTimestamp(),
-          })
+          const txRef = doc(collection(db, "transactions"))
+          const txData = { storeId, playerId: player.id, playerName: player.name ?? null, amount: Math.abs(tx.diff) * tx.fee, direction: tx.diff > 0 ? "subtract" : "add", type: tx.type, tournamentId, createdAt: serverTimestamp() }
+          ops.push(b => b.set(txRef, txData))
         }
       }
 
-      batch.update(tournamentRef, { totalEntry, totalReentry, totalAddon, bustCount: localBust })
-      await batch.commit()
+      // tournament update goes in the last chunk
+      ops.push(b => b.update(tournamentRef, { totalEntry, totalReentry, totalAddon, bustCount: localBust }))
+
+      // commit in chunks of CHUNK ops
+      for (let i = 0; i < ops.length; i += CHUNK) {
+        const batch = writeBatch(db)
+        ops.slice(i, i + CHUNK).forEach(op => op(batch))
+        await batch.commit()
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -328,6 +336,7 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
   // ── Misc handlers ──────────────────────────────────────────────────────────
   const handleTournamentBustChange = (delta: number) => {
     if (delta < 0 && localBust <= 0) return
+    bustDirtyRef.current = true
     setLocalBust(prev => prev + delta)
   }
 
@@ -459,20 +468,20 @@ export default function PlayerManageModal({ tournamentId, storeId, onClose }: Pl
                       {/* Balance + preview */}
                       {!player.isTemp && extra && (
                         <div className="mb-2 flex flex-wrap items-center gap-1 text-[11px] font-medium">
-                          <span className="text-gray-700">{extra.currentBalance.toLocaleString()}</span>
+                          <span className="text-gray-700">{fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)}</span>
                           {preview && (
                             <>
                               {preview.totalPurchase > 0 && (
-                                <span className="text-green-600">(+{preview.totalPurchase.toLocaleString()})</span>
+                                <span className="text-green-600">(+{fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)})</span>
                               )}
                               {preview.netFee !== 0 && (
                                 <span className={preview.netFee > 0 ? "text-green-600" : "text-red-500"}>
-                                  ({preview.netFee > 0 ? "+" : ""}{preview.netFee.toLocaleString()})
+                                  ({preview.netFee > 0 ? "+" : ""}{fmtChip(preview.netFee, chipUnit, chipUnitBefore)})
                                 </span>
                               )}
                               <span className="text-gray-400">→</span>
                               <span className={`font-bold ${preview.finalBalance < 0 ? "text-red-500" : "text-gray-700"}`}>
-                                {preview.finalBalance.toLocaleString()}
+                                {fmtChip(preview.finalBalance, chipUnit, chipUnitBefore)}
                               </span>
                             </>
                           )}

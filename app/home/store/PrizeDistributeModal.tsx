@@ -17,6 +17,8 @@ import { db } from "@/lib/firebase"
 type Props = {
   tournamentId: string
   storeId: string | null
+  chipUnit?: string
+  chipUnitBefore?: boolean
   onClose: () => void
 }
 
@@ -34,7 +36,12 @@ type Row = {
   showText: boolean
 }
 
-export default function PrizeDistributeModal({ tournamentId, storeId, onClose }: Props) {
+function fmtChip(amount: number, unit?: string, before?: boolean): string {
+  if (!unit) return amount.toLocaleString()
+  return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
+export default function PrizeDistributeModal({ tournamentId, storeId, chipUnit, chipUnitBefore, onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -599,7 +606,7 @@ for (const p of players) {
   総プライズ：
 </div>
 <div className="text-[20px] font-bold text-gray-900">
-  {totalPrize.toLocaleString()}
+  {fmtChip(totalPrize, chipUnit, chipUnitBefore)}
 </div>
             </div>
 

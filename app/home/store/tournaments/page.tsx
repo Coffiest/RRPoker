@@ -10,7 +10,7 @@ import HomeHeader from "@/components/HomeHeader"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import {
   FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
-  FiHome, FiUser, FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap
+  FiHome, FiUser, FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
 } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
@@ -117,9 +117,16 @@ function aiGenerate(chips: number[], stack: number, rcHours: number): Level[] {
   return levels
 }
 
+function fmtChip(amount: number, unit?: string, before?: boolean): string {
+  if (!unit) return amount.toLocaleString()
+  return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
 export default function TournamentsPage() {
   const router = useRouter()
   const [storeId, setStoreId] = useState<string | null>(null)
+  const [chipUnit, setChipUnit] = useState("")
+  const [chipUnitBefore, setChipUnitBefore] = useState(false)
   const [tournaments, setTournaments] = useState<any[]>([])
   const [entriesMap, setEntriesMap] = useState<any>({})
   const [blindPresets, setBlindPresets] = useState<any[]>([])
@@ -142,6 +149,7 @@ export default function TournamentsPage() {
   const [blindEditingCommentIdx, setBlindEditingCommentIdx] = useState<number | null>(null)
   const [blindDragIndex, setBlindDragIndex] = useState<number | null>(null)
   const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
+  const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
 
   // AI struct generator
   const [isAiOpen, setIsAiOpen] = useState(false)
@@ -167,7 +175,15 @@ export default function TournamentsPage() {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) return
       const snap = await getDoc(doc(db, "users", user.uid))
-      setStoreId(snap.data()?.storeId ?? null)
+      const sid = snap.data()?.storeId ?? null
+      setStoreId(sid)
+      if (sid) {
+        const storeSnap = await getDoc(doc(db, "stores", sid))
+        const sd = storeSnap.data()
+        const label = sd?.chipUnitLabel
+        setChipUnit(label === "単位なし" ? "" : (label ?? ""))
+        setChipUnitBefore(sd?.chipUnitBefore !== false)
+      }
     })
     return () => unsub()
   }, [])
@@ -341,6 +357,20 @@ export default function TournamentsPage() {
 
   function addBlindBreak() { setBlindLevels([...blindLevels, { type: "break", duration: null }]) }
   function removeBlindLevel(idx: number) { setBlindLevels(ls => ls.filter((_, i) => i !== idx)) }
+  function insertLevelBefore(idx: number) {
+    const nl = [...blindLevels]; nl.splice(idx, 0, { ...emptyBlindLevel }); setBlindLevels(nl); setBlindContextMenuIdx(null)
+  }
+  function insertLevelAfter(idx: number) {
+    const nl = [...blindLevels]; nl.splice(idx + 1, 0, { ...emptyBlindLevel }); setBlindLevels(nl); setBlindContextMenuIdx(null)
+  }
+  function toggleLevelBreak(idx: number) {
+    setBlindLevels(ls => ls.map((lv, i) => {
+      if (i !== idx) return lv
+      if (lv.type === "level") return { type: "break" as const, duration: lv.duration }
+      return { type: "level" as const, smallBlind: null, bigBlind: null, ante: null, duration: lv.duration }
+    }))
+    setBlindContextMenuIdx(null)
+  }
   function handleBlindBbChange(idx: number, value: number | null) {
     const v = value !== null ? Math.max(1, Math.round(Number(value))) : null
     setBlindLevels(ls => ls.map((lv, i) => i !== idx || lv.type !== "level" ? lv : { ...lv, bigBlind: v, ante: v }))
@@ -591,7 +621,7 @@ export default function TournamentsPage() {
                                     {isITM && (
                                       <div className="flex items-center gap-1.5 bg-white/60 rounded-full px-3 py-1">
                                         <FiAward size={14} className="text-[#F2A900]" />
-                                        <span className="text-[13px] font-bold text-[#F2A900]">{typeof payout.amount === "number" ? payout.amount.toLocaleString() : 0}円</span>
+                                        <span className="text-[13px] font-bold text-[#F2A900]">{fmtChip(typeof payout.amount === "number" ? payout.amount : 0, chipUnit, chipUnitBefore)}</span>
                                       </div>
                                     )}
                                   </div>
@@ -837,8 +867,9 @@ export default function TournamentsPage() {
                   <label className="block text-[11px] font-semibold tracking-widest uppercase text-gray-400 mb-3">レベルリスト</label>
                   <div className="space-y-2">
                     {blindLevels.map((lv, idx) => (
-                    
-                    <div key={idx}
+
+                    <div key={idx} className="relative">
+                      <div
                         className="blind-level-item rounded-2xl overflow-hidden border border-gray-100"
                         draggable
                         onDragStart={() => setBlindDragIndex(idx)}
@@ -856,8 +887,6 @@ export default function TournamentsPage() {
                         }}
                         style={{ opacity: blindDragIndex === idx ? 0.5 : 1, background: lv.type === "break" ? "#F0F7FF" : "#F9F9F9" }}
                       >
-
-
                         <div className="flex items-center justify-between px-3 py-2.5 gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="cursor-move text-gray-300 text-[16px] select-none">≡</span>
@@ -902,10 +931,19 @@ export default function TournamentsPage() {
                               {lv.comment ? lv.comment : "＋"}
                             </button>
                           </div>
-                          <button onClick={() => removeBlindLevel(idx)}
-                            className="ml-1 h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors">
-                            <FiTrash2 size={14} className="text-red-400 hover:text-red-400 transition-colors" />
-                          </button>
+                          <div className="ml-1 flex-shrink-0 flex items-center gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)}
+                              className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
+                            >
+                              <FiMoreHorizontal size={15} className="text-gray-400" />
+                            </button>
+                            <button onClick={() => removeBlindLevel(idx)}
+                              className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors">
+                              <FiTrash2 size={14} className="text-red-400 transition-colors" />
+                            </button>
+                          </div>
                         </div>
                         {(blindEditingCommentIdx === idx || lv.comment) && (
                           <div className="px-3 pb-2.5 flex items-center gap-2 blind-comment-expand">
@@ -925,6 +963,38 @@ export default function TournamentsPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* コンテキストメニュー */}
+                      {blindContextMenuIdx === idx && (
+                        <>
+                          <div className="fixed inset-0 z-[199]" onClick={() => setBlindContextMenuIdx(null)} />
+                          <div className="absolute right-9 top-1 z-[200] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-w-[168px]">
+                            <button
+                              type="button"
+                              onClick={() => insertLevelBefore(idx)}
+                              className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                            >
+                              この前にレベルを追加
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => insertLevelAfter(idx)}
+                              className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                            >
+                              この後にレベルを追加
+                            </button>
+                            <div className="border-t border-gray-100" />
+                            <button
+                              type="button"
+                              onClick={() => toggleLevelBreak(idx)}
+                              className="w-full px-4 py-3 text-left text-[13px] text-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-colors"
+                            >
+                              {lv.type === "level" ? "ブレイクに変更" : "レベルに変更"}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                     ))}
                   </div>
                 </div>
