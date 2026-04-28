@@ -483,16 +483,16 @@ export default function TopPage() {
             <div style={{ position:'absolute', bottom:'-20px', left:'-20px', width:100, height:100, borderRadius:'50%', background:'radial-gradient(circle,rgba(0,0,0,0.07) 0%,transparent 70%)' }}/>
             <p style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:4, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
             <div style={{ display:'flex', alignItems:'flex-end', gap:10, position:'relative', zIndex:1 }}>
-              <p style={{ fontSize:40, fontWeight:900, color:'white', letterSpacing:'-1px', lineHeight:1 }}>1,248.75</p>
+              <p style={{ fontSize:40, fontWeight:900, color:'white', letterSpacing:'-1px', lineHeight:1 }}>65.75</p>
               <div style={{ background:'rgba(255,255,255,0.22)', borderRadius:99, padding:'3px 9px', marginBottom:4 }}>
                 <p style={{ fontSize:11, fontWeight:700, color:'white' }}>全国 12位</p>
               </div>
             </div>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:5, position:'relative', zIndex:1 }}>ROI: +18.4% · ITM: 34.2%</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:5, position:'relative', zIndex:1 }}>ROI: 122.4% · インマネ率: 34.2%</p>
           </div>
           <div style={{ padding:'14px 16px' }}>
             <p style={{ fontSize:12, color:'var(--label2)', lineHeight:1.65 }}>
-              ROIとインマネ率から計算されるトーナメントの実力指数。参加数が増えるほど精度が上がります。
+              ROIとインマネ率から計算されるトーナメントの実力指数。参加した回数が増えるほど精度が上がります。
             </p>
             <p style={{ fontSize:10, color:'var(--gold-dk)', fontWeight:600, marginTop:6, marginBottom:4 }}>※ これはイメージです</p>
           </div>
@@ -545,9 +545,17 @@ export default function TopPage() {
           <img src="/logo.png" alt="RRPoker" style={{ width:28, height:28, borderRadius:8, objectFit:'cover' }}/>
           <span style={{ fontSize:13, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
         </div>
-        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.4.8</p>
+        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.4.9</p>
         <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize:10, color:'var(--label3)' }}>製作者 : なおゆき</p>
+        <div style={{ marginTop:16 }}>
+          <button type="button" onClick={() => router.push('/store-register')}
+            style={{ fontSize:12, color:'rgba(60,60,67,0.45)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'7px 16px', display:'inline-flex', alignItems:'center', gap:5 }}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            店舗の方はこちら
+          </button>
+        </div>
       </footer>
     </div>
   )

@@ -14,6 +14,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       const publicPaths = [
         '/login',
         '/register',
+        '/store-register',
         '/forgot-password',
         '/verify-code',
         '/password-reset-verify',

@@ -74,7 +74,8 @@ service cloud.firestore {
     match /stores/{storeId} {
 
       allow read: if isSignedIn();
-      allow write: if isStoreOwner(storeId);
+      allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if isStoreOwner(storeId);
 
       match /tournaments/{tournamentId} {
         allow read: if isSignedIn();

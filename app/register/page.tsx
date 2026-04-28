@@ -509,6 +509,15 @@ export default function RegisterPage() {
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
               >ログイン →</button>
             </div>
+            {/* 店舗向け */}
+            <div style={{ marginTop:10, textAlign:'center' }}>
+              <button type="button" onClick={() => router.push('/store-register')}
+                style={{ fontSize:12, color:'rgba(60,60,67,0.45)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'7px 16px', display:'inline-flex', alignItems:'center', gap:5 }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                店舗の方はこちら
+              </button>
+            </div>
           </div>
         </div>
 
@@ -530,7 +539,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.4.8</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.4.9</p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>
