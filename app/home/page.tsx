@@ -11,6 +11,8 @@ import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
+import dynamic from "next/dynamic"
+const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
 
 type StoreInfo = {
   id: string
@@ -114,6 +116,15 @@ export default function HomePage() {
 
   // ── チップ増減グラフ
   const [chipGraphTab, setChipGraphTab] = useState<"7" | "1m" | "all">("all")
+  const [graphMode, setGraphMode] = useState<'all' | 'tournament'>('all')
+  const graphTouchStartX = useRef<number | null>(null)
+
+  // ── RR Rating 表示値（45未満は44.0〜45.0のランダム値で固定表示）
+  const maskedRrDisplay = useRef<number | null>(null)
+  const maskedRrForRating = useRef<number | null>(null)
+
+  // ── QR modal
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false)
 
   // ── カレンダー
   const now = new Date()
@@ -585,7 +596,7 @@ const formatDateTime = (t?: any) => {
     const byCode = list.find(s => s.id.toLowerCase() === normalized); const byName = list.find(s => s.name?.toLowerCase() === normalized)
     const found = byCode || byName; if (found) { setSelectedStore(found); setIsJoinModalOpen(false) }
   }
-  const handleLeaveStore = async () => { if (!userId) return; await updateDoc(doc(db, "users", userId), { currentStoreId: deleteField() }); setCurrentStoreId(null) }
+  const handleLeaveStore = async () => { if (!userId) return; await updateDoc(doc(db, "users", userId), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }); setCurrentStoreId(null) }
   const openJoinModal = () => { setSearchQuery(""); void loadAllStores(); setIsJoinModalOpen(true) }
   const toggleFavoriteStore = async (storeId: string) => {
     if (!userId) return
@@ -643,6 +654,38 @@ const medalClass = (rank: number) => {
   }, [allNetGainTx, currentStoreId, chipGraphTab])
 
 
+
+  // ── トーナメント専用グラフデータ
+  const tournamentGraphData = useMemo(() => {
+    const tournamentTypes = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
+    const nowSec = Date.now() / 1000
+    const withDelta = allNetGainTx
+      .filter(tx => tx.storeId === currentStoreId && tournamentTypes.has(tx.type))
+      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
+      .filter(x => x.delta !== null)
+    const filtered = (() => {
+      if (chipGraphTab === "7") return withDelta.slice(-7)
+      if (chipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
+      return withDelta
+    })()
+    let running = 0
+    const points: number[] = [0]
+    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
+    return points
+  }, [allNetGainTx, currentStoreId, chipGraphTab])
+
+  // ── RR Rating 表示値（45未満は44.0〜45.0で固定マスク）
+  const displayRrRating = (() => {
+    const actual = rrMyEntry?.rrRating ?? 0
+    if (actual < 45) {
+      if (maskedRrForRating.current !== actual || maskedRrDisplay.current === null) {
+        maskedRrDisplay.current = 44.0 + Math.random()
+        maskedRrForRating.current = actual
+      }
+      return maskedRrDisplay.current
+    }
+    return actual
+  })()
 
   // ── カレンダー用エントリー生成
   const calEntries = useMemo(() => {
@@ -955,8 +998,22 @@ const medalClass = (rank: number) => {
                       </span>
                     </div>
                   </div>
-                  {/* 矢印 */}
+                  {/* QR + 矢印 */}
                   <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => setIsQRModalOpen(true)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F2A900]/30 bg-[#F2A900]/10 transition-all active:scale-90"
+                      title="QRコードを表示"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
+                        <rect x="14" y="14" width="3" height="3" rx="0.5" fill="#D4910A"/>
+                        <rect x="18" y="14" width="3" height="3" rx="0.5" fill="#D4910A"/>
+                        <rect x="14" y="18" width="3" height="3" rx="0.5" fill="#D4910A"/>
+                        <rect x="18" y="18" width="3" height="3" rx="0.5" fill="#D4910A"/>
+                      </svg>
+                    </button>
                     <div className="h-8 w-8 rounded-full bg-[#F2A900]/10 flex items-center justify-center">
                       <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2l6 6-6 6" stroke="#F2A900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </div>
@@ -1048,9 +1105,9 @@ const medalClass = (rank: number) => {
               </div>
             </div>
 
-            {/* チップ増減グラフ */}
+            {/* チップ増減グラフ（スワイプで全体⇔トナメ切替） */}
             {tournamentHistoryItems.length >= 2 && (() => {
-              const pts = chipGraphData
+              const pts = graphMode === 'all' ? chipGraphData : tournamentGraphData
               if (pts.length < 2) return null
               const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
               const minV = Math.min(...pts), maxV = Math.max(...pts)
@@ -1062,11 +1119,21 @@ const medalClass = (rank: number) => {
               const lastVal = pts[pts.length - 1]
               const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
               return (
-                <div className="section-card animate-slideUp">
+                <div className="section-card animate-slideUp"
+                  onTouchStart={e => { graphTouchStartX.current = e.touches[0].clientX }}
+                  onTouchEnd={e => {
+                    if (graphTouchStartX.current === null) return
+                    const dx = e.changedTouches[0].clientX - graphTouchStartX.current
+                    if (Math.abs(dx) > 48) setGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
+                    graphTouchStartX.current = null
+                  }}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">収支グラフ</p>
+                      <p className="text-[13px] font-semibold text-gray-900">
+                        {graphMode === 'all' ? '収支グラフ' : 'トナメグラフ'}
+                      </p>
                     </div>
                     <div className="flex gap-1">
                       {(["7", "1m", "all"] as const).map(tab => (
@@ -1078,27 +1145,31 @@ const medalClass = (rank: number) => {
                     </div>
                   </div>
                   <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
-                    {/* zero line */}
                     {zeroY >= PT && zeroY <= H - PB && (
                       <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
                     )}
-                    {/* Y axis labels */}
                     <text x={PL - 4} y={PT + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{maxV.toLocaleString()}</text>
                     <text x={PL - 4} y={H - PB} textAnchor="end" fontSize="9" fill="#9ca3af">{minV.toLocaleString()}</text>
-                    {/* line */}
                     <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                      vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={chipGraphTab} />
-                    {/* dots */}
+                      vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={`${chipGraphTab}-${graphMode}`} />
                     {xs.map((x, i) => (
                       <circle key={i} cx={x.toFixed(1)} cy={ys[i].toFixed(1)} r="2.5" fill={lineColor} />
                     ))}
                   </svg>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-[10px] text-gray-400">{pts.length - 1}回参加</p>
+                    <p className="text-[10px] text-gray-400">{pts.length - 1}回</p>
                     <p className={`text-[12px] font-bold ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
                       {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
                     </p>
                   </div>
+                  {/* ページインジケーター */}
+                  <div className="flex justify-center gap-1.5 mt-2">
+                    <div onClick={() => setGraphMode('all')}
+                      className={`rounded-full transition-all cursor-pointer ${graphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                    <div onClick={() => setGraphMode('tournament')}
+                      className={`rounded-full transition-all cursor-pointer ${graphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                  </div>
+                  <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
                 </div>
               )
             })()}
@@ -1189,11 +1260,29 @@ const medalClass = (rank: number) => {
             <div className="section-card">
               <div className="flex items-center justify-between mb-3">
                 <p className="section-label">入店したことのある店舗</p>
-                <button type="button" onClick={openJoinModal}
-                  className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white"
-                >
-                  <FiSearch size={12} />新しい店舗
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* QRで入店 */}
+                  <button type="button" onClick={() => setIsQRModalOpen(true)}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-all active:scale-95"
+                    style={{ background: '#1C1C1E', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
+                      <rect x="14" y="14" width="3" height="3" rx="0.5" fill="white"/>
+                      <rect x="18" y="14" width="3" height="3" rx="0.5" fill="white"/>
+                      <rect x="14" y="18" width="3" height="3" rx="0.5" fill="white"/>
+                      <rect x="18" y="18" width="3" height="3" rx="0.5" fill="white"/>
+                    </svg>
+                    QR
+                  </button>
+                  <button type="button" onClick={openJoinModal}
+                    className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white"
+                  >
+                    <FiSearch size={12} />New
+                  </button>
+                </div>
               </div>
               {orderedJoinedStores.length > 0 ? (
                 <div className="flex gap-3 overflow-x-auto pb-1">
@@ -1311,7 +1400,7 @@ const medalClass = (rank: number) => {
                       <p className="relative z-10 text-[11px] font-semibold uppercase tracking-wider text-white/80">あなたのトナメ偏差値</p>
                       <div className="relative z-10 mt-2 flex items-end gap-3">
                         <p className="text-[40px] font-bold text-white tracking-tight drop-shadow-sm leading-none">
-                          {(rrMyEntry?.rrRating ?? 0).toFixed(2)}
+                          {displayRrRating.toFixed(2)}
                         </p>
                         {rrMyEntry && (
                           <div className="mb-1 rounded-full bg-white/20 px-2 py-0.5">
@@ -1368,7 +1457,7 @@ const medalClass = (rank: number) => {
                             <p className="text-[10px] font-medium text-[#D4910A]">{rrMyEntry?.rank ?? "-"}位</p>
                           </div>
                         </div>
-                        <p className="text-[14px] font-bold text-gray-900">{(rrMyEntry?.rrRating ?? 0).toFixed(2)}</p>
+                        <p className="text-[14px] font-bold text-gray-900">{displayRrRating.toFixed(2)}</p>
                       </div>
                     </div>
                   </>
@@ -1550,6 +1639,15 @@ const medalClass = (rank: number) => {
       </div>
 
       {/* ════ モーダル群（ロジック完全保持・デザインのみ刷新）════ */}
+
+      {isQRModalOpen && userId && (
+        <PlayerQRModal
+          uid={userId}
+          name={profile.name ?? ""}
+          iconUrl={profile.iconUrl}
+          onClose={() => setIsQRModalOpen(false)}
+        />
+      )}
 
       {isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center modal-overlay">

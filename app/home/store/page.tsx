@@ -1,7 +1,9 @@
 "use client"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
+import dynamic from "next/dynamic"
 import { useEffect, useMemo, useState } from "react"
+const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
@@ -10,7 +12,7 @@ import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import { Timestamp } from "firebase/firestore"
 import {
-  collection, doc, deleteField, getDoc, increment,
+  arrayUnion, collection, doc, deleteField, getDoc, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
 } from "firebase/firestore"
 import {
@@ -208,6 +210,8 @@ export default function StorePage() {
   const [depositOtherComment, setDepositOtherComment] = useState("")
   const [withdrawOtherComment, setWithdrawOtherComment] = useState("")
   const [copiedCode, setCopiedCode] = useState(false)
+  const [isScannerOpen, setIsScannerOpen] = useState(false)
+  const [qrCheckinResult, setQrCheckinResult] = useState<{ success: boolean; name?: string } | null>(null)
 
   useEffect(() => {
     if (!playerSearchInput) return
@@ -513,6 +517,23 @@ export default function StorePage() {
     await setDoc(doc(db, "users", playerId), { checkinStatus: "none", pendingStoreId: null }, { merge: true })
   }
 
+  const qrCheckinPlayer = async (playerUid: string) => {
+    if (!storeId) return
+    setIsScannerOpen(false)
+    try {
+      const playerSnap = await getDoc(doc(db, "users", playerUid))
+      if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
+      const playerName = playerSnap.data()?.name ?? ""
+      await approvePlayer(playerUid)
+      await setDoc(doc(db, "users", playerUid), { joinedStores: arrayUnion(storeId) }, { merge: true })
+      setQrCheckinResult({ success: true, name: playerName })
+      setTimeout(() => setQrCheckinResult(null), 3000)
+    } catch {
+      setQrCheckinResult({ success: false })
+      setTimeout(() => setQrCheckinResult(null), 3000)
+    }
+  }
+
   const formatDateTime = (date?: Date | null) => {
     if (!date) return "なし"
     const p = (n: number) => n.toString().padStart(2, "0")
@@ -729,12 +750,34 @@ export default function StorePage() {
                   }
                 </button>
               </div>
-              {/* 通知バッジ */}
-              {notifCount > 0 && (
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', flexShrink: 0, animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>
-                  {notifCount}
-                </div>
-              )}
+              {/* QRスキャンボタン + 通知バッジ */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => setIsScannerOpen(true)}
+                  style={{ width: 42, height: 42, borderRadius: 13, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(242,169,0,0.35)', flexShrink: 0, transition: 'transform .12s ease, opacity .12s ease' }}
+                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.93)')}
+                  onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.93)')}
+                  onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  title="QRスキャンで入店"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 7V4a2 2 0 012-2h3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M17 2h3a2 2 0 012 2v3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M22 17v3a2 2 0 01-2 2h-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M7 22H4a2 2 0 01-2-2v-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                    <rect x="6" y="6" width="4" height="4" rx="1" fill="white"/>
+                    <rect x="14" y="6" width="4" height="4" rx="1" fill="white"/>
+                    <rect x="6" y="14" width="4" height="4" rx="1" fill="white"/>
+                    <rect x="14" y="14" width="4" height="4" rx="1" fill="white"/>
+                  </svg>
+                </button>
+                {notifCount > 0 && (
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>
+                    {notifCount}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1214,6 +1257,36 @@ export default function StorePage() {
               <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
               純増値も更新する
             </label>
+          </div>
+        </div>
+      )}
+
+      {/* QRスキャナー */}
+      {isScannerOpen && (
+        <QRScanner
+          onScan={qrCheckinPlayer}
+          onClose={() => setIsScannerOpen(false)}
+        />
+      )}
+
+      {/* QR入店結果トースト */}
+      {qrCheckinResult && (
+        <div style={{ position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)', zIndex: 400, maxWidth: 320, width: 'calc(100% - 40px)' }}>
+          <div style={{ borderRadius: 20, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', animation: 'slideUp .35s cubic-bezier(.22,1,.36,1)', background: qrCheckinResult.success ? 'linear-gradient(135deg,#1C1C1E,#2C2C2E)' : 'linear-gradient(135deg,#FF3B30,#CC2200)' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: qrCheckinResult.success ? 'rgba(52,199,89,0.18)' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {qrCheckinResult.success
+                ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                : <FiX size={16} style={{ color: 'white' }} />
+              }
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.1px' }}>
+                {qrCheckinResult.success ? `${qrCheckinResult.name || 'プレイヤー'} が入店しました` : 'QRコードが無効です'}
+              </p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+                {qrCheckinResult.success ? '入店が承認されました' : 'RRPokerのQRコードを読み取ってください'}
+              </p>
+            </div>
           </div>
         </div>
       )}
