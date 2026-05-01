@@ -154,16 +154,16 @@ export default function HomePage() {
   const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number; above: boolean } | null>(null)
   const historyScrollRef = useRef<HTMLDivElement>(null)
 
-  // ── カレンダー
+  // ── スケジュール（5日間タブ）
   const now = new Date()
-  const [calYear, setCalYear] = useState(now.getFullYear())
-  const [calMonth, setCalMonth] = useState(now.getMonth())
   const [calFavTournaments, setCalFavTournaments] = useState<any[]>([])
   const [calDetailTournament, setCalDetailTournament] = useState<any | null>(null)
   const [calDetailPreset, setCalDetailPreset] = useState<any | null>(null)
   const [calLiveData, setCalLiveData] = useState<Record<string, any>>({})
   const [calAutoPresets, setCalAutoPresets] = useState<Record<string, any>>({})
   const calLiveUnsubsRef = useRef<(() => void)[]>([])
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+  const [calScheduleTab, setCalScheduleTab] = useState(todayStr)
 
   // ── チップグラフ用全トランザクション
   const [allNetGainTx, setAllNetGainTx] = useState<any[]>([])
@@ -808,34 +808,39 @@ const medalClass = (rank: number) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, tournamentStats.plays])
 
-  // ── カレンダー用エントリー生成
-  const calEntries = useMemo(() => {
+  // ── 5日間スケジュール用エントリー生成
+  const scheduleDays = useMemo(() => {
+    const DOW_JA = ["日", "月", "火", "水", "木", "金", "土"]
+    return Array.from({ length: 5 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)
+      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+      return { ds, day: d.getDate(), dow: DOW_JA[d.getDay()], isToday: i === 0, isSun: d.getDay() === 0, isSat: d.getDay() === 6 }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const scheduleEntries = useMemo(() => {
     const map: Record<string, any[]> = {}
-    const firstDay = new Date(calYear, calMonth, 1)
-    const lastDay = new Date(calYear, calMonth + 1, 0)
+    const daySet = new Set(scheduleDays.map(d => d.ds))
     calFavTournaments.forEach(t => {
       if (!t.date || typeof t.date !== "string") return
       if (t.repeatWeekly) {
         const base = new Date(t.date + "T00:00:00")
         const dow = base.getDay()
-        const cur = new Date(firstDay)
-        while (cur.getDay() !== dow) cur.setDate(cur.getDate() + 1)
-        while (cur <= lastDay) {
-          const ds = cur.toISOString().slice(0, 10)
-          if (!map[ds]) map[ds] = []
-          map[ds].push({ ...t, date: ds })
-          cur.setDate(cur.getDate() + 7)
-        }
-      } else {
-        const monthStr = `${calYear}-${String(calMonth + 1).padStart(2, "0")}`
-        if (t.date.startsWith(monthStr)) {
-          if (!map[t.date]) map[t.date] = []
-          map[t.date].push(t)
-        }
+        scheduleDays.forEach(({ ds }) => {
+          const d = new Date(ds + "T00:00:00")
+          if (d.getDay() === dow) {
+            if (!map[ds]) map[ds] = []
+            map[ds].push({ ...t, date: ds })
+          }
+        })
+      } else if (daySet.has(t.date)) {
+        if (!map[t.date]) map[t.date] = []
+        map[t.date].push(t)
       }
     })
     return map
-  }, [calFavTournaments, calYear, calMonth])
+  }, [calFavTournaments, scheduleDays])
 
   // ════════════════════════════════════════════════════
   // JSX
@@ -1008,34 +1013,84 @@ const medalClass = (rank: number) => {
         .medal-bronze { background:linear-gradient(135deg,#F4A460 0%,#CD7F32 100%); box-shadow:0 2px 8px rgba(205,127,50,0.4),inset 0 1px 0 rgba(255,255,255,0.4); }
 
         /* ── バンクカード ── */
-        .bank-card { perspective:1200px; }
-        .bank-card-inner {
-          position:relative; height:220px;
-          transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
-          transition:transform 0.8s cubic-bezier(0.3,0.7,0.2,1); will-change:transform;
+        @keyframes cardEntrance {
+          from { opacity:0; transform:translateY(22px) scale(0.93); filter:blur(3px); }
+          to   { opacity:1; transform:translateY(0)    scale(1);    filter:blur(0); }
         }
-        .bank-card.is-flipped .bank-card-inner { transform:rotateY(180deg); -webkit-transform:rotateY(180deg); }
+        @keyframes breatheGold {
+          0%,100% { opacity:0.55; transform:translate(-50%,-52%) scale(1); }
+          50%      { opacity:1;   transform:translate(-50%,-52%) scale(1.18); }
+        }
+        @keyframes goldDotPulse {
+          0%,100% { box-shadow:0 0 0 0 rgba(242,169,0,0); }
+          50%      { box-shadow:0 0 0 4px rgba(242,169,0,0.25); }
+        }
+        .bank-card {
+          perspective:1600px;
+          animation:cardEntrance 0.65s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        .bank-card-inner {
+          position:relative; height:256px;
+          transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
+          transition:transform 0.92s cubic-bezier(0.22,1,0.36,1);
+          will-change:transform;
+        }
+        .bank-card.is-flipped .bank-card-inner { transform:rotateY(180deg); }
         .bank-card.is-flipped .bank-card-front { pointer-events:none; }
         .bank-card:not(.is-flipped) .bank-card-back { pointer-events:none; }
         .bank-card-face {
-          position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
-          border-radius:24px; padding:20px; overflow:hidden;
-          transform:rotateY(0deg) translateZ(0); -webkit-transform:rotateY(0deg) translateZ(0);
+          position:absolute; inset:0;
+          backface-visibility:hidden; -webkit-backface-visibility:hidden;
+          border-radius:28px; overflow:hidden;
+          transform:rotateY(0deg) translateZ(1px);
         }
         .bank-card-front {
-          background:linear-gradient(135deg,#1f1b16 0%,#3b2f22 45%,#1c1510 100%);
-          box-shadow:0 18px 40px rgba(15,12,8,0.35);
+          background:#09090B;
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.07),
+            0 36px 72px rgba(0,0,0,0.72),
+            0 8px 24px rgba(242,169,0,0.04);
+        }
+        .bank-card-front::before {
+          content:""; position:absolute; inset:0; pointer-events:none;
+          background-image:
+            radial-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            radial-gradient(rgba(255,255,255,0.02)  1px, transparent 1px);
+          background-size:22px 22px, 11px 11px;
+          background-position:0 0, 5.5px 5.5px;
         }
         .bank-card-front::after {
-          content:""; position:absolute; inset:-20% 40% auto -20%; height:140%;
-          background:radial-gradient(circle at top,rgba(255,255,255,0.2),transparent 60%); opacity:0.6;
+          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          background:linear-gradient(90deg,transparent 0%,#E09000 15%,#F2A900 40%,#FFD060 50%,#F2A900 60%,#E09000 85%,transparent 100%);
+        }
+        .bank-card-glow {
+          position:absolute; top:50%; left:50%;
+          width:64%; padding-top:40%;
+          background:radial-gradient(ellipse at center,rgba(242,169,0,0.2) 0%,rgba(242,169,0,0.06) 45%,transparent 70%);
+          transform:translate(-50%,-52%);
+          animation:breatheGold 3.6s ease-in-out infinite;
+          pointer-events:none;
         }
         .bank-card-back {
-          background:linear-gradient(135deg,#0f172a 0%,#1f2937 55%,#111827 100%);
-          box-shadow:0 18px 40px rgba(17,24,39,0.35);
-          transform:rotateY(180deg) translateZ(0); -webkit-transform:rotateY(180deg) translateZ(0);
+          background:#0C0D12;
+          box-shadow:
+            0 0 0 1px rgba(255,255,255,0.06),
+            0 36px 72px rgba(0,0,0,0.68);
+          transform:rotateY(180deg) translateZ(1px);
         }
-        .bank-card-history { max-height:130px; overflow-y:auto; padding-right:2px; }
+        .bank-card-back::before {
+          content:""; position:absolute; inset:0; pointer-events:none;
+          background-image:radial-gradient(rgba(255,255,255,0.035) 1px,transparent 1px);
+          background-size:22px 22px;
+        }
+        .bank-card-back::after {
+          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          background:linear-gradient(90deg,transparent 0%,rgba(80,140,255,0.7) 20%,rgba(140,190,255,0.9) 50%,rgba(80,140,255,0.7) 80%,transparent 100%);
+          opacity:0.75;
+        }
+        .bank-gold-dot { animation:goldDotPulse 3s ease-in-out infinite; }
+        .bank-card-history { max-height:172px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+        .bank-card-history::-webkit-scrollbar { display:none; }
 
         /* ── ティッカー ── */
         .ticker { font-variant-numeric:tabular-nums; letter-spacing:0.02em; }
@@ -1191,67 +1246,113 @@ const medalClass = (rank: number) => {
             </button>
 
             {/* バンクロールカード */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="section-label">Bankroll</p>
-                <span className="text-[11px] text-gray-400">タップでBB切替</span>
-              </div>
-              <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
-                <div className="bank-card-inner">
-                  {/* Front */}
-                  <div className="bank-card-face bank-card-front">
-                    <div className="relative z-10 flex items-center justify-between text-white/80">
-                      <div className="flex items-center gap-2">
-                        <FiCreditCard className="text-[17px]" />
-                        <span className="text-[12px] tracking-[0.25em]">BANK ROLL</span>
+            <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
+              <div className="bank-card-inner">
+
+                {/* ── Front ── */}
+                <div className="bank-card-face bank-card-front">
+                  <div className="bank-card-shine" />
+                  <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
+
+                    {/* Top row */}
+                    <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#F2A900 0%,#B87000 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 3px 10px rgba(242,169,0,0.5),0 1px 0 rgba(255,255,255,0.18) inset', flexShrink:0 }}>
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.9)" strokeWidth="1.8"/>
+                            <circle cx="12" cy="12" r="3.6" fill="rgba(255,255,255,0.9)"/>
+                            <line x1="3" y1="12" x2="7.8" y2="12" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
+                            <line x1="16.2" y1="12" x2="21" y2="12" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
+                            <line x1="12" y1="3" x2="12" y2="7.8" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
+                            <line x1="12" y1="16.2" x2="12" y2="21" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
+                          </svg>
+                        </div>
+                        <div>
+                          <p style={{ fontSize:9, fontWeight:700, color:'rgba(255,255,255,0.36)', letterSpacing:'0.22em', textTransform:'uppercase', marginBottom:3 }}>Bankroll</p>
+                          <p style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.78)', lineHeight:1 }}>{currentStore.name}</p>
+                        </div>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(true)}
-                        className="inline-flex items-center gap-1 rounded-full border border-white/30 bg-black/30 px-3 py-1 text-[11px] text-white/80 hover:border-white/50 hover:text-white transition-colors"
-                      >
-                        <FiClock className="text-[11px]" />履歴
+                        style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:22, background:'rgba(0,0,0,0.32)', border:'1px solid rgba(255,255,255,0.13)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.62)', cursor:'pointer', flexShrink:0 }}>
+                        <FiClock style={{ fontSize:11 }} /><span>履歴</span>
                       </button>
                     </div>
-                    <p className="relative z-10 mt-1.5 text-[12px] text-white/60">
-                      {currentStore.name}
-                      {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                        <span className="ml-2 text-[10px] text-white/40">({currentStore.ringBlindSb}/{currentStore.ringBlindBb})</span>
-                      )}
-                    </p>
-                    <div className="relative z-10 mt-5 text-center cursor-pointer select-none" onClick={() => setShowBB(v => !v)}>
-                      <p className="text-[10px] text-white/50 mb-1">{showBB ? 'BB表示' : 'チップ表示'} — タップで切替</p>
-                      <p className="ticker text-[36px] font-bold text-white">
+
+                    {/* Balance hero */}
+                    <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
+                      <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:9 }}>
+                        {showBB && blindBb ? 'BB 表示' : 'Chip Balance'}
+                      </p>
+                      <p style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', fontVariantNumeric:'tabular-nums', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
                         <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
                       </p>
                       {displayNetGain !== 0 && (
-                        <p className={`ticker mt-1.5 text-[15px] font-semibold ${displayNetGain > 0 ? "text-emerald-300" : "text-rose-300"}`}>
-                          <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
-                        </p>
+                        <div style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:11, padding:'5px 15px', borderRadius:22, background:displayNetGain > 0 ? 'rgba(52,199,89,0.16)' : 'rgba(255,59,48,0.16)', border:`1px solid ${displayNetGain > 0 ? 'rgba(52,199,89,0.32)' : 'rgba(255,59,48,0.32)'}` }}>
+                          <span style={{ fontSize:14, fontWeight:700, color:displayNetGain > 0 ? '#34C759' : '#FF6060', fontVariantNumeric:'tabular-nums' }}>
+                            <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
+                          </span>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  {/* Back */}
-                  <div className="bank-card-face bank-card-back">
-                    <div className="flex items-center justify-between text-white/80">
-                      <p className="text-[12px] font-semibold tracking-[0.2em]">HISTORY</p>
-                      <button type="button" onClick={() => setIsHistoryFlipped(false)} className="flex items-center gap-1 text-[11px] text-white/80 hover:text-white transition-colors">
-                        <FiArrowLeft className="text-[11px]" />戻る
-                      </button>
+
+                    {/* Bottom row */}
+                    <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
+                      <div>
+                        {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
+                          <p style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
+                        )}
+                        <p style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3, letterSpacing:'0.12em', textTransform:'uppercase' }}>Tap to switch BB</p>
+                      </div>
+                      <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                        {[0,1,2].map(i => <div key={i} style={{ width:5, height:5, borderRadius:'50%', background:'rgba(255,255,255,0.13)' }} />)}
+                        <div style={{ width:5, height:5, marginLeft:3, borderRadius:'50%', background:'rgba(242,169,0,0.65)' }} />
+                      </div>
                     </div>
-                    <div className="bank-card-history mt-3 space-y-2">
-                      {sortedTransactionItems.length === 0 ? (
-                        <p className="text-center text-[12px] text-white/60 py-6">履歴がありません</p>
-                      ) : sortedTransactionItems.map(item => (
-                        <div key={item.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-                          <div>
-                            <p className="text-[11px] text-white/70">{getHistoryLabel(item.type, item.comment)}</p>
-                            <p className="text-[10px] text-white/40">{formatDateTime(item.createdAt)}</p>
-                          </div>
-                          <p className="text-[12px] font-semibold text-white">{getHistoryAmount(item)}</p>
-                        </div>
-                      ))}
-                    </div>
+
                   </div>
                 </div>
+
+                {/* ── Back ── */}
+                <div className="bank-card-face bank-card-back">
+                  <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
+
+                    {/* Header */}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:13 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+                        <FiClock style={{ color:'rgba(255,255,255,0.42)', fontSize:13 }} />
+                        <span style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.52)', letterSpacing:'0.22em', textTransform:'uppercase' }}>History</span>
+                      </div>
+                      <button type="button" onClick={() => setIsHistoryFlipped(false)}
+                        style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 13px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.58)', cursor:'pointer' }}>
+                        <FiArrowLeft style={{ fontSize:10 }} />戻る
+                      </button>
+                    </div>
+
+                    {/* Transaction list */}
+                    <div className="bank-card-history" style={{ flex:1 }}>
+                      {sortedTransactionItems.length === 0 ? (
+                        <div style={{ textAlign:'center', paddingTop:32 }}>
+                          <p style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
+                        </div>
+                      ) : sortedTransactionItems.map(item => {
+                        const amtStr = getHistoryAmount(item)
+                        const isPlus = amtStr.startsWith('+')
+                        const isMinus = amtStr.startsWith('-')
+                        return (
+                          <div key={item.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:13, background:'rgba(255,255,255,0.042)', border:'1px solid rgba(255,255,255,0.07)', marginBottom:7 }}>
+                            <div style={{ minWidth:0, flex:1 }}>
+                              <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</p>
+                              <p style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
+                            </div>
+                            <p style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', fontVariantNumeric:'tabular-nums', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                  </div>
+                </div>
+
               </div>
             </div>
 
@@ -1485,72 +1586,111 @@ const medalClass = (rank: number) => {
               )}
             </div>
 
-            {/* カレンダー（お気に入り店舗のトーナメント） */}
-            {favoriteStores.length > 0 && (() => {
-              const DOW_LABELS = ["日", "月", "火", "水", "木", "金", "土"]
-              const firstDow = new Date(calYear, calMonth, 1).getDay()
-              const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate()
-              const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
-              return (
-                <div className="section-card animate-slideUp">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <FiCalendar className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">スケジュール</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button type="button" onClick={() => {
-                        const d = new Date(calYear, calMonth - 1, 1)
-                        setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
-                      }} className="h-7 w-7 rounded-full bg-[#F2A900] flex items-center justify-center">
-                        <FiChevronLeft size={13} />
-                      </button>
-                      <span className="text-[13px] font-semibold text-gray-700 min-w-[64px] text-center">{calYear}/{String(calMonth + 1).padStart(2, "0")}</span>
-                      <button type="button" onClick={() => {
-                        const d = new Date(calYear, calMonth + 1, 1)
-                        setCalYear(d.getFullYear()); setCalMonth(d.getMonth())
-                      }} className="h-7 w-7 rounded-full bg-[#F2A900] flex items-center justify-center">
-                        <FiChevronRight size={13} />
-                      </button>
-                    </div>
-                  </div>
-                  {/* 曜日ヘッダー */}
-                  <div className="grid grid-cols-7 mb-1">
-                    {DOW_LABELS.map((l, i) => (
-                      <div key={l} className={`text-center text-[10px] font-semibold py-1 ${i === 0 ? "text-red-400" : i === 6 ? "text-blue-400" : "text-gray-400"}`}>{l}</div>
-                    ))}
-                  </div>
-                  {/* 日グリッド */}
-                  <div className="grid grid-cols-7 gap-y-1">
-                    {Array.from({ length: firstDow }).map((_, i) => <div key={`e${i}`} />)}
-                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-                      const ds = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-                      const entries = calEntries[ds] ?? []
-                      const isToday = ds === todayStr
-                      return (
-                        <button key={ds} type="button"
-                          onClick={() => entries.length > 0 ? setCalDetailTournament({ date: ds, entries }) : null}
-                          className={`flex flex-col items-center py-1 rounded-xl transition-all ${entries.length > 0 ? "cursor-pointer hover:bg-amber-50" : "cursor-default"} ${isToday ? "bg-[#F2A900]/15" : ""}`}>
-                          <span className={`text-[12px] font-medium ${isToday ? "font-bold text-[#D4910A]" : new Date(ds).getDay() === 0 ? "text-red-400" : new Date(ds).getDay() === 6 ? "text-blue-400" : "text-gray-700"}`}>{day}</span>
-                          {entries.length > 0 && (
-                            <div className="flex justify-center gap-px mt-0.5">
-                              {entries
-                                .filter((e: any, i: number, arr: any[]) => arr.findIndex((x: any) => x.storeId === e.storeId) === i)
-                                .slice(0, 3)
-                                .map((e: any, i: number) => (
-                                  e.storeIconUrl
-                                    ? <img key={i} src={e.storeIconUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
-                                    : <div key={i} className="h-3 w-3 rounded-full bg-[#F2A900]" />
-                                ))}
-                            </div>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
+            {/* 5日間スケジュールタブ */}
+            {favoriteStores.length > 0 && (
+              <div className="section-card animate-slideUp" style={{ padding: 0, overflow: 'hidden' }}>
+                {/* ── セクションヘッダー */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 14px' }}>
+                  <FiCalendar color="#F2A900" size={15} />
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>スケジュール</p>
                 </div>
-              )
-            })()}
+
+                {/* ── 5日タブ */}
+                <div style={{ display: 'flex', gap: 6, padding: '0 14px 14px' }}>
+                  {scheduleDays.map(({ ds, day, dow, isToday, isSun, isSat }) => {
+                    const entries = scheduleEntries[ds] ?? []
+                    const selected = calScheduleTab === ds
+                    const dowColor = selected ? 'rgba(255,255,255,0.8)' : isSun ? '#FF3B30' : isSat ? '#007AFF' : '#8E8E93'
+                    const numColor = selected ? '#fff' : isSun ? '#FF3B30' : isSat ? '#007AFF' : '#1C1C1E'
+                    return (
+                      <button
+                        key={ds}
+                        type="button"
+                        onClick={() => setCalScheduleTab(ds)}
+                        style={{
+                          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                          padding: '9px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                          background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
+                          boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                          transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                        }}
+                      >
+                        <span style={{ fontSize: 9, fontWeight: 700, color: dowColor, letterSpacing: '0.04em' }}>{dow}</span>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: numColor, lineHeight: 1.1 }}>{day}</span>
+                        <div style={{ height: 5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {entries.length > 0 && (
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? 'rgba(255,255,255,0.6)' : '#F2A900' }} />
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* ── 区切り */}
+                <div style={{ height: '0.5px', background: 'rgba(60,60,67,0.1)', margin: '0 14px' }} />
+
+                {/* ── トーナメントカードリスト */}
+                <div style={{ padding: '12px 12px 16px', minHeight: 100 }}>
+                  {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '24px 0 12px' }}>
+                      <p style={{ fontSize: 13, color: '#AEAEB2', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {(scheduleEntries[calScheduleTab] ?? []).map((entry: any, idx: number) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setCalDetailTournament({ date: calScheduleTab, entries: [entry] })}
+                          style={{ width: '100%', textAlign: 'left', background: '#fff', borderRadius: 16, border: '0.5px solid rgba(60,60,67,0.1)', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', padding: 0, overflow: 'hidden', cursor: 'pointer', display: 'block' }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
+                            {/* ゴールドサイドバー */}
+                            <div style={{ width: 4, background: 'linear-gradient(180deg,#F2A900,#C97D00)', flexShrink: 0, borderRadius: '0 0 0 0' }} />
+
+                            {/* コンテンツ */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', flex: 1 }}>
+                              {/* 店舗アイコン */}
+                              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', flexShrink: 0, border: '2px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {entry.storeIconUrl
+                                  ? <img src={entry.storeIconUrl} alt={entry.storeName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  : <span style={{ fontSize: 18 }}>🏠</span>
+                                }
+                              </div>
+
+                              {/* テキスト */}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                  <p style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                    {entry.name || 'トーナメント'}
+                                  </p>
+                                  {entry.repeatWeekly && (
+                                    <span style={{ fontSize: 9, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
+                                  )}
+                                </div>
+                                <p style={{ fontSize: 11, color: '#8E8E93', fontWeight: 500 }}>{entry.storeName}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
+                                  {entry.startTime && (
+                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43' }}>🕐 {formatDateTime(entry.startTime)}</span>
+                                  )}
+                                  {entry.entryFee != null && (
+                                    <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* 矢印 */}
+                              <FiChevronRight size={16} color="#C7C7CC" style={{ flexShrink: 0 }} />
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* RR Rating + Tournament Stats 統合セクション */}
             <div className={`section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
