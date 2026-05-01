@@ -4,11 +4,12 @@ import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispa
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
 import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2 } from "react-icons/fi"
+import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
-import { getNetGainRankingFromUsers, getMyNetGainRank, NetGainPlayer } from "@/lib/netGainRanking"
+import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
@@ -83,6 +84,10 @@ export default function HomePage() {
   const [ranking, setRanking] = useState<NetGainPlayer[]>([])
   const [userRank, setUserRank] = useState<NetGainPlayer | null>(null)
   const [rankingLoading, setRankingLoading] = useState(true)
+  const [rankingTab, setRankingTab] = useState<'all' | 'monthly'>('all')
+  const [monthlyRanking, setMonthlyRanking] = useState<NetGainPlayer[]>([])
+  const [monthlyUserRank, setMonthlyUserRank] = useState<NetGainPlayer | null>(null)
+  const [monthlyRankingLoading, setMonthlyRankingLoading] = useState(false)
   const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false)
   const [playersPreview, setPlayersPreview] = useState<StorePlayer[]>([])
   const [playersPreviewStore, setPlayersPreviewStore] = useState<StoreInfo | null>(null)
@@ -108,6 +113,7 @@ export default function HomePage() {
   const [showStampModal, setShowStampModal] = useState(false)
   const [stampCount, setStampCount] = useState(0)
   const prevCheckinStatusRef = useRef<"none" | "pending" | "approved">("none")
+  const isFirstSnapshotRef = useRef(true)
   const [hasShownCheckinComplete, setHasShownCheckinComplete] = useState(false)
   const [hasShownStamp, setHasShownStamp] = useState(false)
   const shownWithdrawIdsRef = useRef<Set<string>>(new Set())
@@ -125,6 +131,28 @@ export default function HomePage() {
 
   // ── QR modal
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
+
+  // ── RR Rating tooltip (fixed position to escape overflow:hidden)
+  const rrRatingBtnRef = useRef<HTMLButtonElement>(null)
+  const [rrRatingInfoPos, setRrRatingInfoPos] = useState<{ top: number; right: number } | null>(null)
+
+  // ── Stats delta animation (shows growth badges after a tournament)
+  const [statsDelta, setStatsDelta] = useState<{
+    rrRating: number
+    totalCost: number
+    totalReward: number
+    itmRate: number
+    roi: number | null
+  } | null>(null)
+  const [showStatsDelta, setShowStatsDelta] = useState(false)
+  const [animRrRating, setAnimRrRating] = useState<number | null>(null)
+  const deltaDismissTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const deltaAnimStart = useRef<number>(0)
+
+  // ── Tournament history chart
+  const [selectedTnIdx, setSelectedTnIdx] = useState<number | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ left: number; top: number; above: boolean } | null>(null)
+  const historyScrollRef = useRef<HTMLDivElement>(null)
 
   // ── カレンダー
   const now = new Date()
@@ -230,11 +258,14 @@ export default function HomePage() {
       if (userRole === "store") { router.replace("/home/store"); return }
       const status = data?.checkinStatus ?? "none"
       const prevStatus = prevCheckinStatusRef.current
+      const isFirstSnapshot = isFirstSnapshotRef.current
+      isFirstSnapshotRef.current = false
       setCheckinStatus(status)
       setPendingStoreId(data?.pendingStoreId ?? null)
 
       // Checkin complete + stamp modal — must run before status dispatch resets flags
-      if (prevStatus === "pending" && status === "approved" && !hasShownCheckinComplete) {
+      // Also triggers on QR check-in (none → approved), but not on initial page load
+      if (!isFirstSnapshot && (prevStatus === "pending" || prevStatus === "none") && status === "approved" && !hasShownCheckinComplete) {
         setIsCheckinCompleteModalOpen(true)
         setHasShownCheckinComplete(true)
         localStorage.setItem("hasShownCheckinComplete", "true")
@@ -332,6 +363,21 @@ export default function HomePage() {
     }
     fetchRankingData()
   }, [userId, currentStoreId])
+
+  useEffect(() => {
+    const fetchMonthlyRanking = async () => {
+      if (!currentStoreId || rankingTab !== 'monthly') return
+      setMonthlyRankingLoading(true)
+      try {
+        const now = new Date()
+        const data = await getMonthlyNetGainRanking(currentStoreId, now.getFullYear(), now.getMonth())
+        setMonthlyRanking(data)
+        if (userId) setMonthlyUserRank(getMyNetGainRank(userId, data))
+      } catch (e) { console.error("Failed to fetch monthly ranking:", e); setMonthlyRanking([]); setMonthlyUserRank(null) }
+      finally { setMonthlyRankingLoading(false) }
+    }
+    fetchMonthlyRanking()
+  }, [userId, currentStoreId, rankingTab])
 
   useEffect(() => {
     const animateCount = (target: number, ref: MutableRefObject<number>, setter: Dispatch<SetStateAction<number>>) => {
@@ -508,6 +554,28 @@ export default function HomePage() {
 
   const tournamentItems = useMemo(() => sortedTournamentItems, [sortedTournamentItems])
 
+  // Chart: oldest→newest (left→right). One point per tournament = pnl (prize - buyin).
+  const tnChartData = useMemo(() => {
+    const items = [...sortedTournamentItems].reverse() // oldest on left
+    return items.map(item => {
+      const ec = item.entryCount ?? 0, rc = item.reentryCount ?? 0, ac = item.addonCount ?? 0
+      const ef = item.entryFee ?? 0, rf = item.reentryFee ?? 0, af = item.addonFee ?? 0
+      const prize = item.prize ?? 0, rank = item.rank ?? "-"
+      const buyin = ec * ef + rc * rf + ac * af
+      const bf = ef > 0 ? ef : rf > 0 ? rf : af
+      const cost = bf > 0 ? buyin / bf : 0
+      const reward = bf > 0 ? prize / bf : 0
+      const pnl = prize - buyin
+      return { item, buyin, prize, rank, cost, reward, pnl, ef, rf, af, ec, rc, ac }
+    })
+  }, [sortedTournamentItems])
+
+  useEffect(() => {
+    if (historyScrollRef.current && tnChartData.length > 0) {
+      historyScrollRef.current.scrollLeft = historyScrollRef.current.scrollWidth
+    }
+  }, [tnChartData.length])
+
   const tournamentStats = useMemo(() => {
     let totalCost = 0, totalReward = 0, plays = 0, itm = 0
     tournamentItems.forEach(item => {
@@ -675,17 +743,70 @@ const medalClass = (rank: number) => {
   }, [allNetGainTx, currentStoreId, chipGraphTab])
 
   // ── RR Rating 表示値（45未満は44.0〜45.0で固定マスク）
-  const displayRrRating = (() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const displayRrRating = useMemo(() => {
     const actual = rrMyEntry?.rrRating ?? 0
     if (actual < 45) {
       if (maskedRrForRating.current !== actual || maskedRrDisplay.current === null) {
         maskedRrDisplay.current = 44.0 + Math.random()
         maskedRrForRating.current = actual
       }
-      return maskedRrDisplay.current
+      return maskedRrDisplay.current as number
     }
     return actual
-  })()
+  }, [rrMyEntry?.rrRating])
+
+  // ── Stats delta detection: localStorage snapshot → count-up animation + delta badges
+  useEffect(() => {
+    if (!userId || tournamentStats.plays === 0) return
+    const key = `rrpoker.statSnapshot.${userId}`
+    const roiNum = typeof tournamentStats.roi === 'string' && tournamentStats.roi !== '集計中'
+      ? parseFloat(tournamentStats.roi) : typeof tournamentStats.roi === 'number' ? tournamentStats.roi : null
+    const current = {
+      rrRating: displayRrRating,
+      totalCost: tournamentStats.totalCost,
+      totalReward: tournamentStats.totalReward,
+      itmRate: parseFloat(tournamentStats.itmRate),
+      roi: roiNum,
+      plays: tournamentStats.plays,
+    }
+    const save = () => localStorage.setItem(key, JSON.stringify(current))
+    const stored = localStorage.getItem(key)
+    if (!stored) { save(); return }
+    let prev: typeof current
+    try { prev = JSON.parse(stored) } catch { save(); return }
+    // Only animate when plays increases (new tournament completed)
+    if ((prev.plays ?? current.plays) >= current.plays) { save(); return }
+    const delta = {
+      rrRating: current.rrRating - (prev.rrRating ?? current.rrRating),
+      totalCost: current.totalCost - (prev.totalCost ?? 0),
+      totalReward: current.totalReward - (prev.totalReward ?? 0),
+      itmRate: current.itmRate - (prev.itmRate ?? current.itmRate),
+      roi: roiNum !== null && prev.roi !== null ? roiNum - prev.roi : null,
+    }
+    const hasChange = Math.abs(delta.rrRating) > 0.001 || delta.totalCost !== 0 || Math.abs(delta.totalReward) > 0.001
+    if (hasChange) {
+      setStatsDelta(delta)
+      setShowStatsDelta(true)
+      // Count-up animation: animate RR Rating from prev to current
+      const fromRating = prev.rrRating ?? current.rrRating
+      const toRating = current.rrRating
+      const duration = 1600
+      const startTime = performance.now()
+      const tick = (now: number) => {
+        const t = Math.min((now - startTime) / duration, 1)
+        const eased = 1 - Math.pow(1 - t, 3) // ease-out cubic
+        setAnimRrRating(fromRating + (toRating - fromRating) * eased)
+        if (t < 1) requestAnimationFrame(tick)
+        else setAnimRrRating(null)
+      }
+      requestAnimationFrame(tick)
+      if (deltaDismissTimer.current) clearTimeout(deltaDismissTimer.current)
+      deltaDismissTimer.current = setTimeout(() => setShowStatsDelta(false), 6000)
+    }
+    save()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, tournamentStats.plays])
 
   // ── カレンダー用エントリー生成
   const calEntries = useMemo(() => {
@@ -778,6 +899,30 @@ const medalClass = (rank: number) => {
           70%  { transform:scale(1.08); opacity:1; }
           100% { transform:scale(1); }
         }
+        @keyframes deltaFloat {
+          0%   { opacity:0; transform:translateY(4px) scale(0.75); }
+          12%  { opacity:1; transform:translateY(-4px) scale(1.05); }
+          70%  { opacity:1; transform:translateY(-10px) scale(1); }
+          100% { opacity:0; transform:translateY(-20px) scale(0.9); }
+        }
+        @keyframes deltaGlow {
+          0%,100% { box-shadow: none; }
+          30%  { box-shadow: 0 0 0 3px rgba(242,169,0,0.35); }
+        }
+        @keyframes countFlip {
+          0%   { transform:translateY(6px); opacity:0; }
+          100% { transform:translateY(0);   opacity:1; }
+        }
+        .delta-badge {
+          animation: deltaFloat 5s cubic-bezier(0.22,1,0.36,1) forwards;
+          position: absolute;
+          top: -8px;
+          right: -6px;
+          pointer-events: none;
+          z-index: 10;
+        }
+        .delta-glow { animation: deltaGlow 2s ease-in-out 2; }
+        .count-flip { animation: countFlip 0.28s cubic-bezier(0.22,1,0.36,1) both; }
         @keyframes pulseGlow {
           0%,100% { box-shadow:0 0 0 0 rgba(242,169,0,0.3); }
           50%      { box-shadow:0 0 0 8px rgba(242,169,0,0); }
@@ -787,6 +932,11 @@ const medalClass = (rank: number) => {
           100% { background-position: 200% center; }
         }
         @keyframes spin { to { transform:rotate(360deg); } }
+        @keyframes sheetUp {
+          from { transform:translateY(100%); opacity:0; }
+          to   { transform:translateY(0);    opacity:1; }
+        }
+        .animate-sheetUp { animation:sheetUp .38s cubic-bezier(.22,1,.36,1) both; }
         @keyframes chipIn {
           from { transform:scale(0.2) translateY(4px); opacity:0; }
           to   { transform:scale(1)   translateY(0);   opacity:1; }
@@ -1132,7 +1282,7 @@ const medalClass = (rank: number) => {
                     <div className="flex items-center gap-2">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
                       <p className="text-[13px] font-semibold text-gray-900">
-                        {graphMode === 'all' ? '収支グラフ' : 'トナメグラフ'}
+                        {graphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
                       </p>
                     </div>
                     <div className="flex gap-1">
@@ -1190,39 +1340,70 @@ const medalClass = (rank: number) => {
 
             {/* ランキング */}
             <div className="section-card animate-slideUp">
-              <div className="flex items-center justify-between mb-4">
+              {/* ヘッダー */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <FiTrendingUp className="text-[17px] text-[#F2A900]" />
-                  <p className="text-[15px] font-semibold text-gray-900">RANKING</p>
-                  <span className="rounded-full bg-[#F2A900]/10 px-2 py-0.5 text-[10px] font-bold text-[#D4910A]">{currentStore.name}</span>
+                  <p className="text-[12px] font-semibold text-gray-900">店内純増ランキング</p>
+                  <span className="rounded-full bg-[#F2A900]/10 px-2 py-0.5 text-[6px] font-bold text-[#D4910A]">{currentStore.name}</span>
                 </div>
-                {ranking.length > 3 && (
-                  <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)} className="text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
+                {(rankingTab === 'all' ? ranking : monthlyRanking).length > 3 && (
+                  <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)} className="text-[6px] font-semibold text-[#F2A900]">もっと見る</button>
                 )}
               </div>
 
-              {userRank && (
-                <div className="mb-3 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1.5px solid rgba(242,169,0,0.25)' }}>
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F2A900]/15">
-                      <FiUser className="text-[13px] text-[#D4910A]" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-gray-500">あなたの順位</p>
-                      <p className="text-[14px] font-bold text-gray-900">{userRank.rank}位</p>
-                    </div>
-                  </div>
-                  <p className={`text-[15px] font-bold ${userRank.netGain >= 0 ? "net-positive" : "net-negative"}`}>
-                    {formatSignedChipValue(userRank.netGain)}
-                  </p>
-                </div>
-              )}
+              {/* タブ */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 14, background: '#F2F2F7', borderRadius: 12, padding: 4 }}>
+                {([
+                  { key: 'all', label: '全期間' },
+                  { key: 'monthly', label: (() => { const n = new Date(); return `${n.getMonth() + 1}月` })() },
+                ] as const).map(tab => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setRankingTab(tab.key)}
+                    style={{
+                      flex: 1, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', transition: 'all .15s',
+                      background: rankingTab === tab.key ? '#fff' : 'transparent',
+                      color: rankingTab === tab.key ? '#D4910A' : 'rgba(60,60,67,0.45)',
+                      boxShadow: rankingTab === tab.key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
 
+              {/* 自分の順位カード */}
+              {(() => {
+                const myRank = rankingTab === 'all' ? userRank : monthlyUserRank
+                if (!myRank) return null
+                return (
+                  <div className="mb-3 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1.5px solid rgba(242,169,0,0.25)' }}>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F2A900]/15">
+                        <FiUser className="text-[13px] text-[#D4910A]" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-gray-500">あなたの順位</p>
+                        <p className="text-[14px] font-bold text-gray-900">{myRank.rank}位</p>
+                      </div>
+                    </div>
+                    <p className={`text-[15px] font-bold ${myRank.netGain >= 0 ? "net-positive" : "net-negative"}`}>
+                      {formatSignedChipValue(myRank.netGain)}
+                    </p>
+                  </div>
+                )
+              })()}
+
+              {/* リスト */}
               <div className="space-y-2">
-                {rankingLoading ? (
-                  <p className="text-center text-[13px] text-gray-400 py-4">ロード中…</p>
-                ) : ranking.slice(0, 5).length > 0 ? (
-                  ranking.slice(0, 5).map((player, index) => (
+                {(() => {
+                  const loading = rankingTab === 'all' ? rankingLoading : monthlyRankingLoading
+                  const list = rankingTab === 'all' ? ranking : monthlyRanking
+                  if (loading) return <p className="text-center text-[13px] text-gray-400 py-4">ロード中…</p>
+                  if (list.length === 0) return <p className="text-center text-[13px] text-gray-400 py-4">データがありません</p>
+                  return list.slice(0, 5).map((player, index) => (
                     <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-2.5 hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${index === 0 ? "medal-gold text-white" : index === 1 ? "medal-silver text-gray-700" : index === 2 ? "medal-bronze text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
@@ -1233,9 +1414,7 @@ const medalClass = (rank: number) => {
                       <span className={`text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatSignedChipValue(player.netGain)}</span>
                     </div>
                   ))
-                ) : (
-                  <p className="text-center text-[13px] text-gray-400 py-4">プレイヤーがいません</p>
-                )}
+                })()}
               </div>
             </div>
           </>
@@ -1373,179 +1552,115 @@ const medalClass = (rank: number) => {
               )
             })()}
 
-            {/* RR Rating セクション */}
-            <div>
-              <div className="relative flex items-center gap-2 mb-3">
-                <FiTrendingUp className="text-[17px] text-[#F2A900]" />
-                <p className="text-[16px] font-semibold text-gray-900">RR Rating</p>
-                <button type="button" onClick={() => setRrRatingInfoOpen(prev => !prev)}
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
-                >
-                  <FiHelpCircle size={13} />
-                </button>
-                {rrRatingInfoOpen && (
-                  <div className="absolute left-0 top-9 z-50 w-[260px] rounded-2xl border border-gray-200 bg-white p-4 text-[12px] text-gray-600 shadow-xl animate-slideUp leading-relaxed">
-                    トナメ偏差値とは、ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
-                  </div>
-                )}
-              </div>
+            {/* RR Rating + Tournament Stats 統合セクション */}
+            <div className={`section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
 
-              <div className={`rr-board relative transition-all duration-500 min-h-[480px]`}
-                style={{ transformStyle: 'preserve-3d', transform: rrCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
-              >
-                {!rrCardFlipped && (
-                  <>
-                    {/* RR Rate Card */}
-                    <div className="rr-rate-card">
-                      <p className="relative z-10 text-[11px] font-semibold uppercase tracking-wider text-white/80">あなたのトナメ偏差値</p>
-                      <div className="relative z-10 mt-2 flex items-end gap-3">
-                        <p className="text-[40px] font-bold text-white tracking-tight drop-shadow-sm leading-none">
-                          {displayRrRating.toFixed(2)}
-                        </p>
-                        {rrMyEntry && (
-                          <div className="mb-1 rounded-full bg-white/20 px-2 py-0.5">
-                            <p className="text-[11px] font-bold text-white">全国{rrMyEntry.rank}位</p>
-                          </div>
-                        )}
-                      </div>
-                      <p className="relative z-10 mt-2 text-[11px] text-white/60">
-                        {rrMyEntry ? `ROI: ${rrMyEntry.roi.toFixed(2)}%` : "まだデータがありません"}
+              {/* ── ヒーローカード（グラデーション） ── */}
+              <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '22px 22px 18px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+
+                {/* 上段：ラベル + ? ボタン（fixed tooltip） */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, position: 'relative', zIndex: 1 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>トナメ偏差値</p>
+                  <button
+                    ref={rrRatingBtnRef}
+                    type="button"
+                    onClick={() => {
+                      if (rrRatingInfoOpen) {
+                        setRrRatingInfoOpen(false)
+                        setRrRatingInfoPos(null)
+                      } else {
+                        const rect = rrRatingBtnRef.current?.getBoundingClientRect()
+                        if (rect) setRrRatingInfoPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
+                        setRrRatingInfoOpen(true)
+                      }
+                    }}
+                    style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
+                  </button>
+                </div>
+
+                {/* 大きい数値 + 順位 + RR delta badge */}
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
+                  {tournamentStats.plays === 0 ? (
+                    <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                  ) : (
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                      <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                        {(animRrRating ?? displayRrRating).toFixed(2)}
                       </p>
-                    </div>
-
-                    {/* ランキング */}
-                    <div className="mt-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <FiAward className="text-[15px] text-[#F2A900]" />
-                        <p className="section-label">Ranking</p>
-                      </div>
-                      <div className="space-y-2">
-                        {rrRankingLoading ? (
-                          <p className="text-center text-[13px] text-gray-400 py-4">ロード中…</p>
-                        ) : rrRanking.length === 0 ? (
-                          <p className="text-center text-[13px] text-gray-400">まだランキングデータがありません</p>
-                        ) : rrRanking.slice(0, 5).map(player => (
-                          <div key={player.id} className="rr-ranking-item">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${medalClass(player.rank)}`}>
-                                  {player.iconUrl ? <img src={player.iconUrl} alt={player.name} className="h-8 w-8 rounded-full object-cover" /> : <FiUser className="text-[13px] text-gray-600" />}
-                                </div>
-                                <div>
-                                  <p className="text-[13px] font-semibold text-gray-900">{player.name || "プレイヤー"}</p>
-                                  <p className="text-[10px] text-gray-400">{player.rank}位</p>
-                                </div>
-                              </div>
-                              <p className="text-[14px] font-bold text-gray-900">{player.rrRating.toFixed(2)}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="divider-gold my-4" />
-
-                    {/* 自分のエントリー */}
-                    <div className="rr-my-entry">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border-2 border-[#F2A900] shadow-sm">
-                            {profile.iconUrl ? <img src={profile.iconUrl} alt={profile.name} className="h-8 w-8 rounded-full object-cover" /> : <FiUser className="text-[15px] text-[#F2A900]" />}
-                          </div>
-                          <div>
-                            <p className="text-[13px] font-semibold text-gray-900">{profile.name || "あなた"}</p>
-                            <p className="text-[10px] font-medium text-[#D4910A]">{rrMyEntry?.rank ?? "-"}位</p>
-                          </div>
+                      {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
+                        <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                          {statsDelta.rrRating >= 0 ? '+' : ''}{statsDelta.rrRating.toFixed(2)}
+                        </span>
+                      )}
+                      {rrMyEntry && (
+                        <div style={{ marginBottom: 6, background: 'rgba(0,0,0,0.18)', borderRadius: 99, padding: '4px 10px' }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>全国{rrMyEntry.rank}位</p>
                         </div>
-                        <p className="text-[14px] font-bold text-gray-900">{displayRrRating.toFixed(2)}</p>
-                      </div>
+                      )}
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
 
-                {rrCardFlipped && (
-                  <div style={{ transform: 'rotateY(180deg)' }}>
-                    {rrRankingLoading ? (
-                      <div className="flex items-center justify-center" style={{ minHeight: 420 }}>
-                        <p className="text-[13px] text-gray-400">ロード中…</p>
-                      </div>
-                    ) : rrBackFaceVisible ? (
-                      <>
-                        <div className="flex items-center gap-2 mb-3">
-                          <FiAward className="text-[15px] text-[#F2A900]" />
-                          <p className="section-label">TOP 100 RANKING</p>
-                        </div>
-                        <div className="max-h-[400px] overflow-y-auto space-y-2 pr-1">
-                          {rrFullRanking.slice(0, 100).length > 0 ? rrFullRanking.slice(0, 100).map(player => (
-                            <div key={player.id} className="rr-ranking-item">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <div className={`flex h-10 w-10 items-center justify-center rounded-full ${medalClass(player.rank)}`}>
-                                    {player.iconUrl ? <img src={player.iconUrl} alt={player.name} className="h-8 w-8 rounded-full object-cover" /> : <FiUser className="text-[13px] text-gray-600" />}
-                                  </div>
-                                  <div>
-                                    <p className="text-[13px] font-semibold text-gray-900">{player.name || "プレイヤー"}</p>
-                                    <p className="text-[10px] text-gray-400">{player.rank}位</p>
-                                  </div>
-                                </div>
-                                <p className="text-[14px] font-bold text-gray-900">{player.rrRating.toFixed(2)}</p>
-                              </div>
-                            </div>
-                          )) : <p className="text-center text-[13px] text-gray-400 py-4">データを読み込み中…</p>}
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-                )}
-              </div>
-
-              {/* フリップボタン */}
-              <button type="button"
-                onClick={() => {
-                  if (rrCardFlipped) { setRrBackFaceVisible(false); setRrCardFlipped(false) }
-                  else { setRrCardFlipped(true); if (rrFullRanking.length === 0) setRrFullRanking(rrRanking); setTimeout(() => setRrBackFaceVisible(true), 500) }
-                }}
-                className="mt-3 w-full h-11 rounded-2xl outline-gold-btn text-[13px] font-semibold"
-              >
-                {rrCardFlipped ? '← 戻る' : 'TOP 100を見る'}
-              </button>
-            </div>
-
-            {/* トーナメントスタッツ */}
-            <div className="section-card animate-slideUp">
-              <div className="flex items-center gap-2 mb-4">
-                <FiBarChart2 className="text-[17px] text-[#F2A900]" />
-                <p className="text-[15px] font-semibold text-gray-900">TOURNAMENT STATS</p>
-              </div>
-
-              {/* メインROI表示 */}
-              <div className="rounded-2xl p-4 mb-3 text-center" style={{ background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 4px 16px rgba(242,169,0,0.25)' }}>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80 mb-1">ROI</p>
-                <p className="text-[36px] font-bold text-white leading-none">
-                  {tournamentStats.roi === "集計中" ? "—" : `${tournamentStats.roi}%`}
-                </p>
-                <p className="text-[11px] text-white/70 mt-1">
-                  {tournamentStats.roi === "集計中" ? "トーナメントに参加すると計算されます" : `${tournamentStats.plays}回参加 · ITM ${tournamentStats.itmRate}%`}
+                {/* ROI サブ */}
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 6, position: 'relative', zIndex: 1 }}>
+                  {rrMyEntry ? `ROI ${rrMyEntry.roi.toFixed(2)}%` : 'まだデータがありません'}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="stat-chip">
-                  <p className="section-label mb-1">コスト</p>
-                  <p className="text-[17px] font-bold text-gray-900">{tournamentStats.totalCost}</p>
+              {/* ── スタッツグリッド ── */}
+              <div style={{ padding: '16px 18px' }}>
+                {/* 上段：参加 / コスト合計 / リターン */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  {[
+                    { label: '参加', value: `${tournamentStats.plays}回`, deltaVal: null },
+                    { label: 'コスト合計', value: `${tournamentStats.totalCost}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalCost : null, deltaFmt: (v: number) => Number.isInteger(v) ? `${v >= 0 ? '+' : ''}${v}` : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
+                    { label: 'リターン', value: `${tournamentStats.totalReward.toFixed(2)}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalReward : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}` },
+                  ].map((s, i) => (
+                    <div key={i} style={{ background: '#F2F2F7', borderRadius: 12, padding: '9px 4px', textAlign: 'center', position: 'relative' }}>
+                      <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(60,60,67,0.45)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1 }}>{s.value}</p>
+                      {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
+                        <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                          {s.deltaFmt(s.deltaVal)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="stat-chip">
-                  <p className="section-label mb-1">リターン</p>
-                  <p className="text-[17px] font-bold text-gray-900">{tournamentStats.totalReward.toFixed(2)}</p>
+
+                {/* 下段：ITM率 / ROI（ゴールド強調 + delta badge） */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+                  {[
+                    { label: 'ITM率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+                    { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+                  ].map((s, i) => (
+                    <div key={i} style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative' }}>
+                      <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(212,145,10,0.6)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
+                      <p style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
+                      {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
+                        <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                          {s.deltaFmt(s.deltaVal)}
+                        </span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="stat-chip" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)' }}>
-                  <p className="section-label mb-1">ITM率</p>
-                  <p className="text-[17px] font-bold text-[#D4910A]">{tournamentStats.itmRate}%</p>
-                </div>
-                <div className="stat-chip" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)' }}>
-                  <p className="section-label mb-1">エントリー</p>
-                  <p className="text-[17px] font-bold text-[#D4910A]">{tournamentStats.plays}回</p>
-                </div>
+
+                {/* ランキングボタン */}
+                <button type="button"
+                  onClick={() => {
+                    if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
+                    setIsRankingModalOpen(true)
+                  }}
+                  style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
+                >
+                  <FiAward size={14} />
+                  ランキングを見る
+                </button>
               </div>
             </div>
 
@@ -1559,86 +1674,147 @@ const medalClass = (rank: number) => {
                 <button onClick={() => router.push("/home/tournaments")} className="text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
               </div>
 
-              <div className="space-y-3">
-                {sortedTournamentItems.slice(0, 5).map(item => {
-                  const entryCount = item.entryCount ?? 0, reentryCount = item.reentryCount ?? 0, addonCount = item.addonCount ?? 0
-                  const entryFee = item.entryFee ?? 0, reentryFee = item.reentryFee ?? 0, addonFee = item.addonFee ?? 0
-                  const prize = item.prize ?? 0, rank = item.rank ?? "-"
-                  const buyin = entryCount * entryFee + reentryCount * reentryFee + addonCount * addonFee
-                  let baseFee = entryFee > 0 ? entryFee : reentryFee > 0 ? reentryFee : addonFee
-                  const cost = baseFee > 0 ? buyin / baseFee : 0
-                  const reward = baseFee > 0 ? prize / baseFee : 0
-                  const pnl = prize - buyin
-
-                  return (
-                    <div key={item.id} className="rounded-2xl bg-white border border-gray-100 overflow-hidden hover:shadow-md transition-all">
-                      {/* カラーバー */}
-                      <div style={{ height: 3, background: pnl > 0 ? 'linear-gradient(90deg,#10b981,#34d399)' : pnl < 0 ? 'linear-gradient(90deg,#ef4444,#f87171)' : 'linear-gradient(90deg,#9ca3af,#d1d5db)' }} />
-                      <div style={{ padding: '14px' }}>
-                        {/* ヘッダー */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <p className="text-[13px] font-semibold text-gray-900 leading-tight">{item.tournamentName ?? ""}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{formatDateTime(item.startedAt)} · {item.storeName ?? ""}</p>
-                          </div>
-                          {rank !== "-" && (
-                            <div className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm flex-shrink-0">
-                              <span className="text-[12px] font-bold text-white">{rank}位</span>
-                            </div>
-                          )}
-                        </div>
-                        {/* グリッドスタッツ */}
-                        <div className="grid grid-cols-3 gap-2 mb-3">
-                          <div className="rounded-xl bg-gray-50 p-2 text-center">
-                            <p className="text-[9px] text-gray-400 mb-0.5">コスト</p>
-                            <p className="text-[13px] font-bold text-gray-700">{cost.toFixed(1)}</p>
-                          </div>
-                          <div className="rounded-xl bg-gray-50 p-2 text-center">
-                            <p className="text-[9px] text-gray-400 mb-0.5">リワード</p>
-                            <p className="text-[13px] font-bold text-gray-700">{reward.toFixed(1)}</p>
-                          </div>
-                          <div className={`rounded-xl p-2 text-center ${pnl > 0 ? "bg-green-50" : pnl < 0 ? "bg-red-50" : "bg-gray-50"}`}>
-                            <p className="text-[9px] text-gray-400 mb-0.5">収支</p>
-                            <p className={`text-[13px] font-bold ${pnl > 0 ? "text-green-600" : pnl < 0 ? "text-red-500" : "text-gray-600"}`}>
-                              {formatSignedChipValue(pnl)}
-                            </p>
-                          </div>
-                        </div>
-                        {/* バイイン詳細 */}
-                        <div className="rounded-xl bg-gray-50 p-2.5 text-[11px] text-gray-500 space-y-0.5">
-                          {entryCount > 0 && <div className="flex justify-between"><span>Entry</span><span className="font-medium text-gray-700">{entryFee} × {entryCount}</span></div>}
-                          {reentryCount > 0 && <div className="flex justify-between"><span>Re-entry</span><span className="font-medium text-gray-700">{reentryFee} × {reentryCount}</span></div>}
-                          {addonCount > 0 && <div className="flex justify-between"><span>Add-on</span><span className="font-medium text-gray-700">{addonFee} × {addonCount}</span></div>}
-                          <div className="border-t border-gray-200 pt-0.5 flex justify-between font-semibold text-gray-800">
-                            <span>合計</span><span>{buyin.toLocaleString()}</span>
-                          </div>
-                          {rank !== "-" && (
-                            <div className="flex justify-between text-[#D4910A] font-semibold">
-                              <span>Prize</span><span>{prize.toLocaleString()}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-
-                {sortedTournamentItems.length === 0 && (
-                  <div className="text-center py-10">
-                    <div className="h-14 w-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                      <FiAward className="text-gray-300" size={24} />
-                    </div>
-                    <p className="text-[13px] text-gray-400">トーナメント履歴がありません</p>
-                    <p className="text-[11px] text-gray-300 mt-1">参加すると記録されます</p>
+              {tnChartData.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="h-14 w-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <FiAward className="text-gray-300" size={24} />
                   </div>
-                )}
-              </div>
+                  <p className="text-[13px] text-gray-400">トーナメント履歴がありません</p>
+                  <p className="text-[11px] text-gray-300 mt-1">参加すると記録されます</p>
+                </div>
+              ) : (() => {
+                const STEP = 72, DOT_R = 9, H = 120, PT = 16, PB = 28, PL = 24, PR = 24
+                const n = tnChartData.length
+                const svgW = Math.max(PL + (n - 1) * STEP + PR, 240)
+                const pnls = tnChartData.map(d => d.pnl)
+                const rawMin = Math.min(...pnls), rawMax = Math.max(...pnls)
+                const minP = Math.min(rawMin, 0), maxP = Math.max(rawMax, 0)
+                const range = maxP - minP || 1
+                const yOf = (v: number) => PT + H - ((v - minP) / range) * H
+                const zeroY = yOf(0)
+                const svgH = H + PT + PB
+                return (
+                  <div
+                    ref={historyScrollRef}
+                    style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' as const, marginLeft: -16, marginRight: -16, paddingLeft: 16, paddingRight: 16 }}
+                    onScroll={() => { setSelectedTnIdx(null); setTooltipPos(null) }}
+                  >
+                    <div style={{ position: 'relative', width: svgW + 'px', minWidth: '100%' }}>
+                      <svg width={svgW} height={svgH} style={{ display: 'block', overflow: 'visible' }}>
+                        {/* Zero line */}
+                        <line x1={PL} y1={zeroY} x2={svgW - PR} y2={zeroY} stroke="rgba(0,0,0,0.1)" strokeWidth={1} strokeDasharray="4 3" />
+                        {/* Connecting line */}
+                        {n > 1 && (
+                          <polyline
+                            points={tnChartData.map((d, i) => `${PL + i * STEP},${yOf(d.pnl)}`).join(' ')}
+                            fill="none" stroke="#F2A900" strokeWidth={2} strokeLinejoin="round"
+                          />
+                        )}
+                        {/* Dots + labels */}
+                        {tnChartData.map((d, i) => {
+                          const cx = PL + i * STEP
+                          const cy = yOf(d.pnl)
+                          const isSelected = selectedTnIdx === i
+                          const dotColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#9ca3af'
+                          const ts = d.item.startedAt
+                          const dateStr = ts
+                            ? (() => { const dt: Date = ts.toDate ? ts.toDate() : new Date(ts); return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}` })()
+                            : ''
+                          return (
+                            <g key={i} style={{ cursor: 'pointer' }}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (selectedTnIdx === i) { setSelectedTnIdx(null); setTooltipPos(null); return }
+                                const circ = (e.currentTarget as SVGGElement).querySelector('circle')!
+                                const rect = circ.getBoundingClientRect()
+                                const tipW = 268
+                                const above = rect.top >= 252
+                                const left = Math.min(Math.max(rect.left + rect.width / 2 - tipW / 2, 8), window.innerWidth - tipW - 8)
+                                const top = above ? rect.top - 240 : rect.bottom + 12
+                                setSelectedTnIdx(i)
+                                setTooltipPos({ left, top, above })
+                              }}
+                            >
+                              <circle cx={cx} cy={cy} r={isSelected ? DOT_R + 2 : DOT_R} fill={dotColor} stroke="#fff" strokeWidth={2.5} />
+                              {d.rank !== '-' && (
+                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={6} fontWeight={700}>{d.rank}</text>
+                              )}
+                              <text x={cx} y={svgH - 6} textAnchor="middle" fill="rgba(60,60,67,0.45)" fontSize={9.5} fontWeight={500}>{dateStr}</text>
+                            </g>
+                          )
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </>
         )}
       </div>
 
       {/* ════ モーダル群（ロジック完全保持・デザインのみ刷新）════ */}
+
+      {/* Chart tooltip backdrop */}
+      {selectedTnIdx !== null && tooltipPos && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 499 }} onClick={() => { setSelectedTnIdx(null); setTooltipPos(null) }} />
+      )}
+
+      {/* Chart tooltip card */}
+      {selectedTnIdx !== null && tooltipPos && tnChartData[selectedTnIdx] && (() => {
+        const d = tnChartData[selectedTnIdx]
+        const pnlColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#6b7280'
+        return (
+          <div style={{ position: 'fixed', left: tooltipPos.left, top: tooltipPos.top, width: 268, zIndex: 500 }} onClick={e => e.stopPropagation()}>
+            {!tooltipPos.above && (
+              <div style={{ position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #fff', filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.06))' }} />
+            )}
+            <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 8px 40px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+              <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                  <div style={{ flex: 1, marginRight: 8 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3 }}>{d.item.tournamentName ?? ''}</p>
+                    <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.45)', marginTop: 2 }}>{d.item.storeName ?? ''}</p>
+                  </div>
+                  {d.rank !== '-' && (
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>{d.rank}位</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: 'rgba(0,0,0,0.05)' }}>
+                {([
+                  { label: 'コスト', value: `${d.cost.toFixed(1)} pt`, color: '#1C1C1E' },
+                  { label: 'リワード', value: `${d.reward.toFixed(1)} pt`, color: '#1C1C1E' },
+                  { label: '収支', value: d.pnl > 0 ? `+${d.pnl.toLocaleString()}` : d.pnl.toLocaleString(), color: pnlColor },
+                ] as const).map((s, si) => (
+                  <div key={si} style={{ background: '#fff', padding: '8px 6px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)', marginBottom: 2 }}>{s.label}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: '10px 14px 12px', fontSize: 11, color: 'rgba(60,60,67,0.55)' }}>
+                {d.ec > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.ef} × {d.ec}</span></div>}
+                {d.rc > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Re-entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.rf} × {d.rc}</span></div>}
+                {d.ac > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Add-on</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.af} × {d.ac}</span></div>}
+                <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 4, marginTop: 2, display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#1C1C1E' }}>
+                  <span>合計</span><span>{d.buyin.toLocaleString()}</span>
+                </div>
+                {d.rank !== '-' && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
+                    <span>Prize</span><span>{d.prize.toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {tooltipPos.above && (
+              <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #fff', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.06))' }} />
+            )}
+          </div>
+        )
+      })()}
 
       {isQRModalOpen && userId && (
         <PlayerQRModal
@@ -1647,6 +1823,20 @@ const medalClass = (rank: number) => {
           iconUrl={profile.iconUrl}
           onClose={() => setIsQRModalOpen(false)}
         />
+      )}
+
+      {/* ── トナメ偏差値 説明ツールチップ（fixed：overflow:hidden を回避） ── */}
+      {rrRatingInfoOpen && rrRatingInfoPos && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1998 }} onClick={() => { setRrRatingInfoOpen(false); setRrRatingInfoPos(null) }} />
+          <div
+            style={{ position: 'fixed', top: rrRatingInfoPos.top, right: rrRatingInfoPos.right, width: 260, background: '#fff', borderRadius: 16, padding: '14px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.07)', fontSize: 12, color: '#3C3C43', lineHeight: 1.8, zIndex: 1999 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>トナメ偏差値とは？</p>
+            ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
+          </div>
+        </>
       )}
 
       {isPendingModalOpen && (
@@ -1831,6 +2021,87 @@ const medalClass = (rank: number) => {
                   <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RR Rating ランキングモーダル */}
+      {isRankingModalOpen && (
+        <div
+          className="fixed inset-0 z-[200] flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+          onClick={() => setIsRankingModalOpen(false)}
+        >
+          <div
+            className="animate-sheetUp"
+            style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '12px auto 0', flexShrink: 0 }} />
+
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 10px', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FiAward size={15} style={{ color: '#fff' }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.2 }}>RR Rating ランキング</p>
+                  <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 1 }}>トナメ偏差値 TOP 100</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setIsRankingModalOpen(false)}
+                style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(120,120,128,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <FiX size={15} style={{ color: '#1C1C1E' }} />
+              </button>
+            </div>
+
+            {/* My entry (pinned) */}
+            {rrMyEntry && (
+              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#FFFBF5,#FFF4E0)', border: '1.5px solid rgba(242,169,0,0.3)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {profile.iconUrl ? <img src={profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser style={{ color: '#F2A900', fontSize: 14 }} />}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
+                    <p style={{ fontSize: 10, color: '#D4910A', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
+                  </div>
+                </div>
+                <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px' }}>{displayRrRating.toFixed(2)}</p>
+              </div>
+            )}
+
+            {/* Divider */}
+            <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(242,169,0,0.2),transparent)', margin: '0 16px 4px', flexShrink: 0 }} />
+
+            {/* List */}
+            <div style={{ overflowY: 'auto', flex: 1, padding: '4px 16px 40px' }}>
+              {rrRankingLoading ? (
+                <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(60,60,67,0.45)', padding: '40px 0' }}>ロード中…</p>
+              ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).slice(0, 100).map((player, idx) => {
+                const isMe = player.id === userId
+                return (
+                  <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#F2F2F7' }) }}>
+                        {player.iconUrl
+                          ? <img src={player.iconUrl} alt={player.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
+                          : <FiUser style={{ fontSize: 13, color: player.rank <= 3 ? '#fff' : '#8E8E93' }} />
+                        }
+                      </div>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: '#D4910A', marginLeft: 5 }}>（あなた）</span>}</p>
+                        <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.4)', marginTop: 1 }}>{player.rank}位</p>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.3px' }}>{player.rrRating.toFixed(2)}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -2094,7 +2365,7 @@ const medalClass = (rank: number) => {
           <button type="button" onClick={() => router.push("/home/transactions")}
             className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
           >
-            <FiCreditCard size={28} />
+            {currentStoreId ? <FiCreditCard size={28} /> : <BsQrCodeScan size={26} />}
           </button>
           <button type="button" onClick={() => router.push("/home/mypage")} className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all">
             <FiUser size={22} /><span className="mt-1 text-[11px]">マイページ</span>

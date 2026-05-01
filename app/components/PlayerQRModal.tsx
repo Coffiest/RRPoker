@@ -68,9 +68,9 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
             <QRCodeSVG
               value={value}
               size={220}
-              level="M"
+              level="H"
               bgColor="#ffffff"
-              fgColor="#1C1C1E"
+              fgColor="#000000"
               style={{ display: 'block' }}
             />
             <div className="qr-scan-line" />

@@ -697,7 +697,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   {htSavedId ? (
                     <div className="space-y-2">
                       <div className="rounded-2xl p-3 text-center" style={{background:"#F0FDF4",border:"1px solid #BBF7D0"}}>
-                        <p className="text-[13px] font-bold" style={{color:"#15803D"}}>🃏 保存しました！</p>
+                        <p className="text-[13px] font-bold" style={{color:"#15803D"}}> 保存しました！</p>
                       </div>
                       <button type="button" onClick={() => share(htSavedId!,htTitle)}
                         className="w-full h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 active:scale-95"
@@ -714,7 +714,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <button type="button" disabled={htSaving} onClick={save}
                       className="w-full h-11 rounded-2xl text-[13px] font-bold text-white disabled:opacity-50 active:scale-95"
                       style={{background:CLR.ink}}>
-                      {htSaving?"保存中...":"💾 保存する"}
+                      {htSaving?"保存中...":"保存する"}
                     </button>
                   )}
                 </div>
@@ -735,7 +735,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   </div>
                 ) : history.length===0 ? (
                   <div className="flex flex-col items-center py-16 text-center">
-                    <span className="text-[44px] mb-3">🃏</span>
+                    <span className="text-[44px] mb-3"></span>
                     <p className="text-[15px] font-bold mb-1" style={{color:CLR.ink}}>まだ記録がありません</p>
                     <p className="text-[12px] mb-5" style={{color:CLR.gray3}}>記録タブからハンドを作成できます</p>
                     <button type="button" onClick={() => setView("record")}

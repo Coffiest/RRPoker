@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Html5Qrcode } from 'html5-qrcode'
+import jsQR from 'jsqr'
 import { FiX } from 'react-icons/fi'
 
 interface Props {
@@ -10,50 +10,81 @@ interface Props {
 }
 
 export default function QRScanner({ onScan, onClose }: Props) {
-  const [error, setError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef = useRef<number | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
   const scannedRef = useRef(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const stopCamera = () => {
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+    if (videoRef.current) { videoRef.current.srcObject = null }
+  }
 
   useEffect(() => {
-    const scanner = new Html5Qrcode('rrpoker-qr-reader')
+    let active = true
 
-    // Keep a reference to the start promise so cleanup can wait for it
-    const startPromise = scanner
-      .start(
-        { facingMode: 'environment' },
-        { fps: 12, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
-        (decoded) => {
-          if (scannedRef.current) return
-          if (decoded.startsWith('rrpoker:checkin:')) {
-            const uid = decoded.slice('rrpoker:checkin:'.length)
-            if (!uid) return
-            scannedRef.current = true
-            scanner.stop().catch(() => {}).finally(() => onScan(uid))
+    async function start() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        })
+        if (!active) { stream.getTracks().forEach(t => t.stop()); return }
+        streamRef.current = stream
+
+        const video = videoRef.current
+        if (!video) { stream.getTracks().forEach(t => t.stop()); return }
+        video.srcObject = stream
+        video.setAttribute('playsinline', 'true')
+        await video.play()
+
+        function tick() {
+          if (!active || scannedRef.current) return
+          const v = videoRef.current
+          const c = canvasRef.current
+          if (!v || !c || v.readyState < v.HAVE_ENOUGH_DATA) {
+            rafRef.current = requestAnimationFrame(tick)
+            return
           }
-        },
-        () => {}
-      )
-      .catch(() => {
-        setError('カメラへのアクセスが許可されていません')
-        return null
-      })
+          c.width = v.videoWidth
+          c.height = v.videoHeight
+          const ctx = c.getContext('2d', { willReadFrequently: true })
+          if (!ctx) { rafRef.current = requestAnimationFrame(tick); return }
+          ctx.drawImage(v, 0, 0, c.width, c.height)
+          const imgData = ctx.getImageData(0, 0, c.width, c.height)
+          // 'attemptBoth' handles overexposed screens (PC monitors) where QR can appear inverted
+          const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'attemptBoth' })
+          if (code?.data.startsWith('rrpoker:checkin:')) {
+            const uid = code.data.slice('rrpoker:checkin:'.length)
+            if (uid) {
+              scannedRef.current = true
+              stopCamera() // Stop immediately before calling onScan
+              onScan(uid)
+              return
+            }
+          }
+          rafRef.current = requestAnimationFrame(tick)
+        }
+        rafRef.current = requestAnimationFrame(tick)
+      } catch {
+        if (active) setError('カメラへのアクセスが許可されていません')
+      }
+    }
+
+    start()
 
     return () => {
-      // Wait for start() to complete before calling stop()
-      startPromise.then((result) => {
-        if (result === null) return // start failed, nothing to stop
-        if (scannedRef.current) return // already stopped by onScan path
-        scanner.stop().catch(() => {})
-      })
+      active = false
+      stopCamera()
     }
-  }, [onScan])
+  }, [onScan]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="fixed inset-0 z-[300]" style={{ background: '#000' }}>
       <style>{`
-        #rrpoker-qr-reader video { object-fit: cover !important; width: 100% !important; height: 100% !important; }
-        #rrpoker-qr-reader { width: 100% !important; height: 100dvh !important; overflow: hidden; }
-        #rrpoker-qr-reader img, #rrpoker-qr-reader button, #rrpoker-qr-reader select,
-        #rrpoker-qr-reader #rrpoker-qr-reader__dashboard { display: none !important; }
         @keyframes scan-frame-pulse {
           0%,100% { opacity: 0.6; }
           50%      { opacity: 1; }
@@ -65,8 +96,13 @@ export default function QRScanner({ onScan, onClose }: Props) {
         }
       `}</style>
 
-      {/* Camera view */}
-      <div id="rrpoker-qr-reader" style={{ position: 'absolute', inset: 0 }} />
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Dark overlay with cutout */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -89,7 +125,7 @@ export default function QRScanner({ onScan, onClose }: Props) {
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '52px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div/>
         <p style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
-        <button type="button" onClick={onClose}
+        <button type="button" onClick={() => { stopCamera(); onClose() }}
           style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
         >
           <FiX size={18} style={{ color: '#fff' }} />

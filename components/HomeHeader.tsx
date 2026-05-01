@@ -234,6 +234,7 @@ export default function HomeHeader({
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur">
+		<style>{`html { overflow-x: hidden; }`}</style>
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
 					type="button"
