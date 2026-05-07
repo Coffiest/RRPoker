@@ -617,10 +617,22 @@ export default function HomePage() {
 }
   
 const formatDateTime = (t?: any) => {
+  if (!t) return ""
+  const pad = (v: number) => v.toString().padStart(2, "0")
+  // 文字列の場合: ISO日付文字列なら整形、それ以外(HH:MM等)はそのまま返す
+  if (typeof t === "string") {
+    const d = new Date(t)
+    if (!isNaN(d.getTime())) return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+    return t
+  }
+  // ミリ秒数値
+  if (typeof t === "number") {
+    const d = new Date(t)
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+  // Firestore Timestamp / Date / {seconds, nanoseconds}
   const date = toDateSafe(t)
   if (!date) return ""
-
-  const pad = (v: number) => v.toString().padStart(2, "0")
   return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
 
@@ -678,7 +690,7 @@ const formatDateTime = (t?: any) => {
     try {
       const q = query(collection(db, "users"), where("currentStoreId", "==", storeId))
       const snap = await getDocs(q); const list: StorePlayer[] = []
-      snap.forEach(docSnap => { const data = docSnap.data(); if (typeof data.currentStoreId === "string") list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl }) })
+      snap.forEach(docSnap => { const data = docSnap.data(); if (typeof data.currentStoreId === "string" && data.showInStore !== false) list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl }) })
       setPlayersPreview(list)
     } catch (error) { console.error("playersPreview error:", error); setPlayersPreview([]) }
     finally { setPlayersPreviewLoading(false) }
@@ -1775,7 +1787,7 @@ const medalClass = (rank: number) => {
                 {/* 下段：ITM率 / ROI（ゴールド強調 + delta badge） */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
                   {[
-                    { label: 'ITM率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+                    { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
                     { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
                   ].map((s, i) => (
                     <div key={i} style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative' }}>
@@ -2405,38 +2417,26 @@ const medalClass = (rank: number) => {
                             {isActive && <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />}
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{isActive ? "ライブ" : "終了"}</p>
                           </div>
-                          <div className="grid grid-cols-3 gap-1.5 mb-1.5">
-                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
-                              <p className="text-[8px] text-gray-400">Entry</p>
-                              <p className="text-[13px] font-bold text-gray-900">{totalEntry}</p>
-                            </div>
-                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
-                              <p className="text-[8px] text-gray-400">Reentry</p>
-                              <p className="text-[13px] font-bold text-gray-900">{totalReentry}</p>
-                            </div>
-                            <div className="bg-white rounded-xl px-2 py-1.5 text-center border border-amber-100">
-                              <p className="text-[8px] text-gray-400">Addon</p>
-                              <p className="text-[13px] font-bold text-gray-900">{totalAddon}</p>
-                            </div>
-                          </div>
-                          {(currentLevel || avgStack > 0) && (
-                            <div className="grid grid-cols-2 gap-1.5">
-                              {currentLevel && (
-                                <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
-                                  <p className="text-[8px] text-gray-400">現在のブラインド</p>
-                                  <p className="text-[12px] font-bold text-gray-900">
-                                    {currentLevel.type === "break" ? "Break" : `${currentLevel.smallBlind} / ${currentLevel.bigBlind}${currentLevel.ante ? ` ante : ${currentLevel.ante}` : ""}`}
-                                  </p>
-                                </div>
-                              )}
-                              {avgStack > 0 && (
-                                <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
-                                  <p className="text-[8px] text-gray-400">Avg Stack</p>
-                                  <p className="text-[12px] font-bold text-gray-900">{avgStack.toLocaleString()}</p>
-                                </div>
-                              )}
+                          {currentLevel && (
+                            <div className="mb-1.5">
+                              <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
+                                <p className="text-[8px] text-gray-400">現在のブラインド</p>
+                                <p className="text-[12px] font-bold text-gray-900">
+                                  {currentLevel.type === "break" ? "Break" : `${currentLevel.smallBlind} / ${currentLevel.bigBlind}${currentLevel.ante ? ` ante : ${currentLevel.ante}` : ""}`}
+                                </p>
+                              </div>
                             </div>
                           )}
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div className="bg-white rounded-xl px-3 py-2 text-center border border-amber-100">
+                              <p className="text-[8px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Players</p>
+                              <p className="text-[16px] font-bold text-gray-900 timer-num">{alivePlayers}/{totalEntry + totalReentry}</p>
+                            </div>
+                            <div className="bg-white rounded-xl px-3 py-2 text-center border border-amber-100">
+                              <p className="text-[8px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Avg Stack</p>
+                              <p className="text-[16px] font-bold text-gray-900 timer-num">{avgStack.toLocaleString()}</p>
+                            </div>
+                          </div>
                         </div>
                       )
                     })()}

@@ -801,7 +801,7 @@ export default function TournamentsPage() {
         <div className="fixed inset-0 flex items-center justify-center z-[9999] px-4 animate-fadeIn"
           style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
         >
-          <div className="w-full max-w-lg max-h-[86vh] flex flex-col rounded-[32px] bg-white overflow-hidden animate-slideUp"
+          <div className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-[32px] bg-white overflow-hidden animate-slideUp"
             style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)" }}
           >
             {/* Header */}
@@ -887,41 +887,14 @@ export default function TournamentsPage() {
                         }}
                         style={{ opacity: blindDragIndex === idx ? 0.5 : 1, background: lv.type === "break" ? "#F0F7FF" : "#F9F9F9" }}
                       >
-                        <div className="flex items-center justify-between px-3 py-2.5 gap-2">
-                          <div className="flex items-center gap-2 flex-wrap">
+                        {/* Row 1: label + comment + controls */}
+                        <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 gap-2">
+                          <div className="flex items-center gap-2">
                             <span className="cursor-move text-gray-300 text-[16px] select-none">≡</span>
                             {lv.type === "level" ? (
-                              <>
-                                <span className="text-[11px] font-bold text-[#F2A900] w-12">Lv {idx + 1}</span>
-                                <input type="number" min={1} value={lv.smallBlind ?? ""} placeholder="SB"
-                                  onChange={e => {
-                                    const v = Math.max(1, Math.round(Number(e.target.value)))
-                                    const bb = Math.max(1, Math.round(v * 2))
-                                    setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
-                                  }}
-                                  className={`${bModalInput} w-14`} />
-                                <span className="text-gray-300 text-[13px]">/</span>
-                                <input type="number" min={1} value={lv.bigBlind ?? ""} placeholder="BB"
-                                  onChange={e => handleBlindBbChange(idx, Number(e.target.value))}
-                                  className={`${bModalInput} w-14`} />
-                                <span className="text-gray-300 text-[13px]">(</span>
-                                <input type="number" min={1} value={lv.ante ?? ""} placeholder="ANTE"
-                                  onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                  className={`${bModalInput} w-14`} />
-                                <span className="text-gray-300 text-[13px]">)</span>
-                                <input type="number" min={1} value={lv.duration ?? ""} placeholder="分"
-                                  onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                  className={`${bModalInput} w-12`} />
-                                <span className="text-[11px] text-gray-400">min</span>
-                              </>
+                              <span className="text-[11px] font-bold text-[#F2A900] min-w-[40px]">Lv {idx + 1}</span>
                             ) : (
-                              <>
-                                <span className="text-[11px] font-bold text-blue-400 w-12">Break</span>
-                                <input type="number" min={1} value={lv.duration ?? ""} placeholder="分"
-                                  onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                  className={`${bModalInput} w-14`} />
-                                <span className="text-[11px] text-gray-400">min</span>
-                              </>
+                              <span className="text-[11px] font-bold text-blue-400 min-w-[40px]">Break</span>
                             )}
                             <button
                               type="button"
@@ -931,7 +904,7 @@ export default function TournamentsPage() {
                               {lv.comment ? lv.comment : "＋"}
                             </button>
                           </div>
-                          <div className="ml-1 flex-shrink-0 flex items-center gap-0.5">
+                          <div className="flex-shrink-0 flex items-center gap-0.5">
                             <button
                               type="button"
                               onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)}
@@ -945,6 +918,48 @@ export default function TournamentsPage() {
                             </button>
                           </div>
                         </div>
+                        {/* Row 2: inputs */}
+                        {lv.type === "level" ? (
+                          <div className="flex gap-1.5 px-3 pb-2.5">
+                            <div className="flex-1 flex flex-col gap-0.5">
+                              <span className="text-[10px] text-gray-400 font-semibold text-center">SB</span>
+                              <input type="number" min={1} value={lv.smallBlind ?? ""} placeholder="100"
+                                onChange={e => {
+                                  const v = Math.max(1, Math.round(Number(e.target.value)))
+                                  const bb = Math.max(1, Math.round(v * 2))
+                                  setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
+                                }}
+                                className={`${bModalInput} w-full`} />
+                            </div>
+                            <div className="flex-1 flex flex-col gap-0.5">
+                              <span className="text-[10px] text-gray-400 font-semibold text-center">BB</span>
+                              <input type="number" min={1} value={lv.bigBlind ?? ""} placeholder="200"
+                                onChange={e => handleBlindBbChange(idx, Number(e.target.value))}
+                                className={`${bModalInput} w-full`} />
+                            </div>
+                            <div className="flex-1 flex flex-col gap-0.5">
+                              <span className="text-[10px] text-gray-400 font-semibold text-center">ANTE</span>
+                              <input type="number" min={1} value={lv.ante ?? ""} placeholder="200"
+                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: Math.max(1, Math.round(Number(e.target.value))) }))}
+                                className={`${bModalInput} w-full`} />
+                            </div>
+                            <div className="flex-1 flex flex-col gap-0.5">
+                              <span className="text-[10px] text-gray-400 font-semibold text-center">時間(分)</span>
+                              <input type="number" min={1} value={lv.duration ?? ""} placeholder="20"
+                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
+                                className={`${bModalInput} w-full`} />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 px-3 pb-2.5">
+                            <div className="flex flex-col gap-0.5" style={{width: "120px"}}>
+                              <span className="text-[10px] text-blue-400 font-semibold text-center">時間(分)</span>
+                              <input type="number" min={1} value={lv.duration ?? ""} placeholder="10"
+                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
+                                className={`${bModalInput} w-full`} />
+                            </div>
+                          </div>
+                        )}
                         {(blindEditingCommentIdx === idx || lv.comment) && (
                           <div className="px-3 pb-2.5 flex items-center gap-2 blind-comment-expand">
                             <input

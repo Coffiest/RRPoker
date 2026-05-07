@@ -279,6 +279,7 @@ export default function MyPage() {
   const [savingExtProfile, setSavingExtProfile] = useState(false)
   const [sharingProfile, setSharingProfile] = useState(false)
   const [tourStats, setTourStats] = useState({ plays: 0, itmRate: 0, roi: 0, todayName: null as string | null })
+  const [showInStore, setShowInStore] = useState(true)
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -297,6 +298,7 @@ export default function MyPage() {
       setDraftFavoriteHand(data.favoriteHand ?? "")
       setDraftPokerHistory(data.pokerHistory ?? "")
       setEmail(user.email ?? "")
+      setShowInStore(data.showInStore !== false)
     })
     return () => unsub()
   }, [])
@@ -698,13 +700,44 @@ export default function MyPage() {
         {/* ── 設定リスト ── */}
         <div className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiLock size={15} style={{ color: '#fff' }} />
             </div>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>パスワード変更</span>
             <FiChevronRight size={16} style={{ color: '#C7C7CC' }} />
           </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#34C759', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <FiUser size={15} style={{ color: '#fff' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E', marginBottom: 1 }}>入店中の表示</p>
+              <p style={{ fontSize: 11, color: '#8E8E93' }}>オフにすると「入店中のプレイヤーを見る」に表示されません</p>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!uid) return
+                const next = !showInStore
+                setShowInStore(next)
+                await setDoc(doc(db, "users", uid), { showInStore: next }, { merge: true })
+              }}
+              style={{
+                width: 51, height: 31, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
+                background: showInStore ? '#34C759' : '#E5E5EA',
+                transition: 'background 0.2s',
+                position: 'relative',
+              }}
+            >
+              <div style={{
+                position: 'absolute', top: 2, width: 27, height: 27, borderRadius: '50%', background: '#fff',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                transition: 'left 0.2s',
+                left: showInStore ? 22 : 2,
+              }} />
+            </button>
+          </div>
         </div>
 
         {/* ── ハンドヒストリー ── */}

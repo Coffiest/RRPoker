@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiEdit3, FiMenu, FiX } from "react-icons/fi"
 import { addDoc, serverTimestamp } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
-import { doc, getDoc, updateDoc, onSnapshot, collection, getDocs, deleteDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc, onSnapshot, collection, deleteDoc } from "firebase/firestore"
 import { createPortal } from "react-dom"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
@@ -108,7 +108,12 @@ export default function TimerClient() {
   const [selectedPreset, setSelectedPreset] = useState<string>("")
   const [customBlindLevels, setCustomBlindLevels] = useState<Level[] | null>(null)
   const [tournamentBlindPresetId, setTournamentBlindPresetId] = useState<string>("")
+  const [tournamentLoaded, setTournamentLoaded] = useState(false)
   const autoAppliedRef = useRef(false)
+  const selectedPresetRef = useRef("")
+  useEffect(() => { selectedPresetRef.current = selectedPreset }, [selectedPreset])
+  const currentLevelIndexRef = useRef(0)
+  useEffect(() => { currentLevelIndexRef.current = currentLevelIndex }, [currentLevelIndex])
   const [editingCommentIdx, setEditingCommentIdx] = useState<number | null>(null)
 
   // ── Start / pause sound ──────────────────────────────────────────────────
@@ -124,20 +129,28 @@ export default function TimerClient() {
     prevIsRunningRef.current = isRunning
   }, [isRunning])
 
-  // ── Auto-apply blind preset from tournament data (UI only, no Firestore write) ──
+  // ── Auto-apply blind preset from tournament data ────────────────────────
   useEffect(() => {
     if (autoAppliedRef.current) return
-    if (!tournamentBlindPresetId || selectedPreset || blindPresets.length === 0) return
+    if (!storeId || !tournamentBlindPresetId || blindPresets.length === 0) return
+    // Already loaded the correct preset's levels from Firestore
+    if (selectedPreset === tournamentBlindPresetId && customBlindLevels && customBlindLevels.length > 0) {
+      autoAppliedRef.current = true
+      return
+    }
     const preset = blindPresets.find((p: any) => p.id === tournamentBlindPresetId)
     if (!preset || !Array.isArray(preset.levels) || preset.levels.length === 0) return
-    const lvs = preset.levels
+    const lvs = preset.levels as Level[]
     const firstDur = typeof lvs[0]?.duration === "number" ? lvs[0].duration * 60 : 0
     setSelectedPreset(preset.id)
     setCustomBlindLevels(lvs)
-    setCurrentLevelIndex(0)
-    setTimeRemaining(firstDur)
+    if (timeRemaining === 0) setTimeRemaining(firstDur)
     autoAppliedRef.current = true
-  }, [tournamentBlindPresetId, blindPresets, selectedPreset])
+    // Firestoreに書き込む: store/page.tsxの次へ/前へボタンが正しいレベル情報を参照できるようにする
+    const update: Record<string, any> = { selectedPreset: preset.id, customBlindLevels: lvs }
+    if (timeRemaining === 0) update.timeRemaining = firstDur
+    void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
+  }, [tournamentBlindPresetId, blindPresets, selectedPreset, customBlindLevels, timeRemaining, storeId])
 
   // ── Level helpers ────────────────────────────────────────────────────────
   function generateNextLevel(prev: BlindLevel): BlindLevel {
@@ -190,12 +203,27 @@ export default function TimerClient() {
   }
 
   // ── Firebase ─────────────────────────────────────────────────────────────
+  // Real-time listener: blindPresets の変更をタイマーに即座に反映
   useEffect(() => {
     if (!storeId) return
-    getDocs(collection(db, "stores", storeId, "blindPresets")).then(snap =>
-      setBlindPresets(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-    )
-  }, [storeId, isPresetModalOpen])
+    const unsub = onSnapshot(collection(db, "stores", storeId, "blindPresets"), (snap) => {
+      const presets = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      setBlindPresets(presets)
+      const current = selectedPresetRef.current
+      if (!current) return
+      const updated = presets.find((p: any) => p.id === current) as any
+      if (!updated || !Array.isArray(updated.levels) || updated.levels.length === 0) return
+      const newLevels = updated.levels as Level[]
+      setCustomBlindLevels(newLevels)
+      // tournament doc を更新: 現在レベルの時間も新しい設定値にリセット
+      const levelIdx = currentLevelIndexRef.current
+      const newDur = newLevels[levelIdx]?.duration
+      const update: Record<string, any> = { customBlindLevels: newLevels }
+      if (typeof newDur === "number" && newDur > 0) update.timeRemaining = newDur * 60
+      void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
+    })
+    return () => unsub()
+  }, [storeId])
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
@@ -222,6 +250,7 @@ export default function TimerClient() {
       if (typeof d.selectedPreset === "string") setSelectedPreset(d.selectedPreset)
       if (Array.isArray(d.customBlindLevels)) setCustomBlindLevels(d.customBlindLevels)
       if (typeof d.blindPresetId === "string") setTournamentBlindPresetId(d.blindPresetId)
+      setTournamentLoaded(true)
     })
     return () => unsub()
   }, [storeId, tournamentId])
@@ -241,7 +270,15 @@ export default function TimerClient() {
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { startTime: serverTimestamp(), timerRunning: true })
   }
 
-  const levelsToUse = Array.isArray(customBlindLevels) ? customBlindLevels : []
+  const levelsToUse = useMemo<Level[]>(() => {
+    if (Array.isArray(customBlindLevels) && customBlindLevels.length > 0) return customBlindLevels
+    const presetId = tournamentBlindPresetId || selectedPreset
+    if (presetId && blindPresets.length > 0) {
+      const preset = blindPresets.find((p: any) => p.id === presetId)
+      if (preset && Array.isArray(preset.levels) && preset.levels.length > 0) return preset.levels as Level[]
+    }
+    return []
+  }, [customBlindLevels, tournamentBlindPresetId, selectedPreset, blindPresets])
 
   async function skipLevel() {
     if (!storeId) return
@@ -253,19 +290,39 @@ export default function TimerClient() {
     })
   }
 
+  // ── Keep a ref so the interval always sees the latest levels ────────────
+  const levelsToUseRef = useRef<Level[]>([])
+  useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
+
   // ── Countdown interval ───────────────────────────────────────────────────
   useEffect(() => {
     if (!isRunning || !storeId) return
     const ref = doc(db, "stores", storeId, "tournaments", tournamentId)
     const interval = setInterval(async () => {
+      const levels = levelsToUseRef.current
+      // Levels not loaded yet — skip tick to avoid false termination
+      if (levels.length === 0) return
+
       const snap = await getDoc(ref); const d = snap.data(); if (!d) return
-      const current = d.timeRemaining ?? 0
+
+      // timeRemaining が Firestore に未設定（初回起動）の場合、現在レベルの duration で初期化
+      if (typeof d.timeRemaining !== "number") {
+        const levelIdx = typeof d.currentLevelIndex === "number" ? d.currentLevelIndex : 0
+        const dur = levels[levelIdx]?.duration
+        if (typeof dur === "number" && dur > 0) {
+          await updateDoc(ref, { timeRemaining: dur * 60 - 1 })
+        }
+        return
+      }
+
+      const current = d.timeRemaining
+      const levelIdx = typeof d.currentLevelIndex === "number" ? d.currentLevelIndex : 0
       if (current === 11) void playSound("tensec")
       if (current === 4 || current === 3 || current === 2) void playSound("countdown")
       if (current <= 1) {
-        if (d.currentLevelIndex < levelsToUse.length - 1) {
-          const next = d.currentLevelIndex + 1
-          const dur = levelsToUse[next]?.duration
+        if (levelIdx < levels.length - 1) {
+          const next = levelIdx + 1
+          const dur = levels[next]?.duration
           await updateDoc(ref, { currentLevelIndex: next, timeRemaining: typeof dur === "number" ? dur * 60 : 0 })
           void playSound("levelup")
         } else {
@@ -276,7 +333,7 @@ export default function TimerClient() {
       await updateDoc(ref, { timeRemaining: current - 1 })
     }, 1000)
     return () => clearInterval(interval)
-  }, [isRunning, storeId, currentLevelIndex, levelsToUse])
+  }, [isRunning, storeId, tournamentId])
 
   // ── Derived values ───────────────────────────────────────────────────────
   const totalPlayers = entry + reentry
@@ -301,7 +358,7 @@ export default function TimerClient() {
   })()
   const nextBreakMin = Math.floor(nextBreakSeconds / 60)
   const nextBreakSec = nextBreakSeconds % 60
-  const totalPrize = Object.values(prizePool).reduce((a, b) => a + (b.amount ?? 0), 0)
+  const totalPrize = Object.values(prizePool).reduce((a, b) => a + (Number(b?.amount) || 0), 0)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
   // ── Shared input style for modal ─────────────────────────────────────────
@@ -310,7 +367,7 @@ export default function TimerClient() {
   // ════════════════════════════════════════════════════════════════════════
   return (
     <div onClick={unlockAudio} onTouchStart={unlockAudio}>
-      <main className="min-h-screen overflow-hidden relative" style={{ background: "#F5F5F7" }}>
+      <main className="min-h-screen overflow-hidden relative" style={{ background: "#fff" }}>
         <style>{`
           @keyframes colonBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
           @keyframes pauseFadeIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
@@ -342,6 +399,15 @@ export default function TimerClient() {
           @keyframes commentExpand { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
           .level-item { animation: levelSlideIn 0.18s ease-out; }
           .comment-expand { animation: commentExpand 0.16s ease-out; }
+          @keyframes newsFlash {
+            0%   { left:-100vw; opacity:0; }
+            8%   { left:-100vw; opacity:0; }
+            16%  { left:56px;   opacity:1; }
+            62%  { left:56px;   opacity:1; }
+            72%  { left:100vw;  opacity:0; }
+            100% { left:100vw;  opacity:0; }
+          }
+          .news-ticker { position:absolute; animation:newsFlash 10s ease-in-out infinite; }
         `}</style>
 
         {/* Overlay */}
@@ -408,192 +474,244 @@ export default function TimerClient() {
           </button>
         </div>
 
-        {/* ── Main Layout ───────────────────────────────────────────────── */}
-        <div className="flex h-screen overflow-hidden">
+        {/* ══ Main Layout ══════════════════════════════════════════════════════════ */}
+        <div className="flex h-screen">
 
-          {/* Left: Timer */}
-          <div className="flex-1 min-w-0 flex flex-col items-center justify-center px-4 py-10">
-            <div className="w-full max-w-[900px] space-y-4">
+          {/* ── Left Panel ──────────────────────────────────────────────────── */}
+          <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden">
 
-              {/* Tournament name */}
-              <p className="text-center text-[20px] font-medium tracking-[0.3em] uppercase text-gray-400">
-                {tournamentName || "\u00A0"}
-              </p>
+            {/* TOURNAMENT NAME */}
+            <div className="flex-none text-center" style={{ padding: "18px 56px 12px" }}>
+              <h1 className="text-[56px] font-black tracking-[0.18em] uppercase leading-none text-gray-900">
+                {tournamentName || " "}
+              </h1>
+            </div>
 
-              {/* Level badge */}
-              <div className="flex justify-center">
+            {/* LEVEL DIVIDER + BLIND COMMENT */}
+            <div className="flex-none px-14">
+              {isPresetSelected && level?.type === "level" && level?.comment && (
+                <p className="text-center text-[22px] font-black tracking-[0.45em] uppercase text-[#F2A900] mb-2">
+                  {level.comment}
+                </p>
+              )}
+              <div className="flex items-center gap-5">
+                <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
-                  <span className="inline-flex items-center px-5 py-1.5 rounded-full text-[13px] font-bold tracking-[0.15em] uppercase bg-[#F2A900]/10 text-[#F2A900]"
-                    style={{ border: "1.5px solid rgba(242,169,0,0.3)" }}
-                  >
-                    LEVEL {currentLevelIndex + 1}
+                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#F2A900] flex-shrink-0">
+                    LEVEL&nbsp;{currentLevelIndex + 1}
                   </span>
                 )}
                 {level?.type === "break" && (
-                  <span className="inline-flex items-center px-5 py-1.5 rounded-full text-[13px] font-bold tracking-[0.15em] uppercase bg-gray-100 text-gray-500">
-                    BREAK TIME
+                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-gray-400 flex-shrink-0">
+                    BREAK
                   </span>
                 )}
-                {!level && <span className="h-8" />}
+                {!level && <span className="text-[22px] opacity-0 flex-shrink-0">LEVEL 0</span>}
+                <div className="h-px flex-1" style={{ background: "linear-gradient(to left, transparent, #E8E8E8)" }} />
               </div>
+            </div>
 
-              {/* Blinds */}
-              <div className="text-center">
-                {level?.type === "break" ? (
-                  <p className="text-[40px] font-light tracking-widest text-gray-300">— B R E A K —</p>
-                ) : (
-                  <div className="flex items-baseline justify-center gap-3">
-                    <span className="text-[30px] font-semibold tracking-[0.25em] uppercase text-gray-500">Blinds</span>
-                    <span className="text-[44px] font-light text-gray-700 timer-num">{level?.smallBlind ?? "—"}</span>
-                    <span className="text-[28px] font-thin text-gray-500">/</span>
-                    <span className="text-[44px] font-light text-gray-700 timer-num">{level?.bigBlind ?? "—"}</span>
-                    <span className="text-[25px] font-light text-gray-700 ml-1">(ante {level?.ante ?? "—"})</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Level comment */}
-              {isPresetSelected && level?.comment && (
-                <div className="text-center">
-                  <span
-                    className="inline-block text-[32px] font-bold tracking-wide px-8 py-2 rounded-2xl text-[#F2A900]"
-                    style={{ background: "rgba(242,169,0,0.1)", border: "1.5px solid rgba(242,169,0,0.2)" }}
-                  >
-                    {level.comment}
-                  </span>
+            {/* TIMER */}
+            <div className="flex-none px-14 pt-2 relative">
+              {/* PAUSE overlay */}
+              {!isRunning && isPresetSelected && (
+                <div
+                  className="pause-badge absolute inset-0 z-10 flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+                >
+                  <span className="text-[86px] font-black tracking-[0.18em] text-[#F2A900]">PAUSE</span>
                 </div>
               )}
-
-              {/* Next level */}
-              <div className="text-center min-h-[28px]">
-                {isPresetSelected && nextLevel && (
-                  <span className="inline-flex items-center gap-2 text-[30px] font-light text-gray-400">
-                    <span className="text-[20px] tracking-[0.3em] uppercase text-gray-400">Next</span>
-                    {nextLevel.type === "break"
-                      ? "Break"
-                      : <span className="timer-num">{nextLevel.smallBlind} / {nextLevel.bigBlind} <span className="text-[25px] text-gray-400">({nextLevel.ante})</span></span>
-                    }
+              {isPresetSelected ? (
+                <div className="flex items-center justify-center timer-num">
+                  <span className="text-[200px] font-thin leading-none text-[#F2A900]">
+                    {minutes.toString().padStart(2, "0")}
                   </span>
-                )}
-              </div>
+                  <span className={`text-[140px] font-thin leading-none text-[#F2A900] mx-2 ${isRunning ? "colon-blink" : "opacity-20"}`}>
+                    :
+                  </span>
+                  <span className="text-[200px] font-thin leading-none text-[#F2A900]">
+                    {seconds.toString().padStart(2, "0")}
+                  </span>
+                </div>
+              ) : tournamentLoaded ? (
+                <div className="flex items-center justify-center" style={{ padding: "40px 0" }}>
+                  <span className="text-[80px] font-thin tracking-[0.25em] text-gray-200">WELCOME</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center" style={{ padding: "40px 0" }}>
+                  <span className="text-[40px] font-thin tracking-[0.25em] text-gray-200">Loading...</span>
+                </div>
+              )}
+              {/* Progress bar */}
+              {isPresetSelected && (
+                <div className="w-full rounded-full overflow-hidden" style={{ height: "3px", background: "#F0F0F0", marginTop: "4px" }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-1000"
+                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#D4910A,#F2A900)" }}
+                  />
+                </div>
+              )}
+            </div>
 
-              {/* ── Timer card ─────────────────────────────────────────── */}
-              <div className="relative rounded-[40px] bg-white overflow-hidden"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9)" }}
-              >
-                {/* Gold top accent line */}
-                <div style={{ height: 3, background: "linear-gradient(90deg,#F2A900,#D4910A,#F2A900)", backgroundSize: "200% auto" }} />
+            {/* INFO BLOCK: BLIND / BB ANTE / NEXT / NEXT BREAK */}
+            <div className="flex-1 flex flex-col justify-center px-12 py-2">
+              {level?.type === "break" ? (
+                <p className="text-[60px] font-light tracking-[0.5em] text-gray-200 text-center">— B R E A K —</p>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "max-content 1fr",
+                    columnGap: "64px",
+                    rowGap: "clamp(22px, 3.8vh, 52px)",
+                    alignItems: "baseline",
+                  }}
+                >
+                  {/* BLIND */}
+                  <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
+                    BLIND
+                  </span>
+                  <span className="text-[68px] font-light text-gray-800 timer-num leading-none whitespace-nowrap">
+                    {level?.smallBlind?.toLocaleString() ?? "—"}&nbsp;/&nbsp;{level?.bigBlind?.toLocaleString() ?? "—"}
+                  </span>
 
-                {/* PAUSE overlay */}
-                {!isRunning && isPresetSelected && (
-                  <div className="pause-badge absolute inset-0 flex items-center justify-center rounded-[40px] z-10"
-                    style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
-                  >
-                    <div className="px-14 py-5 rounded-[32px] border-2 border-[#F2A900]/30 bg-white/80"
-                      style={{ boxShadow: "0 4px 24px rgba(242,169,0,0.12)" }}
-                    >
-                      <span className="text-[76px] font-bold tracking-[0.1em] text-[#F2A900]">PAUSE</span>
-                    </div>
-                  </div>
-                )}
+                  {/* BB ANTE */}
+                  <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
+                    BB ANTE
+                  </span>
+                  <span className="text-[68px] font-light text-gray-800 timer-num leading-none">
+                    {level?.ante?.toLocaleString() ?? "—"}
+                  </span>
 
-                {/* Digits */}
-                <div className="py-6 px-8">
-                  {isPresetSelected ? (
-                    <div className="flex items-center justify-center timer-num">
-                      <span className="text-[168px] font-thin leading-none text-[#F2A900]">
-                        {minutes.toString().padStart(2, "0")}
+                  {/* Separator */}
+                  <div style={{ gridColumn: "1 / -1", height: "1px", background: "#E8E8E8" }} />
+
+                  {/* NEXT */}
+                  {isPresetSelected && nextLevel && currentLevelIndex < levelsToUse.length - 1 && (
+                    <>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
+                        NEXT
                       </span>
-                      <span className={`text-[120px] font-thin leading-none text-[#F2A900] mx-1 ${isRunning ? "colon-blink" : "opacity-20"}`}>
-                        :
+                      {nextLevel.type === "break"
+                        ? <span className="text-[54px] font-light text-gray-500 leading-none">Break</span>
+                        : <span className="text-[54px] font-light text-gray-600 timer-num leading-none">
+                            {nextLevel.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel.bigBlind?.toLocaleString()}
+                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel.ante?.toLocaleString()})</span>
+                          </span>
+                      }
+                    </>
+                  )}
+
+                  {/* NEXT BREAK */}
+                  {isPresetSelected && nextLevel && (
+                    <>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
+                        NEXT BREAK
                       </span>
-                      <span className="text-[168px] font-thin leading-none text-[#F2A900]">
-                        {seconds.toString().padStart(2, "0")}
+                      <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                        {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                       </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center py-6">
-                      <span className="text-[80px] font-thin tracking-[0.25em] text-gray-200">WELCOME</span>
-                    </div>
+                    </>
                   )}
                 </div>
+              )}
+            </div>
 
-                {/* Progress bar */}
-                <div className="px-8 pb-6">
-                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#F0F0F0" }}>
-                    <div
-                      className="h-full rounded-full transition-all duration-1000"
-                      style={{ width: `${progress}%`, background: "linear-gradient(90deg,#D4910A,#F2A900)", boxShadow: "0 0 8px rgba(242,169,0,0.4)" }}
-                    />
+            {/* SEPARATOR */}
+            <div
+              className="flex-none mx-14"
+              style={{ height: "1px", background: "linear-gradient(to right, transparent, #E8E8E8, transparent)" }}
+            />
+
+            {/* STATS */}
+            <div className="flex-none flex items-center justify-around px-14 py-4">
+              {[
+                { label: "PLAYERS", value: `${alivePlayers} / ${totalPlayers}` },
+                { label: "AVERAGE", value: averageStack.toLocaleString() },
+                { label: "ADD-ON",  value: String(addon) },
+              ].map((stat, i, arr) => (
+                <div key={stat.label} className="flex items-center">
+                  <div className="text-center" style={{ padding: "0 32px" }}>
+                    <p className="text-[13px] font-black tracking-[0.4em] uppercase text-gray-500 mb-1">{stat.label}</p>
+                    <p className="text-[44px] font-light text-gray-700 timer-num">{stat.value}</p>
                   </div>
+                  {i < arr.length - 1 && (
+                    <div className="h-10 w-px" style={{ background: "#EBEBEB" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* NEWS TICKER — payout comment only */}
+            {comment && (
+              <div
+                className="flex-none relative overflow-hidden bg-white"
+                style={{ height: "60px", borderTop: "1px solid #EBEBEB" }}
+              >
+                <div className="h-full flex items-center">
+                  <span className="news-ticker whitespace-nowrap text-gray-800 font-bold text-[28px] tracking-[0.06em]">
+                    {comment}
+                  </span>
                 </div>
               </div>
+            )}
 
-              {/* Next break + comment */}
-              <div className="text-center space-y-2 pt-1">
-                {isPresetSelected && nextLevel && (
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-[20px] font-semibold tracking-[0.25em] uppercase text-gray-400">Next Break:</span>
-                    <span className="text-[44px] font-light text-[#F2A900] timer-num">
-                      {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
-                    </span>
-                  </div>
-                )}
-                {comment && (
-                  <p className="text-[25px] font-light text-[#F2A900] whitespace-pre-wrap">{comment}</p>
-                )}
-              </div>
-
-              {/* Stats */}
-              <div className="flex items-center justify-center gap-8 pt-2">
-                {[
-                  { label: "Players", value: `${alivePlayers} / ${totalPlayers}` },
-                  { label: "Average", value: averageStack.toLocaleString() },
-                  { label: "Add-on",  value: String(addon) },
-                ].map((stat, i, arr) => (
-                  <div key={stat.label} className="flex items-center gap-8">
-                    <div className="text-center">
-                      <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-gray-400 mb-0.5">{stat.label}</p>
-                      <p className="text-[22px] font-light text-gray-700 timer-num">{stat.value}</p>
-                    </div>
-                    {i < arr.length - 1 && <div className="h-8 w-px bg-gray-200" />}
-                  </div>
-                ))}
-              </div>
-
-            </div>
           </div>
 
-          {/* Right: Prize Pool */}
-          <div className="w-[320px] flex-shrink-0 p-6 flex flex-col justify-center pb-28">
-            <div className="rounded-[28px] bg-white p-5 h-full flex flex-col justify-center"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.04)" }}
-            >
-              <p className="text-[13px] font-bold tracking-[0.3em] uppercase text-gray-400 mb-5">Prize Pool</p>
+          {/* ── Right Panel: Prize Pool ──────────────────────────────────────── */}
+          <div
+            className="flex-shrink-0 flex flex-col bg-white"
+            style={{ width: "380px", borderLeft: "1px solid #F0F0F0" }}
+          >
+            {/* Header */}
+            <div style={{ padding: "36px 36px 24px", borderBottom: "1px solid #F5F5F5" }}>
+              <p className="text-[11px] font-black tracking-[0.6em] uppercase text-gray-300 mb-3">Prize Pool</p>
+              <div className="flex items-baseline gap-3">
+                <span className="text-[15px] font-black tracking-[0.3em] uppercase text-gray-300">TOTAL</span>
+                <span className="text-[52px] font-light text-[#F2A900] timer-num leading-none">
+                  {totalPrize.toLocaleString()}
+                </span>
+              </div>
+            </div>
 
-              <div className="space-y-2 flex-1">
-                {Object.entries(prizePool).map(([place, data], idx, arr) => (
-                  <div key={place} className="flex items-center py-2" style={idx !== arr.length - 1 ? { borderBottom: "1px solid #F0F0F0" } : {}}>
-                    <div className="flex items-center gap-1.5 flex-1">
-                      <span className="text-[14px] text-gray-400 w-[30px]">{place}th</span>
-                      <input
-                        type="number"
-                        value={data?.amount ?? ""}
-                        onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
-                        className="prize-input flex-1 text-right text-[14px] font-medium text-gray-700 bg-transparent outline-none"
-                      />
-                    </div>
-                    {data?.text && <span className="text-[14px] text-gray-700 ml-1 whitespace-nowrap">+{data.text}</span>}
+            {/* Places */}
+            <div className="flex-1 flex flex-col justify-evenly pb-28" style={{ padding: "16px 36px 112px" }}>
+              {Object.entries(prizePool).map(([place, data], idx, arr) => (
+                <div
+                  key={place}
+                  className="flex items-center gap-3"
+                  style={{
+                    paddingTop: "6px",
+                    paddingBottom: "6px",
+                    borderBottom: idx !== arr.length - 1 ? "1px solid #F8F8F8" : "none",
+                  }}
+                >
+                  <span
+                    className="font-black text-gray-800 flex-shrink-0"
+                    style={{ width: "52px", fontSize: "24px" }}
+                  >
+                    {place}<span style={{ fontSize: "15px" }}>th</span>
+                  </span>
+                  <div className="flex items-center gap-2 flex-1 justify-end overflow-hidden">
+                    <input
+                      type="number"
+                      value={data?.amount ?? ""}
+                      onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
+                      className="prize-input text-right font-light text-gray-800 bg-transparent outline-none min-w-0 w-full"
+                      style={{ fontSize: "46px", border: "none" }}
+                    />
+                    {data?.text && (
+                      <span
+                        className="font-light text-gray-400 whitespace-nowrap flex-shrink-0"
+                        style={{ fontSize: "46px" }}
+                      >
+                        +{data.text}
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
-
-              <div className="pt-4 mt-2 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-gray-400">Total PRIZE :</span>
-                  <span className="text-[17px] font-semibold text-[#F2A900]">{totalPrize.toLocaleString()}</span>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 

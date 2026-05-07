@@ -126,17 +126,18 @@ export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chi
     balancesFetchedRef.current = true
 
     const fetchBalances = async () => {
+      const realPlayers = players.filter(p => !p.isTemp)
+      const snaps = await Promise.all(
+        realPlayers.map(p =>
+          getDoc(doc(db, "users", p.id, "storeBalances", storeId!)).catch(() => null)
+        )
+      )
       const extras: Record<string, PlayerExtra> = {}
-      for (const player of players) {
-        if (player.isTemp) continue
-        try {
-          const snap = await getDoc(doc(db, "users", player.id, "storeBalances", storeId))
-          const balance = snap.exists() ? (snap.data()?.balance ?? 0) : 0
-          extras[player.id] = { currentBalance: balance, pendingPurchases: [], virtualBalance: balance }
-        } catch {
-          extras[player.id] = { currentBalance: 0, pendingPurchases: [], virtualBalance: 0 }
-        }
-      }
+      snaps.forEach((snap, i) => {
+        const id = realPlayers[i].id
+        const balance = snap?.exists() ? (snap.data()?.balance ?? 0) : 0
+        extras[id] = { currentBalance: balance, pendingPurchases: [], virtualBalance: balance }
+      })
       setPlayerExtras(extras)
       setOriginalPlayers(players)
     }
@@ -184,11 +185,25 @@ export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chi
     }
 
     if (!player.isTemp && extra && delta < 0 && fee > 0) {
-      // Refund
-      setPlayerExtras(prev => ({
-        ...prev,
-        [playerId]: { ...prev[playerId], virtualBalance: prev[playerId].virtualBalance + fee },
-      }))
+      // pendingPurchasesに該当typeがあればそちらを先に取り消す（チップが増えるバグ対策）
+      const pendingPurchases = extra.pendingPurchases
+      let lastMatchIdx = -1
+      for (let i = pendingPurchases.length - 1; i >= 0; i--) {
+        if (pendingPurchases[i].type === type) { lastMatchIdx = i; break }
+      }
+      if (lastMatchIdx >= 0) {
+        const newPending = pendingPurchases.filter((_, i) => i !== lastMatchIdx)
+        setPlayerExtras(prev => ({
+          ...prev,
+          [playerId]: { ...prev[playerId], pendingPurchases: newPending },
+        }))
+      } else {
+        // 通常の残高返金
+        setPlayerExtras(prev => ({
+          ...prev,
+          [playerId]: { ...prev[playerId], virtualBalance: prev[playerId].virtualBalance + fee },
+        }))
+      }
     }
 
     setLocalPlayers(prev =>
@@ -467,23 +482,24 @@ export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chi
 
                       {/* Balance + preview */}
                       {!player.isTemp && extra && (
-                        <div className="mb-2 flex flex-wrap items-center gap-1 text-[11px] font-medium">
-                          <span className="text-gray-700">{fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)}</span>
+                        <div className="mb-2 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-1.5">
+                          <span className="text-[10px] font-bold tracking-widest uppercase text-amber-400 shrink-0">Bankroll</span>
+                          <span className="text-[15px] font-bold text-gray-900">{fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)}</span>
                           {preview && (
-                            <>
+                            <div className="flex items-center gap-1 text-[12px] font-semibold ml-auto">
                               {preview.totalPurchase > 0 && (
-                                <span className="text-green-600">(+{fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)})</span>
+                                <span className="text-green-600">+{fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)}</span>
                               )}
                               {preview.netFee !== 0 && (
                                 <span className={preview.netFee > 0 ? "text-green-600" : "text-red-500"}>
-                                  ({preview.netFee > 0 ? "+" : ""}{fmtChip(preview.netFee, chipUnit, chipUnitBefore)})
+                                  {preview.netFee > 0 ? "+" : ""}{fmtChip(preview.netFee, chipUnit, chipUnitBefore)}
                                 </span>
                               )}
                               <span className="text-gray-400">→</span>
-                              <span className={`font-bold ${preview.finalBalance < 0 ? "text-red-500" : "text-gray-700"}`}>
+                              <span className={`font-bold text-[13px] ${preview.finalBalance < 0 ? "text-red-500" : "text-gray-800"}`}>
                                 {fmtChip(preview.finalBalance, chipUnit, chipUnitBefore)}
                               </span>
-                            </>
+                            </div>
                           )}
                         </div>
                       )}

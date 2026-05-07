@@ -113,7 +113,7 @@ export default function StorePage() {
     const nextIdx = Math.min(current + 1, levels.length - 1)
     const nextLevel = levels[nextIdx]
     const dur = typeof nextLevel?.duration === "number" && nextLevel.duration > 0 ? nextLevel.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: false })
+    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: data.timerRunning ?? false })
   }
   async function pauseTimer(id: string) {
     if (!storeId) return
@@ -136,7 +136,7 @@ export default function StorePage() {
     const prevIdx = Math.max(0, currentLevel - 1)
     const prevLvl = levels[prevIdx]
     const dur = typeof prevLvl?.duration === "number" && prevLvl.duration > 0 ? prevLvl.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: false })
+    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: data.timerRunning ?? false })
   }
 
   const [role, setRole] = useState<string | null>(null)

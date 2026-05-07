@@ -34,7 +34,7 @@ export default function Page() {
       const list: Player[] = []
       snap.forEach(docSnap => {
         const data = docSnap.data()
-        list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl })
+        if (data.showInStore !== false) list.push({ id: docSnap.id, name: data.name, iconUrl: data.iconUrl })
       })
       setPlayers(list)
     }
