@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase"
 type Props = {
   tournamentId: string
   storeId: string | null
+  balanceGroupId?: string
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
@@ -41,7 +42,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PrizeDistributeModal({ tournamentId, storeId, chipUnit, chipUnitBefore, onClose }: Props) {
+export default function PrizeDistributeModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -438,7 +439,7 @@ for (const p of payouts) {
   // 🔴 仮プレイヤーはスキップ
   if (p.playerId.startsWith("temp_")) continue
 
-  const balRef = doc(db, "users", p.playerId, "storeBalances", storeId)
+  const balRef = doc(db, "users", p.playerId, "storeBalances", balanceGroupId ?? storeId!)
 
   await setDoc(
     balRef,

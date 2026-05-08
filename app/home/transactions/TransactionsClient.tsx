@@ -103,7 +103,8 @@ export default function TransactionsClient() {
       setChipUnitBefore(storeData?.chipUnitBefore !== false)
       setBlindBb(typeof storeData?.ringBlindBb === "number" ? storeData.ringBlindBb : null)
 
-      const balanceSnap = await getDoc(doc(db, "users", user.uid, "storeBalances", currentStoreId))
+      const balGroupId = storeData?.balanceGroupId ?? currentStoreId
+      const balanceSnap = await getDoc(doc(db, "users", user.uid, "storeBalances", balGroupId))
       const balanceData = balanceSnap.data()
       setBalance(typeof balanceData?.balance === "number" ? balanceData.balance : 0)
     })

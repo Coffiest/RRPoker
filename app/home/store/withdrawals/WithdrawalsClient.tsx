@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { db } from "@/lib/firebase"
-import { collection, getDocs, query, where, doc, updateDoc, increment, serverTimestamp } from "firebase/firestore"
+import { collection, getDocs, getDoc, query, where, doc, updateDoc, increment, serverTimestamp } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -11,10 +11,13 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
   const router = useRouter()
   const [withdrawals, setWithdrawals] = useState<any[]>([])
   const [players, setPlayers] = useState<Record<string, any>>({})
+  const [balanceGroupId, setBalanceGroupId] = useState<string>(storeId)
 
   useEffect(() => {
     if (!storeId) return
     const fetchWithdrawals = async () => {
+      const storeSnap = await getDoc(doc(db, "stores", storeId))
+      setBalanceGroupId(storeSnap.data()?.balanceGroupId ?? storeId)
       const snap = await getDocs(
         query(
           collection(db, "withdrawals"),
@@ -47,7 +50,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
 
   const approveWithdrawal = async (withdrawal: any) => {
     // balance/netGain減算
-    const balanceRef = doc(db, "users", withdrawal.playerId, "storeBalances", storeId)
+    const balanceRef = doc(db, "users", withdrawal.playerId, "storeBalances", balanceGroupId)
     await updateDoc(balanceRef, {
       balance: increment(-withdrawal.amount),
       netGain: increment(-withdrawal.amount)

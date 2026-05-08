@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { db } from "@/lib/firebase"
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from "firebase/firestore"
-import { FiX, FiShare2, FiTrash2, FiClock, FiChevronRight, FiAlertTriangle } from "react-icons/fi"
+import { FiX, FiShare2, FiTrash2, FiClock, FiChevronRight } from "react-icons/fi"
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
@@ -105,6 +105,46 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
   const [histLoading,  setHistLoading]  = useState(false)
   const [histError,    setHistError]    = useState<string|null>(null)
   const [delConfirmId, setDelConfirmId] = useState<string|null>(null)
+
+  // +Tools FAB & ITM calculator state
+  const [toolsOpen,    setToolsOpen]    = useState(false)
+  const [itmOpen,      setItmOpen]      = useState(false)
+  const [itmRemaining, setItmRemaining] = useState("")
+  const [itmSpots,     setItmSpots]     = useState("")
+  const [itmMyChips,   setItmMyChips]   = useState("")
+  const [itmAvgStack,  setItmAvgStack]  = useState("")
+
+  const itmResult = useMemo(() => {
+    const remaining = Number(itmRemaining)
+    const spots     = Number(itmSpots)
+    const myChips   = Number(itmMyChips)
+    const avgStack  = Number(itmAvgStack)
+    if (!remaining || !spots || !myChips || !avgStack) return null
+
+    const totalChips = avgStack * remaining
+    const chipRatio  = (myChips / totalChips) * 100
+    const avgRatio   = myChips / avgStack
+
+    // All-ITM edge case
+    if (spots >= remaining) return { probability: 100, chipRatio, avgStack, avgRatio }
+
+    // Malmuth-Harville ICM (equal-opponents assumption)
+    // P(i at position p) = C(n-1,p-1) * s * q^(p-1) / Π_{k=0}^{p-1}(1-k*q)
+    const s = myChips / totalChips
+    const q = (1 - s) / (remaining - 1)
+    let itmProb   = 0
+    let coeffProd = 1
+    let denomProd = 1
+    let qPow      = 1
+    for (let p = 1; p <= spots; p++) {
+      denomProd *= (1 - (p - 1) * q)
+      itmProb   += (coeffProd * s * qPow) / denomProd
+      coeffProd *= (remaining - p)
+      qPow      *= q
+    }
+
+    return { probability: Math.min(itmProb, 1) * 100, chipRatio, avgStack, avgRatio }
+  }, [itmRemaining, itmSpots, itmMyChips, itmAvgStack])
 
   const positions = useMemo(() => htGetPositions(htCount), [htCount])
 
@@ -283,20 +323,59 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
   return (
     <>
-      {/* ── FAB ─────────────────────────────────────────────────────────── */}
+      {/* ── +Tools FAB ──────────────────────────────────────────────────── */}
+      <style>{`
+        @keyframes toolsBtnIn {
+          from { opacity:0; transform:translateY(12px) scale(0.85); }
+          to   { opacity:1; transform:translateY(0)    scale(1); }
+        }
+      `}</style>
       <div className="fixed bottom-[88px] right-4 z-[70] flex flex-col items-end gap-2">
-        <div className="flex items-center gap-1.5 rounded-2xl px-2.5 py-1.5"
-          style={{ background:"rgba(29,29,31,0.72)", backdropFilter:"blur(12px)" }}>
-          <FiAlertTriangle size={9} style={{ color:CLR.gold, flexShrink:0 }} />
-          <span className="text-[10px] font-medium" style={{ color:"rgba(255,255,255,0.65)" }}>開発中・バグが多い</span>
-        </div>
+        {toolsOpen && (
+          <>
+            <button type="button"
+              onClick={() => { setToolsOpen(false); setItmOpen(true) }}
+              className="flex items-center gap-2 rounded-full active:scale-95 transition-all"
+              style={{
+                background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,
+                padding: "11px 18px",
+                boxShadow: "0 4px 20px rgba(242,169,0,0.35)",
+                animation: "toolsBtnIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
+                animationDelay: "0.05s",
+              }}>
+              <span className="text-[18px]">📊</span>
+              <span className="text-[13px] font-semibold text-white">インマネ確率予測</span>
+            </button>
+            <button type="button"
+              onClick={() => { setToolsOpen(false); reset(); setView("record"); setIsOpen(true) }}
+              className="flex items-center gap-2 rounded-full active:scale-95 transition-all"
+              style={{
+                background: CLR.ink,
+                padding: "11px 18px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                animation: "toolsBtnIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
+              }}>
+              <span className="text-[18px]">🃏</span>
+              <span className="text-[13px] font-semibold text-white">ハンド記録</span>
+            </button>
+          </>
+        )}
         <button type="button"
-          onClick={() => { reset(); setView("record"); setIsOpen(true) }}
-          className="flex items-center gap-2 rounded-full active:scale-95 transition-all"
-          style={{ background:CLR.ink, padding:"12px 20px", boxShadow:"0 4px 20px rgba(0,0,0,0.25)" }}>
-          <span className="font-black rounded text-[8px] px-1 py-px tracking-widest leading-snug"
-            style={{ border:`1px solid ${CLR.gold}`, color:CLR.gold }}>β版</span>
-          <span className="text-[13px] font-semibold text-white">ハンド記録</span>
+          onClick={() => setToolsOpen(prev => !prev)}
+          className="flex items-center gap-3 rounded-full active:scale-95 transition-all"
+          style={{
+            background: CLR.ink,
+            padding: "15px 26px",
+            boxShadow: `0 6px 28px rgba(0,0,0,0.32), 0 0 0 2px ${CLR.gold}55`,
+          }}>
+          {toolsOpen ? (
+            <span className="text-[15px] font-semibold text-white">← もどる</span>
+          ) : (
+            <>
+              <span className="text-[20px] font-black leading-none" style={{ color: CLR.gold }}>+</span>
+              <span className="text-[15px] font-bold text-white tracking-wide">Tools</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -862,6 +941,81 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
               </div>
             </>
           )}
+        </>,
+        document.body
+      )}
+
+      {typeof window !== "undefined" && itmOpen && createPortal(
+        <>
+          <div className="fixed inset-0 z-[200]"
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
+            onClick={() => setItmOpen(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-[201] mx-auto max-w-sm flex flex-col"
+            style={{ maxHeight: "94vh", background: "#F2F2F7", borderRadius: "28px 28px 0 0", boxShadow: "0 -2px 32px rgba(0,0,0,0.18)" }}>
+
+            <div className="flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-9 h-[3px] rounded-full bg-gray-300" />
+            </div>
+
+            <div className="shrink-0 px-5 pt-2 pb-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-[17px] font-bold" style={{ color: CLR.ink }}>インマネ確率計算機</h2>
+                <button type="button" onClick={() => setItmOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                  style={{ background: "rgba(120,120,128,0.16)", color: CLR.ink }}>
+                  <FiX size={15} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 pb-10 space-y-3">
+              <div className="rounded-2xl px-4 py-3" style={{ background: "#FFF8E7", border: `1px solid ${CLR.gold}44` }}>
+                <p className="text-[12px] leading-relaxed" style={{ color: CLR.goldDk }}>
+                  あなたの現在のチップ数から、インマネ確率を推定します。あくまで目安であり、スキル差などは考慮していません。
+                </p>
+              </div>
+
+              <div className="rounded-2xl px-4 py-4 space-y-3" style={{ background: CLR.white, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                {([
+                  { label: "残りプレイヤー数",   value: itmRemaining, setter: setItmRemaining, placeholder: "例: 20" },
+                  { label: "インマネ人数",       value: itmSpots,     setter: setItmSpots,     placeholder: "例: 15" },
+                  { label: "自分のチップ数",     value: itmMyChips,   setter: setItmMyChips,   placeholder: "例: 45000" },
+                  { label: "アベレージスタック", value: itmAvgStack,  setter: setItmAvgStack,  placeholder: "例: 25000" },
+                ] as { label:string; value:string; setter:(v:string)=>void; placeholder:string }[]).map(({ label, value, setter, placeholder }) => (
+                  <div key={label}>
+                    <p className="text-[11px] font-medium mb-1" style={{ color: CLR.gray2 }}>{label}</p>
+                    <input type="number" value={value} onChange={e => setter(e.target.value)}
+                      placeholder={placeholder}
+                      className="w-full h-11 rounded-2xl px-3 text-[14px] outline-none transition-all"
+                      style={{ background: "#F2F2F7", color: CLR.ink, border: "1.5px solid transparent" }}
+                      onFocus={e => (e.target.style.borderColor = CLR.gold)}
+                      onBlur={e => (e.target.style.borderColor = "transparent")} />
+                  </div>
+                ))}
+              </div>
+
+              {itmResult && (
+                <div className="rounded-2xl px-4 py-4" style={{ background: CLR.white, boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                  <p className="text-[11px] font-medium mb-2" style={{ color: CLR.gray2 }}>推定インマネ確率</p>
+                  <p className="text-[52px] font-black leading-none mb-4" style={{ color: CLR.gold }}>
+                    {itmResult.probability.toFixed(1)}<span className="text-[22px]">%</span>
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {([
+                      { label: "チップ比率",   value: `${itmResult.chipRatio.toFixed(1)}%` },
+                      { label: "アベレージ",   value: itmResult.avgStack.toLocaleString() },
+                      { label: "アベレージ比", value: `×${itmResult.avgRatio.toFixed(2)}` },
+                    ]).map(({ label, value }) => (
+                      <div key={label} className="rounded-2xl px-2 py-3 text-center" style={{ background: "#F2F2F7" }}>
+                        <p className="text-[10px] mb-0.5" style={{ color: CLR.gray2 }}>{label}</p>
+                        <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </>,
         document.body
       )}

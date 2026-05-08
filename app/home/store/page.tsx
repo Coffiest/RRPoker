@@ -2,7 +2,7 @@
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
@@ -21,7 +21,8 @@ import {
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight,
 } from "react-icons/fi"
 
-type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean }
+type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
+type OwnedStore = { id: string; name: string; iconUrl?: string }
 type DepositRequest = { id: string; playerId: string; amount: number; comment?: string }
 type WithdrawRequest = { id: string; playerId: string; amount: number; comment?: string }
 type PlayerInfo = { id: string; name?: string; iconUrl?: string; visitCount?: number; lastVisitedAt?: Date | null }
@@ -187,6 +188,7 @@ export default function StorePage() {
   }, [storeId])
 
   const [store, setStore] = useState<StoreInfo | null>(null)
+  const balGroupId = store?.balanceGroupId ?? storeId
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
@@ -212,6 +214,13 @@ export default function StorePage() {
   const [copiedCode, setCopiedCode] = useState(false)
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [qrCheckinResult, setQrCheckinResult] = useState<{ success: boolean; name?: string } | null>(null)
+  const [ownedStores, setOwnedStores] = useState<OwnedStore[]>([])
+  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [showStorePicker, setShowStorePicker] = useState(false)
+  const cardTouchStartX = useRef(0)
+  const cardTouchStartY = useRef(0)
+  const lastIconTapTime = useRef(0)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!playerSearchInput) return
@@ -224,12 +233,13 @@ export default function StorePage() {
 
   useEffect(() => {
     if (!storeId) return
+    const balKey = (store?.balanceGroupId ?? storeId)!
     const q = query(collection(db, "users"), where("joinedStores", "array-contains", storeId))
     const unsub = onSnapshot(q, async (snap) => {
       const filtered = snap.docs.filter(d => !d.id.startsWith("temp_"))
       const results = await Promise.all(filtered.map(async d => {
         const data = d.data()
-        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", storeId))
+        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
         const bal = balSnap.exists() ? balSnap.data() : {}
         return {
           id: d.id, name: data.name, iconUrl: data.iconUrl,
@@ -242,13 +252,27 @@ export default function StorePage() {
       setStorePlayers(results)
     })
     return () => unsub()
-  }, [storeId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, store])
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
       if (!user) return
       const snap = await getDoc(doc(db, "users", user.uid))
-      setStoreId(snap.data()?.storeId ?? null)
+      const data = snap.data() ?? {}
+      const sid = data.storeId ?? null
+      setStoreId(sid)
+      const ownedIds: string[] = data.ownedStoreIds ?? (sid ? [sid] : [])
+      if (ownedIds.length > 0) {
+        const infos = await Promise.all(
+          ownedIds.map(async (id: string) => {
+            const s = await getDoc(doc(db, "stores", id))
+            const d = s.data()
+            return { id, name: d?.name ?? "", iconUrl: d?.iconUrl as string | undefined }
+          })
+        )
+        setOwnedStores(infos)
+      }
     })
     return () => unsub()
   }, [])
@@ -293,20 +317,22 @@ export default function StorePage() {
 
   useEffect(() => {
     if (!storeId) return
+    const balKey = (store?.balanceGroupId ?? storeId)!
     const q = query(collection(db, "users"), where("pendingStoreId", "==", storeId))
     const unsub = onSnapshot(q, async snap => {
       const list: PlayerInfo[] = []
       for (const d of snap.docs) {
         const data = d.data()
         if (data.checkinStatus !== "pending") continue
-        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", storeId))
+        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
         const b = balSnap.exists() ? balSnap.data() : {}
         list.push({ id: d.id, name: data.name, iconUrl: data.iconUrl, visitCount: b.visitCount ?? 0, lastVisitedAt: b.lastVisitedAt?.toDate?.() ?? null })
       }
       setPendingPlayers(list.reverse())
     })
     return () => unsub()
-  }, [storeId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, store])
 
   const playerMap = useMemo(() => { const m: Record<string, any> = {}; storePlayers.forEach(p => (m[p.id] = p)); return m }, [storePlayers])
 
@@ -339,14 +365,14 @@ export default function StorePage() {
   const selectPlayer = async (playerId: string) => {
     setSelectedPlayerId(playerId); setPlayerSearchInput("")
     if (!storeId) return
-    const snap = await getDoc(doc(db, "users", playerId, "storeBalances", storeId))
+    const snap = await getDoc(doc(db, "users", playerId, "storeBalances", balGroupId!))
     if (snap.exists()) { setSelectedPlayerBalance(snap.data()?.balance ?? 0); setSelectedPlayerNetGain(snap.data()?.netGain ?? 0) }
     else { setSelectedPlayerBalance(0); setSelectedPlayerNetGain(0) }
   }
 
   const approveDepositWithType = async (req: DepositRequest, type: "cashout" | "chip" | "other") => {
     if (!storeId) return
-    const balRef = doc(db, "users", req.playerId, "storeBalances", storeId)
+    const balRef = doc(db, "users", req.playerId, "storeBalances", balGroupId!)
     let bDiff = 0, nDiff = 0, txType = ""
     if (type === "cashout") { bDiff = req.amount; nDiff = req.amount; txType = "store_cashout" }
     if (type === "chip") { bDiff = req.amount; nDiff = 0; txType = "store_chip_purchase" }
@@ -364,7 +390,7 @@ export default function StorePage() {
 
   const approveWithdrawWithType = async (req: WithdrawRequest, type: "buyin" | "tE" | "tR" | "tA" | "other") => {
     if (!storeId) return
-    const balRef = doc(db, "users", req.playerId, "storeBalances", storeId)
+    const balRef = doc(db, "users", req.playerId, "storeBalances", balGroupId!)
     let bDiff = 0, nDiff = 0, txType = ""
     if (type === "buyin") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_buyin" }
     if (type === "tE") { bDiff = -req.amount; nDiff = -req.amount; txType = "store_tournament_entry" }
@@ -391,7 +417,7 @@ export default function StorePage() {
     if (!amount || amount < 1) { setAdjustError("数字は1以上で入力してください"); return }
     setAdjustError("")
     const pid = adjustModalPlayer.id
-    const balRef = doc(db, "users", pid, "storeBalances", storeId)
+    const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
     const balSnap = await getDoc(balRef)
     const current = balSnap.data()?.balance ?? 0
     const currentNG = balSnap.data()?.netGain ?? 0
@@ -420,7 +446,7 @@ export default function StorePage() {
     const amount = Number(adjustValue)
     if (!amount || amount < 1) return
     const pid = adjustModalPlayer.id
-    const balRef = doc(db, "users", pid, "storeBalances", storeId)
+    const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
     let bDiff = 0, nDiff = 0, type = "", direction: "add" | "subtract" = "add"
     switch (adjustType) {
       case "buyin": bDiff = -amount; nDiff = -amount; type = "store_buyin"; direction = "subtract"; break
@@ -447,7 +473,7 @@ export default function StorePage() {
 
   const pid = adjustModalPlayer.id
 
-  const balRef = doc(db, "users", pid, "storeBalances", storeId)
+  const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
 
   // バンクロール & 純増 両方加算
   await updateDoc(balRef, {
@@ -483,7 +509,7 @@ export default function StorePage() {
     if (!storeId) return
     const storeSnap = await getDoc(doc(db, "stores", storeId)); const storeData = storeSnap.data()
     await setDoc(doc(db, "users", playerId), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
-    const balRef = doc(db, "users", playerId, "storeBalances", storeId)
+    const balRef = doc(db, "users", playerId, "storeBalances", balGroupId!)
     const balSnap = await getDoc(balRef); const now = new Date(); const ts = serverTimestamp()
     let cb = 0, cn = 0, vc = 0, incr = true
     if (balSnap.exists()) {
@@ -538,6 +564,35 @@ export default function StorePage() {
     if (!date) return "なし"
     const p = (n: number) => n.toString().padStart(2, "0")
     return `${date.getFullYear()}/${p(date.getMonth()+1)}/${p(date.getDate())} ${p(date.getHours())}:${p(date.getMinutes())}`
+  }
+
+  const switchStore = async (newStoreId: string) => {
+    if (newStoreId === storeId) { setSwitcherOpen(false); setShowStorePicker(false); return }
+    const user = auth.currentUser
+    if (!user) return
+    await updateDoc(doc(db, "users", user.uid), { storeId: newStoreId })
+    setStoreId(newStoreId)
+    setStore(null)
+    setSwitcherOpen(false)
+    setShowStorePicker(false)
+  }
+
+  const handleIconTap = () => {
+    const now = Date.now()
+    if (now - lastIconTapTime.current < 350) {
+      setSwitcherOpen(p => !p)
+      lastIconTapTime.current = 0
+    } else {
+      lastIconTapTime.current = now
+    }
+  }
+
+  const startLongPress = () => {
+    longPressTimer.current = setTimeout(() => setShowStorePicker(true), 500)
+  }
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
   }
 
   const copyCode = async () => {
@@ -719,24 +774,46 @@ export default function StorePage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
-      {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
+      {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
+      {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
       {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
         {/* ── Store Header Card ── */}
-        <div className="su d0" style={{ marginTop: 16 }}>
-          <div className="ios-card" style={{ overflow: 'hidden' }}>
+        <div className="su d0" style={{ marginTop: 16, position: 'relative' }}>
+          <div
+            className="ios-card"
+            style={{ overflow: 'hidden' }}
+            onTouchStart={e => { cardTouchStartX.current = e.touches[0].clientX; cardTouchStartY.current = e.touches[0].clientY }}
+            onTouchEnd={e => {
+              const dx = e.changedTouches[0].clientX - cardTouchStartX.current
+              const dy = e.changedTouches[0].clientY - cardTouchStartY.current
+              if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dx > 0) setSwitcherOpen(p => !p)
+            }}
+          >
             <div className="gold-line"/>
             <div style={{ padding: '18px 18px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+              {/* Store icon — double-tap to toggle switcher, long-press to show picker */}
               {store?.iconUrl ? (
-                <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div
+                  style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+                  onClick={handleIconTap}
+                  onTouchStart={startLongPress}
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}
+                >
                   <img src={store.iconUrl} alt={store.name} style={{ width: 60, height: 60, borderRadius: 18, objectFit: 'cover', boxShadow: '0 3px 10px rgba(0,0,0,0.1)' }}/>
                   <div style={{ position: 'absolute', bottom: 2, right: 2, width: 12, height: 12, borderRadius: '50%', background: '#34C759', border: '2px solid white' }} className="pulse"/>
                 </div>
               ) : (
-                <div style={{ width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)' }}>店</div>
+                <div
+                  style={{ width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)', cursor: 'pointer' }}
+                  onClick={handleIconTap}
+                  onTouchStart={startLongPress}
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}
+                >店</div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 6 }}>{store?.name ?? ""}</p>
@@ -744,10 +821,7 @@ export default function StorePage() {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 10, padding: '5px 10px', border: 'none', cursor: 'pointer', transition: 'background .2s' }}
                 >
                   <span style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{store?.code ?? ""}</span>
-                  {copiedCode
-                    ? <FiCheck size={12} style={{ color: '#28A745' }}/>
-                    : <FiCopy size={12} style={{ color: 'var(--label3)' }}/>
-                  }
+                  {copiedCode ? <FiCheck size={12} style={{ color: '#28A745' }}/> : <FiCopy size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
               </div>
               {/* QRスキャンボタン + 通知バッジ */}
@@ -757,8 +831,8 @@ export default function StorePage() {
                   style={{ width: 42, height: 42, borderRadius: 13, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(242,169,0,0.35)', flexShrink: 0, transition: 'transform .12s ease, opacity .12s ease' }}
                   onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.93)')}
                   onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-                  onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.93)')}
-                  onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
+                  onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.93)' }}
+                  onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)' }}
                   title="QRスキャンで入店"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -779,7 +853,57 @@ export default function StorePage() {
                 )}
               </div>
             </div>
+
+            {/* ── アカウントスイッチャー (スワイプ/ダブルタップで展開) ── */}
+            <div style={{ maxHeight: switcherOpen ? 80 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
+              <div style={{ borderTop: '1px solid var(--sep)', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px' }}>
+                {ownedStores.map(s => (
+                  <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: 14, padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F2A900' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
+                    {s.iconUrl
+                      ? <img src={s.iconUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}/>
+                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
+                    }
+                  </button>
+                ))}
+                <button onClick={() => router.push('/home/store/branch/new')} style={{ width: 46, height: 46, borderRadius: 14, border: '2px dashed rgba(60,60,67,0.25)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <FiPlus size={18} style={{ color: 'var(--label2)' }}/>
+                </button>
+                <span style={{ fontSize: 11, color: 'var(--label3)', marginLeft: 4 }}>系列店を切替 / 追加</span>
+              </div>
+            </div>
           </div>
+
+          {/* ── 長押しポップオーバー ── */}
+          {showStorePicker && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
+              <div style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, background: 'white', borderRadius: 20, padding: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', minWidth: 220 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {ownedStores.map(s => (
+                    <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left' }}>
+                      {s.iconUrl
+                        ? <img src={s.iconUrl} style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}/>
+                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
+                      }
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
+                        {s.id === storeId && <p style={{ fontSize: 11, color: '#F2A900', fontWeight: 600 }}>表示中</p>}
+                      </div>
+                      {s.id === storeId && <FiCheck size={14} style={{ color: '#F2A900', flexShrink: 0 }}/>}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ height: 1, background: 'var(--sep)', margin: '10px 0' }}/>
+                <button onClick={() => { setShowStorePicker(false); router.push('/home/store/branch/new') }} style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left', background: 'transparent' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <FiPlus size={16} style={{ color: 'var(--label2)' }}/>
+                  </div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>系列店を追加</p>
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── Tournaments ── */}

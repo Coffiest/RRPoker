@@ -16,6 +16,7 @@ import { db } from "@/lib/firebase"
 type PlayerManageModalProps = {
   tournamentId: string
   storeId: string | null
+  balanceGroupId?: string
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
@@ -38,7 +39,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chipUnitBefore, onClose }: PlayerManageModalProps) {
+export default function PlayerManageModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose }: PlayerManageModalProps) {
   const [players, setPlayers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -129,7 +130,7 @@ export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chi
       const realPlayers = players.filter(p => !p.isTemp)
       const snaps = await Promise.all(
         realPlayers.map(p =>
-          getDoc(doc(db, "users", p.id, "storeBalances", storeId!)).catch(() => null)
+          getDoc(doc(db, "users", p.id, "storeBalances", balanceGroupId ?? storeId!)).catch(() => null)
         )
       )
       const extras: Record<string, PlayerExtra> = {}
@@ -306,7 +307,7 @@ export default function PlayerManageModal({ tournamentId, storeId, chipUnit, chi
         const netGainDelta  = -totalFees + totalRefunds
 
         if (balanceDelta !== 0 || netGainDelta !== 0) {
-          const balRef = doc(db, "users", player.id, "storeBalances", storeId)
+          const balRef = doc(db, "users", player.id, "storeBalances", balanceGroupId ?? storeId!)
           const upd: any = { balance: increment(balanceDelta) }
           if (netGainDelta !== 0) upd.netGain = increment(netGainDelta)
           ops.push(b => b.update(balRef, upd))
