@@ -517,9 +517,14 @@ export default function TimerClient() {
               {!isRunning && isPresetSelected && (
                 <div
                   className="pause-badge absolute inset-0 z-10 flex items-center justify-center"
-                  style={{ background: "rgba(255,255,255,0.92)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+                  style={{ background: "rgba(255,255,255,0.76)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
                 >
-                  <span className="text-[86px] font-black tracking-[0.18em] text-[#F2A900]">PAUSE</span>
+                  <span
+                    className="text-[86px] font-black tracking-[0.18em] text-[#F2A900]"
+                    style={{ textShadow: "0 2px 24px rgba(242,169,0,0.22)" }}
+                  >
+                    PAUSE
+                  </span>
                 </div>
               )}
               {isPresetSelected ? (

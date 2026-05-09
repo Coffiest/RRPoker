@@ -17,23 +17,27 @@ export async function getNetGainRankingFromUsers(storeId: string): Promise<NetGa
   for (const userDoc of usersSnap.docs) {
     const userData = userDoc.data()
 
-    const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
-    const balanceSnap = await getDoc(balanceRef)
+    try {
+      const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
+      const balanceSnap = await getDoc(balanceRef)
 
-    if (!balanceSnap.exists()) continue
+      if (!balanceSnap.exists()) continue
 
-    const balanceData = balanceSnap.data()
-    const netGain = typeof balanceData?.netGain === "number" ? balanceData.netGain : 0
+      const balanceData = balanceSnap.data()
+      const netGain = typeof balanceData?.netGain === "number" ? balanceData.netGain : 0
 
-    if (netGain === 0) continue
+      if (netGain === 0) continue
 
-    players.push({
-      id: userDoc.id,
-      name: userData?.name,
-      iconUrl: userData?.iconUrl,
-      netGain,
-      rank: 0,
-    })
+      players.push({
+        id: userDoc.id,
+        name: userData?.name,
+        iconUrl: userData?.iconUrl,
+        netGain,
+        rank: 0,
+      })
+    } catch {
+      // skip users whose balance doc is inaccessible
+    }
   }
 
   players.sort((a, b) => b.netGain - a.netGain)

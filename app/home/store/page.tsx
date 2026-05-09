@@ -239,8 +239,11 @@ export default function StorePage() {
       const filtered = snap.docs.filter(d => !d.id.startsWith("temp_"))
       const results = await Promise.all(filtered.map(async d => {
         const data = d.data()
-        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
-        const bal = balSnap.exists() ? balSnap.data() : {}
+        let bal: Record<string, any> = {}
+        try {
+          const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
+          if (balSnap.exists()) bal = balSnap.data()
+        } catch {}
         return {
           id: d.id, name: data.name, iconUrl: data.iconUrl,
           balance: bal.balance ?? 0, netGain: bal.netGain ?? 0,
@@ -324,8 +327,11 @@ export default function StorePage() {
       for (const d of snap.docs) {
         const data = d.data()
         if (data.checkinStatus !== "pending") continue
-        const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
-        const b = balSnap.exists() ? balSnap.data() : {}
+        let b: Record<string, any> = {}
+        try {
+          const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
+          if (balSnap.exists()) b = balSnap.data()
+        } catch {}
         list.push({ id: d.id, name: data.name, iconUrl: data.iconUrl, visitCount: b.visitCount ?? 0, lastVisitedAt: b.lastVisitedAt?.toDate?.() ?? null })
       }
       setPendingPlayers(list.reverse())
@@ -509,34 +515,39 @@ export default function StorePage() {
     if (!storeId) return
     const storeSnap = await getDoc(doc(db, "stores", storeId)); const storeData = storeSnap.data()
     await setDoc(doc(db, "users", playerId), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
-    const balRef = doc(db, "users", playerId, "storeBalances", balGroupId!)
-    const balSnap = await getDoc(balRef); const now = new Date(); const ts = serverTimestamp()
-    let cb = 0, cn = 0, vc = 0, incr = true
-    if (balSnap.exists()) {
-      const b = balSnap.data(); cb = b.balance ?? 0; cn = b.netGain ?? 0; vc = b.visitCount ?? 0
-      const lv = b.lastVisitCountedAt?.toDate?.() ?? null
-      if (lv && getVisitCountResetBase(now) === getVisitCountResetBase(lv)) incr = false
-    }
-    await setDoc(balRef, { balance: cb, netGain: cn, storeId, lastVisitedAt: ts, ...(incr ? { visitCount: vc + 1, lastVisitCountedAt: ts } : {}) }, { merge: true })
-    if (!storeData?.checkinBonusEnabled) return
-    const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
-    const stampSnap = await getDoc(stampRef); let canStamp = true
-    if (stampSnap.exists()) {
-      const data = stampSnap.data()
-      if (data.lastStampAt?.toMillis) {
-        const getBase = (d: Date) => { const b = new Date(d); b.setHours(3,0,0,0); if (d.getHours() < 3) b.setDate(b.getDate()-1); return b.getTime() }
-        if (getBase(now) === getBase(new Date(data.lastStampAt.toMillis()))) canStamp = false
+    const now = new Date()
+    try {
+      const balRef = doc(db, "users", playerId, "storeBalances", balGroupId!)
+      const balSnap = await getDoc(balRef); const ts = serverTimestamp()
+      let cb = 0, cn = 0, vc = 0, incr = true
+      if (balSnap.exists()) {
+        const b = balSnap.data(); cb = b.balance ?? 0; cn = b.netGain ?? 0; vc = b.visitCount ?? 0
+        const lv = b.lastVisitCountedAt?.toDate?.() ?? null
+        if (lv && getVisitCountResetBase(now) === getVisitCountResetBase(lv)) incr = false
       }
-    }
-    if (!canStamp) return
-    let newCount = 1
-    if (stampSnap.exists()) newCount = (stampSnap.data().stampCount ?? 0) + 1
-    if (newCount >= 12) {
-      await setDoc(doc(collection(db, "users", playerId, "coupons")), { name: storeData.checkinBonusCouponName, storeId, createdAt: serverTimestamp() })
-      await setDoc(stampRef, { stampCount: 0, lastStampAt: serverTimestamp() })
-    } else {
-      await setDoc(stampRef, { stampCount: newCount, lastStampAt: serverTimestamp() })
-    }
+      await setDoc(balRef, { balance: cb, netGain: cn, storeId, lastVisitedAt: ts, ...(incr ? { visitCount: vc + 1, lastVisitCountedAt: ts } : {}) }, { merge: true })
+    } catch {}
+    if (!storeData?.checkinBonusEnabled) return
+    try {
+      const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
+      const stampSnap = await getDoc(stampRef); let canStamp = true
+      if (stampSnap.exists()) {
+        const data = stampSnap.data()
+        if (data.lastStampAt?.toMillis) {
+          const getBase = (d: Date) => { const b = new Date(d); b.setHours(3,0,0,0); if (d.getHours() < 3) b.setDate(b.getDate()-1); return b.getTime() }
+          if (getBase(now) === getBase(new Date(data.lastStampAt.toMillis()))) canStamp = false
+        }
+      }
+      if (!canStamp) return
+      let newCount = 1
+      if (stampSnap.exists()) newCount = (stampSnap.data().stampCount ?? 0) + 1
+      if (newCount >= 12) {
+        await setDoc(doc(collection(db, "users", playerId, "coupons")), { name: storeData.checkinBonusCouponName, storeId, createdAt: serverTimestamp() })
+        await setDoc(stampRef, { stampCount: 0, lastStampAt: serverTimestamp() })
+      } else {
+        await setDoc(stampRef, { stampCount: newCount, lastStampAt: serverTimestamp() })
+      }
+    } catch {}
   }
 
   const rejectPlayer = async (playerId: string) => {
@@ -550,8 +561,8 @@ export default function StorePage() {
       const playerSnap = await getDoc(doc(db, "users", playerUid))
       if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
       const playerName = playerSnap.data()?.name ?? ""
-      await approvePlayer(playerUid)
       await setDoc(doc(db, "users", playerUid), { joinedStores: arrayUnion(storeId) }, { merge: true })
+      await approvePlayer(playerUid)
       setQrCheckinResult({ success: true, name: playerName })
       setTimeout(() => setQrCheckinResult(null), 3000)
     } catch {

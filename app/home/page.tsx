@@ -26,6 +26,7 @@ type StoreInfo = {
   ringBlindSb?: number
   ringBlindBb?: number
   chipExpiryMonths?: number
+  balanceGroupId?: string
 }
 type UserProfile = { name?: string; iconUrl?: string }
 type StorePlayer = { id: string; name?: string; iconUrl?: string }
@@ -317,7 +318,7 @@ export default function HomePage() {
         const snap = await getDoc(doc(db, "stores", storeId))
         if (!snap.exists()) return
         const data = snap.data() as StoreInfo
-        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined }
+        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined, balanceGroupId: typeof data.balanceGroupId === "string" ? data.balanceGroupId : undefined }
       }))
       setStores(next)
     }
@@ -326,7 +327,8 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!userId || !currentStoreId) { setBalance(0); setNetGain(0); return }
-    const balanceDocRef = doc(db, "users", userId, "storeBalances", currentStoreId)
+    const effectiveId = stores[currentStoreId]?.balanceGroupId ?? currentStoreId
+    const balanceDocRef = doc(db, "users", userId, "storeBalances", effectiveId)
     const unsub = onSnapshot(balanceDocRef, snap => {
       if (!snap.exists()) { setBalance(0); setNetGain(0); return }
       const data = snap.data()
@@ -334,7 +336,8 @@ export default function HomePage() {
       setNetGain(typeof data?.netGain === "number" ? data.netGain : 0)
     })
     return () => unsub()
-  }, [userId, currentStoreId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, currentStoreId, stores[currentStoreId ?? ""]?.balanceGroupId])
 
   useEffect(() => {
     const fetchHistoryData = async () => {
@@ -355,14 +358,16 @@ export default function HomePage() {
       if (!currentStoreId) { setRanking([]); setUserRank(null); setRankingLoading(false); return }
       setRankingLoading(true)
       try {
-        const rankingData = await getNetGainRankingFromUsers(currentStoreId)
+        const effectiveId = stores[currentStoreId]?.balanceGroupId ?? currentStoreId
+        const rankingData = await getNetGainRankingFromUsers(effectiveId)
         setRanking(rankingData)
         if (userId) { const uRank = getMyNetGainRank(userId, rankingData); setUserRank(uRank) }
       } catch (error) { console.error("Failed to fetch ranking:", error); setRanking([]); setUserRank(null) }
       finally { setRankingLoading(false) }
     }
     fetchRankingData()
-  }, [userId, currentStoreId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, currentStoreId, stores[currentStoreId ?? ""]?.balanceGroupId])
 
   useEffect(() => {
     const fetchMonthlyRanking = async () => {
@@ -530,6 +535,17 @@ export default function HomePage() {
 
   // ── ロジック関数（完全保持）──────────────────────────────────────
   const currentStore = currentStoreId ? stores[currentStoreId] : null
+
+  const relatedStoreIds = useMemo(() => {
+    if (!currentStoreId) return new Set<string>()
+    const bgId = stores[currentStoreId]?.balanceGroupId ?? currentStoreId
+    const ids = new Set<string>([bgId])
+    Object.entries(stores).forEach(([id, info]) => {
+      if ((info.balanceGroupId ?? id) === bgId) ids.add(id)
+    })
+    return ids
+  }, [currentStoreId, stores])
+
   const unitLabel = useMemo(() => {
     if (!currentStore?.chipUnitLabel || currentStore.chipUnitLabel === "単位なし") return ""
     return currentStore.chipUnitLabel
@@ -544,8 +560,10 @@ export default function HomePage() {
 
   const sortedTransactionItems = useMemo(() => {
     const getSeconds = (t: any) => { if (!t) return 0; if (typeof t.seconds === "number") return t.seconds; if (typeof t.toDate === "function") return t.toDate().getTime() / 1000; return 0 }
-    return [...transactionItems].sort((a, b) => getSeconds(b.createdAt) - getSeconds(a.createdAt))
-  }, [transactionItems])
+    return allNetGainTx
+      .filter(tx => relatedStoreIds.has(tx.storeId))
+      .sort((a, b) => getSeconds(b.createdAt) - getSeconds(a.createdAt))
+  }, [allNetGainTx, relatedStoreIds])
 
   const sortedTournamentItems = useMemo(() => {
     const getSeconds = (t: any) => { if (!t) return 0; if (typeof t.seconds === "number") return t.seconds; if (typeof t.toDate === "function") return t.toDate().getTime() / 1000; return 0 }
@@ -642,6 +660,7 @@ const formatDateTime = (t?: any) => {
     const storeSnap = await getDoc(doc(db, "stores", storeId))
     const storeData = storeSnap.data()
     const isApprovalRequired = storeData?.isApprovalRequired ?? true
+    const balGroupId = storeData?.balanceGroupId ?? storeId
     const userRef = doc(db, "users", userId)
     if (checkinStatus === "approved" && currentStoreId === storeId) return
     if (isApprovalRequired) {
@@ -649,7 +668,7 @@ const formatDateTime = (t?: any) => {
       setIsPendingModalOpen(true); return
     }
     await updateDoc(userRef, { checkinStatus: "approved", currentStoreId: storeId, pendingStoreId: null, joinedStores: arrayUnion(storeId) })
-    const balRef = doc(db, "users", userId, "storeBalances", storeId)
+    const balRef = doc(db, "users", userId, "storeBalances", balGroupId)
     const balSnap = await getDoc(balRef)
     const now = new Date(); const nowFirestoreTimestamp = serverTimestamp()
     let currentBalance = 0, currentNetGain = 0, currentVisitCount = 0, shouldIncrementVisitCount = true
@@ -717,7 +736,7 @@ const medalClass = (rank: number) => {
     const nowSec = Date.now() / 1000
 
     const withDelta = allNetGainTx
-  .filter(tx => tx.storeId === currentStoreId)
+  .filter(tx => relatedStoreIds.has(tx.storeId))
   .map(tx => ({ tx, delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
   .filter(x => x.delta !== null)
 
@@ -731,7 +750,7 @@ const medalClass = (rank: number) => {
     const points: number[] = [0]
     filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
     return points
-  }, [allNetGainTx, currentStoreId, chipGraphTab])
+  }, [allNetGainTx, relatedStoreIds, chipGraphTab])
 
 
 
@@ -740,7 +759,7 @@ const medalClass = (rank: number) => {
     const tournamentTypes = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
     const nowSec = Date.now() / 1000
     const withDelta = allNetGainTx
-      .filter(tx => tx.storeId === currentStoreId && tournamentTypes.has(tx.type))
+      .filter(tx => relatedStoreIds.has(tx.storeId) && tournamentTypes.has(tx.type))
       .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
       .filter(x => x.delta !== null)
     const filtered = (() => {
@@ -752,7 +771,7 @@ const medalClass = (rank: number) => {
     const points: number[] = [0]
     filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
     return points
-  }, [allNetGainTx, currentStoreId, chipGraphTab])
+  }, [allNetGainTx, relatedStoreIds, chipGraphTab])
 
   // ── RR Rating 表示値（45未満は44.0〜45.0で固定マスク）
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1369,9 +1388,41 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* チップ増減グラフ（スワイプで全体⇔トナメ切替） */}
-            {tournamentHistoryItems.length >= 2 && (() => {
+            {chipGraphData.length >= 2 && (() => {
               const pts = graphMode === 'all' ? chipGraphData : tournamentGraphData
-              if (pts.length < 2) return null
+              const noData = pts.length < 2
+              const swipeHandlers = {
+                onTouchStart: (e: React.TouchEvent) => { graphTouchStartX.current = e.touches[0].clientX },
+                onTouchEnd: (e: React.TouchEvent) => {
+                  if (graphTouchStartX.current === null) return
+                  const dx = e.changedTouches[0].clientX - graphTouchStartX.current
+                  if (Math.abs(dx) > 48) setGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
+                  graphTouchStartX.current = null
+                }
+              }
+              const pageIndicators = (
+                <div className="flex justify-center gap-1.5 mt-2">
+                  <div onClick={() => setGraphMode('all')}
+                    className={`rounded-full transition-all cursor-pointer ${graphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                  <div onClick={() => setGraphMode('tournament')}
+                    className={`rounded-full transition-all cursor-pointer ${graphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                </div>
+              )
+              if (noData) {
+                return (
+                  <div className="section-card animate-slideUp" {...swipeHandlers}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
+                      <p className="text-[13px] font-semibold text-gray-900">
+                        {graphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
+                      </p>
+                    </div>
+                    <p className="text-center text-[12px] text-gray-400 py-6">データが不足しています</p>
+                    {pageIndicators}
+                    <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
+                  </div>
+                )
+              }
               const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
               const minV = Math.min(...pts), maxV = Math.max(...pts)
               const range = maxV - minV || 1
@@ -1382,15 +1433,7 @@ const medalClass = (rank: number) => {
               const lastVal = pts[pts.length - 1]
               const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
               return (
-                <div className="section-card animate-slideUp"
-                  onTouchStart={e => { graphTouchStartX.current = e.touches[0].clientX }}
-                  onTouchEnd={e => {
-                    if (graphTouchStartX.current === null) return
-                    const dx = e.changedTouches[0].clientX - graphTouchStartX.current
-                    if (Math.abs(dx) > 48) setGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
-                    graphTouchStartX.current = null
-                  }}
-                >
+                <div className="section-card animate-slideUp" {...swipeHandlers}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
@@ -1425,13 +1468,7 @@ const medalClass = (rank: number) => {
                       {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
                     </p>
                   </div>
-                  {/* ページインジケーター */}
-                  <div className="flex justify-center gap-1.5 mt-2">
-                    <div onClick={() => setGraphMode('all')}
-                      className={`rounded-full transition-all cursor-pointer ${graphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                    <div onClick={() => setGraphMode('tournament')}
-                      className={`rounded-full transition-all cursor-pointer ${graphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                  </div>
+                  {pageIndicators}
                   <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
                 </div>
               )

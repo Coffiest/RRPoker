@@ -33,6 +33,20 @@ service cloud.firestore {
         );
     }
 
+    // 直接オーナー (isStoreOwner(balGroupId)) または
+    // 自分の店舗の balanceGroupId が balGroupId と一致する系列店オーナー
+    function isOwnerOfBalGroup(balGroupId) {
+      return isStoreOwner(balGroupId)
+        || (
+          isSignedIn()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId is string
+          && exists(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId))
+          && get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.ownerUid == request.auth.uid
+          && get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.balanceGroupId == balGroupId
+        );
+    }
+
     match /checkins/{userId} {
       allow read, write: if isOwner(userId);
     }
@@ -44,8 +58,8 @@ service cloud.firestore {
       allow write: if isOwner(userId) || isSignedIn();
 
       match /storeBalances/{storeId} {
-        allow read: if isOwner(userId) || isStoreMember(storeId);
-        allow write: if isOwner(userId) || isStoreOwner(storeId);
+        allow read: if isOwner(userId) || isStoreMember(storeId) || isOwnerOfBalGroup(storeId);
+        allow write: if isOwner(userId) || isOwnerOfBalGroup(storeId);
       }
 
       match /tournamentHistory/{tournamentId} {
@@ -59,6 +73,10 @@ service cloud.firestore {
 
       match /storeStamp/{storeId} {
         allow read, write: if isOwner(userId) || isStoreOwner(storeId);
+      }
+
+      match /handFavorites/{handId} {
+        allow read, write: if isOwner(userId);
       }
 
       match /readNotices/{noticeId} {
