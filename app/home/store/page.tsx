@@ -7,6 +7,7 @@ const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: fal
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
+import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
@@ -1301,23 +1302,7 @@ export default function StorePage() {
       </div>
 
       {/* ── Bottom Nav（変更なし） ── */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-nav border-t" style={{ borderTopColor: 'rgba(60,60,67,0.1)' }}>
-        <div style={{ position: 'relative', maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 32px 12px' }}>
-          <button type="button" onClick={() => router.push("/home/store")}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900' }}
-          >
-            <FiHome size={22}/><span style={{ marginTop: 3, fontSize: 11, fontWeight: 700 }}>ホーム</span>
-          </button>
-          <button type="button" onClick={() => router.push("/home/store/tournaments")}
-            style={{ position: 'absolute', left: '50%', top: 0, transform: 'translate(-50%,-50%)', width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer', boxShadow: '0 6px 20px rgba(242,169,0,0.35)' }}
-          ><FiPlus size={26} style={{ color: 'white' }}/></button>
-          <button type="button" onClick={() => router.push("/home/store/mypage")}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label3)' }}
-          >
-            <FiUser size={22}/><span style={{ marginTop: 3, fontSize: 11, fontWeight: 500 }}>マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <StoreBottomNav />
 
       {/* ── Adjust Modal ── */}
       {adjustModalPlayer && (

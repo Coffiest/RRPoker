@@ -6,6 +6,7 @@ import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs,
 import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2 } from "react-icons/fi"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
+import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
@@ -265,8 +266,10 @@ export default function HomePage() {
       setPendingStoreId(data?.pendingStoreId ?? null)
 
       // Checkin complete + stamp modal — must run before status dispatch resets flags
-      // Also triggers on QR check-in (none → approved), but not on initial page load
-      if (!isFirstSnapshot && (prevStatus === "pending" || prevStatus === "none") && status === "approved" && !hasShownCheckinComplete) {
+      // Also triggers on fresh redirect from QR scan (rrpoker.freshCheckin flag set by HomeHeader)
+      const isFreshCheckin = isFirstSnapshot && status === "approved" && sessionStorage.getItem('rrpoker.freshCheckin') === '1'
+      if (isFreshCheckin) sessionStorage.removeItem('rrpoker.freshCheckin')
+      if ((!isFirstSnapshot && (prevStatus === "pending" || prevStatus === "none") && status === "approved" && !hasShownCheckinComplete) || (isFreshCheckin && !hasShownCheckinComplete)) {
         setIsCheckinCompleteModalOpen(true)
         setHasShownCheckinComplete(true)
         localStorage.setItem("hasShownCheckinComplete", "true")
@@ -1209,66 +1212,135 @@ const medalClass = (rank: number) => {
 
       <div className="mx-auto max-w-sm px-4 space-y-5">
 
-        {/* ════ 入店中 ════ */}
-        {currentStoreId && currentStore ? (
-          <>
-            {/* プロフィール + 店舗バナー */}
-            <div className="mt-6 section-card animate-slideUp" style={{ padding: 0, overflow: 'hidden' }}>
-              {/* ゴールドアクセントライン */}
-              <div style={{ height: 4, background: 'linear-gradient(90deg,#F2A900,#D4910A,#F2A900)', backgroundSize: '200% auto', animation: 'shimmer 3s linear infinite' }} />
-              <div style={{ padding: '20px' }}>
-                <div className="flex items-center justify-between">
-                  {/* 左：ユーザー */}
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-[#F2A900] bg-white shadow-md pulse-dot">
-                        {profile.iconUrl ? <img src={profile.iconUrl} alt={profile.name ?? "icon"} className="h-full w-full object-cover" /> : <FiUser className="text-[20px] text-gray-400" />}
-                      </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-green-500 border-2 border-white" />
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">{profile.name || ""}</p>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-50 border border-green-200 px-2 py-0.5 mt-0.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                        <span className="text-[10px] font-semibold text-green-600">入店中</span>
-                      </span>
-                    </div>
+        {/* ════ 統合カード（常時表示） ════ */}
+        <div className={`mt-6 section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '18px 22px 22px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+
+            {/* アイデンティティ行 + ? */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
+                    {profile.iconUrl
+                      ? <img src={profile.iconUrl} alt={profile.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={14} style={{ color: 'rgba(255,255,255,0.85)' }} /></div>
+                    }
                   </div>
-                  {/* QR + 矢印 */}
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => setIsQRModalOpen(true)}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F2A900]/30 bg-[#F2A900]/10 transition-all active:scale-90"
-                      title="QRコードを表示"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
-                        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
-                        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#D4910A" strokeWidth="2"/>
-                        <rect x="14" y="14" width="3" height="3" rx="0.5" fill="#D4910A"/>
-                        <rect x="18" y="14" width="3" height="3" rx="0.5" fill="#D4910A"/>
-                        <rect x="14" y="18" width="3" height="3" rx="0.5" fill="#D4910A"/>
-                        <rect x="18" y="18" width="3" height="3" rx="0.5" fill="#D4910A"/>
-                      </svg>
-                    </button>
-                    <div className="h-8 w-8 rounded-full bg-[#F2A900]/10 flex items-center justify-center">
-                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2l6 6-6 6" stroke="#F2A900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </div>
-                    {/* 右：店舗 */}
-                    <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 border-gray-200 bg-white shadow-sm">
-                      {currentStore.iconUrl ? <img src={currentStore.iconUrl} alt={currentStore.name} className="h-full w-full object-cover" /> : <span className="text-[10px] text-gray-400">店舗</span>}
-                    </div>
-                  </div>
+                  {currentStoreId && (
+                    <div className="pulse-dot" style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%', background: '#34C759', border: '1.5px solid #C97D00' }} />
+                  )}
                 </div>
-                {/* 店舗バッジ */}
-                <div className="store-badge mt-4 rounded-2xl p-3 text-center">
-                  <p className="text-[13px] font-semibold text-gray-700">{currentStore.name || ""}</p>
-                  {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                    <p className="text-[11px] text-gray-400 mt-0.5">レート: {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
+                <div>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.1px' }}>{profile.name || ''}</p>
+                  {currentStoreId && currentStore ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34C759', flexShrink: 0 }} />
+                      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{currentStore.name} に入店中</p>
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.50)', marginTop: 1 }}>現在どこにも入店していません</p>
                   )}
                 </div>
               </div>
+              <button
+                ref={rrRatingBtnRef}
+                type="button"
+                onClick={() => {
+                  if (rrRatingInfoOpen) {
+                    setRrRatingInfoOpen(false)
+                    setRrRatingInfoPos(null)
+                  } else {
+                    const rect = rrRatingBtnRef.current?.getBoundingClientRect()
+                    if (rect) setRrRatingInfoPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
+                    setRrRatingInfoOpen(true)
+                  }
+                }}
+                style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              >
+                <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
+              </button>
             </div>
 
+            {/* ラベル */}
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+
+            {/* メイン数値 */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
+              {tournamentStats.plays === 0 ? (
+                <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+              ) : (
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                  <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                    {(animRrRating ?? displayRrRating).toFixed(2)}
+                  </p>
+                  {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
+                    <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                      {statsDelta.rrRating >= 0 ? '+' : ''}{statsDelta.rrRating.toFixed(2)}
+                    </span>
+                  )}
+                  {rrMyEntry && (
+                    <div style={{ marginBottom: 6, background: 'rgba(0,0,0,0.18)', borderRadius: 99, padding: '4px 10px' }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>全国{rrMyEntry.rank}位</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* スタッツグリッド */}
+          <div style={{ padding: '16px 18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+              {[
+                { label: '参加', value: `${tournamentStats.plays}回`, deltaVal: null },
+                { label: 'コスト合計', value: `${tournamentStats.totalCost}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalCost : null, deltaFmt: (v: number) => Number.isInteger(v) ? `${v >= 0 ? '+' : ''}${v}` : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
+                { label: 'リターン', value: `${tournamentStats.totalReward.toFixed(2)}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalReward : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}` },
+              ].map((s, i) => (
+                <div key={i} style={{ background: '#F2F2F7', borderRadius: 12, padding: '9px 4px', textAlign: 'center', position: 'relative' }}>
+                  <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(60,60,67,0.45)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1 }}>{s.value}</p>
+                  {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
+                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                      {s.deltaFmt(s.deltaVal)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+              {[
+                { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+                { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+              ].map((s, i) => (
+                <div key={i} style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative' }}>
+                  <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(212,145,10,0.6)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
+                  {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
+                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                      {s.deltaFmt(s.deltaVal)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button type="button"
+              onClick={() => {
+                if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
+                setIsRankingModalOpen(true)
+              }}
+              style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
+            >
+              <FiAward size={14} />
+              ランキングを見る
+            </button>
+          </div>
+        </div>
+
+        {/* ════ 入店中 ════ */}
+        {currentStoreId && currentStore ? (
+          <>
             {/* 退店ボタン */}
             <button type="button" onClick={handleLeaveStore}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
@@ -1571,20 +1643,6 @@ const medalClass = (rank: number) => {
         ) : (
           /* ════ 未入店 ════ */
           <>
-            {/* プロフィールカード */}
-            <div className="mt-6 section-card animate-slideUp text-center" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ height: 4, background: 'linear-gradient(90deg,#F2A900,#D4910A,#F2A900)', backgroundSize: '200% auto', animation: 'shimmer 3s linear infinite' }} />
-              <div style={{ padding: '24px 20px' }}>
-                <div className="relative mx-auto w-fit">
-                  <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-[3px] border-[#F2A900] bg-white mx-auto shadow-lg">
-                    {profile.iconUrl ? <img src={profile.iconUrl} alt={profile.name ?? "icon"} className="h-full w-full object-cover" /> : <FiUser className="text-[28px] text-gray-400" />}
-                  </div>
-                </div>
-                <p className="mt-3 text-[20px] font-bold text-gray-900">{profile.name || ""}</p>
-                <p className="mt-1 text-[12px] text-gray-400">現在、どこにも入店していません</p>
-              </div>
-            </div>
-
             {/* 店舗セレクター */}
             <div className="section-card">
               <div className="flex items-center justify-between mb-3">
@@ -1740,118 +1798,6 @@ const medalClass = (rank: number) => {
                 </div>
               </div>
             )}
-
-            {/* RR Rating + Tournament Stats 統合セクション */}
-            <div className={`section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
-
-              {/* ── ヒーローカード（グラデーション） ── */}
-              <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '22px 22px 18px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
-
-                {/* 上段：ラベル + ? ボタン（fixed tooltip） */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, position: 'relative', zIndex: 1 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>トナメ偏差値</p>
-                  <button
-                    ref={rrRatingBtnRef}
-                    type="button"
-                    onClick={() => {
-                      if (rrRatingInfoOpen) {
-                        setRrRatingInfoOpen(false)
-                        setRrRatingInfoPos(null)
-                      } else {
-                        const rect = rrRatingBtnRef.current?.getBoundingClientRect()
-                        if (rect) setRrRatingInfoPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
-                        setRrRatingInfoOpen(true)
-                      }
-                    }}
-                    style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
-                  </button>
-                </div>
-
-                {/* 大きい数値 + 順位 + RR delta badge */}
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
-                  {tournamentStats.plays === 0 ? (
-                    <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
-                  ) : (
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-                      <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
-                        {(animRrRating ?? displayRrRating).toFixed(2)}
-                      </p>
-                      {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
-                        <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', display: 'inline-block' }}>
-                          {statsDelta.rrRating >= 0 ? '+' : ''}{statsDelta.rrRating.toFixed(2)}
-                        </span>
-                      )}
-                      {rrMyEntry && (
-                        <div style={{ marginBottom: 6, background: 'rgba(0,0,0,0.18)', borderRadius: 99, padding: '4px 10px' }}>
-                          <p style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>全国{rrMyEntry.rank}位</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ROI サブ */}
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 6, position: 'relative', zIndex: 1 }}>
-                  {rrMyEntry ? `ROI ${rrMyEntry.roi.toFixed(2)}%` : 'まだデータがありません'}
-                </p>
-              </div>
-
-              {/* ── スタッツグリッド ── */}
-              <div style={{ padding: '16px 18px' }}>
-                {/* 上段：参加 / コスト合計 / リターン */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
-                  {[
-                    { label: '参加', value: `${tournamentStats.plays}回`, deltaVal: null },
-                    { label: 'コスト合計', value: `${tournamentStats.totalCost}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalCost : null, deltaFmt: (v: number) => Number.isInteger(v) ? `${v >= 0 ? '+' : ''}${v}` : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
-                    { label: 'リターン', value: `${tournamentStats.totalReward.toFixed(2)}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalReward : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}` },
-                  ].map((s, i) => (
-                    <div key={i} style={{ background: '#F2F2F7', borderRadius: 12, padding: '9px 4px', textAlign: 'center', position: 'relative' }}>
-                      <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(60,60,67,0.45)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1 }}>{s.value}</p>
-                      {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                        <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
-                          {s.deltaFmt(s.deltaVal)}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* 下段：ITM率 / ROI（ゴールド強調 + delta badge） */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-                  {[
-                    { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
-                    { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
-                  ].map((s, i) => (
-                    <div key={i} style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative' }}>
-                      <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(212,145,10,0.6)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
-                      <p style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
-                      {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                        <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
-                          {s.deltaFmt(s.deltaVal)}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* ランキングボタン */}
-                <button type="button"
-                  onClick={() => {
-                    if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
-                    setIsRankingModalOpen(true)
-                  }}
-                  style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
-                >
-                  <FiAward size={14} />
-                  ランキングを見る
-                </button>
-              </div>
-            </div>
 
             {/* トーナメント履歴 */}
             <div className="section-card animate-slideUp">
@@ -2534,21 +2480,7 @@ const medalClass = (rank: number) => {
       <HandHistoryModal userId={userId} creatorName={profile.name ?? "Unknown"} />
 
       {/* フッター（変更なし） */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] glass-card border-t border-gray-200/60 shadow-lg">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
-          <button type="button" onClick={() => router.push("/home")} className="flex flex-col items-center text-[#F2A900] transition-all">
-            <FiHome size={22} /><span className="mt-1 text-[11px] font-medium">ホーム</span>
-          </button>
-          <button type="button" onClick={() => router.push("/home/transactions")}
-            className="absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl hover:shadow-2xl transition-all active:scale-95"
-          >
-            {currentStoreId ? <FiCreditCard size={28} /> : <BsQrCodeScan size={26} />}
-          </button>
-          <button type="button" onClick={() => router.push("/home/mypage")} className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all">
-            <FiUser size={22} /><span className="mt-1 text-[11px]">マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <PlayerBottomNav />
     </main>
   )
 }

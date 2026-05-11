@@ -1,22 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import { FiBell, FiTrash2, FiCreditCard } from 'react-icons/fi'
+import { FiBell, FiCreditCard } from 'react-icons/fi'
+import { MdQrCode2 } from 'react-icons/md'
 import { auth, db } from '@/lib/firebase'
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore'
+import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore'
+import PlayerQRModal from '@/app/components/PlayerQRModal'
 
 import type { MenuItem } from './commonMenuItems'
 import { getCommonMenuItems } from './commonMenuItems'
 
 
-
-type NotificationItem = {
-	id: string
-	storeId: string
-	storeName: string
-	expiresAt: Date
-}
 
 type UserNotificationItem = {
 	id: string
@@ -45,7 +41,6 @@ type HomeHeaderProps = {
 	menuItems?: MenuItem[]
 }
 
-const DISMISSED_NOTICE_KEY = 'rrpoker.dismissedNotices'
 
 export default function HomeHeader({
 	homePath,
@@ -62,9 +57,7 @@ export default function HomeHeader({
 	const toastTimeoutRef = useRef<number | null>(null)
 	const [isNoticeOpen, setIsNoticeOpen] = useState(false)
 
-	const [notifications, setNotifications] = useState<NotificationItem[]>([])
 	const [userNotifications, setUserNotifications] = useState<UserNotificationItem[]>([])
-	const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
 	const [storeNotices, setStoreNotices] = useState<StoreNoticeItem[]>([])
 
 	const [authUserId, setAuthUserId] = useState<string | null>(null)
@@ -73,6 +66,12 @@ export default function HomeHeader({
 		id: string; storeId: string; storeName: string; message: string; createdAt?: { seconds?: number }
 	}>>([])
 	const [noticeReadIds, setNoticeReadIds] = useState<Set<string>>(new Set())
+
+	// QR / checkin
+	const [isQROpen, setIsQROpen] = useState(false)
+	const [userName, setUserName] = useState('')
+	const [userIconUrl, setUserIconUrl] = useState<string | undefined>(undefined)
+	const prevCheckinStatusRef = useRef<string | undefined>(undefined)
 
 	const isUserVariant = variant === 'user'
 
@@ -87,10 +86,32 @@ export default function HomeHeader({
 				const userSnap = await getDoc(doc(db, 'users', user.uid))
 				const data = userSnap.data()
 				setNoticeFavoriteStores(Array.isArray(data?.favoriteStores) ? data.favoriteStores : [])
+				setUserName(data?.name ?? '')
+				setUserIconUrl(data?.iconUrl)
 			} catch {}
 		})
 		return () => unsub()
 	}, [isUserVariant])
+
+	// ---- 入店ステータス監視（user のみ）----
+	useEffect(() => {
+		if (!authUserId || !isUserVariant) return
+		prevCheckinStatusRef.current = undefined
+		const unsub = onSnapshot(doc(db, 'users', authUserId), snap => {
+			const status = snap.data()?.checkinStatus as string | undefined
+			if (prevCheckinStatusRef.current === undefined) {
+				prevCheckinStatusRef.current = status
+				return
+			}
+			if (prevCheckinStatusRef.current !== 'approved' && status === 'approved') {
+				setIsQROpen(false)
+				sessionStorage.setItem('rrpoker.freshCheckin', '1')
+				router.push('/home')
+			}
+			prevCheckinStatusRef.current = status
+		}, () => {})
+		return () => unsub()
+	}, [authUserId, isUserVariant, router])
 
 	// ---- お気に入り店舗のお知らせ読み込み ----
 	useEffect(() => {
@@ -221,19 +242,11 @@ export default function HomeHeader({
 		}
 	}, [isMenuOpen])
 
-	const dismissNotification = (id: string) => {
-		const next = new Set(dismissedIds)
-		next.add(id)
-		setDismissedIds(next)
-		setNotifications(prev => prev.filter(item => item.id !== id))
-		window.localStorage.setItem(DISMISSED_NOTICE_KEY, JSON.stringify(Array.from(next)))
-	}
-
 	const effectiveMenuItems =
 		menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)
 
 	return (
-		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur">
+		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
 		<style>{`html { overflow-x: hidden; }`}</style>
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
@@ -260,6 +273,7 @@ export default function HomeHeader({
 						<button
 							type="button"
 							onClick={() => setIsNoticeOpen(prev => !prev)}
+							data-tutorial="header-bell"
 							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
 							<FiBell className="text-[18px]" />
@@ -271,63 +285,79 @@ export default function HomeHeader({
 						</button>
 					)}
 
-					<button
-						type="button"
-						onClick={() => setIsMenuOpen(prev => !prev)}
-						className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700"
-					>
-						<span className="flex flex-col gap-1">
-							<span className="h-[2px] w-5 rounded bg-gray-700" />
-							<span className="h-[2px] w-5 rounded bg-gray-700" />
-							<span className="h-[2px] w-5 rounded bg-gray-700" />
-						</span>
-					</button>
+					{isUserVariant ? (
+						/* QRコードボタン（user のみ） */
+						<button
+							type="button"
+							onClick={() => setIsQROpen(true)}
+							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+						>
+							<MdQrCode2 className="text-[22px]" />
+						</button>
+					) : (
+						/* ハンバーガーメニュー（store のみ） */
+						<button
+							type="button"
+							onClick={() => setIsMenuOpen(prev => !prev)}
+							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700"
+						>
+							<span className="flex flex-col gap-1">
+								<span className="h-[2px] w-5 rounded bg-gray-700" />
+								<span className="h-[2px] w-5 rounded bg-gray-700" />
+								<span className="h-[2px] w-5 rounded bg-gray-700" />
+							</span>
+						</button>
+					)}
 				</div>
 			</div>
 
-			{/* オーバーレイ */}
-			<div
-				className={`fixed inset-0 z-[999] bg-white transition-opacity ${
-					isMenuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-				}`}
-				onClick={() => setIsMenuOpen(false)}
-			/>
+			{/* オーバーレイ（store variant のみ） */}
+			{!isUserVariant && (
+				<div
+					className={`fixed inset-0 z-[999] bg-white transition-opacity ${
+						isMenuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+					}`}
+					onClick={() => setIsMenuOpen(false)}
+				/>
+			)}
 
-			{/* 右スライドメニュー */}
-			<aside
-				className={`fixed right-0 top-0 z-[1000] h-screen w-[80%] max-w-sm border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ${
-					isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-				}`}
-			>
-				<div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-					<p className="text-[14px] font-semibold text-gray-900">メニュー</p>
-					<button onClick={() => setIsMenuOpen(false)} className="text-[13px] text-gray-500">
-						閉じる
-					</button>
-				</div>
+			{/* 右スライドメニュー（store variant のみ） */}
+			{!isUserVariant && (
+				<aside
+					className={`fixed right-0 top-0 z-[1000] h-screen w-[80%] max-w-sm border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ${
+						isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+					}`}
+				>
+					<div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+						<p className="text-[14px] font-semibold text-gray-900">メニュー</p>
+						<button onClick={() => setIsMenuOpen(false)} className="text-[13px] text-gray-500">
+							閉じる
+						</button>
+					</div>
 
-				<div className="px-5 py-4 space-y-3">
-					{effectiveMenuItems.map(item => (
+					<div className="px-5 py-4 space-y-3">
+						{effectiveMenuItems.map(item => (
+							<button
+								key={item.label}
+								onClick={() => {
+									setIsMenuOpen(false)
+									item.onClick()
+								}}
+								className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
+							>
+								{item.label}
+							</button>
+						))}
+
 						<button
-							key={item.label}
-							onClick={() => {
-								setIsMenuOpen(false)
-								item.onClick()
-							}}
+							onClick={() => goTo(myPagePath)}
 							className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
 						>
-							{item.label}
+							マイページ
 						</button>
-					))}
-
-					<button
-						onClick={() => goTo(myPagePath)}
-						className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
-					>
-						マイページ
-					</button>
-				</div>
-			</aside>
+					</div>
+				</aside>
+			)}
 
 			{toastMessage && (
 				<div className="fixed left-1/2 top-[70px] z-50 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-[12px] text-white shadow-lg">
@@ -406,6 +436,18 @@ export default function HomeHeader({
 					</div>
 				</>
 			)}
+
+			{/* QR モーダル・入店トーストは header の stacking context 外へ */}
+			{isQROpen && authUserId && createPortal(
+				<PlayerQRModal
+					uid={authUserId}
+					name={userName}
+					iconUrl={userIconUrl}
+					onClose={() => setIsQROpen(false)}
+				/>,
+				document.body
+			)}
+
 		</header>
 	)
 }

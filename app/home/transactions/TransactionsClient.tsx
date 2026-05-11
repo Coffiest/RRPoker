@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
+import PlayerBottomNav from "@/components/PlayerBottomNav"
 import {
   collection,
   doc,
@@ -11,7 +12,7 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore"
-import { FiArrowLeft, FiArrowDownCircle, FiArrowUpCircle, FiHome, FiCreditCard, FiUser, FiAlertCircle, FiCheckCircle } from "react-icons/fi"
+import { FiArrowLeft, FiArrowDownCircle, FiArrowUpCircle, FiAlertCircle, FiCheckCircle } from "react-icons/fi"
 import { BsQrCodeScan } from "react-icons/bs"
 import { QRCodeSVG } from "qrcode.react"
 
@@ -209,28 +210,6 @@ export default function TransactionsClient() {
     router.replace("/home")
   }
 
-  const BottomNav = () => (
-    <nav className="glass-nav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80, borderTop: '0.5px solid rgba(0,0,0,0.12)' }}>
-      <div style={{ maxWidth: 390, margin: '0 auto', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 40px 18px' }}>
-        <button type="button" onClick={() => router.push("/home")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer' }}>
-          <FiHome size={22} />
-          <span style={{ fontSize: 11 }}>ホーム</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push("/home/transactions")}
-          style={{ position: 'absolute', left: '50%', top: 0, transform: 'translate(-50%, -50%)', width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#C97D00)', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(242,169,0,0.45)', cursor: 'pointer' }}
-          aria-label="Bank Roll"
-        >
-          {storeId ? <FiCreditCard size={26} /> : <BsQrCodeScan size={24} />}
-        </button>
-        <button type="button" onClick={() => router.push("/home/mypage")} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#8E8E93', cursor: 'pointer' }}>
-          <FiUser size={22} />
-          <span style={{ fontSize: 11 }}>マイページ</span>
-        </button>
-      </div>
-    </nav>
-  )
 
   // Loading state
   if (storeId === undefined) {
@@ -238,7 +217,7 @@ export default function TransactionsClient() {
       <main style={{ minHeight: '100svh', background: '#F2F2F7' }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
-        <BottomNav />
+        <PlayerBottomNav />
       </main>
     )
   }
@@ -310,7 +289,7 @@ export default function TransactionsClient() {
             QRコードをスキャンすることで入店できます
           </p>
         </div>
-        <BottomNav />
+        <PlayerBottomNav />
       </main>
     )
   }
@@ -423,7 +402,7 @@ export default function TransactionsClient() {
         </div>
       </div>
 
-      <BottomNav />
+      <PlayerBottomNav />
 
       {/* Withdraw bottom-sheet modal */}
       {isWithdrawModalOpen && (

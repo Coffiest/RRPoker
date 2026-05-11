@@ -7,12 +7,12 @@ import {
 } from "firebase/firestore"
 import { db, auth, storage } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
+import StoreBottomNav from "@/components/StoreBottomNav"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import {
   FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
-  FiHome, FiUser, FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
+  FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
 } from "react-icons/fi"
-import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
 
 // ── Level types (shared with TimerClient) ──────────────────────────────────
@@ -123,7 +123,6 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
 }
 
 export default function TournamentsPage() {
-  const router = useRouter()
   const [storeId, setStoreId] = useState<string | null>(null)
   const [chipUnit, setChipUnit] = useState("")
   const [chipUnitBefore, setChipUnitBefore] = useState(false)
@@ -1196,21 +1195,7 @@ export default function TournamentsPage() {
       )}
 
       {/* ── Footer nav ───────────────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] border-t border-gray-200/60 glass-nav shadow-lg">
-        <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
-          <button type="button" onClick={() => router.push("/home/store")} className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all">
-            <FiHome className="text-[22px]" /><span className="mt-1 text-[11px]">ホーム</span>
-          </button>
-          <button type="button" onClick={() => router.push("/home/store/tournaments")}
-            className="act-btn absolute left-1/2 top-0 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white shadow-xl font-semibold"
-            aria-label="トーナメント" disabled>
-            <FiPlus className="text-[28px]" /><span className="mt-0.5 text-[10px] font-bold"></span>
-          </button>
-          <button type="button" onClick={() => router.push("/home/store/mypage")} className="flex flex-col items-center text-gray-400 hover:text-[#F2A900] transition-all">
-            <FiUser className="text-[22px]" /><span className="mt-1 text-[11px]">マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <StoreBottomNav />
     </main>
   )
 }

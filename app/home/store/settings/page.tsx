@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
+import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 
 import {
@@ -21,7 +22,7 @@ import {
   setDoc
 } from "firebase/firestore"
 
-import { FiArrowLeft, FiTrash2, FiHome, FiUser, FiPlus } from "react-icons/fi"
+import { FiArrowLeft, FiTrash2 } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -768,38 +769,7 @@ export default function StoreSettingsPage() {
       )}
 
       {/* ── Bottom Nav ── */}
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-[80] border-t" style={{ background: "rgba(255,251,245,0.85)", backdropFilter: "blur(20px)", borderColor: CLR.border }}>
-        <div className="relative mx-auto flex max-w-sm w-full items-center justify-between px-8 py-3">
-          <button
-            type="button"
-            onClick={() => router.push("/home/store")}
-            className="flex flex-col items-center gap-0.5 transition-all"
-            style={{ color: CLR.gray3 }}
-          >
-            <FiHome size={22} />
-            <span className="text-[10px] font-medium">ホーム</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/tournaments")}
-            className="absolute left-1/2 top-0 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl text-white shadow-lg active:scale-95 transition-all"
-            style={{ background: CLR.gold }}
-          >
-            <FiPlus size={26} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/mypage")}
-            className="flex flex-col items-center gap-0.5 transition-all"
-            style={{ color: CLR.gray3 }}
-          >
-            <FiUser size={22} />
-            <span className="text-[10px] font-medium">マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <StoreBottomNav />
     </main>
   )
 }

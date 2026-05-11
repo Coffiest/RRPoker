@@ -7,8 +7,6 @@ import { auth, db } from "@/lib/firebase"
 import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, where, query } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
 import {
-  FiHome,
-  FiCreditCard,
   FiUser,
   FiEdit2,
   FiCopy,
@@ -24,6 +22,7 @@ import {
   FiCamera,
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
+import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
 
@@ -925,26 +924,7 @@ export default function MyPage() {
       )}
 
       {/* ── ボトムナビ ── */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-        <div style={{ maxWidth: 430, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 40px 14px', position: 'relative' }}>
-          <button type="button" onClick={() => router.push("/home")}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: '#8E8E93' }}>
-            <FiHome size={22} />
-            <span style={{ fontSize: 10, fontWeight: 500 }}>ホーム</span>
-          </button>
-
-          <button type="button" onClick={() => router.push("/home/transactions")}
-            style={{ position: 'absolute', left: '50%', top: 0, transform: 'translate(-50%,-50%)', width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.4)' }}>
-            <FiCreditCard size={24} style={{ color: '#fff' }} />
-          </button>
-
-          <button type="button" onClick={() => router.push("/home/mypage")}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900' }}>
-            <FiUser size={22} />
-            <span style={{ fontSize: 10, fontWeight: 700 }}>マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <PlayerBottomNav />
     </main>
   )
 }

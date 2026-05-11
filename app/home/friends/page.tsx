@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore'
-import { FiArrowLeft, FiCheck, FiX, FiSearch, FiHome, FiCreditCard, FiUser } from 'react-icons/fi'
+import { FiArrowLeft, FiCheck, FiX, FiSearch } from 'react-icons/fi'
 import HomeHeader from '@/components/HomeHeader'
+import PlayerBottomNav from '@/components/PlayerBottomNav'
 
 type Player = {
   id: string
@@ -431,35 +432,7 @@ export default function FriendsPage() {
         )}
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
-          <button
-            type="button"
-            onClick={() => router.push("/home")}
-            className="flex flex-col items-center text-gray-400"
-          >
-            <FiHome className="text-[18px]" />
-            <span className="mt-1 text-[11px]">ホーム</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/transactions")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-            aria-label="入出金"
-          >
-            <FiCreditCard className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">入出金</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/mypage")}
-            className="flex flex-col items-center text-gray-400"
-          >
-            <FiUser className="text-[18px]" />
-            <span className="mt-1 text-[11px]">マイページ</span>
-          </button>
-        </div>
-      </nav>
+      <PlayerBottomNav />
     </main>
   )
 }
