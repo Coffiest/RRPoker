@@ -548,6 +548,10 @@ for (const p of players) {
   await updateDoc(userRef, {
     rrRating: rounded,
   })
+
+  // トーナメント履歴にもrr偏差値を保存（吹き出し表示用）
+  const histRef = doc(db, "users", p.userId, "tournamentHistory", tournamentId)
+  await updateDoc(histRef, { rrRating: rounded }).catch(() => {})
 }
 }
 

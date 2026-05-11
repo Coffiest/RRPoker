@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { db } from "@/lib/firebase"
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from "firebase/firestore"
-import { FiX, FiShare2, FiTrash2, FiClock, FiChevronRight } from "react-icons/fi"
+import { FiX, FiShare2, FiTrash2, FiChevronRight } from "react-icons/fi"
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
@@ -62,7 +62,13 @@ function fmtDate(s?: number) {
 
 // ── Types ───────────────────────────────────────────────────────────────────
 type HAction  = { street:string; position:string; action:string; amount?:number }
-type HandRec  = { id:string; title:string; heroPosition:string; heroCards:string[]; note:string; createdAt?:{seconds?:number} }
+type HandRec  = {
+  id:string; title:string; heroPosition:string; heroCards:string[]; note:string
+  notes?:Record<string,string>; createdAt?:{seconds?:number}
+  board?:{flop:string[]|null;turn:string|null;river:string|null}
+  actions?:HAction[]; villainCards?:Record<string,string[]>
+  playerPositions?:string[]
+}
 interface Props { userId:string|null; creatorName:string }
 
 // ── Mini card ────────────────────────────────────────────────────────────────
@@ -90,24 +96,28 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
   const [htQueue,   setHtQueue]   = useState<string[]>([])
   const [htSeat,    setHtSeat]    = useState<string|null>(null)
   const [htHero,    setHtHero]    = useState<string|null>(null)
-  const [htAnte,    setHtAnte]    = useState(false)
-  const [htActType, setHtActType] = useState("")
-  const [htActAmt,  setHtActAmt]  = useState("")
-  const [htPick,    setHtPick]    = useState<string|null>(null)
-  const [htTitle,   setHtTitle]   = useState("")
-  const [htNote,    setHtNote]    = useState("")
-  const [htSaving,  setHtSaving]  = useState(false)
-  const [htSavedId, setHtSavedId] = useState<string|null>(null)
-  const [htStacks,  setHtStacks]  = useState<Record<string,number>>({})
+  const [htAnte,       setHtAnte]       = useState(true)
+  const [htActType,    setHtActType]    = useState("")
+  const [htActAmt,     setHtActAmt]     = useState("")
+  const [htPick,       setHtPick]       = useState<string|null>(null)
+  const [htTitle,      setHtTitle]      = useState("")
+  const [htNotes,      setHtNotes]      = useState<Record<string,string>>({})
+  const [htSaving,     setHtSaving]     = useState(false)
+  const [htSavedId,    setHtSavedId]    = useState<string|null>(null)
+  const [showTitlePopup, setShowTitlePopup] = useState(false)
+  const [showNoteInput,  setShowNoteInput]  = useState<string|null>(null)
 
   // history state
   const [history,      setHistory]      = useState<HandRec[]>([])
   const [histLoading,  setHistLoading]  = useState(false)
   const [histError,    setHistError]    = useState<string|null>(null)
-  const [delConfirmId, setDelConfirmId] = useState<string|null>(null)
+  const [delConfirmId,   setDelConfirmId]   = useState<string|null>(null)
+  const [expandedHandId, setExpandedHandId] = useState<string|null>(null)
+  const [viewingHand,    setViewingHand]    = useState<HandRec|null>(null)
+  const [replayStep,     setReplayStep]     = useState(0)
+  const [replayPlaying,  setReplayPlaying]  = useState(false)
 
-  // +Tools FAB & ITM calculator state
-  const [toolsOpen,    setToolsOpen]    = useState(false)
+  // ITM calculator state
   const [itmOpen,      setItmOpen]      = useState(false)
   const [itmRemaining, setItmRemaining] = useState("")
   const [itmSpots,     setItmSpots]     = useState("")
@@ -148,11 +158,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
   const positions = useMemo(() => htGetPositions(htCount), [htCount])
 
-  useEffect(() => {
-    const init: Record<string,number> = {}
-    positions.forEach(p => { init[p] = 100 })
-    setHtStacks(init)
-  }, [positions])
 
   // Derived fold sets
   const permFolded = useMemo(() => {
@@ -214,37 +219,95 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { if (isOpen) buildQueue(htStreet, htActions, positions) }, [positions])
 
+  // Listen for tool events dispatched from PlayerBottomNav
+  useEffect(() => {
+    const onItm = () => setItmOpen(true)
+    const onHandRecord = () => { reset(); setView("record"); setIsOpen(true) }
+    window.addEventListener('rrpoker:tool:itm', onItm)
+    window.addEventListener('rrpoker:tool:hand-record', onHandRecord)
+    return () => {
+      window.removeEventListener('rrpoker:tool:itm', onItm)
+      window.removeEventListener('rrpoker:tool:hand-record', onHandRecord)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const reset = () => {
     const dp = htGetPositions(6); const iq = computeOrder("preflop", dp, new Set())
     setHtCount(6); setHtStreet("preflop"); setHtBoard([null,null,null,null,null])
     setHtCards({}); setHtActions([]); setHtQueue(iq); setHtSeat(iq[0]??null)
-    setHtHero(null); setHtAnte(false); setHtActType(""); setHtActAmt(""); setHtPick(null)
-    setHtTitle(""); setHtNote(""); setHtSaving(false); setHtSavedId(null); setHtStacks({})
+    setHtHero(null); setHtAnte(true); setHtActType(""); setHtActAmt(""); setHtPick(null)
+    setHtTitle(""); setHtNotes({}); setHtSaving(false); setHtSavedId(null)
+    setShowTitlePopup(false); setShowNoteInput(null)
   }
 
   const goStreet = (s: "preflop"|"flop"|"turn"|"river") => { setHtStreet(s); buildQueue(s, htActions, positions) }
 
-  const confirm = () => {
-    const seat = htSeat; if (!seat||!htActType) return
-    const sActs  = htActions.filter(a => a.street===htStreet)
-    const maxBet = sActs.reduce((m,a) => (a.amount!=null?Math.max(m,a.amount):m), 0)
-    const stack  = htStacks[seat]??100
-    let amount: number|null = null
-    if (htActType==="call")               amount = Math.max(0, maxBet)
-    else if (htActType==="bet"||htActType==="raise") { const v=Number(htActAmt); if (isNaN(v)||v<=0) return; amount=v }
-    else if (htActType==="allin")         amount = stack
+  // Auto-advance to next street when action queue empties
+  useEffect(() => {
+    if (!isOpen || htQueue.length > 0) return
+    if (!htActions.some(a => a.street === htStreet)) return
+    if (htStreet === "river") return
+    const nextMap = { preflop: "flop", flop: "turn", turn: "river" } as const
+    const next = nextMap[htStreet as "preflop"|"flop"|"turn"]
+    if (!next) return
+    const timer = setTimeout(() => {
+      setHtStreet(next); buildQueue(next, htActions, positions)
+      if (next === "flop") setHtPick("b|0")
+      else if (next === "turn" && !htBoard[3]) setHtPick("b|3")
+      else if (next === "river" && !htBoard[4]) setHtPick("b|4")
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [htQueue.length, htStreet, isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (amount!=null) setHtStacks(prev => ({...prev,[seat]:Math.max(0,(prev[seat]??0)-amount!)}))
-    const newAct: HAction = { street:htStreet, position:seat, action:htActType }
+  const handleSaveClick = () => setShowTitlePopup(true)
+
+  // Replay auto-advance
+  useEffect(() => {
+    if (!viewingHand || !replayPlaying) return
+    const total = (viewingHand.actions ?? []).length
+    if (replayStep >= total) { setReplayPlaying(false); return }
+    const timer = setTimeout(() => setReplayStep(s => s + 1), 2000)
+    return () => clearTimeout(timer)
+  }, [viewingHand, replayPlaying, replayStep])
+
+  const tapSeat = (pos: string) => {
+    if (allFolded.has(pos)) return
+    if (htSeat === pos) { setHtSeat(null); setHtActType(""); setHtActAmt(""); setShowNoteInput(null); return }
+
+    const qIdx = htQueue.indexOf(pos)
+    if (qIdx > 0) {
+      const toFold = htQueue.slice(0, qIdx)
+      const foldActs: HAction[] = toFold.map(p => ({ street: htStreet, position: p, action: "fold" as const }))
+      const newActions = [
+        ...htActions.filter(a => !(a.street === htStreet && toFold.includes(a.position))),
+        ...foldActs,
+      ]
+      setHtActions(newActions)
+      setHtQueue(htQueue.slice(qIdx))
+    }
+
+    setHtSeat(pos); setHtActType(""); setHtActAmt(""); setShowNoteInput(null)
+  }
+
+  const confirm = (forceActType?: string) => {
+    const seat    = htSeat; if (!seat) return
+    const actType = forceActType ?? htActType; if (!actType) return
+    const sActs   = htActions.filter(a => a.street===htStreet)
+    const maxBet  = sActs.reduce((m,a) => (a.amount!=null?Math.max(m,a.amount):m), 0)
+    let amount: number|null = null
+    if (actType==="call")                amount = Math.max(0, maxBet)
+    else if (actType==="bet"||actType==="raise"||actType==="allin") { const v=Number(htActAmt); if (isNaN(v)||v<=0) return; amount=v }
+
+    const newAct: HAction = { street:htStreet, position:seat, action:actType }
     if (amount!=null) newAct.amount = amount
     const newActions = [...htActions.filter(a => !(a.street===htStreet&&a.position===seat)), newAct]
     setHtActions(newActions)
 
     let nq: string[]
-    if (htActType==="fold") {
+    if (actType==="fold") {
       const ncf = new Set(currFolded); ncf.add(seat)
       nq = htQueue.slice(1).filter(p => !new Set([...permFolded,...ncf]).has(p))
-    } else if (htActType==="bet"||htActType==="raise") {
+    } else if (actType==="bet"||actType==="raise") {
       const active = computeOrder(htStreet, positions, allFolded)
       const mi     = active.indexOf(seat)
       nq = [...active.slice(mi+1), ...active.slice(0,mi)]
@@ -275,7 +338,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
         title:htTitle.trim()||"ハンドレビュー", stakes:{sb:0,bb:0},
         heroPosition:heroPos, playerPositions:positions, heroCards, villainCards:villains,
         board:{flop:boardFlop,turn:htBoard[3]??null,river:htBoard[4]??null},
-        actions:allActs, note:htNote.trim(),
+        actions:allActs, notes:htNotes,
       })
       setHtSavedId(ref.id)
     } catch (e){console.error(e)} finally {setHtSaving(false)}
@@ -323,62 +386,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
   return (
     <>
-      {/* ── +Tools FAB ──────────────────────────────────────────────────── */}
-      <style>{`
-        @keyframes toolsBtnIn {
-          from { opacity:0; transform:translateY(12px) scale(0.85); }
-          to   { opacity:1; transform:translateY(0)    scale(1); }
-        }
-      `}</style>
-      <div className="fixed bottom-[88px] right-4 z-[70] flex flex-col items-end gap-2">
-        {toolsOpen && (
-          <>
-            <button type="button"
-              onClick={() => { setToolsOpen(false); setItmOpen(true) }}
-              className="flex items-center gap-2 rounded-full active:scale-95 transition-all"
-              style={{
-                background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,
-                padding: "11px 18px",
-                boxShadow: "0 4px 20px rgba(242,169,0,0.35)",
-                animation: "toolsBtnIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
-                animationDelay: "0.05s",
-              }}>
-              <span className="text-[18px]">📊</span>
-              <span className="text-[13px] font-semibold text-white">インマネ確率予測</span>
-            </button>
-            <button type="button"
-              onClick={() => { setToolsOpen(false); reset(); setView("record"); setIsOpen(true) }}
-              className="flex items-center gap-2 rounded-full active:scale-95 transition-all"
-              style={{
-                background: CLR.ink,
-                padding: "11px 18px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-                animation: "toolsBtnIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both",
-              }}>
-              <span className="text-[18px]">🃏</span>
-              <span className="text-[13px] font-semibold text-white">ハンド記録</span>
-            </button>
-          </>
-        )}
-        <button type="button"
-          onClick={() => setToolsOpen(prev => !prev)}
-          className="flex items-center gap-3 rounded-full active:scale-95 transition-all"
-          style={{
-            background: CLR.ink,
-            padding: "15px 26px",
-            boxShadow: `0 6px 28px rgba(0,0,0,0.32), 0 0 0 2px ${CLR.gold}55`,
-          }}>
-          {toolsOpen ? (
-            <span className="text-[15px] font-semibold text-white">← もどる</span>
-          ) : (
-            <>
-              <span className="text-[20px] font-black leading-none" style={{ color: CLR.gold }}>+</span>
-              <span className="text-[15px] font-bold text-white tracking-wide">Tools</span>
-            </>
-          )}
-        </button>
-      </div>
-
       {typeof window!=="undefined" && isOpen && createPortal(
         <>
           {/* Backdrop */}
@@ -399,8 +406,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             <div className="shrink-0 px-5 pt-2 pb-3">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="font-black text-[8px] rounded px-1 py-px tracking-widest"
-                    style={{ border:`1px solid ${CLR.gold}`, color:CLR.gold }}>β</span>
                   <h2 className="text-[17px] font-bold" style={{ color:CLR.ink }}>ハンド記録</h2>
                 </div>
                 <button type="button"
@@ -428,41 +433,31 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             {view==="record" && (
               <div className="flex-1 overflow-y-auto">
 
-                {/* Controls */}
-                <div className="px-4 pb-3 flex items-center gap-2">
-                  {/* Player count */}
-                  <div className="flex items-center rounded-2xl overflow-hidden" style={{ border:`1px solid ${CLR.border}`, background:CLR.white }}>
-                    <button type="button" onClick={() => setHtCount(c=>Math.max(2,c-1))}
-                      className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
-                      style={{ color:CLR.gray2 }}>−</button>
-                    <span className="text-[12px] font-bold px-1 min-w-[36px] text-center" style={{ color:CLR.ink }}>{htCount}人</span>
-                    <button type="button" onClick={() => setHtCount(c=>Math.min(10,c+1))}
-                      className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
-                      style={{ color:CLR.gray2 }}>+</button>
-                  </div>
+                {/* Controls — only on preflop */}
+                {htStreet === "preflop" && (
+                  <div className="px-4 pb-3 flex items-center gap-2">
+                    {/* Player count */}
+                    <div className="flex items-center rounded-2xl overflow-hidden" style={{ border:`1px solid ${CLR.border}`, background:CLR.white }}>
+                      <button type="button" onClick={() => setHtCount(c=>Math.max(2,c-1))}
+                        className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
+                        style={{ color:CLR.gray2 }}>−</button>
+                      <span className="text-[12px] font-bold px-1 min-w-[36px] text-center" style={{ color:CLR.ink }}>{htCount}人</span>
+                      <button type="button" onClick={() => setHtCount(c=>Math.min(10,c+1))}
+                        className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
+                        style={{ color:CLR.gray2 }}>+</button>
+                    </div>
 
-                  {/* Ante */}
-                  <button type="button" onClick={() => setHtAnte(v=>!v)}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-full text-[11px] font-semibold transition-all active:scale-95"
-                    style={{ background:htAnte?CLR.gold:CLR.white, color:htAnte?CLR.ink:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
-                    アンティ
-                  </button>
-
-                  {/* Street tabs */}
-                  <div className="ml-auto flex rounded-2xl overflow-hidden" style={{ border:`1px solid ${CLR.border}`, background:CLR.white }}>
-                    {(["preflop","flop","turn","river"] as const).map(s => {
-                      const lbl={preflop:"PF",flop:"F",turn:"T",river:"R"}
-                      const ok=s==="preflop"||s==="flop"||(s==="turn"&&htBoard.slice(0,3).every(c=>c))||(s==="river"&&!!htBoard[3])
-                      return (
-                        <button key={s} type="button" onClick={() => ok&&s!==htStreet&&goStreet(s)}
-                          className="w-8 h-8 text-[10px] font-bold transition-all"
-                          style={{ background:htStreet===s?CLR.ink:"transparent", color:htStreet===s?"#fff":ok?CLR.gray2:CLR.border }}>
-                          {lbl[s]}
-                        </button>
-                      )
-                    })}
+                    {/* Ante toggle */}
+                    <button type="button" onClick={() => setHtAnte(v=>!v)}
+                      className="flex items-center gap-2 h-8 px-3 rounded-full text-[11px] font-semibold transition-all active:scale-95"
+                      style={{ background:htAnte?'#FFF8E7':CLR.white, color:htAnte?CLR.goldDk:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
+                      <div style={{ width:26,height:15,borderRadius:99,background:htAnte?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0 }}>
+                        <div style={{ position:'absolute',width:11,height:11,borderRadius:'50%',background:'#fff',top:2,left:htAnte?13:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
+                      </div>
+                      {htAnte ? 'アンティあり' : 'アンティなし'}
+                    </button>
                   </div>
-                </div>
+                )}
 
                 {/* ── Table ── */}
                 <div className="relative mx-4 mb-3 rounded-[999px]"
@@ -568,7 +563,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
                     return (
                       <button key={pos} type="button"
-                        onClick={() => { if(!isFolded){setHtSeat(isSel?null:pos);setHtActType("");setHtActAmt("")} }}
+                        onClick={() => tapSeat(pos)}
                         className="absolute flex flex-col items-center active:scale-95 transition-all"
                         style={{ left:x-22, top:y-28, width:44, opacity:isCurr?0.25:1 }}>
 
@@ -636,11 +631,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     ))}
                   </div>
                 )}
-                {htQueue.length===0 && htActions.some(a=>a.street===htStreet) && (
-                  <p className="px-4 mb-2.5 text-[11px] font-semibold" style={{color:CLR.goldDk}}>
-                    アクション完了 — 次のストリートへ進めます
-                  </p>
-                )}
 
                 {/* Action panel */}
                 {htSeat!==null && !permFolded.has(htSeat) && !currFolded.has(htSeat) && (
@@ -648,10 +638,14 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[15px] font-bold" style={{color:CLR.ink}}>{htSeat}</span>
+                        {/* Hero toggle */}
                         <button type="button" onClick={() => setHtHero(htSeat===htHero?null:htSeat)}
-                          className="text-[10px] font-semibold h-6 px-2.5 rounded-full active:scale-95 transition-all"
-                          style={{ background:htSeat===htHero?"#FFF8E7":CLR.surface, color:htSeat===htHero?CLR.goldDk:CLR.gray2, border:`1px solid ${htSeat===htHero?CLR.gold:CLR.border}` }}>
-                          {htSeat===htHero?"★ Hero":"Hero"}
+                          className="flex items-center gap-1.5 active:scale-95 transition-all"
+                          style={{background:'none',border:'none',cursor:'pointer',padding:0}}>
+                          <div style={{width:32,height:18,borderRadius:99,background:htSeat===htHero?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0}}>
+                            <div style={{position:'absolute',width:14,height:14,borderRadius:'50%',background:'#fff',top:2,left:htSeat===htHero?16:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}} />
+                          </div>
+                          <span style={{fontSize:10,fontWeight:600,color:htSeat===htHero?CLR.goldDk:CLR.gray3,fontFamily:'inherit'}}>Hero</span>
                         </button>
                       </div>
                       <button type="button" onClick={() => {setHtSeat(null);setHtActType("");setHtActAmt("")}}
@@ -687,10 +681,12 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     {/* Action buttons */}
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       {acts.map(act => {
-                        const isSel=htActType===act
-                        const isFold=act==="fold"
+                        const isSel    = htActType === act
+                        const isFold   = act === "fold"
+                        const isInstant = !["bet","raise","allin"].includes(act)
                         return (
-                          <button key={act} type="button" onClick={() => setHtActType(isSel?"":act)}
+                          <button key={act} type="button"
+                            onClick={() => isInstant ? confirm(act) : setHtActType(isSel ? "" : act)}
                             className="flex-1 min-w-[70px] h-10 rounded-2xl text-[11px] font-bold active:scale-95 transition-all"
                             style={{
                               background: isSel ? (isFold?"#FFF0F0":CLR.gold) : CLR.surface,
@@ -703,80 +699,58 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       })}
                     </div>
 
-                    {(htActType==="bet"||htActType==="raise") && (
+                    {(htActType==="bet"||htActType==="raise"||htActType==="allin") && (
                       <input type="number" value={htActAmt} onChange={e=>setHtActAmt(e.target.value)}
-                        placeholder="金額（BB）" autoFocus
+                        placeholder={htActType==="allin"?"チップ数（BB）":"金額（BB）"} autoFocus
                         className="w-full h-10 rounded-2xl px-3 text-[14px] mb-2 outline-none transition-all"
                         style={{background:CLR.surface,border:`1.5px solid ${CLR.border}`,color:CLR.ink}}
                         onFocus={e=>(e.target.style.borderColor=CLR.gold)}
                         onBlur={e=>(e.target.style.borderColor=CLR.border)} />
                     )}
 
-                    {htActType && (
-                      <button type="button" onClick={confirm}
+                    {(htActType==="bet"||htActType==="raise"||htActType==="allin") && (
+                      <button type="button" onClick={() => confirm()}
                         className="w-full h-10 rounded-2xl text-[13px] font-bold active:scale-95 transition-all"
-                        style={{background:CLR.ink,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
+                        style={{background:htActType==="allin"?CLR.red:CLR.ink,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
                         確定
+                      </button>
+                    )}
+
+                    {/* Per-player note */}
+                    {showNoteInput === htSeat ? (
+                      <textarea
+                        value={htNotes[htSeat]??''}
+                        onChange={e => setHtNotes(prev => ({...prev, [htSeat!]: e.target.value}))}
+                        placeholder="このプレイヤーについてメモ..."
+                        rows={2}
+                        autoFocus
+                        className="w-full rounded-2xl px-3 py-2 text-[12px] outline-none resize-none mt-2 transition-all"
+                        style={{background:CLR.surface,border:`1px solid ${CLR.border}`,color:CLR.ink}}
+                        onFocus={e=>(e.target.style.borderColor=CLR.gold)}
+                        onBlur={e=>(e.target.style.borderColor=CLR.border)}
+                      />
+                    ) : (
+                      <button type="button" onClick={() => setShowNoteInput(htSeat)}
+                        className="flex items-center gap-1 mt-2 active:scale-95 transition-transform"
+                        style={{background:'none',border:'none',cursor:'pointer',padding:0,color:htNotes[htSeat]?CLR.goldDk:CLR.gray3,fontSize:11,fontFamily:'inherit'}}>
+                        ✏️ {htNotes[htSeat] ? 'メモを編集' : 'メモを追加'}
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* Title */}
-                <div className="mx-4 mb-2.5">
-                  <input value={htTitle} onChange={e=>setHtTitle(e.target.value)}
-                    placeholder="タイトル（任意）"
-                    className="w-full h-10 rounded-2xl px-3 text-[13px] outline-none transition-all"
-                    style={{background:CLR.white,border:`1px solid ${CLR.border}`,color:CLR.ink}}
-                    onFocus={e=>(e.target.style.borderColor=CLR.gold)}
-                    onBlur={e=>(e.target.style.borderColor=CLR.border)} />
-                </div>
-
-                {/* Street nav */}
-                <div className="mx-4 mb-3 flex gap-2">
-                  {htStreet!=="preflop" && (
+                {/* Bottom nav: back button + save */}
+                <div className="mx-4 mb-6 flex gap-2">
+                  {htStreet !== "preflop" && !htSavedId && (
                     <button type="button"
                       onClick={() => goStreet({flop:"preflop",turn:"flop",river:"turn"}[htStreet] as any)}
-                      className="h-11 px-4 rounded-2xl text-[13px] font-semibold active:scale-95 transition-all"
+                      className="h-12 px-4 rounded-2xl text-[15px] font-semibold active:scale-95 transition-all"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}>←</button>
                   )}
-                  {htStreet==="preflop" && (
-                    <button type="button" onClick={() => {goStreet("flop");setHtPick("b|0")}}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition-all"
-                      style={{background:CLR.gold,color:CLR.ink}}>フロップへ →</button>
-                  )}
-                  {htStreet==="flop" && (
-                    <button type="button" onClick={() => {goStreet("turn");if(!htBoard[3])setHtPick("b|3")}}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition-all"
-                      style={{background:CLR.gold,color:CLR.ink}}>ターンへ →</button>
-                  )}
-                  {htStreet==="turn" && (
-                    <button type="button" onClick={() => {goStreet("river");if(!htBoard[4])setHtPick("b|4")}}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition-all"
-                      style={{background:CLR.gold,color:CLR.ink}}>リバーへ →</button>
-                  )}
-                  {htStreet==="river" && !htSavedId && (
-                    <button type="button" onClick={save} disabled={htSaving}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold text-white active:scale-95 disabled:opacity-50"
-                      style={{background:CLR.ink}}>
-                      {htSaving?"保存中...":"完了・保存"}
-                    </button>
-                  )}
-                </div>
-
-                {/* Note + save */}
-                <div className="mx-4 mb-6">
-                  <textarea value={htNote} onChange={e=>setHtNote(e.target.value)}
-                    placeholder="メモ（任意）" rows={2}
-                    className="w-full rounded-2xl px-4 py-3 text-[13px] outline-none resize-none mb-2 transition-all"
-                    style={{background:CLR.white,border:`1px solid ${CLR.border}`,color:CLR.ink}}
-                    onFocus={e=>(e.target.style.borderColor=CLR.gold)}
-                    onBlur={e=>(e.target.style.borderColor=CLR.border)} />
-
                   {htSavedId ? (
-                    <div className="space-y-2">
+                    <div className="flex-1 space-y-2">
                       <div className="rounded-2xl p-3 text-center" style={{background:"#F0FDF4",border:"1px solid #BBF7D0"}}>
-                        <p className="text-[13px] font-bold" style={{color:"#15803D"}}> 保存しました！</p>
+                        <p className="text-[13px] font-bold" style={{color:"#15803D"}}>✓ 保存しました！</p>
                       </div>
                       <button type="button" onClick={() => share(htSavedId!,htTitle)}
                         className="w-full h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 active:scale-95"
@@ -789,11 +763,11 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         閉じる
                       </button>
                     </div>
-                  ) : htStreet!=="river" && (
-                    <button type="button" disabled={htSaving} onClick={save}
-                      className="w-full h-11 rounded-2xl text-[13px] font-bold text-white disabled:opacity-50 active:scale-95"
-                      style={{background:CLR.ink}}>
-                      {htSaving?"保存中...":"保存する"}
+                  ) : (
+                    <button type="button" disabled={htSaving} onClick={handleSaveClick}
+                      className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
+                      {htSaving ? '保存中...' : '✓ 保存する'}
                     </button>
                   )}
                 </div>
@@ -823,47 +797,144 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {history.map(h => (
-                      <div key={h.id} className="rounded-3xl p-4" style={{background:CLR.white,border:`1px solid ${CLR.border}`,boxShadow:"0 1px 6px rgba(0,0,0,0.04)"}}>
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <p className="text-[14px] font-bold truncate flex-1" style={{color:CLR.ink}}>{h.title||"ハンドレビュー"}</p>
-                          {h.createdAt?.seconds && (
-                            <span className="text-[10px] shrink-0 flex items-center gap-0.5" style={{color:CLR.gray3}}>
-                              <FiClock size={9}/> {fmtDate(h.createdAt.seconds)}
-                            </span>
+                    {history.map(h => {
+                      const isExp = expandedHandId === h.id
+                      const streets = (["preflop","flop","turn","river"] as const).filter(st =>
+                        (h.actions??[]).some(a => a.street===st)
+                      )
+                      const boardCards = [
+                        ...(h.board?.flop??[]),
+                        ...(h.board?.turn ? [h.board.turn] : []),
+                        ...(h.board?.river ? [h.board.river] : []),
+                      ]
+                      return (
+                        <div key={h.id} className="rounded-3xl overflow-hidden" style={{background:CLR.white,border:`1px solid ${CLR.border}`,boxShadow:"0 1px 6px rgba(0,0,0,0.04)"}}>
+                          {/* Header row — tap to expand */}
+                          <button type="button"
+                            onClick={() => setExpandedHandId(isExp ? null : h.id)}
+                            className="w-full text-left px-4 pt-3.5 pb-3 flex items-center gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-bold truncate" style={{color:CLR.ink}}>{h.title||"ハンドレビュー"}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[10px] font-bold rounded-full px-1.5 py-px"
+                                  style={{background:"#FFF8E7",color:CLR.goldDk}}>{h.heroPosition}</span>
+                                {(h.heroCards??[]).map((c,i) => <MiniCard key={i} card={c}/>)}
+                                {boardCards.length>0 && <>
+                                  <span style={{color:CLR.border,fontSize:10}}>·</span>
+                                  {boardCards.map((c,i) => <MiniCard key={i} card={c}/>)}
+                                </>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {h.createdAt?.seconds && (
+                                <span className="text-[10px]" style={{color:CLR.gray3}}>{fmtDate(h.createdAt.seconds)}</span>
+                              )}
+                              <span style={{color:CLR.gray3,fontSize:12,transition:'transform 0.2s',display:'inline-block',transform:isExp?'rotate(180deg)':'none'}}>▾</span>
+                            </div>
+                          </button>
+
+                          {/* Expanded detail */}
+                          {isExp && (
+                            <div style={{borderTop:`1px solid ${CLR.surface}`}}>
+                              {/* Street-by-street action */}
+                              <div className="px-4 pt-2 pb-1 space-y-1">
+                                {streets.map(st => {
+                                  const stActs = (h.actions??[]).filter(a => a.street===st)
+                                  return (
+                                    <div key={st} className="flex gap-2 items-start">
+                                      <span className="text-[9px] font-bold rounded px-1 py-px shrink-0 mt-0.5"
+                                        style={{background:CLR.surface,color:CLR.gray2,minWidth:28,textAlign:'center'}}>
+                                        {st==="preflop"?"PF":st==="flop"?"F":st==="turn"?"T":"R"}
+                                      </span>
+                                      <p className="text-[11px] leading-relaxed" style={{color:CLR.gray2}}>
+                                        {stActs.map((a,i) => {
+                                          const isHeroAct = a.position===h.heroPosition
+                                          const amtStr = a.amount!=null ? ` ${a.amount}` : ""
+                                          return (
+                                            <span key={i}>
+                                              {i>0 && <span style={{color:CLR.border}}> · </span>}
+                                              <span style={{color:isHeroAct?CLR.goldDk:CLR.gray2,fontWeight:isHeroAct?700:400}}>
+                                                {a.position}
+                                              </span>
+                                              <span style={{color:CLR.gray3}}> {ACT_JP[a.action]}{amtStr}</span>
+                                            </span>
+                                          )
+                                        })}
+                                      </p>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              {/* Notes (per-player) */}
+                              {h.notes && Object.keys(h.notes).length>0 && (
+                                <div className="px-4 pb-2 space-y-1">
+                                  {Object.entries(h.notes).map(([pos, note]) => note ? (
+                                    <p key={pos} className="text-[11px]" style={{color:CLR.gray2}}>
+                                      <span style={{fontWeight:600,color:pos===h.heroPosition?CLR.goldDk:CLR.gray2}}>{pos}</span>: {note}
+                                    </p>
+                                  ) : null)}
+                                </div>
+                              )}
+
+                              {/* Actions */}
+                              <div className="flex items-center gap-1.5 px-4 pb-3">
+                                <button type="button" onClick={() => share(h.id,h.title)}
+                                  className="flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-bold active:scale-95"
+                                  style={{background:CLR.gold,color:CLR.ink}}>
+                                  <FiShare2 size={10}/> シェア
+                                </button>
+                                <button type="button"
+                                  onClick={() => { setViewingHand(h); setReplayStep(0); setReplayPlaying(false) }}
+                                  className="flex items-center gap-0.5 h-7 px-2.5 rounded-full text-[11px] font-semibold active:scale-95"
+                                  style={{background:CLR.surface,color:CLR.gray2,border:`1px solid ${CLR.border}`}}>
+                                  詳細 <FiChevronRight size={10}/>
+                                </button>
+                                <button type="button" onClick={() => setDelConfirmId(h.id)}
+                                  className="ml-auto w-7 h-7 rounded-full flex items-center justify-center active:scale-95"
+                                  style={{background:CLR.surface,color:CLR.gray3,border:`1px solid ${CLR.border}`}}>
+                                  <FiTrash2 size={11}/>
+                                </button>
+                              </div>
+                            </div>
                           )}
                         </div>
-                        <span className="inline-block text-[10px] font-bold rounded-full px-2 py-0.5 mb-2"
-                          style={{background:"#FFF8E7",color:CLR.goldDk}}>
-                          {h.heroPosition}
-                        </span>
-                        {(h.heroCards??[]).length>0 && (
-                          <div className="flex gap-1 mb-3">
-                            {(h.heroCards??[]).map((c,i) => <MiniCard key={i} card={c}/>)}
-                          </div>
-                        )}
-                        {h.note && <p className="text-[11px] mb-2 line-clamp-2" style={{color:CLR.gray2}}>{h.note}</p>}
-                        <div className="flex items-center gap-1.5 pt-1" style={{borderTop:`1px solid ${CLR.surface}`}}>
-                          <button type="button" onClick={() => share(h.id,h.title)}
-                            className="flex items-center gap-1 h-8 px-3 rounded-full text-[11px] font-bold active:scale-95"
-                            style={{background:CLR.gold,color:CLR.ink}}>
-                            <FiShare2 size={10}/> シェア
-                          </button>
-                          <a href={`/hand/${h.id}`} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center gap-0.5 h-8 px-3 rounded-full text-[11px] font-semibold"
-                            style={{background:CLR.surface,color:CLR.gray2,border:`1px solid ${CLR.border}`}}>
-                            詳細 <FiChevronRight size={10}/>
-                          </a>
-                          <button type="button" onClick={() => setDelConfirmId(h.id)}
-                            className="ml-auto w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
-                            style={{background:CLR.surface,color:CLR.gray3,border:`1px solid ${CLR.border}`}}>
-                            <FiTrash2 size={12}/>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Title popup (before save) */}
+            {showTitlePopup && (
+              <div className="absolute inset-0 z-10 flex items-end justify-center"
+                style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)",borderRadius:"28px 28px 0 0"}}>
+                <div className="w-full p-5 rounded-t-3xl" style={{background:CLR.white}}>
+                  <p className="text-[16px] font-bold mb-1" style={{color:CLR.ink}}>タイトルをつける</p>
+                  <p className="text-[12px] mb-4" style={{color:CLR.gray2}}>後から履歴で探しやすくなります</p>
+                  <input value={htTitle} onChange={e=>setHtTitle(e.target.value)}
+                    placeholder="例: BTNからの3bet対応"
+                    autoFocus
+                    className="w-full h-11 rounded-2xl px-3 text-[14px] outline-none mb-4 transition-all"
+                    style={{background:CLR.surface,border:`1.5px solid ${CLR.border}`,color:CLR.ink}}
+                    onFocus={e=>(e.target.style.borderColor=CLR.gold)}
+                    onBlur={e=>(e.target.style.borderColor=CLR.border)} />
+                  <div className="flex gap-2">
+                    <button type="button"
+                      onClick={() => { setShowTitlePopup(false); save() }}
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-medium active:scale-95"
+                      style={{background:CLR.surface,color:CLR.gray2,border:`1px solid ${CLR.border}`}}>
+                      スキップ
+                    </button>
+                    <button type="button"
+                      onClick={() => { setShowTitlePopup(false); save() }}
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95"
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
+                      保存
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -942,6 +1013,218 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             </>
           )}
         </>,
+        document.body
+      )}
+
+      {/* ── Hand Replay Popup ── */}
+      {typeof window !== "undefined" && viewingHand && createPortal(
+        (() => {
+          const allActs   = viewingHand.actions ?? []
+          const totalSteps = allActs.length
+          const shownActs  = allActs.slice(0, replayStep)
+          const curAct     = replayStep > 0 ? allActs[replayStep - 1] : null
+          const rPositions = viewingHand.playerPositions ?? [...new Set(allActs.map(a => a.position))]
+          const rBtnIdx    = rPositions.indexOf("BTN")
+          const rcx=160, rcy=100, rrx=126, rry=76
+
+          // per-seat latest action in shownActs
+          const seatActMap: Record<string,HAction> = {}
+          shownActs.forEach(a => { seatActMap[a.position] = a })
+
+          // folded seats
+          const foldedSeats = new Set(shownActs.filter(a=>a.action==="fold").map(a=>a.position))
+
+          // board visibility
+          const hasFlopAct  = shownActs.some(a=>a.street==="flop")
+          const hasTurnAct  = shownActs.some(a=>a.street==="turn")
+          const hasRiverAct = shownActs.some(a=>a.street==="river")
+          const flop  = hasFlopAct  ? (viewingHand.board?.flop  ?? []) : []
+          const turn  = hasTurnAct  ? (viewingHand.board?.turn  ?? null) : null
+          const river = hasRiverAct ? (viewingHand.board?.river ?? null) : null
+
+          const streets = (["preflop","flop","turn","river"] as const).filter(st =>
+            allActs.some(a => a.street === st)
+          )
+
+          return (
+            <>
+              <div className="fixed inset-0 z-[220]"
+                style={{background:"rgba(0,0,0,0.72)",backdropFilter:"blur(8px)"}}
+                onClick={() => setViewingHand(null)} />
+              <div className="fixed z-[221] mx-auto max-w-sm flex flex-col rounded-3xl overflow-hidden"
+                style={{inset:'5vh 16px 0',maxHeight:'90vh',background:CLR.bg,boxShadow:"0 8px 48px rgba(0,0,0,0.35)"}}>
+
+                {/* Header */}
+                <div className="shrink-0 px-5 pt-4 pb-3 flex items-center justify-between" style={{borderBottom:`1px solid ${CLR.border}`}}>
+                  <div>
+                    <p className="text-[15px] font-bold" style={{color:CLR.ink}}>{viewingHand.title||"ハンドレビュー"}</p>
+                    <p className="text-[11px]" style={{color:CLR.gray2}}>
+                      {viewingHand.heroPosition} · {rPositions.length}人
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => setViewingHand(null)}
+                    className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:CLR.surface,color:CLR.gray2}}><FiX size={15}/></button>
+                </div>
+
+                {/* Table */}
+                <div className="shrink-0 relative mx-4 mt-3 rounded-[999px]"
+                  style={{height:204,background:"#F2EDE4",border:"1.5px solid #D8CEBD",boxShadow:"inset 0 2px 8px rgba(0,0,0,0.04)"}}>
+                  <div className="absolute rounded-[999px] pointer-events-none" style={{inset:8,border:"1px solid rgba(200,185,160,0.35)"}} />
+
+                  {/* Board */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+                    {(flop.length>0||turn||river) && (
+                      <div className="flex items-center gap-1">
+                        {flop.map((c,i) => c ? (
+                          <div key={i} className="flex flex-col items-center justify-center rounded-lg font-bold"
+                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[c.slice(-1)],fontSize:8}}>
+                            <span className="text-[9px]">{c.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[c.slice(-1)]}</span>
+                          </div>
+                        ) : null)}
+                        {turn && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
+                          <div className="flex flex-col items-center justify-center rounded-lg font-bold"
+                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[turn.slice(-1)],fontSize:8}}>
+                            <span className="text-[9px]">{turn.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[turn.slice(-1)]}</span>
+                          </div></>}
+                        {river && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
+                          <div className="flex flex-col items-center justify-center rounded-lg font-bold"
+                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[river.slice(-1)],fontSize:8}}>
+                            <span className="text-[9px]">{river.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[river.slice(-1)]}</span>
+                          </div></>}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Seats */}
+                  {rPositions.map((pos,posIdx) => {
+                    const {x,y} = seatXY(posIdx,rPositions.length,rBtnIdx,rcx,rcy,rrx,rry)
+                    const act   = seatActMap[pos]
+                    const isFolded = foldedSeats.has(pos)
+                    const isCur  = curAct?.position === pos
+                    const isHero = pos === viewingHand.heroPosition
+                    const hCards = isHero ? (viewingHand.heroCards??[]) : (viewingHand.villainCards?.[pos]??[])
+                    return (
+                      <div key={pos} className="absolute flex flex-col items-center"
+                        style={{left:x-20,top:y-26,width:40,opacity:isFolded?0.25:1,transition:'opacity 0.3s'}}>
+                        {/* Pulse ring on current action */}
+                        {isCur && (
+                          <div className="absolute pointer-events-none" style={{left:0,top:0,width:40,height:40}}>
+                            <div className="w-full h-full rounded-full animate-ping"
+                              style={{border:`2px solid ${CLR.gold}`,opacity:0.5}}/>
+                          </div>
+                        )}
+                        {isHero && <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] z-10" style={{color:CLR.gold}}>★</div>}
+                        {pos==="BTN" && (
+                          <div className="absolute -right-1 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
+                            style={{background:CLR.white,border:`1px solid ${CLR.border}`,fontSize:6,fontWeight:900,color:CLR.ink}}>D</div>
+                        )}
+                        <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
+                          style={{
+                            background: isCur?"#FFF8E7":CLR.white,
+                            border: isCur?`2px solid ${CLR.gold}`:isHero?`1.5px solid ${CLR.gold}`:`1.5px solid ${CLR.border}`,
+                            boxShadow: isCur?`0 0 0 3px rgba(242,169,0,0.18)`:undefined,
+                          }}>
+                          <div className="flex gap-[2px]">
+                            {[0,1].map(i => {
+                              const c = hCards[i]
+                              return (
+                                <div key={i} className="rounded flex items-center justify-center font-bold"
+                                  style={{width:11,height:15,background:c?CLR.white:"rgba(200,190,175,0.35)",fontSize:5,color:c?HAND_SUIT_CLR[c.slice(-1)]:undefined}}>
+                                  {c?HAND_SUIT_SYM[c.slice(-1)]:""}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                        {/* Action label */}
+                        {act && !isFolded && (
+                          <div className="rounded-full px-1 py-px text-[7px] font-semibold mt-0.5 whitespace-nowrap"
+                            style={{
+                              background:act.action==="bet"||act.action==="raise"?"#FFFBEB":act.action==="allin"?"#FFF5F5":CLR.white,
+                              border:`1px solid ${act.action==="bet"||act.action==="raise"?"#FDE68A":act.action==="allin"?"#FCA5A5":CLR.border}`,
+                              color:act.action==="bet"||act.action==="raise"?"#B45309":act.action==="allin"?CLR.red:CLR.gray2,
+                            }}>
+                            {ACT_JP[act.action]}{act.amount!=null?` ${act.amount}`:""}
+                          </div>
+                        )}
+                        <span className="text-[7px] font-bold mt-0.5" style={{color:isHero?CLR.gold:CLR.gray2}}>{pos}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Replay controls */}
+                <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2">
+                  <button type="button" onClick={() => { setReplayStep(0); setReplayPlaying(false) }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:CLR.surface,color:CLR.gray2,fontSize:13}}>⟪</button>
+                  <button type="button" onClick={() => setReplayStep(s => Math.max(0,s-1))}
+                    className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}>‹</button>
+                  <button type="button" onClick={() => setReplayPlaying(p => !p)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
+                    {replayPlaying ? '⏸' : '▶'}
+                  </button>
+                  <button type="button" onClick={() => setReplayStep(s => Math.min(s+1,totalSteps))}
+                    className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}>›</button>
+                  <button type="button" onClick={() => { setReplayStep(totalSteps); setReplayPlaying(false) }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
+                    style={{background:CLR.surface,color:CLR.gray2,fontSize:13}}>⟫</button>
+                  <span className="text-[11px] ml-1" style={{color:CLR.gray3}}>{replayStep}/{totalSteps}</span>
+                </div>
+
+                {/* Action text list — all shown, current highlighted */}
+                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+                  {streets.map(st => {
+                    const stActs = allActs.filter(a => a.street===st)
+                    const stLabel = {preflop:"プリフロップ",flop:"フロップ",turn:"ターン",river:"リバー"}[st]
+                    return (
+                      <div key={st}>
+                        <p className="text-[10px] font-bold mb-1.5" style={{color:CLR.gray3}}>{stLabel}</p>
+                        <div className="space-y-1">
+                          {stActs.map((a, i) => {
+                            const globalIdx = allActs.indexOf(a)
+                            const isCurrent = globalIdx === replayStep - 1
+                            const isFuture  = globalIdx > replayStep - 1
+                            const isHeroAct = a.position === viewingHand.heroPosition
+                            return (
+                              <div key={i} className="flex items-center gap-2 rounded-2xl px-3 py-2 transition-all"
+                                style={{
+                                  background: isCurrent ? '#FFF8E7' : CLR.white,
+                                  border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
+                                  opacity: isCurrent ? 1 : isFuture ? 0.28 : 0.65,
+                                }}>
+                                <span className="text-[11px] font-bold shrink-0"
+                                  style={{color:isHeroAct?CLR.goldDk:CLR.gray2}}>{a.position}</span>
+                                <span className="text-[11px]" style={{color:
+                                  a.action==="fold"?CLR.gray3:
+                                  a.action==="bet"||a.action==="raise"?"#B45309":
+                                  a.action==="allin"?CLR.red:CLR.ink}}>
+                                  {ACT_JP[a.action]}{a.amount!=null?` ${a.amount} BB`:""}
+                                </span>
+                                {isCurrent && <span className="ml-auto text-[9px] font-bold rounded-full px-1.5 py-px"
+                                  style={{background:CLR.gold,color:CLR.ink}}>NOW</span>}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {/* RRPoker link */}
+                  <div className="text-center pt-2 pb-2">
+                    <a href="/home" className="text-[11px] font-medium" style={{color:CLR.gray3,textDecoration:'none'}}>
+                      Powered by <span style={{color:CLR.goldDk,fontWeight:700}}>RRPOKER</span> ›
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </>
+          )
+        })(),
         document.body
       )}
 

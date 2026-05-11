@@ -15,6 +15,7 @@ import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
 const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
+import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
 
 type StoreInfo = {
   id: string
@@ -166,9 +167,17 @@ export default function HomePage() {
   const calLiveUnsubsRef = useRef<(() => void)[]>([])
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   const [calScheduleTab, setCalScheduleTab] = useState(todayStr)
+  const [scheduleDaysCount, setScheduleDaysCount] = useState(5)
+  const scheduleTabScrollRef = useRef<HTMLDivElement>(null)
 
   // ── チップグラフ用全トランザクション
   const [allNetGainTx, setAllNetGainTx] = useState<any[]>([])
+
+  // ── チュートリアル
+  const [tutorialsDone, setTutorialsDone] = useState<Record<string, boolean>>({})
+  const [showHomeTutorial, setShowHomeTutorial] = useState(false)
+  const [showCheckinTutorial, setShowCheckinTutorial] = useState(false)
+  const checkinModalWasOpenRef = useRef(false)
 
   // ── すべての useEffect（ロジック完全保持）──────────────────────────
   useEffect(() => {
@@ -177,6 +186,23 @@ export default function HomePage() {
       return () => clearTimeout(timer)
     }
   }, [isCheckinCompleteModalOpen])
+
+  // 入店完了モーダルが閉じたタイミングで初回入店チュートリアルを起動
+  useEffect(() => {
+    if (checkinModalWasOpenRef.current && !isCheckinCompleteModalOpen) {
+      if (!tutorialsDone.checkin) {
+        setShowHomeTutorial(false)
+        setTimeout(() => setShowCheckinTutorial(true), 500)
+      }
+    }
+    checkinModalWasOpenRef.current = isCheckinCompleteModalOpen
+  }, [isCheckinCompleteModalOpen, tutorialsDone.checkin])
+
+  const markTutorialDone = async (key: string) => {
+    if (!userId) return
+    setTutorialsDone(prev => ({ ...prev, [key]: true }))
+    try { await updateDoc(doc(db, 'users', userId), { [`tutorialsDone.${key}`]: true }) } catch {}
+  }
 
   useEffect(() => {
     const fetchTransactionData = async () => {
@@ -309,6 +335,15 @@ export default function HomePage() {
       const rating = typeof data?.rrRating === "number" ? data.rrRating : 1000
       setRrRatingValue(rating)
       if (typeof data?.rrRating !== "number") await setDoc(ref, { rrRating: 1000 }, { merge: true })
+
+      // チュートリアル — 初回スナップショット時のみチェック
+      if (isFirstSnapshot) {
+        const td = data?.tutorialsDone ?? {}
+        setTutorialsDone(td)
+        if (!td.home && status !== 'approved') {
+          setTimeout(() => setShowHomeTutorial(true), 900)
+        }
+      }
     })
     return () => unsub()
   }, [userId, router])
@@ -450,38 +485,79 @@ export default function HomePage() {
   useEffect(() => { setIsHistoryFlipped(false) }, [currentStoreId])
 
   useEffect(() => {
+    if (!userId) return
     const loadCalTournaments = async () => {
-      if (favoriteStores.length === 0) { setCalFavTournaments([]); return }
       try {
-        const all: any[] = []
-        await Promise.all(favoriteStores.map(async sid => {
-          const storeSnap = await getDoc(doc(db, "stores", sid))
-          const storeData = storeSnap.data()
-          const storeName = storeData?.name ?? "店舗"
-          const storeIconUrl = storeData?.iconUrl ?? null
-          const snap = await getDocs(collection(db, "stores", sid, "tournaments"))
+        // 全店舗を取得
+        const storesSnap = await getDocs(collection(db, "stores"))
+        const storesList: { id: string; name: string; iconUrl: string | null; lat?: number; lng?: number }[] = []
+        storesSnap.forEach(d => {
+          const data = d.data()
+          storesList.push({
+            id: d.id,
+            name: data.name ?? "店舗",
+            iconUrl: data.iconUrl ?? null,
+            lat: typeof data.lat === "number" ? data.lat : undefined,
+            lng: typeof data.lng === "number" ? data.lng : undefined,
+          })
+        })
 
+        // 現在地取得（失敗してもOK）
+        let userLat: number | null = null
+        let userLng: number | null = null
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+            })
+            userLat = pos.coords.latitude
+            userLng = pos.coords.longitude
+          } catch {}
+        }
+
+        // Haversine距離（km）
+        const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+          const toRad = (v: number) => v * Math.PI / 180
+          const dLat = toRad(lat2 - lat1)
+          const dLng = toRad(lng2 - lng1)
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+          return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        }
+
+        // 近い順ソート（座標なし店舗は末尾）
+        const sorted = [...storesList].sort((a, b) => {
+          const aHasCoords = a.lat != null && a.lng != null
+          const bHasCoords = b.lat != null && b.lng != null
+          if (!aHasCoords && !bHasCoords) return 0
+          if (!aHasCoords) return 1
+          if (!bHasCoords) return -1
+          if (!userLat) return 0
+          return haversine(userLat, userLng!, a.lat!, a.lng!) - haversine(userLat, userLng!, b.lat!, b.lng!)
+        })
+
+        // 上位20店舗のトーナメントを取得
+        const top = sorted.slice(0, 20)
+        const all: any[] = []
+        await Promise.all(top.map(async store => {
+          const snap = await getDocs(collection(db, "stores", store.id, "tournaments"))
           snap.forEach(d => {
             const data = d.data()
-
             all.push({
               id: d.id,
-              storeId: sid,
-              storeName,
-              storeIconUrl,
+              storeId: store.id,
+              storeName: store.name,
+              storeIconUrl: store.iconUrl,
               ...data,
               createdAt: toDateSafe(data.createdAt),
-              startedAt: toDateSafe(data.startedAt)
+              startedAt: toDateSafe(data.startedAt),
             })
           })
-
-
         }))
         setCalFavTournaments(all)
       } catch {}
     }
     loadCalTournaments()
-  }, [favoriteStores])
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── カレンダー詳細モーダルが開いたときリアルタイム購読
   useEffect(() => {
@@ -578,7 +654,7 @@ export default function HomePage() {
   // Chart: oldest→newest (left→right). One point per tournament = pnl (prize - buyin).
   const tnChartData = useMemo(() => {
     const items = [...sortedTournamentItems].reverse() // oldest on left
-    return items.map(item => {
+    return items.map((item, idx, arr) => {
       const ec = item.entryCount ?? 0, rc = item.reentryCount ?? 0, ac = item.addonCount ?? 0
       const ef = item.entryFee ?? 0, rf = item.reentryFee ?? 0, af = item.addonFee ?? 0
       const prize = item.prize ?? 0, rank = item.rank ?? "-"
@@ -587,7 +663,10 @@ export default function HomePage() {
       const cost = bf > 0 ? buyin / bf : 0
       const reward = bf > 0 ? prize / bf : 0
       const pnl = prize - buyin
-      return { item, buyin, prize, rank, cost, reward, pnl, ef, rf, af, ec, rc, ac }
+      const rrRating: number | null = typeof item.rrRating === 'number' ? item.rrRating : null
+      const prevRr: number | null = idx > 0 && typeof arr[idx - 1].rrRating === 'number' ? arr[idx - 1].rrRating : null
+      const rrDelta: number | null = rrRating !== null && prevRr !== null ? rrRating - prevRr : null
+      return { item, buyin, prize, rank, cost, reward, pnl, ef, rf, af, ec, rc, ac, rrRating, rrDelta }
     })
   }, [sortedTournamentItems])
 
@@ -1214,7 +1293,7 @@ const medalClass = (rank: number) => {
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '18px 22px 22px', position: 'relative', overflow: 'hidden' }}>
+          <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '18px 22px 22px', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
@@ -1291,7 +1370,7 @@ const medalClass = (rank: number) => {
           </div>
 
           {/* スタッツグリッド */}
-          <div style={{ padding: '16px 18px' }}>
+          <div data-tutorial="stats-grid" style={{ padding: '16px 18px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
               {[
                 { label: '参加', value: `${tournamentStats.plays}回`, deltaVal: null },
@@ -1335,6 +1414,86 @@ const medalClass = (rank: number) => {
               <FiAward size={14} />
               ランキングを見る
             </button>
+
+            {/* ── Tournament History（コンパクト埋め込み） ── */}
+            <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 14, marginLeft: -18, marginRight: -18 }}>
+              {/* ヘッダー行 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 18px 8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <FiAward size={14} style={{ color: '#F2A900' }} />
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>Tournament History</p>
+                </div>
+                <button type="button" onClick={() => router.push("/home/tournaments")} style={{ fontSize: 12, fontWeight: 600, color: '#F2A900', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>もっと見る</button>
+              </div>
+
+              {tnChartData.length === 0 ? (
+                <p style={{ textAlign: 'center', fontSize: 12, color: '#9CA3AF', padding: '6px 18px 16px' }}>参加すると記録されます</p>
+              ) : (() => {
+                const STEP = 52, DOT_R = 7, H = 68, PT = 8, PB = 20, PL = 20, PR = 20
+                const n = tnChartData.length
+                const svgW = Math.max(PL + (n - 1) * STEP + PR, 200)
+                const pnls = tnChartData.map(d => d.pnl)
+                const rawMin = Math.min(...pnls), rawMax = Math.max(...pnls)
+                const minP = Math.min(rawMin, 0), maxP = Math.max(rawMax, 0)
+                const range = maxP - minP || 1
+                const yOf = (v: number) => PT + H - ((v - minP) / range) * H
+                const zeroY = yOf(0)
+                const svgH = H + PT + PB
+                return (
+                  <div
+                    ref={historyScrollRef}
+                    style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' as const, paddingLeft: 18, paddingRight: 18, paddingBottom: 14 }}
+                    onScroll={() => { setSelectedTnIdx(null); setTooltipPos(null) }}
+                  >
+                    <div style={{ position: 'relative', width: svgW + 'px', minWidth: '100%' }}>
+                      <svg width={svgW} height={svgH} style={{ display: 'block', overflow: 'visible' }}>
+                        <line x1={PL} y1={zeroY} x2={svgW - PR} y2={zeroY} stroke="rgba(0,0,0,0.08)" strokeWidth={1} strokeDasharray="3 3" />
+                        {n > 1 && (
+                          <polyline
+                            points={tnChartData.map((d, i) => `${PL + i * STEP},${yOf(d.pnl)}`).join(' ')}
+                            fill="none" stroke="#F2A900" strokeWidth={1.5} strokeLinejoin="round"
+                          />
+                        )}
+                        {tnChartData.map((d, i) => {
+                          const cx = PL + i * STEP
+                          const cy = yOf(d.pnl)
+                          const isSelected = selectedTnIdx === i
+                          const dotColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#9ca3af'
+                          const ts = d.item.startedAt
+                          const dateStr = ts
+                            ? (() => { const dt: Date = ts.toDate ? ts.toDate() : new Date(ts); return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}` })()
+                            : ''
+                          return (
+                            <g key={i} style={{ cursor: 'pointer' }}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (selectedTnIdx === i) { setSelectedTnIdx(null); setTooltipPos(null); return }
+                                const circ = (e.currentTarget as SVGGElement).querySelector('circle:not([fill="transparent"])')!
+                                const rect = circ.getBoundingClientRect()
+                                const tipW = 268
+                                const above = rect.top >= 252
+                                const left = Math.min(Math.max(rect.left + rect.width / 2 - tipW / 2, 8), window.innerWidth - tipW - 8)
+                                const top = above ? rect.top - 240 : rect.bottom + 12
+                                setSelectedTnIdx(i)
+                                setTooltipPos({ left, top, above })
+                              }}
+                            >
+                              {/* タップ領域を大きく確保 */}
+                              <circle cx={cx} cy={cy} r={16} fill="transparent" />
+                              <circle cx={cx} cy={cy} r={isSelected ? DOT_R + 2 : DOT_R} fill={dotColor} stroke="#fff" strokeWidth={2} />
+                              {d.rank !== '-' && (
+                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={5} fontWeight={700}>{d.rank}</text>
+                              )}
+                              <text x={cx} y={svgH - 4} textAnchor="middle" fill="rgba(60,60,67,0.40)" fontSize={8} fontWeight={500}>{dateStr}</text>
+                            </g>
+                          )
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+                )
+              })()}
+            </div>
           </div>
         </div>
 
@@ -1342,14 +1501,14 @@ const medalClass = (rank: number) => {
         {currentStoreId && currentStore ? (
           <>
             {/* 退店ボタン */}
-            <button type="button" onClick={handleLeaveStore}
+            <button data-tutorial="checkout-btn" type="button" onClick={handleLeaveStore}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
             >
               <FiLogOut className="text-[15px]" />退店する
             </button>
 
             {/* バンクロールカード */}
-            <div className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
+            <div data-tutorial="balance-card" className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
               <div className="bank-card-inner">
 
                 {/* ── Front ── */}
@@ -1482,7 +1641,7 @@ const medalClass = (rank: number) => {
               )
               if (noData) {
                 return (
-                  <div className="section-card animate-slideUp" {...swipeHandlers}>
+                  <div data-tutorial="chip-graph" className="section-card animate-slideUp" {...swipeHandlers}>
                     <div className="flex items-center gap-2 mb-3">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
                       <p className="text-[13px] font-semibold text-gray-900">
@@ -1505,7 +1664,7 @@ const medalClass = (rank: number) => {
               const lastVal = pts[pts.length - 1]
               const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
               return (
-                <div className="section-card animate-slideUp" {...swipeHandlers}>
+                <div data-tutorial="chip-graph" className="section-card animate-slideUp" {...swipeHandlers}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <FiBarChart2 className="text-[15px] text-[#F2A900]" />
@@ -1561,7 +1720,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* ランキング */}
-            <div className="section-card animate-slideUp">
+            <div data-tutorial="store-ranking" className="section-card animate-slideUp">
               {/* ヘッダー */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -1694,8 +1853,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* 5日間スケジュールタブ */}
-            {favoriteStores.length > 0 && (
-              <div className="section-card animate-slideUp" style={{ padding: 0, overflow: 'hidden' }}>
+            <div data-tutorial="schedule-section" className="section-card animate-slideUp" style={{ padding: 0, overflow: 'hidden' }}>
                 {/* ── セクションヘッダー */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 14px' }}>
                   <FiCalendar color="#F2A900" size={15} />
@@ -1797,93 +1955,7 @@ const medalClass = (rank: number) => {
                   )}
                 </div>
               </div>
-            )}
 
-            {/* トーナメント履歴 */}
-            <div className="section-card animate-slideUp">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <FiAward className="text-[17px] text-[#F2A900]" />
-                  <p className="text-[15px] font-semibold text-gray-900">Tournament History</p>
-                </div>
-                <button onClick={() => router.push("/home/tournaments")} className="text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
-              </div>
-
-              {tnChartData.length === 0 ? (
-                <div className="text-center py-10">
-                  <div className="h-14 w-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                    <FiAward className="text-gray-300" size={24} />
-                  </div>
-                  <p className="text-[13px] text-gray-400">トーナメント履歴がありません</p>
-                  <p className="text-[11px] text-gray-300 mt-1">参加すると記録されます</p>
-                </div>
-              ) : (() => {
-                const STEP = 72, DOT_R = 9, H = 120, PT = 16, PB = 28, PL = 24, PR = 24
-                const n = tnChartData.length
-                const svgW = Math.max(PL + (n - 1) * STEP + PR, 240)
-                const pnls = tnChartData.map(d => d.pnl)
-                const rawMin = Math.min(...pnls), rawMax = Math.max(...pnls)
-                const minP = Math.min(rawMin, 0), maxP = Math.max(rawMax, 0)
-                const range = maxP - minP || 1
-                const yOf = (v: number) => PT + H - ((v - minP) / range) * H
-                const zeroY = yOf(0)
-                const svgH = H + PT + PB
-                return (
-                  <div
-                    ref={historyScrollRef}
-                    style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' as const, marginLeft: -16, marginRight: -16, paddingLeft: 16, paddingRight: 16 }}
-                    onScroll={() => { setSelectedTnIdx(null); setTooltipPos(null) }}
-                  >
-                    <div style={{ position: 'relative', width: svgW + 'px', minWidth: '100%' }}>
-                      <svg width={svgW} height={svgH} style={{ display: 'block', overflow: 'visible' }}>
-                        {/* Zero line */}
-                        <line x1={PL} y1={zeroY} x2={svgW - PR} y2={zeroY} stroke="rgba(0,0,0,0.1)" strokeWidth={1} strokeDasharray="4 3" />
-                        {/* Connecting line */}
-                        {n > 1 && (
-                          <polyline
-                            points={tnChartData.map((d, i) => `${PL + i * STEP},${yOf(d.pnl)}`).join(' ')}
-                            fill="none" stroke="#F2A900" strokeWidth={2} strokeLinejoin="round"
-                          />
-                        )}
-                        {/* Dots + labels */}
-                        {tnChartData.map((d, i) => {
-                          const cx = PL + i * STEP
-                          const cy = yOf(d.pnl)
-                          const isSelected = selectedTnIdx === i
-                          const dotColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#9ca3af'
-                          const ts = d.item.startedAt
-                          const dateStr = ts
-                            ? (() => { const dt: Date = ts.toDate ? ts.toDate() : new Date(ts); return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}` })()
-                            : ''
-                          return (
-                            <g key={i} style={{ cursor: 'pointer' }}
-                              onClick={e => {
-                                e.stopPropagation()
-                                if (selectedTnIdx === i) { setSelectedTnIdx(null); setTooltipPos(null); return }
-                                const circ = (e.currentTarget as SVGGElement).querySelector('circle')!
-                                const rect = circ.getBoundingClientRect()
-                                const tipW = 268
-                                const above = rect.top >= 252
-                                const left = Math.min(Math.max(rect.left + rect.width / 2 - tipW / 2, 8), window.innerWidth - tipW - 8)
-                                const top = above ? rect.top - 240 : rect.bottom + 12
-                                setSelectedTnIdx(i)
-                                setTooltipPos({ left, top, above })
-                              }}
-                            >
-                              <circle cx={cx} cy={cy} r={isSelected ? DOT_R + 2 : DOT_R} fill={dotColor} stroke="#fff" strokeWidth={2.5} />
-                              {d.rank !== '-' && (
-                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="middle" fill="#fff" fontSize={6} fontWeight={700}>{d.rank}</text>
-                              )}
-                              <text x={cx} y={svgH - 6} textAnchor="middle" fill="rgba(60,60,67,0.45)" fontSize={9.5} fontWeight={500}>{dateStr}</text>
-                            </g>
-                          )
-                        })}
-                      </svg>
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
           </>
         )}
       </div>
@@ -1940,6 +2012,24 @@ const medalClass = (rank: number) => {
                 {d.rank !== '-' && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
                     <span>Prize</span><span>{d.prize.toLocaleString()}</span>
+                  </div>
+                )}
+                {d.rrRating !== null && (
+                  <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6, marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 600, color: '#D4910A' }}>トナメ偏差値</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#D4910A' }}>{d.rrRating.toFixed(2)}</span>
+                      {d.rrDelta !== null && Math.abs(d.rrDelta) >= 0.01 && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700,
+                          color: d.rrDelta >= 0 ? '#10b981' : '#ef4444',
+                          background: d.rrDelta >= 0 ? 'rgba(16,185,129,0.10)' : 'rgba(239,68,68,0.10)',
+                          borderRadius: 6, padding: '2px 5px',
+                        }}>
+                          {d.rrDelta >= 0 ? '+' : ''}{d.rrDelta.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2481,7 +2571,116 @@ const medalClass = (rank: number) => {
 
       {/* フッター（変更なし） */}
       <PlayerBottomNav />
+
+      {/* ホームチュートリアル（未入店時・初回のみ） */}
+      {showHomeTutorial && (
+        <TutorialOverlay
+          steps={HOME_TUTORIAL_STEPS}
+          onDone={() => { setShowHomeTutorial(false); markTutorialDone('home') }}
+          onSkip={() => { setShowHomeTutorial(false); markTutorialDone('home') }}
+        />
+      )}
+
+      {/* 入店チュートリアル（初回入店後のみ） */}
+      {showCheckinTutorial && (
+        <TutorialOverlay
+          steps={CHECKIN_TUTORIAL_STEPS}
+          onDone={() => { setShowCheckinTutorial(false); markTutorialDone('checkin') }}
+          onSkip={() => { setShowCheckinTutorial(false); markTutorialDone('checkin') }}
+        />
+      )}
     </main>
   )
 }
+
+// ── チュートリアルステップ定義 ──────────────────────────────────
+
+const HOME_TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    target: 'nav-qr',
+    title: '入店する',
+    body: 'QRコードを表示して、お気に入りの店舗へ入店できます。入店するとチップ管理やランキングが使えます。',
+    spotlightPadding: 10,
+    spotlightRadius: 99,
+  },
+  {
+    target: 'rr-card-hero',
+    title: 'トナメ偏差値',
+    body: '参加したトーナメントをもとに算出された実力指標です。参加するほど精度が上がります。',
+    spotlightPadding: 0,
+    spotlightRadius: 0,
+  },
+  {
+    target: 'stats-grid',
+    title: '成績サマリー',
+    body: '参加数・インマネ率・ROIなど、あなたのトーナメント成績を詳しく確認できます。',
+    spotlightPadding: 8,
+  },
+  {
+    target: 'schedule-section',
+    title: 'スケジュール',
+    body: 'お気に入り店舗のトーナメントスケジュールを日付別に確認できます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'tournament-history',
+    title: 'Tournament History',
+    body: '参加したトーナメントの結果一覧と、成績推移グラフを確認できます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'header-bell',
+    title: 'お知らせ',
+    body: 'お気に入り店舗からのお知らせや、システム通知がここに届きます。',
+    spotlightPadding: 10,
+    spotlightRadius: 99,
+  },
+]
+
+const CHECKIN_TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    target: 'rr-card-hero',
+    title: '入店中',
+    body: '入店中のお店がここに表示されます。緑のインジケーターが光っている間は入店中です。',
+    spotlightPadding: 0,
+    spotlightRadius: 0,
+  },
+  {
+    target: 'nav-qr',
+    title: 'チップ操作',
+    body: '入店中はこのボタンからチップの預け入れや引き出しができます。',
+    spotlightPadding: 10,
+    spotlightRadius: 99,
+  },
+  {
+    target: 'balance-card',
+    title: 'チップ残高・収支',
+    body: '現在の店舗のチップ残高と純増収支を確認できます。タップすると取引履歴が見られます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'chip-graph',
+    title: '収支グラフ',
+    body: 'チップ純増の推移を折れ線グラフで振り返れます。スワイプでトナメ収支グラフにも切り替えられます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'store-ranking',
+    title: '店内ランキング',
+    body: '入店中の店舗のリアルタイム純増ランキングです。あなたの順位も表示されます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'checkout-btn',
+    title: '退店する',
+    body: 'セッション終了後は退店ボタンを押してください。チップ記録は退店後も残ります。',
+    spotlightPadding: 8,
+    spotlightRadius: 16,
+  },
+]
 

@@ -172,6 +172,9 @@ export default function StoreSettingsPage() {
   const [chipUnitBefore, setChipUnitBefore] = useState(true)
   const [chipUnitSuccess, setChipUnitSuccess] = useState("")
   const [chipUnitError, setChipUnitError] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+  const [postalCodeError, setPostalCodeError] = useState("")
+  const [postalCodeSuccess, setPostalCodeSuccess] = useState("")
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -203,6 +206,7 @@ export default function StoreSettingsPage() {
       setBirthdayCouponUnlimited(data?.birthdayCouponUnlimited ?? false)
       setChipUnitLabel(data?.chipUnitLabel ?? "")
       setChipUnitBefore(data?.chipUnitBefore !== false)
+      setPostalCode(data?.postalCode ?? "")
     }
     fetchStore()
   }, [storeId])
@@ -392,6 +396,29 @@ export default function StoreSettingsPage() {
       await Promise.all(promises)
     } catch (error) {
       console.error("Failed to send expiry change notification:", error)
+    }
+  }
+
+  const savePostalCode = async () => {
+    if (!storeId) return
+    const code = postalCode.replace(/[^0-9]/g, "")
+    if (code.length !== 7) { setPostalCodeError("7桁の郵便番号を入力してください（ハイフンなし）"); return }
+    setPostalCodeError("")
+    setPostalCodeSuccess("")
+    try {
+      const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${code}`)
+      const json = await res.json()
+      if (!json.results?.[0]) { setPostalCodeError("郵便番号が見つかりませんでした"); return }
+      const { latitude, longitude } = json.results[0]
+      await updateDoc(doc(db, "stores", storeId), {
+        postalCode: code,
+        lat: parseFloat(latitude),
+        lng: parseFloat(longitude),
+      })
+      setPostalCodeSuccess("保存しました")
+      setTimeout(() => setPostalCodeSuccess(""), 3000)
+    } catch {
+      setPostalCodeError("保存に失敗しました")
     }
   }
 
@@ -604,6 +631,23 @@ export default function StoreSettingsPage() {
             }}>
               有効期限を変更する
             </PrimaryButton>
+          </SectionCard>
+
+          {/* ── 店舗の場所 ── */}
+          <SectionCard>
+            <SectionTitle title="店舗の場所" subtitle="プレイヤーのスケジュール画面で近い順に表示するために使用します" />
+            <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
+            <FieldInput
+              value={postalCode}
+              onChange={v => { setPostalCode(v); setPostalCodeError(""); setPostalCodeSuccess("") }}
+              placeholder="例: 1500001"
+              type="text"
+            />
+            {postalCodeError && <FeedbackText text={postalCodeError} color="red" />}
+            {postalCodeSuccess && <FeedbackText text={postalCodeSuccess} color="green" />}
+            <div className="mt-3">
+              <PrimaryButton onClick={savePostalCode}>保存する</PrimaryButton>
+            </div>
           </SectionCard>
 
           {/* ── レーキ ── */}

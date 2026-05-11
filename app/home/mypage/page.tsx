@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
-import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, where, query } from "firebase/firestore"
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
 import {
   FiUser,
@@ -16,8 +16,6 @@ import {
   FiLogOut,
   FiAlertCircle,
   FiShare2,
-  FiStar,
-  FiTrash2,
   FiChevronRight,
   FiCamera,
 } from "react-icons/fi"
@@ -25,31 +23,9 @@ import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
+import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
+import HandHistoryModal from "@/app/home/HandHistoryModal"
 
-type HandItem = {
-  id: string
-  title: string
-  stakes: { sb: number; bb: number }
-  heroPosition: string
-  heroCards: string[]
-  createdAt?: { seconds?: number }
-  note: string
-  favorite: boolean
-}
-
-const HAND_SUIT_SYM: Record<string, string> = { s: "♠", h: "♥", d: "♦", c: "♣" }
-const HAND_SUIT_CLR: Record<string, string> = { s: "#1C1C1E", h: "#e84040", d: "#3b7dd8", c: "#2da44e" }
-
-function MiniCard({ card }: { card: string }) {
-  if (!card || card.length < 2) return null
-  const rank = card.slice(0, -1)
-  const suit = card.slice(-1)
-  return (
-    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 26, height: 34, borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontWeight: 700, fontSize: 10, color: HAND_SUIT_CLR[suit], boxShadow: '0 1px 3px rgba(0,0,0,0.08)', lineHeight: 1.1 }}>
-      <span>{rank}</span><span>{HAND_SUIT_SYM[suit]}</span>
-    </span>
-  )
-}
 
 type UserProfile = {
   name?: string
@@ -264,10 +240,6 @@ export default function MyPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
   const [birthday, setBirthday] = useState("")
-  const [handItems, setHandItems] = useState<HandItem[]>([])
-  const [handLoading, setHandLoading] = useState(true)
-  const [handDeleteConfirmId, setHandDeleteConfirmId] = useState<string | null>(null)
-  const [handFavorites, setHandFavorites] = useState<Set<string>>(new Set())
   const [uid, setUid] = useState<string | null>(null)
 
   // Extended profile
@@ -279,6 +251,7 @@ export default function MyPage() {
   const [sharingProfile, setSharingProfile] = useState(false)
   const [tourStats, setTourStats] = useState({ plays: 0, itmRate: 0, roi: 0, todayName: null as string | null })
   const [showInStore, setShowInStore] = useState(true)
+  const [showMypageTutorial, setShowMypageTutorial] = useState(false)
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -298,9 +271,19 @@ export default function MyPage() {
       setDraftPokerHistory(data.pokerHistory ?? "")
       setEmail(user.email ?? "")
       setShowInStore(data.showInStore !== false)
+      if (!data.tutorialsDone?.mypage) {
+        setTimeout(() => setShowMypageTutorial(true), 700)
+      }
     })
     return () => unsub()
   }, [])
+
+  const markMypageTutorialDone = async () => {
+    setShowMypageTutorial(false)
+    const user = auth.currentUser
+    if (!user) return
+    try { await updateDoc(doc(db, 'users', user.uid), { 'tutorialsDone.mypage': true }) } catch {}
+  }
 
   useEffect(() => {
     if (shouldDelete === "1") deleteAccount()
@@ -311,33 +294,6 @@ export default function MyPage() {
       if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
-
-  useEffect(() => {
-    if (!uid) return
-    const loadHands = async () => {
-      setHandLoading(true)
-      try {
-        const q = query(collection(db, "handHistories"), where("creatorId", "==", uid))
-        const snap = await getDocs(q)
-        const items: HandItem[] = snap.docs.map(d => {
-          const data = d.data()
-          return { id: d.id, favorite: false, title: data.title ?? "", stakes: data.stakes ?? { sb: 0, bb: 0 }, heroPosition: data.heroPosition ?? "", heroCards: data.heroCards ?? [], createdAt: data.createdAt ?? null, note: data.note ?? "" }
-        })
-        const favSnap = await getDocs(collection(db, "users", uid, "handFavorites"))
-        const favSet = new Set<string>(favSnap.docs.map(d => d.id))
-        setHandFavorites(favSet)
-        items.sort((a, b) => {
-          const af = favSet.has(a.id) ? 1 : 0
-          const bf = favSet.has(b.id) ? 1 : 0
-          if (bf !== af) return bf - af
-          return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0)
-        })
-        setHandItems(items)
-      } catch (e) { console.error("hand load error", e) }
-      setHandLoading(false)
-    }
-    loadHands()
-  }, [uid])
 
   useEffect(() => {
     if (!uid) return
@@ -362,41 +318,6 @@ export default function MyPage() {
       setTourStats({ plays, itmRate, roi, todayName: todayItem?.tournamentName ?? null })
     })
   }, [uid])
-
-  const toggleHandFavorite = async (handId: string) => {
-    const user = auth.currentUser
-    if (!user) return
-    const isFav = handFavorites.has(handId)
-    const ref = doc(db, "users", user.uid, "handFavorites", handId)
-    if (isFav) {
-      await deleteDoc(ref)
-      setHandFavorites(prev => { const n = new Set(prev); n.delete(handId); return n })
-    } else {
-      await setDoc(ref, { addedAt: serverTimestamp() })
-      setHandFavorites(prev => new Set([...prev, handId]))
-    }
-  }
-
-  const deleteHand = async (handId: string) => {
-    const user = auth.currentUser
-    if (!user) return
-    try {
-      await deleteDoc(doc(db, "handHistories", handId))
-      await deleteDoc(doc(db, "users", user.uid, "handFavorites", handId)).catch(() => {})
-      setHandItems(prev => prev.filter(h => h.id !== handId))
-      setHandFavorites(prev => { const n = new Set(prev); n.delete(handId); return n })
-    } catch {}
-    setHandDeleteConfirmId(null)
-  }
-
-  const shareHand = async (handId: string, title: string) => {
-    const url = `${window.location.origin}/hand/${handId}`
-    if (navigator.share) {
-      try { await navigator.share({ title: title || "ハンドレビュー", url }) } catch {}
-    } else {
-      try { await navigator.clipboard.writeText(url) } catch {}
-    }
-  }
 
   const saveBirthday = async () => {
     const user = auth.currentUser
@@ -519,6 +440,7 @@ export default function MyPage() {
   }
 
   return (
+    <>
     <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {
@@ -559,7 +481,7 @@ export default function MyPage() {
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
 
         {/* ── プロフィールカード ── */}
-        <div className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+        <div data-tutorial="mypage-profile" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
 
           {/* ヘッダーバンド */}
           <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -697,7 +619,7 @@ export default function MyPage() {
         </div>
 
         {/* ── 設定リスト ── */}
-        <div className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <div data-tutorial="mypage-settings" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -737,65 +659,6 @@ export default function MyPage() {
               }} />
             </button>
           </div>
-        </div>
-
-        {/* ── ハンドヒストリー ── */}
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px 10px' }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.04em', textTransform: 'uppercase' }}>ハンドヒストリー</p>
-            {handItems.length > 0 && <p style={{ fontSize: 12, color: '#8E8E93' }}>{handItems.length}件</p>}
-          </div>
-
-          {handLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '28px 0' }}>
-              <div style={{ width: 24, height: 24, borderRadius: '50%', border: '2.5px solid #F2A900', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
-            </div>
-          ) : handItems.length === 0 ? (
-            <div className="mp-card" style={{ padding: '36px 20px', textAlign: 'center' }}>
-              <p style={{ fontSize: 32, marginBottom: 8 }}>🃏</p>
-              <p style={{ fontSize: 13, color: '#8E8E93', fontWeight: 500 }}>ハンドヒストリーがありません</p>
-              <p style={{ fontSize: 11, color: '#C7C7CC', marginTop: 4 }}>ホームのボタンから作成できます</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {handItems.map(hand => (
-                <div key={hand.id} className="mp-card" style={{ padding: '14px 16px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hand.title || "ハンドレビュー"}</p>
-                      <p style={{ fontSize: 11, color: '#8E8E93', marginTop: 2 }}>
-                        {hand.stakes?.sb}/{hand.stakes?.bb} · {hand.heroPosition}
-                        {hand.createdAt?.seconds ? ` · ${new Date(hand.createdAt.seconds * 1000).toLocaleDateString("ja-JP")}` : ""}
-                      </p>
-                    </div>
-                    {handFavorites.has(hand.id) && <FiStar size={14} style={{ color: '#F2A900', flexShrink: 0, marginTop: 2 }} fill="currentColor" />}
-                  </div>
-
-                  {(hand.heroCards ?? []).length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                      {(hand.heroCards ?? []).map((c, i) => <MiniCard key={i} card={c} />)}
-                    </div>
-                  )}
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button type="button" onClick={() => shareHand(hand.id, hand.title)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, height: 32, padding: '0 12px', borderRadius: 8, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer' }}>
-                      <FiShare2 size={11} />シェア
-                    </button>
-                    <button type="button" onClick={() => toggleHandFavorite(hand.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, height: 32, padding: '0 12px', borderRadius: 8, border: `1.5px solid ${handFavorites.has(hand.id) ? 'rgba(242,169,0,0.4)' : 'rgba(0,0,0,0.1)'}`, background: handFavorites.has(hand.id) ? 'rgba(242,169,0,0.08)' : 'transparent', fontSize: 12, fontWeight: 600, color: handFavorites.has(hand.id) ? '#D4910A' : '#8E8E93', cursor: 'pointer' }}>
-                      <FiStar size={11} fill={handFavorites.has(hand.id) ? "currentColor" : "none"} />
-                      {handFavorites.has(hand.id) ? "お気に入り済" : "お気に入り"}
-                    </button>
-                    <button type="button" onClick={() => setHandDeleteConfirmId(hand.id)}
-                      style={{ marginLeft: 'auto', width: 32, height: 32, borderRadius: 8, border: '1.5px solid rgba(0,0,0,0.1)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                      <FiTrash2 size={13} style={{ color: '#8E8E93' }} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* ── アカウント操作 ── */}
@@ -866,29 +729,6 @@ export default function MyPage() {
         </div>
       )}
 
-      {/* ── ハンド削除モーダル ── */}
-      {handDeleteConfirmId && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-          onClick={() => setHandDeleteConfirmId(null)}>
-          <div className="mp-sheet" style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, padding: '12px 20px 40px' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
-            <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>ハンドを削除しますか？</p>
-            <p style={{ fontSize: 13, color: '#8E8E93', marginBottom: 24, lineHeight: 1.6 }}>この操作は取り消せません。共有リンクも無効になります。</p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" onClick={() => setHandDeleteConfirmId(null)}
-                style={{ flex: 1, height: 50, borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 15, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer' }}>
-                キャンセル
-              </button>
-              <button type="button" onClick={() => deleteHand(handDeleteConfirmId)}
-                style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#FF3B30', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer' }}>
-                削除する
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── アカウント削除確認モーダル ── */}
       {showDeleteConfirm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
@@ -925,6 +765,34 @@ export default function MyPage() {
 
       {/* ── ボトムナビ ── */}
       <PlayerBottomNav />
+
+      {/* マイページチュートリアル（初回のみ） */}
+      {showMypageTutorial && (
+        <TutorialOverlay
+          steps={MYPAGE_TUTORIAL_STEPS}
+          onDone={markMypageTutorialDone}
+          onSkip={markMypageTutorialDone}
+        />
+      )}
     </main>
+    <HandHistoryModal userId={uid} creatorName={profile?.name ?? ""} />
+    </>
   )
 }
+
+const MYPAGE_TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    target: 'mypage-profile',
+    title: 'プロフィール',
+    body: 'アイコン・名前・地域などプロフィールを設定できます。プロフィールカードをシェアする機能もあります。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+  {
+    target: 'mypage-settings',
+    title: '設定',
+    body: 'パスワード変更や入店中の表示設定などはここから行えます。',
+    spotlightPadding: 0,
+    spotlightRadius: 20,
+  },
+]
