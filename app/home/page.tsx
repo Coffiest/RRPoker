@@ -924,13 +924,13 @@ const medalClass = (rank: number) => {
   // ── 5日間スケジュール用エントリー生成
   const scheduleDays = useMemo(() => {
     const DOW_JA = ["日", "月", "火", "水", "木", "金", "土"]
-    return Array.from({ length: 5 }, (_, i) => {
+    return Array.from({ length: scheduleDaysCount }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
       return { ds, day: d.getDate(), dow: DOW_JA[d.getDay()], isToday: i === 0, isSun: d.getDay() === 0, isSat: d.getDay() === 6 }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [scheduleDaysCount])
 
   const scheduleEntries = useMemo(() => {
     const map: Record<string, any[]> = {}
@@ -1860,9 +1860,12 @@ const medalClass = (rank: number) => {
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>スケジュール</p>
                 </div>
 
-                {/* ── 5日タブ */}
-                <div style={{ display: 'flex', gap: 6, padding: '0 14px 14px' }}>
-                  {scheduleDays.map(({ ds, day, dow, isToday, isSun, isSat }) => {
+                {/* ── 日付タブ（スクロール可） */}
+                <div
+                  ref={scheduleTabScrollRef}
+                  style={{ display: 'flex', gap: 6, padding: '0 14px 14px', overflowX: 'auto', scrollbarWidth: 'none' }}
+                >
+                  {scheduleDays.map(({ ds, day, dow, isSun, isSat }) => {
                     const entries = scheduleEntries[ds] ?? []
                     const selected = calScheduleTab === ds
                     const dowColor = selected ? 'rgba(255,255,255,0.8)' : isSun ? '#FF3B30' : isSat ? '#007AFF' : '#8E8E93'
@@ -1873,7 +1876,8 @@ const medalClass = (rank: number) => {
                         type="button"
                         onClick={() => setCalScheduleTab(ds)}
                         style={{
-                          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                          flexShrink: 0, flexBasis: 'calc((100% - 6px * 4) / 5)',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                           padding: '9px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
                           background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
                           boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
@@ -1890,6 +1894,27 @@ const medalClass = (rank: number) => {
                       </button>
                     )
                   })}
+
+                  {/* もっと見るボタン */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScheduleDaysCount(c => c + 7)
+                      setTimeout(() => {
+                        if (scheduleTabScrollRef.current)
+                          scheduleTabScrollRef.current.scrollLeft = scheduleTabScrollRef.current.scrollWidth
+                      }, 50)
+                    }}
+                    style={{
+                      flexShrink: 0, flexBasis: 'calc((100% - 6px * 4) / 5)',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
+                      padding: '9px 0 8px', borderRadius: 14, border: '1.5px dashed #D1C9BD', cursor: 'pointer',
+                      background: 'transparent',
+                    }}
+                  >
+                    <span style={{ fontSize: 16, color: '#AEAEB2', lineHeight: 1 }}>›</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', letterSpacing: '0.02em' }}>もっと見る</span>
+                  </button>
                 </div>
 
                 {/* ── 区切り */}
