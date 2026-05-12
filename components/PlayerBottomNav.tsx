@@ -16,10 +16,11 @@ const TOOLS_ITEMS = [
   { key: 'hand-record', label: 'ハンド記録',       event: 'rrpoker:tool:hand-record' },
 ] as const
 
+// Indicator is 34px wide; each button center sits at 1/6, 1/2, 5/6 of pill width (space-around)
 const IND_LEFT: Record<ActiveTab, string> = {
-  home:   'calc(100% / 6 - 2px)',
-  action: 'calc(50% - 20px)',
-  mypage: 'calc(5 * 100% / 6 - 38px)',
+  home:   'calc(100% / 6 - 17px)',
+  action: 'calc(50% - 17px)',
+  mypage: 'calc(5 * 100% / 6 - 17px)',
 }
 
 const GLASS: React.CSSProperties = {
@@ -125,22 +126,24 @@ export default function PlayerBottomNav() {
         left: 0,
         right: 0,
         zIndex: 80,
-        paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-        paddingLeft: 12,
-        paddingRight: 12,
+        paddingTop: 6,
+        paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
+        paddingLeft: 10,
+        paddingRight: 10,
       }}>
-        <div style={{ maxWidth: 390, margin: '0 auto', display: 'flex', alignItems: 'stretch', gap: 8 }}>
+        <div style={{ maxWidth: 390, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
 
           {/* ── メインピル ── */}
           <div
             style={{
               ...GLASS,
               flex: 1,
+              minWidth: 0,
               position: 'relative',
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
+              display: 'flex',
+              justifyContent: 'space-around',
               alignItems: 'center',
-              padding: '10px 20px',
+              padding: '10px 4px',
             }}
           >
             {/* スライドインジケーター */}
@@ -171,33 +174,31 @@ export default function PlayerBottomNav() {
             </button>
 
             {/* センター（QR / チップ） */}
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <button
-                type="button"
-                onClick={handleCenter}
-                data-tutorial="nav-qr"
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg,#F2A900,#D4910A)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: activeTab === 'action'
-                    ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
-                    : '0 4px 14px rgba(242,169,0,0.45)',
-                  transition: 'box-shadow 0.35s ease',
-                  flexShrink: 0,
-                }}
-              >
-                {currentStoreId
-                  ? <FiCreditCard size={20} style={{ color: '#fff' }} />
-                  : <MdQrCode2    size={22} style={{ color: '#fff' }} />}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleCenter}
+              data-tutorial="nav-qr"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg,#F2A900,#D4910A)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: activeTab === 'action'
+                  ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
+                  : '0 4px 14px rgba(242,169,0,0.45)',
+                transition: 'box-shadow 0.35s ease',
+                flexShrink: 0,
+              }}
+            >
+              {currentStoreId
+                ? <FiCreditCard size={20} style={{ color: '#fff' }} />
+                : <MdQrCode2    size={22} style={{ color: '#fff' }} />}
+            </button>
 
             {/* マイページ */}
             <button
@@ -211,7 +212,7 @@ export default function PlayerBottomNav() {
           </div>
 
           {/* ── Tools ピル ── */}
-          <div style={{ position: 'relative', flexShrink: 0, alignSelf: 'stretch' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
             {/* サブメニュー */}
             {toolsOpen && (
               <div style={{
@@ -256,9 +257,8 @@ export default function PlayerBottomNav() {
               onClick={() => setToolsOpen(prev => !prev)}
               style={{
                 ...GLASS,
-                width: 'auto',
-                height: '100%',
-                aspectRatio: '1 / 1',
+                width: 52,
+                height: 52,
                 border: 'none',
                 cursor: 'pointer',
                 display: 'flex',
