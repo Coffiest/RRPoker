@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
-import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2 } from "react-icons/fi"
+import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2, FiGlobe } from "react-icons/fi"
+import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
@@ -29,6 +30,9 @@ type StoreInfo = {
   ringBlindBb?: number
   chipExpiryMonths?: number
   balanceGroupId?: string
+  snsInstagram?: string
+  snsX?: string
+  snsWeb?: string
 }
 type UserProfile = { name?: string; iconUrl?: string }
 type StorePlayer = { id: string; name?: string; iconUrl?: string }
@@ -356,7 +360,7 @@ export default function HomePage() {
         const snap = await getDoc(doc(db, "stores", storeId))
         if (!snap.exists()) return
         const data = snap.data() as StoreInfo
-        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined, balanceGroupId: typeof data.balanceGroupId === "string" ? data.balanceGroupId : undefined }
+        next[storeId] = { id: storeId, name: data.name, iconUrl: data.iconUrl, address: data.address, chipUnitLabel: data.chipUnitLabel, chipUnitBefore: data.chipUnitBefore !== false, description: data.description, ringBlindSb: typeof data.ringBlindSb === "number" ? data.ringBlindSb : undefined, ringBlindBb: typeof data.ringBlindBb === "number" ? data.ringBlindBb : undefined, chipExpiryMonths: typeof data.chipExpiryMonths === "number" ? data.chipExpiryMonths : undefined, balanceGroupId: typeof data.balanceGroupId === "string" ? data.balanceGroupId : undefined, snsInstagram: (data as any).snsInstagram || undefined, snsX: (data as any).snsX || undefined, snsWeb: (data as any).snsWeb || undefined }
       }))
       setStores(next)
     }
@@ -490,7 +494,7 @@ export default function HomePage() {
       try {
         // 全店舗を取得
         const storesSnap = await getDocs(collection(db, "stores"))
-        const storesList: { id: string; name: string; iconUrl: string | null; lat?: number; lng?: number }[] = []
+        const storesList: { id: string; name: string; iconUrl: string | null; lat?: number; lng?: number; snsInstagram?: string; snsX?: string; snsWeb?: string }[] = []
         storesSnap.forEach(d => {
           const data = d.data()
           storesList.push({
@@ -499,6 +503,9 @@ export default function HomePage() {
             iconUrl: data.iconUrl ?? null,
             lat: typeof data.lat === "number" ? data.lat : undefined,
             lng: typeof data.lng === "number" ? data.lng : undefined,
+            snsInstagram: data.snsInstagram || undefined,
+            snsX: data.snsX || undefined,
+            snsWeb: data.snsWeb || undefined,
           })
         })
 
@@ -547,6 +554,9 @@ export default function HomePage() {
               storeId: store.id,
               storeName: store.name,
               storeIconUrl: store.iconUrl,
+              storeSnsInstagram: store.snsInstagram,
+              storeSnsX: store.snsX,
+              storeSnsWeb: store.snsWeb,
               ...data,
               createdAt: toDateSafe(data.createdAt),
               startedAt: toDateSafe(data.startedAt),
@@ -2242,7 +2252,30 @@ const medalClass = (rank: number) => {
                 <p className="text-[12px] text-gray-400 mt-0.5">{selectedStore.address}</p>
               </div>
             </div>
-            <p className="text-[13px] text-gray-600 leading-relaxed mb-5">{selectedStore.description || "店舗の説明はまだありません"}</p>
+            <p className="text-[13px] text-gray-600 leading-relaxed mb-4">{selectedStore.description || "店舗の説明はまだありません"}</p>
+            {(selectedStore.snsInstagram || selectedStore.snsX || selectedStore.snsWeb) && (
+              <div className="flex items-center gap-3 mb-5">
+                {selectedStore.snsInstagram && (
+                  <a href={selectedStore.snsInstagram} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-95 transition-transform"
+                    style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }}>
+                    <FaInstagram size={18} />
+                  </a>
+                )}
+                {selectedStore.snsX && (
+                  <a href={selectedStore.snsX} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
+                    <FaXTwitter size={17} />
+                  </a>
+                )}
+                {selectedStore.snsWeb && (
+                  <a href={selectedStore.snsWeb} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
+                    <FiGlobe size={17} />
+                  </a>
+                )}
+              </div>
+            )}
             <div className="space-y-2.5">
               <button type="button" onClick={() => joinStore(selectedStore.id)} className="h-12 w-full rounded-2xl gold-btn text-[15px] font-semibold text-gray-900">入店する</button>
               <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
@@ -2584,6 +2617,30 @@ const medalClass = (rank: number) => {
                         </>
                       )
                     })()}
+
+                    {/* SNS links */}
+                    {(entry.storeSnsInstagram || entry.storeSnsX || entry.storeSnsWeb) && (
+                      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
+                        {entry.storeSnsInstagram && (
+                          <a href={entry.storeSnsInstagram} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm active:scale-95 transition-transform">
+                            <FaInstagram size={17} />
+                          </a>
+                        )}
+                        {entry.storeSnsX && (
+                          <a href={entry.storeSnsX} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
+                            <FaXTwitter size={16} />
+                          </a>
+                        )}
+                        {entry.storeSnsWeb && (
+                          <a href={entry.storeSnsWeb} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
+                            <FiGlobe size={16} />
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

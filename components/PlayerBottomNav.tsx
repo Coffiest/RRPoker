@@ -16,12 +16,13 @@ const TOOLS_ITEMS = [
   { key: 'hand-record', label: 'ハンド記録',       event: 'rrpoker:tool:hand-record' },
 ] as const
 
-// Indicator is 34px wide; each button center sits at 1/6, 1/2, 5/6 of pill width (space-around)
+// 3 equal flex columns → centers at exactly 1/6, 1/2, 5/6; indicator 34px wide (half=17px)
 const IND_LEFT: Record<ActiveTab, string> = {
   home:   'calc(100% / 6 - 17px)',
   action: 'calc(50% - 17px)',
   mypage: 'calc(5 * 100% / 6 - 17px)',
 }
+const NAV_H = 56   // pill height and Tools button size (square)
 
 const GLASS: React.CSSProperties = {
   borderRadius: 9999,
@@ -119,7 +120,7 @@ export default function PlayerBottomNav() {
         />
       )}
 
-      {/* nav は padding-bottom で safe area を吸収し、自身は bottom:0 に固定 */}
+      {/* bottom:0 固定、safe-area は paddingBottom で吸収 */}
       <nav style={{
         position: 'fixed',
         bottom: 0,
@@ -128,32 +129,31 @@ export default function PlayerBottomNav() {
         zIndex: 80,
         paddingTop: 6,
         paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingLeft: 8,
+        paddingRight: 8,
       }}>
-        <div style={{ maxWidth: 390, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* gap:4 + Tools(NAV_H) + main pill(flex:1) — maxWidth でタブレット対応 */}
+        <div style={{ maxWidth: 390, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 4 }}>
 
           {/* ── メインピル ── */}
-          <div
-            style={{
-              ...GLASS,
-              flex: 1,
-              minWidth: 0,
-              position: 'relative',
-              display: 'flex',
-              justifyContent: 'space-around',
-              alignItems: 'center',
-              padding: '10px 4px',
-            }}
-          >
-            {/* スライドインジケーター */}
+          <div style={{
+            ...GLASS,
+            flex: 1,
+            minWidth: 0,
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            height: NAV_H,
+            padding: 0,
+          }}>
+            {/* インジケーター: 34px幅, flex:1×3列なので中心が正確に1/6,1/2,5/6 */}
             <div style={{
               position: 'absolute',
               left: indLeft,
               top: '50%',
               transform: 'translateY(-50%)',
-              width: 40,
-              height: 40,
+              width: 34,
+              height: 34,
               borderRadius: '50%',
               background: 'rgba(242,169,0,0.14)',
               opacity: indVisible ? 1 : 0,
@@ -163,28 +163,28 @@ export default function PlayerBottomNav() {
               pointerEvents: 'none',
             }} />
 
-            {/* ホーム */}
+            {/* ホーム (flex:1 = 1/3列, 中心=1/6) */}
             <button
               type="button"
               onClick={() => router.push('/home')}
-              style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}
+              style={{ flex: 1, ...col('home'), background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: 0 }}
             >
               <FiHome size={20} />
               <span style={{ fontSize: 9, fontWeight: col('home').fontWeight }}>ホーム</span>
             </button>
 
-            {/* センター（QR / チップ） */}
+            {/* センター: flex:1ラッパー内で42pxの円 (中心=1/2) */}
             <button
               type="button"
               onClick={handleCenter}
               data-tutorial="nav-qr"
-              style={{
-                width: 44,
-                height: 44,
+              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+            >
+              <div style={{
+                width: 42,
+                height: 42,
                 borderRadius: '50%',
                 background: 'linear-gradient(135deg,#F2A900,#D4910A)',
-                border: 'none',
-                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -192,28 +192,26 @@ export default function PlayerBottomNav() {
                   ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
                   : '0 4px 14px rgba(242,169,0,0.45)',
                 transition: 'box-shadow 0.35s ease',
-                flexShrink: 0,
-              }}
-            >
-              {currentStoreId
-                ? <FiCreditCard size={20} style={{ color: '#fff' }} />
-                : <MdQrCode2    size={22} style={{ color: '#fff' }} />}
+              }}>
+                {currentStoreId
+                  ? <FiCreditCard size={19} style={{ color: '#fff' }} />
+                  : <MdQrCode2    size={21} style={{ color: '#fff' }} />}
+              </div>
             </button>
 
-            {/* マイページ */}
+            {/* マイページ (flex:1 = 1/3列, 中心=5/6) */}
             <button
               type="button"
               onClick={() => router.push('/home/mypage')}
-              style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}
+              style={{ flex: 1, ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: 0 }}
             >
               <FiUser size={20} />
               <span style={{ fontSize: 9, fontWeight: col('mypage').fontWeight }}>マイページ</span>
             </button>
           </div>
 
-          {/* ── Tools ピル ── */}
+          {/* ── Tools ピル: NAV_H × NAV_H でメインピルと高さ一致 ── */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            {/* サブメニュー */}
             {toolsOpen && (
               <div style={{
                 position: 'absolute',
@@ -232,9 +230,9 @@ export default function PlayerBottomNav() {
                     onClick={() => handleToolItem(item.event)}
                     style={{
                       ...GLASS,
-                      height: 44,
-                      minWidth: 150,
-                      padding: '0 18px',
+                      height: 42,
+                      minWidth: 140,
+                      padding: '0 16px',
                       border: 'none',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
@@ -245,20 +243,19 @@ export default function PlayerBottomNav() {
                       animationDelay: `${i * 0.06}s`,
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Tools ボタン本体 */}
             <button
               type="button"
               onClick={() => setToolsOpen(prev => !prev)}
               style={{
                 ...GLASS,
-                width: 52,
-                height: 52,
+                width: NAV_H,
+                height: NAV_H,
                 border: 'none',
                 cursor: 'pointer',
                 display: 'flex',

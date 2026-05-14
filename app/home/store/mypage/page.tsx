@@ -6,7 +6,8 @@ import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { deleteField, doc, getDoc, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
-import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget } from "react-icons/fi"
+import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe } from "react-icons/fi"
+import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 
@@ -45,6 +46,13 @@ export default function StoreMyPage() {
   const [blindBb, setBlindBb] = useState("")
   const [blindError, setBlindError] = useState("")
   const [blindSuccess, setBlindSuccess] = useState("")
+
+  const [draftInstagram, setDraftInstagram] = useState("")
+  const [draftSnsX, setDraftSnsX] = useState("")
+  const [draftSnsWeb, setDraftSnsWeb] = useState("")
+  const [snsError, setSnsError] = useState("")
+  const [snsSuccess, setSnsSuccess] = useState("")
+  const [snsSaving, setSnsSaving] = useState(false)
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -93,6 +101,9 @@ export default function StoreMyPage() {
       setDraftAddressDetail(data.addressDetail ?? "")
       setBlindSb(typeof data.ringBlindSb === "number" ? `${data.ringBlindSb}` : "")
       setBlindBb(typeof data.ringBlindBb === "number" ? `${data.ringBlindBb}` : "")
+      setDraftInstagram(data.snsInstagram ?? "")
+      setDraftSnsX(data.snsX ?? "")
+      setDraftSnsWeb(data.snsWeb ?? "")
     }
 
     fetchStore()
@@ -229,6 +240,26 @@ export default function StoreMyPage() {
       { merge: true }
     )
     setBlindSuccess("保存しました")
+  }
+
+  const saveSns = async () => {
+    if (!storeId) return
+    setSnsError("")
+    setSnsSuccess("")
+    setSnsSaving(true)
+    try {
+      const payload = {
+        snsInstagram: draftInstagram.trim(),
+        snsX: draftSnsX.trim(),
+        snsWeb: draftSnsWeb.trim(),
+      }
+      await setDoc(doc(db, "stores", storeId), payload, { merge: true })
+      setSnsSuccess("保存しました")
+    } catch {
+      setSnsError("保存に失敗しました")
+    } finally {
+      setSnsSaving(false)
+    }
   }
 
   const logout = async () => {
@@ -598,6 +629,76 @@ export default function StoreMyPage() {
             className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 transition-all active:scale-98"
           >
             ブラインドを保存
+          </button>
+        </div>
+
+        {/* SNS Links Card */}
+        <div className="mt-4 profile-card rounded-3xl p-6 animate-slideUp">
+          <div className="flex items-center gap-2 mb-4">
+            <FiGlobe className="text-[#F2A900]" size={18} />
+            <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
+          </div>
+          <p className="text-[13px] text-gray-500 mb-4">入力したリンクはプレイヤーのスケジュール画面に表示されます</p>
+
+          <div className="space-y-3">
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                <FaInstagram size={13} className="text-[#E1306C]" />Instagram URL
+              </label>
+              <input
+                type="url"
+                value={draftInstagram}
+                onChange={e => setDraftInstagram(e.target.value)}
+                placeholder="https://www.instagram.com/yourstore"
+                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+              />
+            </div>
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                <FaXTwitter size={13} className="text-gray-900" />X（旧Twitter）URL
+              </label>
+              <input
+                type="url"
+                value={draftSnsX}
+                onChange={e => setDraftSnsX(e.target.value)}
+                placeholder="https://x.com/yourstore"
+                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+              />
+            </div>
+            <div>
+              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                <FiGlobe size={13} className="text-blue-500" />Webサイト URL
+              </label>
+              <input
+                type="url"
+                value={draftSnsWeb}
+                onChange={e => setDraftSnsWeb(e.target.value)}
+                placeholder="https://yourstore.com"
+                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+              />
+            </div>
+          </div>
+
+          {snsError && (
+            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+              <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+              <p className="text-[12px] text-red-700 font-medium">{snsError}</p>
+            </div>
+          )}
+          {snsSuccess && (
+            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
+              <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
+              <p className="text-[12px] text-[#D4910A] font-medium">{snsSuccess}</p>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={saveSns}
+            disabled={snsSaving}
+            className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
+          >
+            {snsSaving ? "保存中..." : "SNSリンクを保存"}
           </button>
         </div>
 
