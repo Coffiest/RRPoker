@@ -18,8 +18,9 @@ import {
 } from "firebase/firestore"
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
-  FiSkipForward, FiSkipBack, FiUsers, FiTrendingUp, FiDollarSign,
-  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight,
+  FiSkipForward, FiSkipBack, FiUsers, FiDollarSign,
+  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight, FiMaximize2,
+  FiChevronDown, FiMenu,
 } from "react-icons/fi"
 
 type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
@@ -43,6 +44,11 @@ export default function StorePage() {
   const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
+  const [expandedTimerId, setExpandedTimerId] = useState<string | null>(null)
+  const [expandCtrlVisible, setExpandCtrlVisible] = useState(false)
+  const [expandAdjustOpen, setExpandAdjustOpen] = useState(false)
+  const [expandPlayerOpen, setExpandPlayerOpen] = useState(false)
+  const [expandPrizeOpen, setExpandPrizeOpen] = useState(false)
 
   const openAdjustModal = (id: string, s: number) => {
     setAdjustModalOpen(p => ({ ...p, [id]: true }))
@@ -939,8 +945,6 @@ export default function StorePage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {activeTournaments.map(t => {
-                const totalStack = (t.entry * t.entryStack) + (t.reentry * t.reentryStack) + (t.addon * t.addonStack)
-                const avg = t.alive > 0 ? Math.floor(totalStack / t.alive) : 0
                 return (
                   <div key={t.id} className="ios-card su" style={{ overflow: 'hidden' }}>
                     <div className="gold-line"/>
@@ -952,19 +956,31 @@ export default function StorePage() {
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34C759' }} className="pulse"/>
                       </div>
 
-                      {/* Stats */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 14 }}>
-                        {[
-                          { icon: <FiUsers size={13} style={{ color: 'var(--gold)' }}/>, val: t.alive, label: 'Players' },
-                          { icon: <FiTrendingUp size={13} style={{ color: 'var(--gold)' }}/>, val: avg.toLocaleString(), label: 'Avg Stack' },
-                          { icon: <FiPlus size={13} style={{ color: 'var(--gold)' }}/>, val: t.addon, label: 'Add-on' },
-                        ].map((s, i) => (
-                          <div key={i} className="stat-chip">
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>{s.icon}</div>
-                            <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1 }}>{s.val}</p>
-                            <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 3, fontWeight: 600 }}>{s.label}</p>
-                          </div>
-                        ))}
+                      {/* Timer Display — full TimerClient view scaled to card width */}
+                      <div style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '224px',
+                        overflow: 'hidden',
+                        borderRadius: 12,
+                        marginBottom: 14,
+                        border: '1px solid var(--sep)',
+                        background: '#fff',
+                      }}>
+                        <iframe
+                          src={`/home/store/timer/${t.id}`}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '1200px',
+                            height: '800px',
+                            transform: 'scale(0.28)',
+                            transformOrigin: 'top left',
+                            border: 'none',
+                            pointerEvents: 'none',
+                          }}
+                        />
                       </div>
 
                       {/* Action buttons */}
@@ -998,6 +1014,10 @@ export default function StorePage() {
                         <button className="timer-btn" onClick={() => nextLevel(t.id)}
                           style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
                         ><FiSkipForward size={17} style={{ color: 'var(--label)' }}/></button>
+
+                        <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
+                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+                        ><FiMaximize2 size={16} style={{ color: 'var(--label)' }}/></button>
                       </div>
                     </div>
                   </div>
@@ -1006,6 +1026,222 @@ export default function StorePage() {
             </div>
           )}
         </div>
+
+        {/* ── Timer Expand Modal (landscape / スマホ横持ち対応) ── */}
+        {expandedTimerId && (() => {
+          const et = activeTournaments.find(t => t.id === expandedTimerId)
+          const btnBase: React.CSSProperties = {
+            border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 4, background: 'none',
+          }
+          const iconCircle = (gold?: boolean): React.CSSProperties => ({
+            width: gold ? 52 : 42, height: gold ? 52 : 42, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: gold ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'rgba(255,255,255,0.14)',
+            border: gold ? 'none' : '1px solid rgba(255,255,255,0.22)',
+            boxShadow: gold ? '0 4px 14px rgba(242,169,0,0.38)' : 'none',
+          })
+          const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em' }
+          return (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: '100vh',
+                height: '100vw',
+                transform: 'translate(-50%, -50%) rotate(90deg)',
+                transformOrigin: 'center center',
+                overflow: 'hidden',
+              }}>
+                <iframe
+                  src={`/home/store/timer/${expandedTimerId}`}
+                  style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }}
+                  allow="autoplay"
+                />
+
+                {/* コントロールバー非表示時のトグルボタン */}
+                {!expandCtrlVisible && (
+                  <button
+                    onClick={() => setExpandCtrlVisible(true)}
+                    style={{
+                      position: 'absolute',
+                      bottom: 12, right: 12,
+                      width: 42, height: 42,
+                      borderRadius: '50%',
+                      background: 'rgba(0,0,0,0.50)',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <FiMenu size={18} style={{ color: 'rgba(255,255,255,0.75)' }} />
+                  </button>
+                )}
+
+                {/* コントロールバー */}
+                {et && expandCtrlVisible && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0, left: 0, right: 0,
+                    background: 'rgba(0,0,0,0.72)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderTop: '1px solid rgba(255,255,255,0.10)',
+                    padding: '10px 16px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                    {/* 左: CLOSE + HIDE */}
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiX size={17} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>CLOSE</span>
+                      </button>
+                      <button onClick={() => setExpandCtrlVisible(false)} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiChevronDown size={17} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>HIDE</span>
+                      </button>
+                    </div>
+
+                    {/* 中央: タイマー制御 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <button className="timer-btn" onClick={() => prevLevel(et.id, et.currentLevelIndex ?? 0)} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiSkipBack size={17} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>PREV</span>
+                      </button>
+                      <button className="timer-btn" onClick={() => toggleTimer(et.id)} style={btnBase}>
+                        <div style={iconCircle(true)}>
+                          {timerRunning[et.id]
+                            ? <FiPause size={20} style={{ color: '#fff' }} />
+                            : <FiPlay size={20} style={{ color: '#fff', marginLeft: 2 }} />}
+                        </div>
+                        <span style={{ ...labelStyle, color: 'rgba(242,169,0,0.8)' }}>
+                          {timerRunning[et.id] ? 'PAUSE' : 'START'}
+                        </span>
+                      </button>
+                      <button className="timer-btn" onClick={() => nextLevel(et.id)} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiSkipForward size={17} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>NEXT</span>
+                      </button>
+                    </div>
+
+                    {/* 右: アクション */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: et.timeRemaining })); setExpandAdjustOpen(true) }} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiEdit3 size={15} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>ADJUST</span>
+                      </button>
+                      <button onClick={() => setExpandPlayerOpen(true)} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiUsers size={15} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>PLAYERS</span>
+                      </button>
+                      <button onClick={() => setExpandPrizeOpen(true)} style={btnBase}>
+                        <div style={iconCircle()}>
+                          <FiDollarSign size={15} style={{ color: '#fff' }} />
+                        </div>
+                        <span style={labelStyle}>PAY OUT</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ── Expand: インライン Adjust Modal (z:10001) ── */}
+        {expandAdjustOpen && expandedTimerId && (() => {
+          const et = activeTournaments.find(t => t.id === expandedTimerId)
+          if (!et) return null
+          return (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+              <div className="ios-card" style={{ width: '100%', maxWidth: 360, padding: '22px 20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>タイム調整</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => setExpandAdjustOpen(false)}
+                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                    <button onClick={async () => { await confirmAdjustTime(et.id); setExpandAdjustOpen(false) }}
+                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', marginBottom: 18 }}>
+                  <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                    {String(Math.floor((adjustSeconds[et.id] ?? 0) / 60)).padStart(2, "0")}
+                    <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
+                    {String((adjustSeconds[et.id] ?? 0) % 60).padStart(2, "0")}
+                  </p>
+                </div>
+                <input type="range" min={0} max={7200} step={10}
+                  value={adjustSeconds[et.id] ?? 0}
+                  onChange={e => setAdjustSeconds(p => ({ ...p, [et.id]: Number(e.target.value) }))}
+                  style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
+                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
+                    <button key={i} onClick={() => updateAdjustTime(et.id, b.diff)}
+                      style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none' }}
+                    >{b.label}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ── Expand: インライン Players Modal (z:10001) ── */}
+        {expandPlayerOpen && expandedTimerId && (() => {
+          const et = activeTournaments.find(t => t.id === expandedTimerId)
+          if (!et) return null
+          return (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001 }}>
+              <PlayerManageModal
+                tournamentId={et.id}
+                storeId={storeId}
+                balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
+                chipUnit={store?.chipUnitLabel}
+                chipUnitBefore={store?.chipUnitBefore}
+                onClose={() => setExpandPlayerOpen(false)}
+              />
+            </div>
+          )
+        })()}
+
+        {/* ── Expand: インライン Prize Modal (z:10001) ── */}
+        {expandPrizeOpen && expandedTimerId && (() => {
+          const et = activeTournaments.find(t => t.id === expandedTimerId)
+          if (!et) return null
+          return (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001 }}>
+              <PrizeDistributeModal
+                tournamentId={et.id}
+                storeId={storeId}
+                balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
+                chipUnit={store?.chipUnitLabel}
+                chipUnitBefore={store?.chipUnitBefore}
+                onClose={() => setExpandPrizeOpen(false)}
+              />
+            </div>
+          )
+        })()}
 
         {/* ── Adjust Time Modal ── */}
         {activeTournaments.map(t => adjustModalOpen[t.id] && (

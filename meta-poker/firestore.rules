@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isPremium() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/subscriptions/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.plan == 'premium' &&
+        get(/databases/$(database)/documents/subscriptions/$(request.auth.uid)).data.status in ['active', 'trialing'];
+    }
+
+    // Users collection
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+      allow delete: if false;
+    }
+
+    // User stats
+    match /userStats/{uid} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions can write
+    }
+
+    // Subscriptions
+    match /subscriptions/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if false; // Only Cloud Functions (Stripe webhook) can update
+      allow delete: if false;
+    }
+
+    // Tournaments
+    match /tournaments/{tournamentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        // Creator can update basic fields
+        resource.data.creatorId == request.auth.uid ||
+        // Players can join/leave (only registeredPlayerIds and currentPlayers)
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['registeredPlayerIds', 'currentPlayers', 'updatedAt']))
+      );
+      allow delete: if false;
+    }
+
+    // Games (tables)
+    match /games/{gameId} {
+      allow read: if isAuthenticated() &&
+        request.auth.uid in resource.data.players.map(p => p.uid);
+      allow write: if false; // Only Cloud Functions
+    }
+
+    // Hand histories - premium required to read
+    match /handHistories/{handId} {
+      allow read: if isPremium();
+      allow write: if false; // Only Cloud Functions
+    }
+  }
+}

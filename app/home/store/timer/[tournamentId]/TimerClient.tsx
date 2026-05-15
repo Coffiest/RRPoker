@@ -358,6 +358,7 @@ export default function TimerClient() {
   })()
   const nextBreakMin = Math.floor(nextBreakSeconds / 60)
   const nextBreakSec = nextBreakSeconds % 60
+  const hasNextBreak = levelsToUse.slice(currentLevelIndex + 1).some(lv => lv.type === "break")
   const totalPrize = Object.values(prizePool).reduce((a, b) => a + (Number(b?.amount) || 0), 0)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
@@ -400,14 +401,14 @@ export default function TimerClient() {
           .level-item { animation: levelSlideIn 0.18s ease-out; }
           .comment-expand { animation: commentExpand 0.16s ease-out; }
           @keyframes newsFlash {
-            0%   { left:-100vw; opacity:0; }
-            8%   { left:-100vw; opacity:0; }
-            16%  { left:56px;   opacity:1; }
-            62%  { left:56px;   opacity:1; }
-            72%  { left:100vw;  opacity:0; }
-            100% { left:100vw;  opacity:0; }
+            0%   { transform:translateX(-100vw); opacity:0; }
+            8%   { transform:translateX(-100vw); opacity:0; }
+            16%  { transform:translateX(0);      opacity:1; }
+            62%  { transform:translateX(0);      opacity:1; }
+            72%  { transform:translateX(100vw);  opacity:0; }
+            100% { transform:translateX(100vw);  opacity:0; }
           }
-          .news-ticker { position:absolute; animation:newsFlash 10s ease-in-out infinite; }
+          .news-ticker { animation:newsFlash 10s ease-in-out infinite; }
         `}</style>
 
         {/* Overlay */}
@@ -487,13 +488,8 @@ export default function TimerClient() {
               </h1>
             </div>
 
-            {/* LEVEL DIVIDER + BLIND COMMENT */}
+            {/* LEVEL DIVIDER */}
             <div className="flex-none px-14">
-              {isPresetSelected && level?.type === "level" && level?.comment && (
-                <p className="text-center text-[22px] font-black tracking-[0.45em] uppercase text-[#F2A900] mb-2">
-                  {level.comment}
-                </p>
-              )}
               <div className="flex items-center gap-5">
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
@@ -559,65 +555,136 @@ export default function TimerClient() {
               )}
             </div>
 
-            {/* INFO BLOCK: BLIND / BB ANTE / NEXT / NEXT BREAK */}
-            <div className="flex-1 flex flex-col justify-center px-12 py-2">
+            {/* INFO BLOCK: BLIND+BB ANTE / NEXT+NEXT BREAK / BREAK */}
+            <div className="flex-none flex flex-col justify-center px-12 py-8">
+              {/* Per-level / per-break comment */}
+              {isPresetSelected && level?.comment && (
+                <p className="text-center text-[28px] font-black tracking-[0.4em] uppercase text-[#F2A900] mb-4">
+                  {level.comment}
+                </p>
+              )}
               {level?.type === "break" ? (
-                <p className="text-[60px] font-light tracking-[0.5em] text-gray-200 text-center">— B R E A K —</p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "max-content 1fr 1px auto",
+                    columnGap: "40px",
+                    rowGap: "clamp(40px, 6vh, 80px)",
+                    alignItems: "baseline",
+                  }}
+                >
+                  {/* BREAK text */}
+                  <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-light tracking-[0.5em] text-[#F2A900] text-center">
+                    — B R E A K —
+                  </p>
+                  {/* Horizontal separator */}
+                  <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
+                  {/* NEXT + NEXT BREAK */}
+                  {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
+                    <>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">NEXT</span>
+                      {nextLevel?.type === "break"
+                        ? <span className="text-[54px] font-light text-gray-500 leading-none">Break</span>
+                        : <span className="text-[54px] font-light text-gray-600 timer-num leading-none">
+                            {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
+                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
+                          </span>
+                      }
+                      <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
+                      <div className="flex items-baseline gap-6 leading-none">
+                        <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
+                        {hasNextBreak
+                          ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                              {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
+                            </span>
+                          : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                        }
+                      </div>
+                    </>
+                  )}
+                  {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
+                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "baseline", gap: "24px" }}>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
+                      {hasNextBreak
+                        ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                            {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
+                          </span>
+                        : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                      }
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "max-content 1fr",
-                    columnGap: "64px",
-                    rowGap: "clamp(22px, 3.8vh, 52px)",
+                    gridTemplateColumns: "max-content 1fr 1px auto",
+                    columnGap: "40px",
+                    rowGap: "clamp(40px, 6vh, 80px)",
                     alignItems: "baseline",
                   }}
                 >
-                  {/* BLIND */}
+                  {/* BLIND - col 1 */}
                   <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
                     BLIND
                   </span>
+                  {/* SB/BB value - col 2 */}
                   <span className="text-[68px] font-light text-gray-800 timer-num leading-none whitespace-nowrap">
                     {level?.smallBlind?.toLocaleString() ?? "—"}&nbsp;/&nbsp;{level?.bigBlind?.toLocaleString() ?? "—"}
                   </span>
-
-                  {/* BB ANTE */}
-                  <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
-                    BB ANTE
-                  </span>
-                  <span className="text-[68px] font-light text-gray-800 timer-num leading-none">
-                    {level?.ante?.toLocaleString() ?? "—"}
-                  </span>
-
-                  {/* Separator */}
-                  <div style={{ gridColumn: "1 / -1", height: "1px", background: "#E8E8E8" }} />
-
-                  {/* NEXT */}
-                  {isPresetSelected && nextLevel && currentLevelIndex < levelsToUse.length - 1 && (
+                  {/* Vertical separator - col 3 */}
+                  <div style={{ height: "52px", background: "#D8D8D8", alignSelf: "center" }} />
+                  {/* BB ANTE label + Ante value - col 4 */}
+                  <div className="flex items-baseline gap-6 leading-none">
+                    <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
+                      BB ANTE
+                    </span>
+                    <span className="text-[68px] font-light text-gray-800 timer-num leading-none">
+                      {level?.ante?.toLocaleString() ?? "—"}
+                    </span>
+                  </div>
+                  {/* Horizontal separator */}
+                  <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
+                  {/* NEXT + NEXT BREAK — 同一行 */}
+                  {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
                     <>
                       <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
                         NEXT
                       </span>
-                      {nextLevel.type === "break"
+                      {nextLevel?.type === "break"
                         ? <span className="text-[54px] font-light text-gray-500 leading-none">Break</span>
                         : <span className="text-[54px] font-light text-gray-600 timer-num leading-none">
-                            {nextLevel.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel.bigBlind?.toLocaleString()}
-                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel.ante?.toLocaleString()})</span>
+                            {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
+                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
+                      <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
+                      <div className="flex items-baseline gap-6 leading-none">
+                        <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
+                          NEXT BREAK
+                        </span>
+                        {hasNextBreak
+                          ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                              {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
+                            </span>
+                          : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                        }
+                      </div>
                     </>
                   )}
-
-                  {/* NEXT BREAK */}
-                  {isPresetSelected && nextLevel && (
-                    <>
-                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
+                  {/* NEXT BREAK only — at last level */}
+                  {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
+                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "baseline", gap: "24px" }}>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
                         NEXT BREAK
                       </span>
-                      <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
-                        {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
-                      </span>
-                    </>
+                      {hasNextBreak
+                        ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                            {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
+                          </span>
+                        : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                      }
+                    </div>
                   )}
                 </div>
               )}
@@ -626,7 +693,7 @@ export default function TimerClient() {
             {/* SEPARATOR */}
             <div
               className="flex-none mx-14"
-              style={{ height: "1px", background: "linear-gradient(to right, transparent, #E8E8E8, transparent)" }}
+              style={{ height: "1px", background: "linear-gradient(to right, transparent, #C4C4C4, transparent)" }}
             />
 
             {/* STATS */}
@@ -634,12 +701,12 @@ export default function TimerClient() {
               {[
                 { label: "PLAYERS", value: `${alivePlayers} / ${totalPlayers}` },
                 { label: "AVERAGE", value: averageStack.toLocaleString() },
-                { label: "ADD-ON",  value: String(addon) },
+                ...(addon > 0 ? [{ label: "ADD-ON", value: String(addon) }] : []),
               ].map((stat, i, arr) => (
                 <div key={stat.label} className="flex items-center">
                   <div className="text-center" style={{ padding: "0 32px" }}>
-                    <p className="text-[13px] font-black tracking-[0.4em] uppercase text-gray-500 mb-1">{stat.label}</p>
-                    <p className="text-[44px] font-light text-gray-700 timer-num">{stat.value}</p>
+                    <p className="text-[22px] font-black tracking-[0.4em] uppercase text-gray-500 mb-1">{stat.label}</p>
+                    <p className="text-[68px] font-light text-gray-700 timer-num">{stat.value}</p>
                   </div>
                   {i < arr.length - 1 && (
                     <div className="h-10 w-px" style={{ background: "#EBEBEB" }} />
@@ -654,7 +721,7 @@ export default function TimerClient() {
                 className="flex-none relative overflow-hidden bg-white"
                 style={{ height: "60px", borderTop: "1px solid #EBEBEB" }}
               >
-                <div className="h-full flex items-center">
+                <div className="h-full flex items-center justify-center">
                   <span className="news-ticker whitespace-nowrap text-gray-800 font-bold text-[28px] tracking-[0.06em]">
                     {comment}
                   </span>
@@ -671,9 +738,9 @@ export default function TimerClient() {
           >
             {/* Header */}
             <div style={{ padding: "36px 36px 24px", borderBottom: "1px solid #F5F5F5" }}>
-              <p className="text-[11px] font-black tracking-[0.6em] uppercase text-gray-300 mb-3">Prize Pool</p>
+              <p className="text-[18px] font-black tracking-[0.6em] uppercase text-gray-700 mb-3">Prize Pool</p>
               <div className="flex items-baseline gap-3">
-                <span className="text-[15px] font-black tracking-[0.3em] uppercase text-gray-300">TOTAL</span>
+                <span className="text-[22px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
                 <span className="text-[52px] font-light text-[#F2A900] timer-num leading-none">
                   {totalPrize.toLocaleString()}
                 </span>
