@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiEdit3, FiMenu, FiX } from "react-icons/fi"
-import { addDoc, serverTimestamp } from "firebase/firestore"
+import { addDoc, serverTimestamp, Timestamp } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, onSnapshot, collection, deleteDoc } from "firebase/firestore"
@@ -87,10 +87,17 @@ export default function TimerClient() {
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
-  const [startTime, setStartTime] = useState<number | null>(null)
-  const [duration, setDuration] = useState<number>(0)
   const [isRunning, setIsRunning] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
+  // Wall-clock timer:
+  //   levelStartedAtMs  = when the timer last started/resumed
+  //   levelStartedRemaining = timeRemaining at that exact moment (frozen snapshot)
+  //   displaySeconds = levelStartedRemaining - (Date.now() - levelStartedAtMs)
+  // Using a frozen snapshot instead of live timeRemaining makes the display immune to
+  // any external writes to timeRemaining (e.g. old cached code still decrementing it).
+  const [levelStartedAtMs, setLevelStartedAtMs] = useState<number | null>(null)
+  const [levelStartedRemaining, setLevelStartedRemaining] = useState<number>(0)
+  const [tickNow, setTickNow] = useState(Date.now())
   const [tournamentName, setTournamentName] = useState("")
   const [entry, setEntry] = useState(0)
   const [reentry, setReentry] = useState(0)
@@ -114,6 +121,15 @@ export default function TimerClient() {
   useEffect(() => { selectedPresetRef.current = selectedPreset }, [selectedPreset])
   const currentLevelIndexRef = useRef(0)
   useEffect(() => { currentLevelIndexRef.current = currentLevelIndex }, [currentLevelIndex])
+  const levelStartedAtMsRef = useRef<number | null>(null)
+  useEffect(() => { levelStartedAtMsRef.current = levelStartedAtMs }, [levelStartedAtMs])
+  const levelStartedRemainingRef = useRef<number>(0)
+  useEffect(() => { levelStartedRemainingRef.current = levelStartedRemaining }, [levelStartedRemaining])
+  // Used by onSnapshot to detect when levelStartedAt actually changes (vs. other field updates)
+  const lastSeenLsAtMsRef = useRef<number | null | undefined>(undefined)
+  const levelAdvancedRef = useRef(false)
+  const lastSoundSecRef = useRef(-1)
+  useEffect(() => { levelAdvancedRef.current = false; lastSoundSecRef.current = -1 }, [currentLevelIndex])
   const [editingCommentIdx, setEditingCommentIdx] = useState<number | null>(null)
 
   // ── Start / pause sound ──────────────────────────────────────────────────
@@ -197,7 +213,7 @@ export default function TimerClient() {
     const firstDur = typeof lvs[0]?.duration === "number" ? lvs[0].duration * 60 : 0
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
       selectedPreset: preset.id, customBlindLevels: lvs,
-      currentLevelIndex: 0, startTime: serverTimestamp(), duration: firstDur, timerRunning: false,
+      currentLevelIndex: 0, timeRemaining: firstDur, levelStartedRemaining: firstDur, timerRunning: false,
     })
     setSelectedPreset(preset.id); setCustomBlindLevels(lvs); setCurrentLevelIndex(0)
   }
@@ -250,6 +266,16 @@ export default function TimerClient() {
       if (typeof d.selectedPreset === "string") setSelectedPreset(d.selectedPreset)
       if (Array.isArray(d.customBlindLevels)) setCustomBlindLevels(d.customBlindLevels)
       if (typeof d.blindPresetId === "string") setTournamentBlindPresetId(d.blindPresetId)
+      // When levelStartedAt changes, snapshot levelStartedRemaining at that instant.
+      // This makes the display immune to any external writes to timeRemaining during running.
+      const newLsAtMs = d.levelStartedAt?.toMillis?.() ?? null
+      if (newLsAtMs !== lastSeenLsAtMsRef.current) {
+        lastSeenLsAtMsRef.current = newLsAtMs
+        const tr = typeof d.levelStartedRemaining === "number" ? d.levelStartedRemaining
+          : typeof d.timeRemaining === "number" ? d.timeRemaining : 0
+        setLevelStartedRemaining(tr)
+      }
+      setLevelStartedAtMs(newLsAtMs)
       setTournamentLoaded(true)
     })
     return () => unsub()
@@ -261,13 +287,22 @@ export default function TimerClient() {
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { [`prizePool.${place}`]: value })
   }
   async function pauseTimer() {
-    if (!storeId || !startTime) return
-    const remaining = Math.max(duration - Math.floor((Date.now() - startTime) / 1000), 0)
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { duration: remaining, timerRunning: false })
+    if (!storeId) return
+    // Compute remaining from the frozen snapshot + elapsed — no Firestore read needed,
+    // and unaffected by any external writes to timeRemaining.
+    const lsAt = levelStartedAtMsRef.current
+    const elapsed = lsAt !== null ? Math.floor((Date.now() - lsAt) / 1000) : 0
+    const remaining = Math.max(levelStartedRemainingRef.current - elapsed, 0)
+    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { timerRunning: false, timeRemaining: remaining })
   }
   async function resumeTimer() {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { startTime: serverTimestamp(), timerRunning: true })
+    // timeRemaining was saved accurately by pauseTimer; stamp levelStartedAt = now
+    // and persist levelStartedRemaining so all clients freeze on the right value.
+    const remaining = timeRemaining  // local state, set by onSnapshot from pauseTimer's write
+    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
+      timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining,
+    })
   }
 
   const levelsToUse = useMemo<Level[]>(() => {
@@ -286,7 +321,8 @@ export default function TimerClient() {
     const next = levelsToUse[nextIndex]; if (!next) return
     const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
-      currentLevelIndex: nextIndex, startTime: serverTimestamp(), duration: nextDur, timerRunning: true,
+      currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
+      timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
     })
   }
 
@@ -294,45 +330,46 @@ export default function TimerClient() {
   const levelsToUseRef = useRef<Level[]>([])
   useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
 
-  // ── Countdown interval ───────────────────────────────────────────────────
+  // ── Wall-clock tick interval: no Firestore reads, purely local ───────────
   useEffect(() => {
     if (!isRunning || !storeId) return
-    const ref = doc(db, "stores", storeId, "tournaments", tournamentId)
-    const interval = setInterval(async () => {
-      const levels = levelsToUseRef.current
-      // Levels not loaded yet — skip tick to avoid false termination
-      if (levels.length === 0) return
 
-      const snap = await getDoc(ref); const d = snap.data(); if (!d) return
+    const id = setInterval(() => {
+      const now = Date.now()
+      setTickNow(now)
+      const lsAt = levelStartedAtMsRef.current
+      if (lsAt === null) return
 
-      // timeRemaining が Firestore に未設定（初回起動）の場合、現在レベルの duration で初期化
-      if (typeof d.timeRemaining !== "number") {
-        const levelIdx = typeof d.currentLevelIndex === "number" ? d.currentLevelIndex : 0
-        const dur = levels[levelIdx]?.duration
-        if (typeof dur === "number" && dur > 0) {
-          await updateDoc(ref, { timeRemaining: dur * 60 - 1 })
-        }
-        return
+      const elapsed = Math.floor((now - lsAt) / 1000)
+      const ds = Math.max(timeRemainingRef.current - elapsed, 0)
+
+      // Sounds (deduplicated by lastSoundSecRef)
+      if (ds !== lastSoundSecRef.current) {
+        if (ds === 10) void playSound("tensec")
+        if (ds === 3 || ds === 2 || ds === 1) void playSound("countdown")
+        lastSoundSecRef.current = ds
       }
 
-      const current = d.timeRemaining
-      const levelIdx = typeof d.currentLevelIndex === "number" ? d.currentLevelIndex : 0
-      if (current === 11) void playSound("tensec")
-      if (current === 4 || current === 3 || current === 2) void playSound("countdown")
-      if (current <= 1) {
-        if (levelIdx < levels.length - 1) {
-          const next = levelIdx + 1
-          const dur = levels[next]?.duration
-          await updateDoc(ref, { currentLevelIndex: next, timeRemaining: typeof dur === "number" ? dur * 60 : 0 })
+      // Level advance (fire once via levelAdvancedRef guard)
+      if (ds === 0 && !levelAdvancedRef.current && levelsToUseRef.current.length > 0) {
+        levelAdvancedRef.current = true
+        const nextIndex = currentLevelIndexRef.current + 1
+        const levels = levelsToUseRef.current
+        if (nextIndex < levels.length) {
+          const next = levels[nextIndex]
+          const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
+          void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
+            currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
+            timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
+          })
           void playSound("levelup")
         } else {
-          await updateDoc(ref, { timerRunning: false, timeRemaining: 0 })
+          void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { timerRunning: false })
         }
-        return
       }
-      await updateDoc(ref, { timeRemaining: current - 1 })
-    }, 1000)
-    return () => clearInterval(interval)
+    }, 250)
+
+    return () => clearInterval(id)
   }, [isRunning, storeId, tournamentId])
 
   // ── Derived values ───────────────────────────────────────────────────────
@@ -342,13 +379,24 @@ export default function TimerClient() {
   const averageStack = alivePlayers > 0 ? Math.floor(totalChips / alivePlayers) : 0
   const level = levelsToUse[currentLevelIndex] ?? null
   const nextLevel = currentLevelIndex < levelsToUse.length - 1 ? levelsToUse[currentLevelIndex + 1] : level
-  const minutes = Math.floor(timeRemaining / 60)
-  const seconds = timeRemaining % 60
+  // tickNow is read here only to force a re-render every 250ms when running.
+  // The actual computation uses Date.now() (never stale) and levelStartedRemaining
+  // (a snapshot frozen at the moment levelStartedAt was last written), so any
+  // external writes to timeRemaining — e.g. old cached code decrementing it — are ignored.
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  void tickNow
+  const displaySeconds = (() => {
+    if (!isRunning || levelStartedAtMs === null) return timeRemaining
+    const elapsed = Math.floor((Date.now() - levelStartedAtMs) / 1000)
+    return Math.max(levelStartedRemaining - elapsed, 0)
+  })()
+  const minutes = Math.floor(displaySeconds / 60)
+  const seconds = displaySeconds % 60
   const currentLevel = levelsToUse[currentLevelIndex]
   const totalLevelSeconds = typeof currentLevel?.duration === "number" ? currentLevel.duration * 60 : 1
-  const progress = totalLevelSeconds > 0 ? (timeRemaining / totalLevelSeconds) * 100 : 0
+  const progress = totalLevelSeconds > 0 ? (displaySeconds / totalLevelSeconds) * 100 : 0
   const nextBreakSeconds = (() => {
-    let total = timeRemaining
+    let total = displaySeconds
     for (let i = currentLevelIndex + 1; i < levelsToUse.length; i++) {
       const lv = levelsToUse[i]
       if (lv.type === "break") break

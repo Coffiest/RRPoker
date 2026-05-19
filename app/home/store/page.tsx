@@ -11,7 +11,6 @@ import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
-import { Timestamp } from "firebase/firestore"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
@@ -59,7 +58,7 @@ export default function StorePage() {
     setAdjustSeconds(p => ({ ...p, [id]: Math.max(0, (p[id] ?? 0) + diff) }))
   const confirmAdjustTime = async (id: string) => {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timeRemaining: adjustSeconds[id] })
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timeRemaining: adjustSeconds[id], levelStartedAt: serverTimestamp(), levelStartedRemaining: adjustSeconds[id] })
     closeAdjustModal(id)
   }
   const toggleTimer = async (id: string) => {
@@ -70,21 +69,18 @@ export default function StorePage() {
 
   async function startTimer(id: string) {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: true, levelStartedAt: serverTimestamp(), pausedAt: null })
+    const ref = doc(db, "stores", storeId, "tournaments", id)
+    const snap = await getDoc(ref); const data = snap.data()
+    const remaining = typeof data?.timeRemaining === "number" ? data.timeRemaining : 1200
+    await updateDoc(ref, { timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining })
   }
   async function resumeTimer(id: string) {
     if (!storeId) return
+    // timeRemaining was saved accurately by pauseTimer; stamp levelStartedAt = now.
     const ref = doc(db, "stores", storeId, "tournaments", id)
     const snap = await getDoc(ref); const data = snap.data()
-    if (!data?.pausedAt || !data?.levelStartedAt) { await startTimer(id); return }
-    const now = Timestamp.now().toMillis()
-    const pausedMs = now - data.pausedAt.toMillis()
-    let startedAtMs: number
-    if (data.levelStartedAt?.toMillis) startedAtMs = data.levelStartedAt.toMillis()
-    else if (data.levelStartedAt instanceof Date) startedAtMs = data.levelStartedAt.getTime()
-    else if (typeof data.levelStartedAt === "number") startedAtMs = data.levelStartedAt
-    else { await startTimer(id); return }
-    await updateDoc(ref, { timerRunning: true, levelStartedAt: Timestamp.fromMillis(startedAtMs + pausedMs), pausedAt: null })
+    const remaining = typeof data?.timeRemaining === "number" ? data.timeRemaining : 1200
+    await updateDoc(ref, { timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining })
   }
   async function stopTimer(id: string) {
     if (!storeId) return
@@ -121,11 +117,20 @@ export default function StorePage() {
     const nextIdx = Math.min(current + 1, levels.length - 1)
     const nextLevel = levels[nextIdx]
     const dur = typeof nextLevel?.duration === "number" && nextLevel.duration > 0 ? nextLevel.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: data.timerRunning ?? false })
+    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), levelStartedRemaining: dur, timerRunning: data.timerRunning ?? false })
   }
   async function pauseTimer(id: string) {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false, pausedAt: serverTimestamp() })
+    const ref = doc(db, "stores", storeId, "tournaments", id)
+    const snap = await getDoc(ref); const data = snap.data(); if (!data) return
+    // Use levelStartedRemaining (frozen at resume time) — not timeRemaining which
+    // may have been corrupted by old cached code. Fall back to timeRemaining if not set.
+    const startRemaining = typeof data.levelStartedRemaining === "number"
+      ? data.levelStartedRemaining
+      : (typeof data.timeRemaining === "number" ? data.timeRemaining : 0)
+    const elapsed = data.levelStartedAt ? Math.floor((Date.now() - data.levelStartedAt.toMillis()) / 1000) : 0
+    const remaining = Math.max(startRemaining - elapsed, 0)
+    await updateDoc(ref, { timerRunning: false, timeRemaining: remaining })
   }
   async function prevLevel(id: string, currentLevel: number) {
     if (!storeId) return
@@ -144,7 +149,7 @@ export default function StorePage() {
     const prevIdx = Math.max(0, currentLevel - 1)
     const prevLvl = levels[prevIdx]
     const dur = typeof prevLvl?.duration === "number" && prevLvl.duration > 0 ? prevLvl.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), pausedAt: null, timerRunning: data.timerRunning ?? false })
+    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), levelStartedRemaining: dur, timerRunning: data.timerRunning ?? false })
   }
 
   const [role, setRole] = useState<string | null>(null)
