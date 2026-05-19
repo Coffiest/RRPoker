@@ -178,6 +178,7 @@ export default function StorePage() {
         const bustCount = data.bustCount ?? 0
         list.push({
           id: d.id, name: data.name, entry, reentry, addon, bustCount,
+          entryFee: data.entryFee ?? 0, reentryFee: data.reentryFee ?? 0, addonFee: data.addonFee ?? 0,
           entryStack: data.entryStack ?? 0, reentryStack: data.reentryStack ?? 0, addonStack: data.addonStack ?? 0,
           totalEntries: entry + reentry, alive: (entry + reentry) - bustCount,
           status: data.status ?? "scheduled", currentLevelIndex: data.currentLevelIndex ?? 0,
@@ -627,9 +628,12 @@ export default function StorePage() {
   }
 
   const openTimer = async (id: string) => {
-    if (!storeId) { window.open(`/home/store/timer/${id}`, "_blank", "width=1200,height=900"); return }
-    try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false }) } catch {}
-    window.open(`/home/store/timer/${id}`, "_blank", "width=1200,height=900")
+    // iOS/Android: window.open must be called synchronously within the user gesture.
+    // Open first, then do async Firestore update.
+    window.open(`/home/store/timer/${id}`, "_blank")
+    if (storeId) {
+      try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false }) } catch {}
+    }
   }
 
   if (role === null) return (
@@ -951,9 +955,34 @@ export default function StorePage() {
                     <div style={{ padding: '16px 16px 14px' }}>
 
                       {/* ヘッダー */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                         <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{t.name}</p>
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34C759' }} className="pulse"/>
+                      </div>
+
+                      {/* Fee / Stack info */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 6px', marginBottom: 12, padding: '8px 10px', background: 'var(--fill)', borderRadius: 10 }}>
+                        {[
+                          { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
+                          { label: 'Reentry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
+                          { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
+                        ].map(item => (
+                          <div key={item.label} style={{ textAlign: 'center' }}>
+                            <p style={{ fontSize: 8, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.04em', marginBottom: 4 }}>{item.label}</p>
+                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
+                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>費</span>
+                              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
+                                {item.fee > 0 ? item.fee.toLocaleString() : '—'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
+                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>ST</span>
+                              <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
+                                {item.stack > 0 ? item.stack.toLocaleString() : '—'}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       {/* Timer Display — full TimerClient view scaled to card width */}

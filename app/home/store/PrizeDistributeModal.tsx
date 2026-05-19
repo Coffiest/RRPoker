@@ -119,7 +119,9 @@ const base = [1, 2, 3].map(rank => {
   }
 })
 
-setRows(base)
+const extra = restoredRows.filter(r => r.rank > 3)
+
+setRows([...base, ...extra])
 
 }
 

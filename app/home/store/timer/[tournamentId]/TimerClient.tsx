@@ -749,41 +749,45 @@ export default function TimerClient() {
 
             {/* Places */}
             <div className="flex-1 flex flex-col justify-evenly pb-28" style={{ padding: "16px 36px 112px" }}>
-              {Object.entries(prizePool).map(([place, data], idx, arr) => (
-                <div
-                  key={place}
-                  className="flex items-center gap-3"
-                  style={{
-                    paddingTop: "6px",
-                    paddingBottom: "6px",
-                    borderBottom: idx !== arr.length - 1 ? "1px solid #F8F8F8" : "none",
-                  }}
-                >
-                  <span
-                    className="font-black text-gray-800 flex-shrink-0"
-                    style={{ width: "52px", fontSize: "24px" }}
+              {Object.entries(prizePool).map(([place, data], idx, arr) => {
+                const hasText = Boolean(data?.text)
+                return (
+                  <div
+                    key={place}
+                    className="flex items-start gap-3"
+                    style={{
+                      paddingTop: "6px",
+                      paddingBottom: "6px",
+                      borderBottom: idx !== arr.length - 1 ? "1px solid #F8F8F8" : "none",
+                    }}
                   >
-                    {place}<span style={{ fontSize: "15px" }}>th</span>
-                  </span>
-                  <div className="flex items-center gap-2 flex-1 justify-end overflow-hidden">
-                    <input
-                      type="number"
-                      value={data?.amount ?? ""}
-                      onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
-                      className="prize-input text-right font-light text-gray-800 bg-transparent outline-none min-w-0 w-full"
-                      style={{ fontSize: "46px", border: "none" }}
-                    />
-                    {data?.text && (
-                      <span
-                        className="font-light text-gray-400 whitespace-nowrap flex-shrink-0"
-                        style={{ fontSize: "46px" }}
-                      >
-                        +{data.text}
-                      </span>
-                    )}
+                    <span
+                      className="font-black text-gray-800 flex-shrink-0"
+                      style={{ width: "52px", fontSize: "24px", paddingTop: "8px" }}
+                    >
+                      {place}<span style={{ fontSize: "15px" }}>th</span>
+                    </span>
+                    {/* amount + text を縦積み: text がある場合は2行、ない場合は1行 */}
+                    <div className="flex flex-col items-end flex-1 min-w-0">
+                      <input
+                        type="number"
+                        value={data?.amount ?? ""}
+                        onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
+                        className="prize-input text-right font-light text-gray-800 bg-transparent outline-none min-w-0 w-full"
+                        style={{ fontSize: hasText ? "36px" : "46px", border: "none", lineHeight: 1.15 }}
+                      />
+                      {hasText && (
+                        <span
+                          className="font-light text-gray-400 text-right w-full"
+                          style={{ fontSize: "26px", lineHeight: 1.2, wordBreak: "break-all" }}
+                        >
+                          +{data.text}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 
