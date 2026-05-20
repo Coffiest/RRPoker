@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
-import { deleteField, doc, getDoc, setDoc } from "firebase/firestore"
+import { deleteField, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
-import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe } from "react-icons/fi"
+import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe, FiCreditCard } from "react-icons/fi"
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
@@ -46,6 +46,11 @@ export default function StoreMyPage() {
   const [blindBb, setBlindBb] = useState("")
   const [blindError, setBlindError] = useState("")
   const [blindSuccess, setBlindSuccess] = useState("")
+  const [subscription, setSubscription] = useState<any>(null)
+  const [billingLoading, setBillingLoading] = useState(false)
+  const [billingError, setBillingError] = useState("")
+  const [billingSuccess, setBillingSuccess] = useState("")
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const [draftInstagram, setDraftInstagram] = useState("")
   const [draftSnsX, setDraftSnsX] = useState("")
@@ -240,6 +245,58 @@ export default function StoreMyPage() {
       { merge: true }
     )
     setBlindSuccess("保存しました")
+  }
+
+  useEffect(() => {
+    if (!storeId) return
+    const unsub = onSnapshot(doc(db, "stores", storeId), snap => {
+      setSubscription(snap.data()?.subscription ?? null)
+    })
+    return () => unsub()
+  }, [storeId])
+
+  const cancelSubscription = async () => {
+    setBillingLoading(true)
+    setBillingError("")
+    setBillingSuccess("")
+    try {
+      const user = auth.currentUser
+      if (!user) return
+      const token = await user.getIdToken()
+      const res = await fetch("/api/stripe/cancel-subscription", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) { setBillingError(data.error ?? "エラーが発生しました"); return }
+      setShowCancelConfirm(false)
+      setBillingSuccess("キャンセルを受け付けました。期間終了まで引き続きご利用いただけます。")
+    } catch {
+      setBillingError("エラーが発生しました")
+    } finally {
+      setBillingLoading(false)
+    }
+  }
+
+  const openPortal = async () => {
+    setBillingLoading(true)
+    setBillingError("")
+    try {
+      const user = auth.currentUser
+      if (!user) return
+      const token = await user.getIdToken()
+      const res = await fetch("/api/stripe/create-portal-session", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) { setBillingError(data.error ?? "エラーが発生しました"); return }
+      window.location.href = data.url
+    } catch {
+      setBillingError("エラーが発生しました")
+    } finally {
+      setBillingLoading(false)
+    }
   }
 
   const saveSns = async () => {
@@ -701,6 +758,136 @@ export default function StoreMyPage() {
             {snsSaving ? "保存中..." : "SNSリンクを保存"}
           </button>
         </div>
+
+        {/* Subscription Card */}
+        <div className="mt-4 profile-card rounded-3xl p-6 animate-slideUp">
+          <div className="flex items-center gap-2 mb-4">
+            <FiCreditCard className="text-[#F2A900]" size={18} />
+            <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
+          </div>
+
+          {subscription ? (
+            <>
+              <div className="space-y-3 mb-5">
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-gray-500">プラン</span>
+                  <span className="text-[14px] font-semibold text-gray-900">
+                    {subscription.plan === "circle" ? "サークル応援プラン" : "スタンダード"}
+                    <span className="ml-2 text-[12px] font-normal text-gray-500">
+                      {subscription.interval === "yearly" ? "年払い" : "月払い"}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[13px] text-gray-500">ステータス</span>
+                  {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+                    <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">有効</span>
+                  )}
+                  {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
+                    <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full">キャンセル予定</span>
+                  )}
+                  {subscription.status === "past_due" && (
+                    <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-3 py-0.5 rounded-full">支払い失敗</span>
+                  )}
+                  {subscription.status === "canceled" && (
+                    <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-3 py-0.5 rounded-full">停止中</span>
+                  )}
+                </div>
+                {subscription.currentPeriodEnd && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-gray-500">
+                      {subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
+                    </span>
+                    <span className="text-[13px] text-gray-700">
+                      {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {billingError && (
+                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+                  <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+                  <p className="text-[12px] text-red-700 font-medium">{billingError}</p>
+                </div>
+              )}
+              {billingSuccess && (
+                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
+                  <FiCheckCircle className="text-green-600 shrink-0" size={16} />
+                  <p className="text-[12px] text-green-700 font-medium">{billingSuccess}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={openPortal}
+                  disabled={billingLoading}
+                  className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                >
+                  {billingLoading ? "処理中..." : "カードを変更"}
+                </button>
+                {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelConfirm(true)}
+                    disabled={billingLoading}
+                    className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
+                  >
+                    サブスクリプションをキャンセル
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-[13px] text-gray-500 mb-3">有効なサブスクリプションがありません</p>
+              <button
+                type="button"
+                onClick={() => router.push("/home/store/billing")}
+                className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white"
+              >
+                プランを選択
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Cancel Subscription Confirm Modal */}
+        {showCancelConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+            <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                  <FiAlertCircle className="text-orange-600" size={24} />
+                </div>
+                <h2 className="text-[18px] font-semibold text-gray-900">キャンセル確認</h2>
+              </div>
+              <p className="text-[14px] text-gray-600 leading-relaxed">
+                サブスクリプションをキャンセルしますか？<br />
+                期間終了まで引き続きご利用いただけます。
+              </p>
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={billingLoading}
+                  className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                >
+                  戻る
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelSubscription}
+                  disabled={billingLoading}
+                  className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all"
+                >
+                  {billingLoading ? "処理中..." : "キャンセルする"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="mt-6 space-y-3">

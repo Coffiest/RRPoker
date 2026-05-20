@@ -347,6 +347,16 @@ export default function StorePage() {
       const data = snap.data() ?? {}
       const sid = data.storeId ?? null
       setStoreId(sid)
+
+      if (sid) {
+        const storeSnap = await getDoc(doc(db, "stores", sid))
+        const sub = storeSnap.data()?.subscription
+        if (!sub || sub.status !== "active") {
+          router.replace("/home/store/billing")
+          return
+        }
+      }
+
       const ownedIds: string[] = data.ownedStoreIds ?? (sid ? [sid] : [])
       if (ownedIds.length > 0) {
         const infos = await Promise.all(
@@ -360,7 +370,7 @@ export default function StorePage() {
       }
     })
     return () => unsub()
-  }, [])
+  }, [router])
 
   useEffect(() => {
     if (!storeId) return
@@ -1044,13 +1054,13 @@ export default function StorePage() {
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: 8, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.04em', marginBottom: 4 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>費</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label)' }}>¥</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                                 {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>ST</span>
+                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Stack:</span>
                               <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
                                 {item.stack > 0 ? item.stack.toLocaleString() : '—'}
                               </span>
