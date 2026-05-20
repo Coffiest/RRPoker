@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { FiTrash2, FiEdit3, FiMenu, FiX } from "react-icons/fi"
+import { FiTrash2, FiX } from "react-icons/fi"
 import { addDoc, serverTimestamp, Timestamp } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
-import { doc, getDoc, updateDoc, onSnapshot, collection, deleteDoc } from "firebase/firestore"
+import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firestore"
 import { createPortal } from "react-dom"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
@@ -79,8 +79,7 @@ export default function TimerClient() {
   const tournamentId = params.tournamentId as string
 
   const [storeId, setStoreId] = useState<string | null>(null)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
+const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const [presetName, setPresetName] = useState("")
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null)
   const [levels, setLevels] = useState<Level[]>([{ type: "level", smallBlind: null, bigBlind: null, ante: null, duration: null }])
@@ -98,6 +97,26 @@ export default function TimerClient() {
   const [levelStartedAtMs, setLevelStartedAtMs] = useState<number | null>(null)
   const [levelStartedRemaining, setLevelStartedRemaining] = useState<number>(0)
   const [tickNow, setTickNow] = useState(Date.now())
+
+  // ── Responsive scale: fit the fixed design (1440×900) into any viewport ──
+  const DESIGN_W = 1440
+  const DESIGN_H = 900
+  const [scale, setScale] = useState(1)
+  const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 })
+  useEffect(() => {
+    function compute() {
+      const s = Math.min(window.innerWidth / DESIGN_W, window.innerHeight / DESIGN_H)
+      setScale(s)
+      setScaleOffset({
+        x: Math.max(0, (window.innerWidth - DESIGN_W * s) / 2),
+        y: Math.max(0, (window.innerHeight - DESIGN_H * s) / 2),
+      })
+    }
+    compute()
+    window.addEventListener("resize", compute)
+    return () => window.removeEventListener("resize", compute)
+  }, [])
+
   const [tournamentName, setTournamentName] = useState("")
   const [entry, setEntry] = useState(0)
   const [reentry, setReentry] = useState(0)
@@ -206,19 +225,7 @@ export default function TimerClient() {
     setEditingPresetId(null); setIsPresetModalOpen(false); setEditingCommentIdx(null)
   }
 
-  async function applyPreset(preset: any) {
-    if (!storeId) return
-    const lvs = Array.isArray(preset.levels) ? preset.levels : []
-    if (!lvs.length) return
-    const firstDur = typeof lvs[0]?.duration === "number" ? lvs[0].duration * 60 : 0
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
-      selectedPreset: preset.id, customBlindLevels: lvs,
-      currentLevelIndex: 0, timeRemaining: firstDur, levelStartedRemaining: firstDur, timerRunning: false,
-    })
-    setSelectedPreset(preset.id); setCustomBlindLevels(lvs); setCurrentLevelIndex(0)
-  }
-
-  // ── Firebase ─────────────────────────────────────────────────────────────
+// ── Firebase ─────────────────────────────────────────────────────────────
   // Real-time listener: blindPresets の変更をタイマーに即座に反映
   useEffect(() => {
     if (!storeId) return
@@ -415,31 +422,14 @@ export default function TimerClient() {
 
   // ════════════════════════════════════════════════════════════════════════
   return (
-    <div onClick={unlockAudio} onTouchStart={unlockAudio}>
-      <main className="min-h-screen overflow-hidden relative" style={{ background: "#fff" }}>
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#fff" }} onClick={unlockAudio} onTouchStart={unlockAudio}>
+      <div style={{ width: DESIGN_W, height: DESIGN_H, marginLeft: scaleOffset.x, marginTop: scaleOffset.y, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+      <main className="overflow-hidden relative" style={{ background: "#fff", width: DESIGN_W, height: DESIGN_H }}>
         <style>{`
           @keyframes colonBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
           @keyframes pauseFadeIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
-          @keyframes menuSlide { from{transform:translateX(-100%)} to{transform:translateX(0)} }
           .colon-blink { animation: colonBlink 1s step-start infinite; }
           .pause-badge { animation: pauseFadeIn 0.18s ease-out; }
-          .side-menu {
-            position:fixed; top:0; left:0; bottom:0; width:360px;
-            background:#fff;
-            box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 4px 0 32px rgba(0,0,0,0.08);
-            transform:translateX(-100%);
-            transition:transform 0.32s cubic-bezier(0.4,0,0.2,1);
-            z-index:100;
-          }
-          .side-menu.open { transform:translateX(0); }
-          .overlay {
-            position:fixed; inset:0;
-            background:rgba(0,0,0,0.18);
-            backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
-            opacity:0; pointer-events:none;
-            transition:opacity 0.28s ease; z-index:99;
-          }
-          .overlay.open { opacity:1; pointer-events:auto; }
           .timer-num { font-variant-numeric:tabular-nums; }
           .prize-input::-webkit-inner-spin-button,
           .prize-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
@@ -459,72 +449,9 @@ export default function TimerClient() {
           .news-ticker { animation:newsFlash 10s ease-in-out infinite; }
         `}</style>
 
-        {/* Overlay */}
-        <div className={`overlay ${isMenuOpen ? "open" : ""}`} onClick={() => setIsMenuOpen(false)} />
-
-        {/* ── Side Menu ─────────────────────────────────────────────────── */}
-        <div className={`side-menu ${isMenuOpen ? "open" : ""}`}>
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-            <p className="text-[15px] font-semibold text-gray-900">ブラインド設定</p>
-            <button onClick={() => setIsMenuOpen(false)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-            >
-              <FiX className="text-[16px] text-gray-600" />
-            </button>
-          </div>
-
-          <div className="p-5 space-y-2.5 overflow-y-auto" style={{ maxHeight: "calc(100vh - 72px)" }}>
-            {blindPresets.map((preset) => (
-              <div key={preset.id} className="flex items-center gap-2">
-                <button type="button"
-                  onClick={() => applyPreset(preset)}
-                  className="flex-1 py-2.5 px-4 rounded-2xl text-[14px] font-semibold transition-all text-left"
-                  style={selectedPreset === preset.id
-                    ? { background: "#F2A900", color: "#fff", boxShadow: "0 4px 12px rgba(242,169,0,0.3)" }
-                    : { background: "#F5F5F7", color: "#1D1D1F", border: "1px solid rgba(0,0,0,0.06)" }
-                  }
-                >
-                  {preset.name}
-                </button>
-                <button type="button"
-                  className="h-10 w-10 flex items-center justify-center rounded-2xl bg-gray-100 hover:bg-gray-200 transition-colors"
-                  onClick={() => { setEditingPresetId(preset.id); setPresetName(preset.name); if (preset.levels) setLevels(preset.levels); setIsPresetModalOpen(true) }}
-                >
-                  <FiEdit3 className="text-[15px] text-gray-500" />
-                </button>
-                <button type="button"
-                  className="h-10 w-10 flex items-center justify-center rounded-2xl bg-gray-100 hover:bg-red-50 transition-colors"
-                  onClick={async () => {
-                    if (!window.confirm("このプリセットを削除しますか？") || !storeId) return
-                    await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id))
-                    setBlindPresets(prev => prev.filter(p => p.id !== preset.id))
-                  }}
-                >
-                  <FiTrash2 className="text-[15px] text-gray-400 hover:text-red-500 transition-colors" />
-                </button>
-              </div>
-            ))}
-
-            <button
-              onClick={() => setIsPresetModalOpen(true)}
-              className="w-full py-3 rounded-2xl text-[14px] font-semibold mt-1 transition-all border-2 border-dashed border-[#F2A900]/40 text-[#F2A900] hover:bg-[#F2A900]/5"
-            >
-              ＋　プリセットを作成
-            </button>
-          </div>
-        </div>
-
-        {/* ── Hamburger ─────────────────────────────────────────────────── */}
-        <div className="absolute top-5 left-5 z-10">
-          <button onClick={() => setIsMenuOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-200/80 hover:shadow-md transition-all"
-          >
-            <FiMenu className="text-[18px] text-gray-600" />
-          </button>
-        </div>
 
         {/* ══ Main Layout ══════════════════════════════════════════════════════════ */}
-        <div className="flex h-screen">
+        <div className="flex" style={{ height: DESIGN_H }}>
 
           {/* ── Left Panel ──────────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden">
@@ -1022,6 +949,7 @@ export default function TimerClient() {
           RRPOKER
         </span>
       </div>
+      </div>{/* end scale wrapper */}
 
     </div>
   )

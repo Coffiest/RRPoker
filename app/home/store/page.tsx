@@ -19,10 +19,13 @@ import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign,
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight, FiMaximize2,
-  FiChevronDown, FiMenu,
+  FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2,
 } from "react-icons/fi"
 
 type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
+type AdjLevel =
+  | { type: "level"; smallBlind: number | null; bigBlind: number | null; ante: number | null; duration: number | null; comment?: string | null }
+  | { type: "break"; duration: number | null; comment?: string | null }
 type OwnedStore = { id: string; name: string; iconUrl?: string }
 type DepositRequest = { id: string; playerId: string; amount: number; comment?: string }
 type WithdrawRequest = { id: string; playerId: string; amount: number; comment?: string }
@@ -43,15 +46,23 @@ export default function StorePage() {
   const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
+  const [adjustTab, setAdjustTab] = useState<Record<string, 'time' | 'blind'>>({})
+  const [adjustBlindLevels, setAdjustBlindLevels] = useState<Record<string, AdjLevel[]>>({})
+  const [adjDragIdx, setAdjDragIdx] = useState<Record<string, number | null>>({})
+  const [adjDropIdx, setAdjDropIdx] = useState<Record<string, number | null>>({})
+  const [adjCommentIdx, setAdjCommentIdx] = useState<Record<string, number | null>>({})
+  const [adjContextMenuIdx, setAdjContextMenuIdx] = useState<Record<string, number | null>>({})
   const [expandedTimerId, setExpandedTimerId] = useState<string | null>(null)
   const [expandCtrlVisible, setExpandCtrlVisible] = useState(false)
   const [expandAdjustOpen, setExpandAdjustOpen] = useState(false)
   const [expandPlayerOpen, setExpandPlayerOpen] = useState(false)
   const [expandPrizeOpen, setExpandPrizeOpen] = useState(false)
 
-  const openAdjustModal = (id: string, s: number) => {
+  const openAdjustModal = (id: string, s: number, blindLevels?: AdjLevel[] | null) => {
     setAdjustModalOpen(p => ({ ...p, [id]: true }))
     setAdjustSeconds(p => ({ ...p, [id]: s }))
+    setAdjustTab(p => ({ ...p, [id]: 'time' }))
+    setAdjustBlindLevels(p => ({ ...p, [id]: blindLevels ? JSON.parse(JSON.stringify(blindLevels)) : [] }))
   }
   const closeAdjustModal = (id: string) => setAdjustModalOpen(p => ({ ...p, [id]: false }))
   const updateAdjustTime = (id: string, diff: number) =>
@@ -60,6 +71,64 @@ export default function StorePage() {
     if (!storeId) return
     await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timeRemaining: adjustSeconds[id], levelStartedAt: serverTimestamp(), levelStartedRemaining: adjustSeconds[id] })
     closeAdjustModal(id)
+  }
+  const confirmAdjustBlinds = async (id: string) => {
+    if (!storeId) return
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: adjustBlindLevels[id] ?? [] })
+    closeAdjustModal(id)
+  }
+  const updateAdjBlind = (id: string, idx: number, fields: Partial<AdjLevel>) =>
+    setAdjustBlindLevels(p => {
+      const lvs = [...(p[id] ?? [])]
+      lvs[idx] = { ...lvs[idx], ...fields } as AdjLevel
+      return { ...p, [id]: lvs }
+    })
+  const addAdjLevel = (id: string) =>
+    setAdjustBlindLevels(p => {
+      const lvs = [...(p[id] ?? [])]
+      const last = [...lvs].reverse().find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
+      const sb = Math.round((last?.smallBlind ?? 100) * 1.5)
+      const bb = Math.round((last?.bigBlind ?? 200) * 1.5)
+      const dur = last?.duration ?? 20
+      lvs.push({ type: 'level', smallBlind: sb, bigBlind: bb, ante: bb, duration: dur })
+      return { ...p, [id]: lvs }
+    })
+  const addAdjBreak = (id: string) =>
+    setAdjustBlindLevels(p => {
+      const lvs = [...(p[id] ?? [])]
+      lvs.push({ type: 'break', duration: 15 })
+      return { ...p, [id]: lvs }
+    })
+  const removeAdjLevel = (id: string, idx: number) =>
+    setAdjustBlindLevels(p => ({ ...p, [id]: (p[id] ?? []).filter((_, i) => i !== idx) }))
+  const adjDragEnd = (id: string) => {
+    const di = adjDragIdx[id]; const dr = adjDropIdx[id]
+    if (di !== null && dr !== null && di !== dr) {
+      setAdjustBlindLevels(p => {
+        const lvs = [...(p[id] ?? [])]; const [moved] = lvs.splice(di, 1); lvs.splice(dr, 0, moved)
+        return { ...p, [id]: lvs }
+      })
+    }
+    setAdjDragIdx(p => ({ ...p, [id]: null })); setAdjDropIdx(p => ({ ...p, [id]: null }))
+  }
+  const insertAdjLevelBefore = (id: string, idx: number) => {
+    setAdjustBlindLevels(p => { const lvs = [...(p[id] ?? [])]; lvs.splice(idx, 0, { type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null }); return { ...p, [id]: lvs } })
+    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
+  }
+  const insertAdjLevelAfter = (id: string, idx: number) => {
+    setAdjustBlindLevels(p => { const lvs = [...(p[id] ?? [])]; lvs.splice(idx + 1, 0, { type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null }); return { ...p, [id]: lvs } })
+    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
+  }
+  const toggleAdjLevelBreak = (id: string, idx: number) => {
+    setAdjustBlindLevels(p => {
+      const lvs = (p[id] ?? []).map((lv, i) => {
+        if (i !== idx) return lv
+        if (lv.type === 'level') return { type: 'break' as const, duration: lv.duration }
+        return { type: 'level' as const, smallBlind: null, bigBlind: null, ante: null, duration: lv.duration }
+      })
+      return { ...p, [id]: lvs }
+    })
+    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
   }
   const toggleTimer = async (id: string) => {
     timerRunning[id] ? await pauseTimer(id) : await resumeTimer(id)
@@ -1022,7 +1091,7 @@ export default function StorePage() {
                         <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
                           <FiClock size={14}/> Timer
                         </button>
-                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, t.timeRemaining)}>
+                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, t.timeRemaining, t.customBlindLevels)}>
                           <FiEdit3 size={14}/> Adjust
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
@@ -1277,46 +1346,202 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Adjust Time Modal ── */}
-        {activeTournaments.map(t => adjustModalOpen[t.id] && (
-          <div key={`adj-${t.id}`} className="fixed inset-0 z-[999] flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
-            <div className="ios-card su" style={{ width: '100%', maxWidth: 360, padding: '22px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>タイム調整</p>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => closeAdjustModal(t.id)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
-                  <button onClick={() => confirmAdjustTime(t.id)}
-                    style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
+        {/* ── Adjust Modal (タイム調整 + ブラインド設定) ── */}
+        {activeTournaments.map(t => adjustModalOpen[t.id] && (() => {
+          const tab = adjustTab[t.id] ?? 'time'
+          const adjLvs = adjustBlindLevels[t.id] ?? []
+          return (
+            <div key={`adj-${t.id}`} className="fixed inset-0 z-[999] flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
+              <div className="ios-card su" style={{ width: '100%', maxWidth: 380, padding: '20px 18px', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
+
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexShrink: 0 }}>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>Adjust</p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => closeAdjustModal(t.id)}
+                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                    <button onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
+                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
+                  </div>
                 </div>
-              </div>
 
-              <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                  {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
-                  <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
-                  {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
-                </p>
-              </div>
+                {/* Tab switcher */}
+                <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexShrink: 0, background: 'var(--fill)', borderRadius: 12, padding: 4 }}>
+                  {(['time', 'blind'] as const).map(tb => (
+                    <button key={tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
+                      style={{
+                        flex: 1, height: 34, borderRadius: 9, border: 'none', cursor: 'pointer',
+                        fontSize: 13, fontWeight: 700, transition: 'all .15s',
+                        background: tab === tb ? '#fff' : 'transparent',
+                        color: tab === tb ? 'var(--label)' : 'var(--label3)',
+                        boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
+                      }}
+                    >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>
+                  ))}
+                </div>
 
-              <input type="range" min={0} max={7200} step={10}
-                value={adjustSeconds[t.id] ?? 0}
-                onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
-                style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
-              />
+                {/* ── Time tab ── */}
+                {tab === 'time' && (
+                  <>
+                    <div style={{ textAlign: 'center', marginBottom: 18 }}>
+                      <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                        {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
+                        <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
+                        {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
+                      </p>
+                    </div>
+                    <input type="range" min={0} max={7200} step={10}
+                      value={adjustSeconds[t.id] ?? 0}
+                      onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
+                      style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
+                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
+                        <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
+                          style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none' }}
+                        >{b.label}</button>
+                      ))}
+                    </div>
+                  </>
+                )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
-                  <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
-                    style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'transform .12s' }}
-                  >{b.label}</button>
-                ))}
+                {/* ── Blind tab ── */}
+                {tab === 'blind' && (() => {
+                  const bInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all w-full"
+                  let lvCount = 0
+                  return (
+                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                      {adjLvs.length === 0 && (
+                        <p className="text-center text-[13px] text-gray-400 py-6">ブラインドが設定されていません</p>
+                      )}
+                      <div className="space-y-2">
+                        {adjLvs.map((lv, idx) => {
+                          if (lv.type === 'level') lvCount++
+                          const lvNum = lvCount
+                          return (
+                            <div key={idx} className="relative">
+                              <div
+                                className="rounded-2xl overflow-hidden border border-gray-100"
+                                draggable
+                                onDragStart={() => setAdjDragIdx(p => ({ ...p, [t.id]: idx }))}
+                                onDragEnter={() => setAdjDropIdx(p => ({ ...p, [t.id]: idx }))}
+                                onDragEnd={() => adjDragEnd(t.id)}
+                                onDragOver={e => e.preventDefault()}
+                                style={{ opacity: adjDragIdx[t.id] === idx ? 0.5 : 1, background: lv.type === 'break' ? '#F0F7FF' : '#F9F9F9' }}
+                              >
+                                {/* Row 1: drag + label + comment + controls */}
+                                <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="cursor-move text-gray-300 text-[16px] select-none">≡</span>
+                                    {lv.type === 'level'
+                                      ? <span className="text-[11px] font-bold text-[#F2A900] min-w-[40px]">Lv {lvNum}</span>
+                                      : <span className="text-[11px] font-bold text-blue-400 min-w-[40px]">Break</span>
+                                    }
+                                    <button type="button"
+                                      onClick={() => setAdjCommentIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
+                                      className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#F2A900]/15 text-[#F2A900] border border-[#F2A900]/30" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                                    >{lv.comment ? lv.comment : "＋"}</button>
+                                  </div>
+                                  <div className="flex-shrink-0 flex items-center gap-0.5">
+                                    <button type="button"
+                                      onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
+                                      className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
+                                    ><FiMoreHorizontal size={15} className="text-gray-400" /></button>
+                                    <button onClick={() => removeAdjLevel(t.id, idx)}
+                                      className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
+                                    ><FiTrash2 size={14} className="text-red-400" /></button>
+                                  </div>
+                                </div>
+
+                                {/* Row 2: inputs */}
+                                {lv.type === 'level' ? (
+                                  <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 px-3 pb-2.5">
+                                    {([
+                                      { label: 'SB',   field: 'smallBlind', val: lv.smallBlind },
+                                      { label: 'BB',   field: 'bigBlind',   val: lv.bigBlind   },
+                                      { label: 'Ante', field: 'ante',       val: lv.ante       },
+                                      { label: 'min',  field: 'duration',   val: lv.duration   },
+                                    ] as const).map(({ label, field, val }) => (
+                                      <div key={field} className="flex flex-col gap-0.5">
+                                        <span className="text-[10px] text-gray-400 font-semibold text-center">{label}</span>
+                                        <input type="number" min={1} value={val ?? ''} placeholder="-"
+                                          onChange={e => updateAdjBlind(t.id, idx, { [field]: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) } as Partial<AdjLevel>)}
+                                          className={bInput} />
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 px-3 pb-2.5">
+                                    <div className="flex flex-col gap-0.5" style={{ width: 120 }}>
+                                      <span className="text-[10px] text-blue-400 font-semibold text-center">min</span>
+                                      <input type="number" min={1} value={lv.duration ?? ''} placeholder="10"
+                                        onChange={e => updateAdjBlind(t.id, idx, { duration: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) })}
+                                        className={bInput} />
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Comment input */}
+                                {(adjCommentIdx[t.id] === idx || lv.comment) && (
+                                  <div className="px-3 pb-2.5 flex items-center gap-2">
+                                    <input type="text" placeholder="コメントを入力..."
+                                      value={lv.comment ?? ''}
+                                      onChange={e => updateAdjBlind(t.id, idx, { comment: e.target.value || null })}
+                                      autoFocus={adjCommentIdx[t.id] === idx && !lv.comment}
+                                      className="flex-1 text-[12px] rounded-xl px-3 py-1.5 border border-gray-200 bg-white focus:border-[#F2A900] focus:outline-none transition-all"
+                                    />
+                                    <button type="button"
+                                      onClick={() => { updateAdjBlind(t.id, idx, { comment: null }); setAdjCommentIdx(p => ({ ...p, [t.id]: null })) }}
+                                      className="h-7 w-7 flex-shrink-0 rounded-full bg-gray-200 hover:bg-red-50 flex items-center justify-center transition-colors"
+                                    ><FiX size={11} className="text-gray-500" /></button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Context menu */}
+                              {adjContextMenuIdx[t.id] === idx && (
+                                <>
+                                  <div className="fixed inset-0 z-[199]" onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: null }))} />
+                                  <div className="absolute right-9 top-1 z-[200] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-w-[168px]">
+                                    <button type="button" onClick={() => insertAdjLevelBefore(t.id, idx)}
+                                      className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                                    >この前にレベルを追加</button>
+                                    <button type="button" onClick={() => insertAdjLevelAfter(t.id, idx)}
+                                      className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                                    >この後にレベルを追加</button>
+                                    <div className="border-t border-gray-100" />
+                                    <button type="button" onClick={() => toggleAdjLevelBreak(t.id, idx)}
+                                      className="w-full px-4 py-3 text-left text-[13px] text-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-colors"
+                                    >{lv.type === 'level' ? 'ブレイクに変更' : 'レベルに変更'}</button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* Add buttons */}
+                      <div className="flex gap-2 mt-3 pb-1">
+                        <button onClick={() => addAdjLevel(t.id)}
+                          className="flex-1 h-10 rounded-[10px] text-[13px] font-bold text-[#D4910A] cursor-pointer"
+                          style={{ border: '1.5px dashed rgba(242,169,0,0.5)', background: 'transparent' }}
+                        >＋ レベル</button>
+                        <button onClick={() => addAdjBreak(t.id)}
+                          className="flex-1 h-10 rounded-[10px] text-[13px] font-bold text-blue-500 cursor-pointer"
+                          style={{ border: '1.5px dashed rgba(59,130,246,0.4)', background: 'transparent' }}
+                        >＋ ブレイク</button>
+                      </div>
+                    </div>
+                  )
+                })()}
+
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })())}
 
         {/* ── Withdraw Requests ── */}
         {withdrawRequests.length > 0 && (
