@@ -54,10 +54,10 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
-    metadata: { storeId, plan, interval, circleCode: circleCode ?? "" },
+    metadata: { storeId, plan, interval, circleCode: circleCode ?? "", uid },
     success_url: `${origin}/home/store/billing?success=true`,
     cancel_url: `${origin}/home/store/billing`,
-    subscription_data: { metadata: { storeId, plan, interval } },
+    subscription_data: { metadata: { storeId, plan, interval, uid } },
   })
 
   return NextResponse.json({ url: session.url })

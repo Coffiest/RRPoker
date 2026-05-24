@@ -350,8 +350,9 @@ export default function StorePage() {
 
       if (sid) {
         const storeSnap = await getDoc(doc(db, "stores", sid))
-        const sub = storeSnap.data()?.subscription
-        if (!sub || sub.status !== "active") {
+        const d = storeSnap.data() ?? {}
+        const status = d.subscription?.status ?? d["subscription.status"] ?? null
+        if (status !== "active") {
           router.replace("/home/store/billing")
           return
         }

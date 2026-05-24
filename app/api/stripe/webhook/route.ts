@@ -3,19 +3,27 @@ import { stripe } from "@/lib/stripe.server"
 import { adminDb } from "@/lib/firebase-admin"
 import Stripe from "stripe"
 
+async function getOwnedStoreIds(storeId: string, uid?: string): Promise<string[]> {
+  if (uid) {
+    const userSnap = await adminDb.doc(`users/${uid}`).get()
+    const ownedIds: string[] = userSnap.data()?.ownedStoreIds ?? []
+    if (ownedIds.length > 0) return ownedIds
+  }
+  return [storeId]
+}
+
 async function updateStoreSubscription(storeId: string, sub: Stripe.Subscription, plan?: string, interval?: string) {
   const currentPeriodEnd = sub.items.data[0]?.current_period_end ?? 0
-  const data: Record<string, unknown> = {
+  const fields: Record<string, unknown> = {
     "subscription.stripeSubscriptionId": sub.id,
     "subscription.stripeCustomerId": sub.customer as string,
     "subscription.status": sub.status,
     "subscription.currentPeriodEnd": currentPeriodEnd,
     "subscription.cancelAtPeriodEnd": sub.cancel_at_period_end,
   }
-  if (plan) data["subscription.plan"] = plan
-  if (interval) data["subscription.interval"] = interval
-  await adminDb.doc(`stores/${storeId}`).set(data, { merge: true })
-  await adminDb.doc(`_stripeSubMap/${sub.id}`).set({ storeId })
+  if (plan) fields["subscription.plan"] = plan
+  if (interval) fields["subscription.interval"] = interval
+  await adminDb.doc(`stores/${storeId}`).update(fields)
 }
 
 function getSubIdFromInvoice(invoice: Stripe.Invoice): string | null {
@@ -44,10 +52,13 @@ export async function POST(req: NextRequest) {
       const plan = session.metadata?.plan
       const interval = session.metadata?.interval
       const circleCode = session.metadata?.circleCode
+      const uid = session.metadata?.uid
       if (!storeId || !session.subscription) break
 
       const sub = await stripe.subscriptions.retrieve(session.subscription as string)
-      await updateStoreSubscription(storeId, sub, plan, interval)
+      const storeIds = await getOwnedStoreIds(storeId, uid)
+      await Promise.all(storeIds.map(id => updateStoreSubscription(id, sub, plan, interval)))
+      await adminDb.doc(`_stripeSubMap/${sub.id}`).set({ storeId, uid: uid ?? "" })
 
       if (plan === "circle" && circleCode) {
         await adminDb.doc(`circleSerialCodes/${circleCode}`).set({ usedBy: storeId, usedAt: Date.now() }, { merge: true })
@@ -58,21 +69,27 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as Stripe.Subscription
       const mapSnap = await adminDb.doc(`_stripeSubMap/${sub.id}`).get()
       const storeId = mapSnap.data()?.storeId
+      const uid = mapSnap.data()?.uid
       if (!storeId) break
       const plan = sub.metadata?.plan
       const interval = sub.metadata?.interval
-      await updateStoreSubscription(storeId, sub, plan, interval)
+      const storeIds = await getOwnedStoreIds(storeId, uid)
+      await Promise.all(storeIds.map(id => updateStoreSubscription(id, sub, plan, interval)))
       break
     }
     case "customer.subscription.deleted": {
       const sub = event.data.object as Stripe.Subscription
       const mapSnap = await adminDb.doc(`_stripeSubMap/${sub.id}`).get()
       const storeId = mapSnap.data()?.storeId
+      const uid = mapSnap.data()?.uid
       if (!storeId) break
-      await adminDb.doc(`stores/${storeId}`).set(
-        { "subscription.status": "canceled", "subscription.cancelAtPeriodEnd": false },
-        { merge: true }
-      )
+      const storeIds = await getOwnedStoreIds(storeId, uid)
+      await Promise.all(storeIds.map(id =>
+        adminDb.doc(`stores/${id}`).update({
+          "subscription.status": "canceled",
+          "subscription.cancelAtPeriodEnd": false,
+        })
+      ))
       break
     }
     case "invoice.payment_failed": {
@@ -81,8 +98,12 @@ export async function POST(req: NextRequest) {
       if (!subId) break
       const mapSnap = await adminDb.doc(`_stripeSubMap/${subId}`).get()
       const storeId = mapSnap.data()?.storeId
+      const uid = mapSnap.data()?.uid
       if (!storeId) break
-      await adminDb.doc(`stores/${storeId}`).set({ "subscription.status": "past_due" }, { merge: true })
+      const storeIds = await getOwnedStoreIds(storeId, uid)
+      await Promise.all(storeIds.map(id =>
+        adminDb.doc(`stores/${id}`).update({ "subscription.status": "past_due" })
+      ))
       break
     }
   }

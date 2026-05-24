@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
-import { FiCheck, FiChevronRight } from "react-icons/fi"
+import { FiCheck } from "react-icons/fi"
 
 type Subscription = {
   status: string
@@ -12,6 +12,20 @@ type Subscription = {
   interval: string
   currentPeriodEnd: number
   cancelAtPeriodEnd: boolean
+}
+
+function normalizeSubscription(d: Record<string, any>): Subscription | null {
+  if (d.subscription?.status) return d.subscription as Subscription
+  if (d["subscription.status"]) {
+    return {
+      status: d["subscription.status"],
+      plan: d["subscription.plan"] ?? "",
+      interval: d["subscription.interval"] ?? "",
+      currentPeriodEnd: d["subscription.currentPeriodEnd"] ?? 0,
+      cancelAtPeriodEnd: d["subscription.cancelAtPeriodEnd"] ?? false,
+    }
+  }
+  return null
 }
 
 function BillingContent() {
@@ -43,17 +57,20 @@ function BillingContent() {
   useEffect(() => {
     if (!storeId) return
     const unsub = onSnapshot(doc(db, "stores", storeId), snap => {
-      const sub = snap.data()?.subscription ?? null
-      setSubscription(sub)
+      setSubscription(normalizeSubscription(snap.data() ?? {}))
     })
     return () => unsub()
   }, [storeId])
 
+  // アクティブになったら自動リダイレクト
+  // success=true の場合は2秒待ってから（成功画面を見せる）
+  // success=false の場合は即座に（既存サブスクがある人がbillingを開いた場合）
   useEffect(() => {
     if (!authReady) return
-    if (subscription?.status === "active" && !success) {
-      router.replace("/home/store")
-    }
+    if (subscription?.status !== "active") return
+    const delay = success ? 2000 : 0
+    const t = setTimeout(() => router.replace("/home/store"), delay)
+    return () => clearTimeout(t)
   }, [authReady, subscription, success, router])
 
   const handleSubscribe = async () => {
@@ -79,20 +96,27 @@ function BillingContent() {
   }
 
   if (success) {
+    const isActive = subscription?.status === "active"
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-            <FiCheck className="text-green-600" size={32} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">ご登録ありがとうございます！</h2>
-          <p className="text-sm text-gray-500 mb-8">サブスクリプションが有効になりました。</p>
-          <button
-            onClick={() => router.replace("/home/store")}
-            className="w-full bg-[#F2A900] text-white font-bold rounded-xl py-3 text-[15px] flex items-center justify-center gap-1"
-          >
-            RRPokerをはじめる <FiChevronRight size={18} />
-          </button>
+          {isActive ? (
+            <>
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
+                <FiCheck className="text-green-600" size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">ご登録ありがとうございます！</h2>
+              <p className="text-sm text-gray-500">RRPokerへ移動します...</p>
+            </>
+          ) : (
+            <>
+              <div className="w-16 h-16 flex items-center justify-center mx-auto mb-5">
+                <div className="w-10 h-10 rounded-full border-4 border-[#F2A900] border-t-transparent animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
+              <p className="text-sm text-gray-500">少々お待ちください</p>
+            </>
+          )}
         </div>
       </div>
     )
@@ -131,7 +155,6 @@ function BillingContent() {
           <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>
         </div>
 
-        {/* Monthly / Yearly toggle */}
         <div className="flex items-center justify-center gap-3 mb-8">
           <button
             onClick={() => setBillingInterval("monthly")}
@@ -141,14 +164,13 @@ function BillingContent() {
           </button>
           <button
             onClick={() => setBillingInterval("yearly")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all relative ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             年払い
             <span className="ml-2 text-[10px] font-bold bg-green-500 text-white rounded-full px-1.5 py-0.5">17%OFF</span>
           </button>
         </div>
 
-        {/* Plan cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {plans.map(p => (
             <button
@@ -189,7 +211,6 @@ function BillingContent() {
           ))}
         </div>
 
-        {/* Circle code input */}
         {plan === "circle" && (
           <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">シリアルコード</label>

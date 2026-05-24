@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
 
   await stripe.subscriptions.update(subId, { cancel_at_period_end: true })
 
-  await adminDb.doc(`stores/${storeId}`).set(
-    { "subscription.cancelAtPeriodEnd": true },
-    { merge: true }
-  )
+  const ownedIds: string[] = userSnap.data()?.ownedStoreIds ?? [storeId]
+  const allIds = ownedIds.length > 0 ? ownedIds : [storeId]
+  await Promise.all(allIds.map(id =>
+    adminDb.doc(`stores/${id}`).update({ "subscription.cancelAtPeriodEnd": true })
+  ))
 
   return NextResponse.json({ ok: true })
 }

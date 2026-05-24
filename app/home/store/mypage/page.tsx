@@ -250,7 +250,17 @@ export default function StoreMyPage() {
   useEffect(() => {
     if (!storeId) return
     const unsub = onSnapshot(doc(db, "stores", storeId), snap => {
-      setSubscription(snap.data()?.subscription ?? null)
+      const d = snap.data() ?? {}
+      const sub = d.subscription ?? (d["subscription.status"] ? {
+        status: d["subscription.status"],
+        plan: d["subscription.plan"],
+        interval: d["subscription.interval"],
+        currentPeriodEnd: d["subscription.currentPeriodEnd"],
+        cancelAtPeriodEnd: d["subscription.cancelAtPeriodEnd"],
+        stripeCustomerId: d["subscription.stripeCustomerId"],
+        stripeSubscriptionId: d["subscription.stripeSubscriptionId"],
+      } : null)
+      setSubscription(sub)
     })
     return () => unsub()
   }, [storeId])
