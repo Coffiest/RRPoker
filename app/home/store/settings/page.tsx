@@ -663,8 +663,8 @@ export default function StoreSettingsPage() {
 
       {/* ── チップ有効期限モーダル ── */}
       {isChipExpiryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
-          <div className="w-full max-w-sm rounded-t-3xl p-6 pb-8" style={{ background: CLR.white }}>
+        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
             <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
             <div className="flex items-center justify-between mb-5">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
@@ -699,8 +699,8 @@ export default function StoreSettingsPage() {
 
       {/* ── レーキモーダル ── */}
       {isRakeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
-          <div className="w-full max-w-sm rounded-t-3xl p-6 pb-8" style={{ background: CLR.white }}>
+        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
             <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>

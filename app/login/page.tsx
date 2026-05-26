@@ -26,7 +26,11 @@ export default function LoginPage() {
   const [scrollY, setScrollY] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [orbPhase, setOrbPhase] = useState(0)
-  
+  const [adminModalOpen, setAdminModalOpen] = useState(false)
+  const [adminPw, setAdminPw] = useState("")
+  const [adminError, setAdminError] = useState("")
+  const [adminLoading, setAdminLoading] = useState(false)
+
 
   const animRef = useRef<number | null>(null)
 
@@ -52,6 +56,31 @@ export default function LoginPage() {
     animRef.current = requestAnimationFrame(tick)
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current) }
   }, [])
+
+  const handleAdminLogin = async () => {
+    if (!adminPw.trim()) return
+    setAdminLoading(true)
+    setAdminError("")
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPw.trim() }),
+      })
+      if (res.ok) {
+        sessionStorage.setItem("adminPw", adminPw.trim())
+        setAdminModalOpen(false)
+        router.push("/admin")
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setAdminError(data.error === "ADMIN_PASSWORD not configured" ? "サーバー再起動が必要です" : "パスワードが違います")
+      }
+    } catch {
+      setAdminError("エラーが発生しました")
+    } finally {
+      setAdminLoading(false)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) { setError('メールアドレスとパスワードを入力してください'); return }
@@ -587,12 +616,52 @@ export default function LoginPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.6.6</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.6.7</p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
-          <p style={{ fontSize:10, color:'var(--label3)' }}>製作者 : なおゆき a.k.a. Turn dead man</p>
+          <p
+            style={{ fontSize:10, color:'var(--label3)', cursor:'pointer', userSelect:'none' }}
+            onClick={() => { setAdminModalOpen(true); setAdminPw(""); setAdminError("") }}
+          >製作者 : なおゆき a.k.a. Turn dead man</p>
         </div>
 
       </div>
+
+      {/* Admin password modal */}
+      {adminModalOpen && (
+        <div
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999, padding:24 }}
+          onClick={() => setAdminModalOpen(false)}
+        >
+          <div
+            style={{ background:'#1C1C1E', borderRadius:20, padding:28, width:'100%', maxWidth:320, boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:4 }}>管理者認証</p>
+            <p style={{ fontSize:12, color:'#888', marginBottom:20 }}>パスワードを入力してください</p>
+            <input
+              type="password"
+              value={adminPw}
+              onChange={e => setAdminPw(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
+              placeholder="Password"
+              autoFocus
+              style={{ width:'100%', background:'#2C2C2E', border:'1px solid #3A3A3C', borderRadius:12, padding:'12px 14px', color:'#fff', fontSize:14, outline:'none', boxSizing:'border-box', marginBottom:8 }}
+            />
+            {adminError && <p style={{ fontSize:12, color:'#FF453A', marginBottom:8 }}>{adminError}</p>}
+            <div style={{ display:'flex', gap:10, marginTop:8 }}>
+              <button
+                onClick={() => setAdminModalOpen(false)}
+                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888', fontSize:14, cursor:'pointer' }}
+              >キャンセル</button>
+              <button
+                onClick={handleAdminLogin}
+                disabled={adminLoading || !adminPw.trim()}
+                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#F2A900', color:'#000', fontSize:14, fontWeight:700, cursor:'pointer', opacity: adminLoading || !adminPw.trim() ? 0.5 : 1 }}
+              >{adminLoading ? "確認中..." : "ログイン"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

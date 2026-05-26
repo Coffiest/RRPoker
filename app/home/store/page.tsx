@@ -18,7 +18,7 @@ import {
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign,
-  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiEdit3, FiChevronRight, FiMaximize2,
+  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2,
 } from "react-icons/fi"
 
@@ -352,7 +352,8 @@ export default function StorePage() {
         const storeSnap = await getDoc(doc(db, "stores", sid))
         const d = storeSnap.data() ?? {}
         const status = d.subscription?.status ?? d["subscription.status"] ?? null
-        if (status !== "active") {
+        const isFree = d.isFree === true
+        if (status !== "active" && !isFree) {
           router.replace("/home/store/billing")
           return
         }
@@ -1780,7 +1781,7 @@ export default function StorePage() {
                         <button onClick={() => setAdjustModalPlayer(player)}
                           style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
                         ><FiDollarSign size={13} style={{ color: '#D4910A' }}/></button>
-                        {player.isInStore && (
+                        {player.isInStore ? (
                           <button
                             onClick={async () => {
                               setRemovingAdjustmentPlayerIds(p => [...p, player.id])
@@ -1791,6 +1792,13 @@ export default function StorePage() {
                             }}
                             style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,59,48,0.09)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
                           ><FiLogOut size={13} style={{ color: '#FF3B30' }}/></button>
+                        ) : activeTab === "out" && storeId && (
+                          <button
+                            onClick={async () => {
+                              await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
+                            }}
+                            style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                          ><FiLogIn size={13} style={{ color: '#34C759' }}/></button>
                         )}
                       </div>
                     </div>

@@ -54,24 +54,28 @@ function BillingContent() {
     return () => unsub()
   }, [router])
 
+  const [isFree, setIsFree] = useState(false)
+
   useEffect(() => {
     if (!storeId) return
     const unsub = onSnapshot(doc(db, "stores", storeId), snap => {
-      setSubscription(normalizeSubscription(snap.data() ?? {}))
-    })
+      const d = snap.data() ?? {}
+      setSubscription(normalizeSubscription(d))
+      setIsFree(d.isFree === true)
+    }, () => {})
     return () => unsub()
   }, [storeId])
 
-  // アクティブになったら自動リダイレクト
+  // アクティブ or 無料フラグがあれば /home/store へ
   // success=true の場合は2秒待ってから（成功画面を見せる）
-  // success=false の場合は即座に（既存サブスクがある人がbillingを開いた場合）
   useEffect(() => {
     if (!authReady) return
-    if (subscription?.status !== "active") return
+    const canAccess = subscription?.status === "active" || isFree
+    if (!canAccess) return
     const delay = success ? 2000 : 0
     const t = setTimeout(() => router.replace("/home/store"), delay)
     return () => clearTimeout(t)
-  }, [authReady, subscription, success, router])
+  }, [authReady, subscription, isFree, success, router])
 
   const handleSubscribe = async () => {
     setLoading(true)
@@ -96,7 +100,7 @@ function BillingContent() {
   }
 
   if (success) {
-    const isActive = subscription?.status === "active"
+    const isActive = subscription?.status === "active" || isFree
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">

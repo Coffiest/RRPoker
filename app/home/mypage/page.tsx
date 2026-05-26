@@ -500,8 +500,8 @@ export default function MyPage() {
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>トナメ偏差値</p>
-              <p style={{ fontSize: 46, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1.5px', textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
-                {profile.rrRating ?? 0}
+              <p style={{ fontSize: tourStats.plays === 0 ? 28 : 46, fontWeight: 800, color: tourStats.plays === 0 ? 'rgba(255,255,255,0.6)' : '#fff', lineHeight: 1, letterSpacing: '-1.5px', textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
+                {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
             </div>
           </div>

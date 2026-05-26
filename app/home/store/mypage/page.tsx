@@ -261,7 +261,7 @@ export default function StoreMyPage() {
         stripeSubscriptionId: d["subscription.stripeSubscriptionId"],
       } : null)
       setSubscription(sub)
-    })
+    }, () => {})
     return () => unsub()
   }, [storeId])
 
