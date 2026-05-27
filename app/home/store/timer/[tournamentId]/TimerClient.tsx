@@ -417,6 +417,20 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const totalPrize = Object.values(prizePool).reduce((a, b) => a + (Number(b?.amount) || 0), 0)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
+  // ── Dynamic column gap: shrink space between BLIND↔ANTE / NEXT BLIND↔NEXT BREAK
+  // when values have many digits, so text is never clipped ──────────────────
+  const infoColGap = useMemo(() => {
+    const allNums = [
+      ...(level?.type === "level" ? [level.smallBlind, level.bigBlind, level.ante] : []),
+      ...(nextLevel?.type === "level" ? [nextLevel.smallBlind, nextLevel.bigBlind, nextLevel.ante] : []),
+    ].filter((n): n is number => n !== null && n !== undefined)
+    const maxDigits = allNums.length > 0 ? Math.max(...allNums.map(n => n.toString().length)) : 1
+    if (maxDigits >= 6) return "4px"
+    if (maxDigits >= 5) return "12px"
+    if (maxDigits >= 4) return "24px"
+    return "40px"
+  }, [level, nextLevel])
+
   // ── Shared input style for modal ─────────────────────────────────────────
   const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
 
@@ -530,7 +544,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               )}
             </div>
 
-            {/* INFO BLOCK: BLIND+BB ANTE / NEXT+NEXT BREAK / BREAK */}
+            {/* INFO BLOCK: BLIND+BB ANTE / NEXT BLIND+NEXT BREAK / BREAK */}
             <div className="flex-none flex flex-col justify-center px-12 py-8">
               {/* Per-level / per-break comment */}
               {isPresetSelected && level?.comment && (
@@ -539,25 +553,15 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 </p>
               )}
               {level?.type === "break" ? (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "max-content 1fr 1px auto",
-                    columnGap: "40px",
-                    rowGap: "clamp(40px, 6vh, 80px)",
-                    alignItems: "baseline",
-                  }}
-                >
-                  {/* BREAK text */}
+                /* ── BREAK SCREEN ─────────────────────────────────────────────── */
+                <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr 1px auto", columnGap: infoColGap, rowGap: "clamp(32px, 5vh, 64px)", alignItems: "center" }}>
                   <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-bold tracking-[0.5em] text-[#C8820A] text-center">
                     — B R E A K —
                   </p>
-                  {/* Horizontal separator */}
                   <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
-                  {/* NEXT + NEXT BREAK */}
                   {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
                     <>
-                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">NEXT</span>
+                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT</span>
                       {nextLevel?.type === "break"
                         ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
                         : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
@@ -566,8 +570,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           </span>
                       }
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
-                      <div className="flex items-baseline gap-6 leading-none">
-                        <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
+                      <div className="flex items-center gap-5 leading-none">
+                        <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                          <span>NEXT</span><span>BREAK</span>
+                        </span>
                         {hasNextBreak
                           ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
@@ -578,8 +584,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     </>
                   )}
                   {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
-                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "baseline", gap: "24px" }}>
-                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
+                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "24px" }}>
+                      <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                        <span>NEXT</span><span>BREAK</span>
+                      </span>
                       {hasNextBreak
                         ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
@@ -590,53 +598,46 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   )}
                 </div>
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "max-content 1fr 1px auto",
-                    columnGap: "40px",
-                    rowGap: "clamp(40px, 6vh, 80px)",
-                    alignItems: "baseline",
-                  }}
-                >
-                  {/* BLIND - col 1 */}
-                  <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
-                    BLIND
-                  </span>
-                  {/* SB/BB value - col 2 */}
+                /* ── LEVEL SCREEN ─────────────────────────────────────────────── */
+                /* columnGap shrinks automatically when values have more digits    */
+                <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr 1px auto", columnGap: infoColGap, rowGap: "clamp(32px, 5vh, 64px)", alignItems: "center" }}>
+                  {/* BLIND — col 1 */}
+                  <span className="text-[32px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">BLIND</span>
+                  {/* SB/BB value — col 2 */}
                   <span className="text-[68px] font-semibold text-gray-800 timer-num leading-none whitespace-nowrap">
                     {level?.smallBlind?.toLocaleString() ?? "—"}&nbsp;/&nbsp;{level?.bigBlind?.toLocaleString() ?? "—"}
                   </span>
-                  {/* Vertical separator - col 3 */}
+                  {/* Vertical separator — col 3 */}
                   <div style={{ height: "52px", background: "#D8D8D8", alignSelf: "center" }} />
-                  {/* BB ANTE label + Ante value - col 4 */}
-                  <div className="flex items-baseline gap-6 leading-none">
-                    <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
-                      BB ANTE
-                    </span>
+                  {/* BB ANTE — col 4 */}
+                  <div className="flex items-center gap-5 leading-none">
+                    <span className="text-[32px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">ANTE</span>
                     <span className="text-[68px] font-semibold text-gray-800 timer-num leading-none">
                       {level?.ante?.toLocaleString() ?? "—"}
                     </span>
                   </div>
                   {/* Horizontal separator */}
                   <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
-                  {/* NEXT + NEXT BREAK — 同一行 */}
+                  {/* NEXT BLIND + NEXT BREAK — same row */}
                   {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
                     <>
-                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
-                        NEXT BLIND
+                      {/* NEXT BLIND — col 1: 2-line, centered */}
+                      <span className="flex flex-col items-center text-[30px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                        <span>NEXT</span><span>BLIND</span>
                       </span>
+                      {/* Next SB/BB — col 2 */}
                       {nextLevel?.type === "break"
                         ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
-                        : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
+                        : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none whitespace-nowrap">
                             {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
-                            <span className="text-[54px] font-medium text-gray-600 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
+                      {/* Vertical separator — col 3 */}
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
-                      <div className="flex items-baseline gap-6 leading-none">
-                        <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
-                          NEXT BREAK
+                      {/* NEXT BREAK — col 4: 2-line label + timer, center-aligned */}
+                      <div className="flex items-center gap-5 leading-none">
+                        <span className="flex flex-col items-center text-[30px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                          <span>NEXT</span><span>BREAK</span>
                         </span>
                         {hasNextBreak
                           ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
@@ -649,9 +650,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   )}
                   {/* NEXT BREAK only — at last level */}
                   {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
-                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "baseline", gap: "24px" }}>
-                      <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
-                        NEXT BREAK
+                    <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "24px" }}>
+                      <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                        <span>NEXT</span><span>BREAK</span>
                       </span>
                       {hasNextBreak
                         ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
@@ -680,7 +681,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               ].map((stat, i, arr) => (
                 <div key={stat.label} className="flex items-center">
                   <div className="text-center" style={{ padding: "0 32px" }}>
-                    <p className="text-[22px] font-black tracking-[0.4em] uppercase text-gray-500 mb-1">{stat.label}</p>
+                    <p className="text-[30px] font-black tracking-[0.4em] uppercase text-gray-700 mb-1">{stat.label}</p>
                     <p className="text-[68px] font-semibold text-gray-700 timer-num">{stat.value}</p>
                   </div>
                   {i < arr.length - 1 && (
@@ -709,21 +710,21 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
           {/* ── Right Panel: Prize Pool ──────────────────────────────────────── */}
           <div
             className="flex-shrink-0 flex flex-col bg-white"
-            style={{ width: "300px", borderLeft: "1px solid #F0F0F0" }}
+            style={{ width: "220px", borderLeft: "1px solid #F0F0F0" }}
           >
             {/* Header */}
-            <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #F5F5F5" }}>
-              <p className="text-[24px] font-black tracking-[0.5em] uppercase text-gray-700 mb-2">Prize Pool</p>
+            <div style={{ padding: "20px 14px 14px", borderBottom: "1px solid #F5F5F5" }}>
+              <p className="text-[22px] font-black tracking-[0.4em] uppercase text-gray-700 mb-2">Prize Pool</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-[16px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
-                <span className="text-[38px] font-normal text-[#C8820A] timer-num leading-none">
+                <span className="text-[14px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
+                <span className="text-[34px] font-normal text-[#C8820A] timer-num leading-none">
                   {totalPrize.toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Places */}
-            <div className="flex-1 flex flex-col justify-evenly" style={{ padding: "8px 20px 80px" }}>
+            <div className="flex-1 flex flex-col justify-evenly" style={{ padding: "8px 14px 60px" }}>
               {Object.entries(prizePool).map(([place, data], idx, arr) => {
                 const hasText = Boolean(data?.text)
                 return (
@@ -738,9 +739,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   >
                     <span
                       className="font-black text-gray-800 flex-shrink-0"
-                      style={{ width: "38px", fontSize: "18px", paddingTop: "6px" }}
+                      style={{ width: "48px", fontSize: "26px", paddingTop: "4px" }}
                     >
-                      {place}<span style={{ fontSize: "12px" }}>th</span>
+                      {place}<span style={{ fontSize: "15px" }}>th</span>
                     </span>
                     {/* amount + text を縦積み: text がある場合は2行、ない場合は1行 */}
                     <div className="flex flex-col items-end flex-1 min-w-0">
@@ -749,12 +750,12 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         value={data?.amount ?? ""}
                         onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
                         className="prize-input text-right font-normal text-gray-800 bg-transparent outline-none min-w-0 w-full"
-                        style={{ fontSize: hasText ? "28px" : "36px", border: "none", lineHeight: 1.15 }}
+                        style={{ fontSize: hasText ? "26px" : "32px", border: "none", lineHeight: 1.15 }}
                       />
                       {hasText && (
                         <span
                           className="font-light text-gray-400 text-right w-full"
-                          style={{ fontSize: "20px", lineHeight: 1.2, wordBreak: "break-all" }}
+                          style={{ fontSize: "18px", lineHeight: 1.2, wordBreak: "break-all" }}
                         >
                           +{data.text}
                         </span>
@@ -793,7 +794,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <label className="block text-[11px] font-semibold tracking-widest uppercase text-gray-400 mb-3">レベルリスト</label>
               <div className="space-y-2">
-                {levels.map((lv, idx) => (
+                {levels.map((lv: Level, idx: number) => (
                   <div key={idx}
                     className="level-item rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden"
                     draggable
