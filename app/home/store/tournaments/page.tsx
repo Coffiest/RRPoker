@@ -149,6 +149,20 @@ export default function TournamentsPage() {
   const [blindDragIndex, setBlindDragIndex] = useState<number | null>(null)
   const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
   const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
+  const [bulkDuration, setBulkDuration] = useState("")
+  // Responsive scale for blind modal (design base: 560×720)
+  const BLIND_MODAL_W = 560
+  const BLIND_MODAL_H = 720
+  const [blindModalScale, setBlindModalScale] = useState(1)
+  useEffect(() => {
+    function computeBlindScale() {
+      const s = Math.min(1, window.innerWidth / BLIND_MODAL_W, window.innerHeight / BLIND_MODAL_H)
+      setBlindModalScale(s)
+    }
+    computeBlindScale()
+    window.addEventListener("resize", computeBlindScale)
+    return () => window.removeEventListener("resize", computeBlindScale)
+  }, [])
 
   // AI struct generator
   const [isAiOpen, setIsAiOpen] = useState(false)
@@ -435,6 +449,9 @@ export default function TournamentsPage() {
         .blind-level-item { animation: levelIn 0.18s ease-out; }
         .blind-comment-expand { animation: commentIn 0.16s ease-out; }
         .blind-modal-view { animation: viewSlide 0.2s ease-out; }
+        .no-spin::-webkit-inner-spin-button,
+        .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .no-spin { -moz-appearance: textfield; }
         .t-card { background:#fff; box-shadow:0 2px 8px rgba(242,169,0,0.06),0 8px 24px rgba(0,0,0,0.04); transition:all 0.2s; }
         .t-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(242,169,0,0.1),0 12px 32px rgba(0,0,0,0.06); }
         .active-card { background:linear-gradient(135deg,#FFF8E7 0%,#FFFDF5 100%); border:2px solid rgba(242,169,0,0.35); box-shadow:0 4px 20px rgba(242,169,0,0.18),0 8px 32px rgba(0,0,0,0.05); transition:all 0.2s; }
@@ -797,11 +814,18 @@ export default function TournamentsPage() {
 
       {/* ── Blind Preset modal ───────────────────────────────────────────── */}
       {isBlindModalOpen && typeof window !== "undefined" && createPortal(
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] px-4 animate-fadeIn"
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] animate-fadeIn"
           style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
         >
-          <div className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-[32px] bg-white overflow-hidden animate-slideUp"
-            style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)" }}
+          <div
+            className="flex flex-col rounded-[32px] bg-white overflow-hidden animate-slideUp"
+            style={{
+              width: `${BLIND_MODAL_W}px`,
+              maxHeight: `${BLIND_MODAL_H}px`,
+              transform: `scale(${blindModalScale})`,
+              transformOrigin: "center center",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)",
+            }}
           >
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
@@ -863,6 +887,31 @@ export default function TournamentsPage() {
                   />
                 </div>
                 <div className="flex-1 overflow-y-auto px-6 pb-2">
+                  {/* 一括時間変更 */}
+                  <div className="flex items-center gap-2 mb-4 p-3 rounded-2xl bg-gray-50 border border-gray-100">
+                    <span className="text-[11px] font-semibold text-gray-500 whitespace-nowrap">時間を一括変更</span>
+                    <input
+                      type="number"
+                      value={bulkDuration}
+                      onChange={e => setBulkDuration(e.target.value)}
+                      placeholder="分"
+                      className="no-spin w-16 rounded-xl px-2 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
+                    />
+                    <span className="text-[11px] text-gray-400">分</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = Math.round(Number(bulkDuration))
+                        if (!bulkDuration || isNaN(d) || d <= 0) return
+                        setBlindLevels(ls => ls.map(l => ({ ...l, duration: d })))
+                        setBulkDuration("")
+                      }}
+                      className="ml-auto px-3 py-1.5 rounded-xl text-[12px] font-bold text-white transition-all"
+                      style={{ background: "linear-gradient(135deg,#F2A900,#D4910A)" }}
+                    >
+                      一括変更
+                    </button>
+                  </div>
                   <label className="block text-[11px] font-semibold tracking-widest uppercase text-gray-400 mb-3">レベルリスト</label>
                   <div className="space-y-2">
                     {blindLevels.map((lv, idx) => (
@@ -917,47 +966,53 @@ export default function TournamentsPage() {
                             </button>
                           </div>
                         </div>
-                        {/* Row 2: inputs */}
+                        {/* Row 2 & 3: inputs (2行レイアウト) */}
                         {lv.type === "level" ? (
-                          <div className="flex gap-1.5 px-3 pb-2.5">
-                            <div className="flex-1 flex flex-col gap-0.5">
-                              <span className="text-[10px] text-gray-400 font-semibold text-center">SB</span>
-                              <input type="number" min={1} value={lv.smallBlind ?? ""} placeholder="100"
-                                onChange={e => {
-                                  const raw = e.target.value
-                                  if (raw === "" || raw === "-") { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: null })); return }
-                                  const v = Math.round(Number(raw))
-                                  const bb = Math.round(v * 2)
-                                  setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
-                                }}
-                                className={`${bModalInput} w-full`} />
+                          <div className="flex flex-col gap-1.5 px-3 pb-2.5">
+                            {/* 行1: SB / BB */}
+                            <div className="flex gap-1.5">
+                              <div className="flex-1 flex flex-col gap-0.5">
+                                <span className="text-[10px] text-gray-400 font-semibold text-center">SB</span>
+                                <input type="number" value={lv.smallBlind ?? ""} placeholder="100"
+                                  onChange={e => {
+                                    const raw = e.target.value
+                                    if (raw === "" || raw === "-") { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: null })); return }
+                                    const v = Math.round(Number(raw))
+                                    const bb = Math.round(v * 2)
+                                    setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
+                                  }}
+                                  className={`no-spin ${bModalInput} w-full`} />
+                              </div>
+                              <div className="flex-1 flex flex-col gap-0.5">
+                                <span className="text-[10px] text-gray-400 font-semibold text-center">BB</span>
+                                <input type="number" value={lv.bigBlind ?? ""} placeholder="200"
+                                  onChange={e => handleBlindBbChange(idx, e.target.value === "" ? null : Number(e.target.value))}
+                                  className={`no-spin ${bModalInput} w-full`} />
+                              </div>
                             </div>
-                            <div className="flex-1 flex flex-col gap-0.5">
-                              <span className="text-[10px] text-gray-400 font-semibold text-center">BB</span>
-                              <input type="number" min={1} value={lv.bigBlind ?? ""} placeholder="200"
-                                onChange={e => handleBlindBbChange(idx, e.target.value === "" ? null : Number(e.target.value))}
-                                className={`${bModalInput} w-full`} />
-                            </div>
-                            <div className="flex-1 flex flex-col gap-0.5">
-                              <span className="text-[10px] text-gray-400 font-semibold text-center">ANTE</span>
-                              <input type="number" min={1} value={lv.ante ?? ""} placeholder="200"
-                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: e.target.value === "" ? null : Math.round(Number(e.target.value)) }))}
-                                className={`${bModalInput} w-full`} />
-                            </div>
-                            <div className="flex-1 flex flex-col gap-0.5">
-                              <span className="text-[10px] text-gray-400 font-semibold text-center">時間(分)</span>
-                              <input type="number" min={1} value={lv.duration ?? ""} placeholder="20"
-                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                className={`${bModalInput} w-full`} />
+                            {/* 行2: ANTE / 時間 */}
+                            <div className="flex gap-1.5">
+                              <div className="flex-1 flex flex-col gap-0.5">
+                                <span className="text-[10px] text-gray-400 font-semibold text-center">ANTE</span>
+                                <input type="number" value={lv.ante ?? ""} placeholder="200"
+                                  onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: e.target.value === "" ? null : Math.round(Number(e.target.value)) }))}
+                                  className={`no-spin ${bModalInput} w-full`} />
+                              </div>
+                              <div className="flex-1 flex flex-col gap-0.5">
+                                <span className="text-[10px] text-gray-400 font-semibold text-center">時間(分)</span>
+                                <input type="number" value={lv.duration ?? ""} placeholder="20"
+                                  onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
+                                  className={`no-spin ${bModalInput} w-full`} />
+                              </div>
                             </div>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 px-3 pb-2.5">
                             <div className="flex flex-col gap-0.5" style={{width: "120px"}}>
                               <span className="text-[10px] text-blue-400 font-semibold text-center">時間(分)</span>
-                              <input type="number" min={1} value={lv.duration ?? ""} placeholder="10"
+                              <input type="number" value={lv.duration ?? ""} placeholder="10"
                                 onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                className={`${bModalInput} w-full`} />
+                                className={`no-spin ${bModalInput} w-full`} />
                             </div>
                           </div>
                         )}

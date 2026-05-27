@@ -285,6 +285,8 @@ export default function StorePage() {
   const [adjustError, setAdjustError] = useState("")
   const [manualNetGain, setManualNetGain] = useState(false)
   const [storePlayers, setStorePlayers] = useState<any[]>([])
+  const playerMetaRef = useRef<Record<string, any>>({})
+  const balanceSubsRef = useRef<Record<string, () => void>>({})
   const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
   const [adjustModalPlayer, setAdjustModalPlayer] = useState<any | null>(null)
   const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
@@ -314,29 +316,66 @@ export default function StorePage() {
   }, [playerSearchInput, storePlayers])
 
   useEffect(() => {
-    if (!storeId) return
-    const balKey = (store?.balanceGroupId ?? storeId)!
+    if (!storeId || !store) return
+    const balKey = (store.balanceGroupId ?? storeId)!
+
+    function rebuild() {
+      const results = Object.values(playerMetaRef.current).map(p => ({ ...p }))
+      results.sort((a: any, b: any) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+      setStorePlayers(results)
+    }
+
     const q = query(collection(db, "users"), where("joinedStores", "array-contains", storeId))
-    const unsub = onSnapshot(q, async (snap) => {
+    const userUnsub = onSnapshot(q, snap => {
       const filtered = snap.docs.filter(d => !d.id.startsWith("temp_"))
-      const results = await Promise.all(filtered.map(async d => {
+      const currentIds = new Set(filtered.map(d => d.id))
+
+      // Remove players no longer in query
+      Object.keys(playerMetaRef.current).forEach(id => {
+        if (!currentIds.has(id)) {
+          balanceSubsRef.current[id]?.()
+          delete balanceSubsRef.current[id]
+          delete playerMetaRef.current[id]
+        }
+      })
+
+      // Update user metadata
+      filtered.forEach(d => {
         const data = d.data()
-        let bal: Record<string, any> = {}
-        try {
-          const balSnap = await getDoc(doc(db, "users", d.id, "storeBalances", balKey))
-          if (balSnap.exists()) bal = balSnap.data()
-        } catch {}
-        return {
-          id: d.id, name: data.name, iconUrl: data.iconUrl,
-          balance: bal.balance ?? 0, netGain: bal.netGain ?? 0,
-          lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
+        playerMetaRef.current[d.id] = {
+          ...(playerMetaRef.current[d.id] ?? { balance: 0, netGain: 0, lastVisitedAt: null }),
+          id: d.id,
+          name: data.name,
+          iconUrl: data.iconUrl,
+          playerId: data.playerId ?? null,
           isInStore: data.currentStoreId === storeId,
         }
-      }))
-      results.sort((a, b) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
-      setStorePlayers(results)
+
+        // Subscribe to balance doc if not already subscribed
+        if (!balanceSubsRef.current[d.id]) {
+          const balRef = doc(db, "users", d.id, "storeBalances", balKey)
+          balanceSubsRef.current[d.id] = onSnapshot(balRef, balSnap => {
+            const bal = balSnap.exists() ? balSnap.data() : {}
+            playerMetaRef.current[d.id] = {
+              ...playerMetaRef.current[d.id],
+              balance: bal.balance ?? 0,
+              netGain: bal.netGain ?? 0,
+              lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
+            }
+            rebuild()
+          }, () => {})
+        }
+      })
+
+      rebuild()
     })
-    return () => unsub()
+
+    return () => {
+      userUnsub()
+      Object.values(balanceSubsRef.current).forEach(u => u())
+      balanceSubsRef.current = {}
+      playerMetaRef.current = {}
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId, store])
 
@@ -1765,7 +1804,10 @@ export default function StorePage() {
                           }
                           {player.isInStore && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#34C759', border: '1.5px solid white' }}/>}
                         </div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{player.name || player.id}</p>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{player.name || player.id}</p>
+                          {player.playerId && <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)', marginTop: 1 }}>@{player.playerId}</p>}
+                        </div>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -418,7 +418,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
   // ── Shared input style for modal ─────────────────────────────────────────
-  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
+  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
 
   // ════════════════════════════════════════════════════════════════════════
   return (
@@ -468,7 +468,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <div className="flex items-center gap-5">
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
-                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#F2A900] flex-shrink-0">
+                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#C8820A] flex-shrink-0">
                     LEVEL&nbsp;{currentLevelIndex + 1}
                   </span>
                 )}
@@ -491,8 +491,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   style={{ background: "rgba(255,255,255,0.76)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
                 >
                   <span
-                    className="text-[86px] font-black tracking-[0.18em] text-[#F2A900]"
-                    style={{ textShadow: "0 2px 24px rgba(242,169,0,0.22)" }}
+                    className="text-[86px] font-black tracking-[0.18em] text-[#C8820A]"
+                    style={{ textShadow: "0 2px 24px rgba(200,130,10,0.28)" }}
                   >
                     PAUSE
                   </span>
@@ -500,13 +500,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               )}
               {isPresetSelected ? (
                 <div className="flex items-center justify-center timer-num">
-                  <span className="text-[200px] font-thin leading-none text-[#F2A900]">
+                  <span className="text-[200px] font-light leading-none text-[#C8820A]">
                     {minutes.toString().padStart(2, "0")}
                   </span>
-                  <span className={`text-[140px] font-thin leading-none text-[#F2A900] mx-2 ${isRunning ? "colon-blink" : "opacity-20"}`}>
+                  <span className={`text-[140px] font-light leading-none text-[#C8820A] mx-2 ${isRunning ? "colon-blink" : "opacity-20"}`}>
                     :
                   </span>
-                  <span className="text-[200px] font-thin leading-none text-[#F2A900]">
+                  <span className="text-[200px] font-light leading-none text-[#C8820A]">
                     {seconds.toString().padStart(2, "0")}
                   </span>
                 </div>
@@ -524,7 +524,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 <div className="w-full rounded-full overflow-hidden" style={{ height: "3px", background: "#F0F0F0", marginTop: "4px" }}>
                   <div
                     className="h-full rounded-full transition-all duration-1000"
-                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#D4910A,#F2A900)" }}
+                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#A06500,#C8820A)" }}
                   />
                 </div>
               )}
@@ -534,7 +534,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="flex-none flex flex-col justify-center px-12 py-8">
               {/* Per-level / per-break comment */}
               {isPresetSelected && level?.comment && (
-                <p className="text-center text-[28px] font-black tracking-[0.4em] uppercase text-[#F2A900] mb-4">
+                <p className="text-center text-[28px] font-black tracking-[0.4em] uppercase text-[#C8820A] mb-4">
                   {level.comment}
                 </p>
               )}
@@ -549,7 +549,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   }}
                 >
                   {/* BREAK text */}
-                  <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-light tracking-[0.5em] text-[#F2A900] text-center">
+                  <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-bold tracking-[0.5em] text-[#C8820A] text-center">
                     — B R E A K —
                   </p>
                   {/* Horizontal separator */}
@@ -559,20 +559,20 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     <>
                       <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">NEXT</span>
                       {nextLevel?.type === "break"
-                        ? <span className="text-[54px] font-light text-gray-500 leading-none">Break</span>
-                        : <span className="text-[54px] font-light text-gray-600 timer-num leading-none">
+                        ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
+                        : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
                             {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
-                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
+                            <span className="text-[40px] font-medium text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
                       <div className="flex items-baseline gap-6 leading-none">
                         <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
                         {hasNextBreak
-                          ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                          ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
-                          : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                          : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
                         }
                       </div>
                     </>
@@ -581,10 +581,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "baseline", gap: "24px" }}>
                       <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT BREAK</span>
                       {hasNextBreak
-                        ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                        ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
-                        : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                        : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
                       }
                     </div>
                   )}
@@ -604,7 +604,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     BLIND
                   </span>
                   {/* SB/BB value - col 2 */}
-                  <span className="text-[68px] font-light text-gray-800 timer-num leading-none whitespace-nowrap">
+                  <span className="text-[68px] font-semibold text-gray-800 timer-num leading-none whitespace-nowrap">
                     {level?.smallBlind?.toLocaleString() ?? "—"}&nbsp;/&nbsp;{level?.bigBlind?.toLocaleString() ?? "—"}
                   </span>
                   {/* Vertical separator - col 3 */}
@@ -614,7 +614,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">
                       BB ANTE
                     </span>
-                    <span className="text-[68px] font-light text-gray-800 timer-num leading-none">
+                    <span className="text-[68px] font-semibold text-gray-800 timer-num leading-none">
                       {level?.ante?.toLocaleString() ?? "—"}
                     </span>
                   </div>
@@ -624,13 +624,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
                     <>
                       <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600">
-                        NEXT
+                        NEXT BLIND
                       </span>
                       {nextLevel?.type === "break"
-                        ? <span className="text-[54px] font-light text-gray-500 leading-none">Break</span>
-                        : <span className="text-[54px] font-light text-gray-600 timer-num leading-none">
+                        ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
+                        : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
                             {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
-                            <span className="text-[40px] text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
+                            <span className="text-[54px] font-medium text-gray-600 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
@@ -639,10 +639,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           NEXT BREAK
                         </span>
                         {hasNextBreak
-                          ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                          ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
-                          : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                          : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
                         }
                       </div>
                     </>
@@ -654,10 +654,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         NEXT BREAK
                       </span>
                       {hasNextBreak
-                        ? <span className="text-[54px] font-light text-[#F2A900] timer-num leading-none">
+                        ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
-                        : <span className="text-[36px] font-light text-gray-400 leading-none">None.</span>
+                        : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
                       }
                     </div>
                   )}
@@ -681,7 +681,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 <div key={stat.label} className="flex items-center">
                   <div className="text-center" style={{ padding: "0 32px" }}>
                     <p className="text-[22px] font-black tracking-[0.4em] uppercase text-gray-500 mb-1">{stat.label}</p>
-                    <p className="text-[68px] font-light text-gray-700 timer-num">{stat.value}</p>
+                    <p className="text-[68px] font-semibold text-gray-700 timer-num">{stat.value}</p>
                   </div>
                   {i < arr.length - 1 && (
                     <div className="h-10 w-px" style={{ background: "#EBEBEB" }} />
@@ -709,38 +709,38 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
           {/* ── Right Panel: Prize Pool ──────────────────────────────────────── */}
           <div
             className="flex-shrink-0 flex flex-col bg-white"
-            style={{ width: "380px", borderLeft: "1px solid #F0F0F0" }}
+            style={{ width: "300px", borderLeft: "1px solid #F0F0F0" }}
           >
             {/* Header */}
-            <div style={{ padding: "36px 36px 24px", borderBottom: "1px solid #F5F5F5" }}>
-              <p className="text-[18px] font-black tracking-[0.6em] uppercase text-gray-700 mb-3">Prize Pool</p>
-              <div className="flex items-baseline gap-3">
-                <span className="text-[22px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
-                <span className="text-[52px] font-light text-[#F2A900] timer-num leading-none">
+            <div style={{ padding: "24px 20px 16px", borderBottom: "1px solid #F5F5F5" }}>
+              <p className="text-[24px] font-black tracking-[0.5em] uppercase text-gray-700 mb-2">Prize Pool</p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-[16px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
+                <span className="text-[38px] font-normal text-[#C8820A] timer-num leading-none">
                   {totalPrize.toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Places */}
-            <div className="flex-1 flex flex-col justify-evenly pb-28" style={{ padding: "16px 36px 112px" }}>
+            <div className="flex-1 flex flex-col justify-evenly" style={{ padding: "8px 20px 80px" }}>
               {Object.entries(prizePool).map(([place, data], idx, arr) => {
                 const hasText = Boolean(data?.text)
                 return (
                   <div
                     key={place}
-                    className="flex items-start gap-3"
+                    className="flex items-start gap-2"
                     style={{
-                      paddingTop: "6px",
-                      paddingBottom: "6px",
+                      paddingTop: "4px",
+                      paddingBottom: "4px",
                       borderBottom: idx !== arr.length - 1 ? "1px solid #F8F8F8" : "none",
                     }}
                   >
                     <span
                       className="font-black text-gray-800 flex-shrink-0"
-                      style={{ width: "52px", fontSize: "24px", paddingTop: "8px" }}
+                      style={{ width: "38px", fontSize: "18px", paddingTop: "6px" }}
                     >
-                      {place}<span style={{ fontSize: "15px" }}>th</span>
+                      {place}<span style={{ fontSize: "12px" }}>th</span>
                     </span>
                     {/* amount + text を縦積み: text がある場合は2行、ない場合は1行 */}
                     <div className="flex flex-col items-end flex-1 min-w-0">
@@ -748,13 +748,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         type="number"
                         value={data?.amount ?? ""}
                         onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
-                        className="prize-input text-right font-light text-gray-800 bg-transparent outline-none min-w-0 w-full"
-                        style={{ fontSize: hasText ? "36px" : "46px", border: "none", lineHeight: 1.15 }}
+                        className="prize-input text-right font-normal text-gray-800 bg-transparent outline-none min-w-0 w-full"
+                        style={{ fontSize: hasText ? "28px" : "36px", border: "none", lineHeight: 1.15 }}
                       />
                       {hasText && (
                         <span
                           className="font-light text-gray-400 text-right w-full"
-                          style={{ fontSize: "26px", lineHeight: 1.2, wordBreak: "break-all" }}
+                          style={{ fontSize: "20px", lineHeight: 1.2, wordBreak: "break-all" }}
                         >
                           +{data.text}
                         </span>
@@ -784,7 +784,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                className="w-full rounded-2xl px-4 py-2.5 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
+                className="w-full rounded-2xl px-4 py-2.5 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
                 placeholder="例: 通常トーナメント"
               />
             </div>
@@ -840,7 +840,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         <button
                           type="button"
                           onClick={() => setEditingCommentIdx(editingCommentIdx === idx ? null : idx)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#F2A900]/15 text-[#F2A900] border border-[#F2A900]/30" : "bg-gray-200 text-gray-400 hover:bg-gray-300"}`}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#C8820A]/15 text-[#C8820A] border border-[#C8820A]/30" : "bg-gray-200 text-gray-400 hover:bg-gray-300"}`}
                         >
                           {lv.comment ? lv.comment : "＋"}
                         </button>
@@ -858,7 +858,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           placeholder="コメントを入力..."
                           value={lv.comment ?? ""}
                           onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                          className="flex-1 text-[12px] rounded-xl px-3 py-1.5 border border-gray-200 bg-white focus:border-[#F2A900] focus:outline-none transition-all"
+                          className="flex-1 text-[12px] rounded-xl px-3 py-1.5 border border-gray-200 bg-white focus:border-[#C8820A] focus:outline-none transition-all"
                           autoFocus={editingCommentIdx === idx}
                         />
                         <button
@@ -882,8 +882,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="px-6 py-5 border-t border-gray-100 space-y-3">
               <div className="flex gap-2">
                 <button onClick={addLevel}
-                  className="flex-1 py-2.5 rounded-2xl text-[13px] font-semibold text-[#F2A900] transition-all hover:bg-[#F2A900]/5"
-                  style={{ border: "1.5px solid rgba(242,169,0,0.35)" }}
+                  className="flex-1 py-2.5 rounded-2xl text-[13px] font-semibold text-[#C8820A] transition-all hover:bg-[#C8820A]/5"
+                  style={{ border: "1.5px solid rgba(200,130,10,0.35)" }}
                 >
                   ＋ レベル追加
                 </button>
@@ -897,7 +897,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <div className="flex gap-3">
                 <button onClick={savePreset}
                   className="flex-1 py-3 rounded-2xl text-[14px] font-bold text-white transition-all"
-                  style={{ background: "linear-gradient(135deg,#F2A900,#D4910A)", boxShadow: "0 4px 14px rgba(242,169,0,0.28)" }}
+                  style={{ background: "linear-gradient(135deg,#C8820A,#D4910A)", boxShadow: "0 4px 14px rgba(200,130,10,0.28)" }}
                 >
                   保存
                 </button>
@@ -933,7 +933,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             overflow-hidden
             bg-white
             flex items-center justify-center
-            shadow-[0_0_20px_rgba(242,169,0,0.5)]
+            shadow-[0_0_20px_rgba(200,130,10,0.5)]
           "
         >
           <img src="/logo.png" alt="RRPoker" className="h-9 w-9 object-contain" />
