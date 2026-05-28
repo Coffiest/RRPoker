@@ -337,6 +337,40 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const levelsToUseRef = useRef<Level[]>([])
   useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
 
+  // ── Shared level-advance logic (used by both interval and visibility handler) ──
+  // Returns true if an advance was fired.
+  const isRunningRef = useRef(false)
+  useEffect(() => { isRunningRef.current = isRunning }, [isRunning])
+  const storeIdRef = useRef<string | null>(null)
+  useEffect(() => { storeIdRef.current = storeId }, [storeId])
+  const tournamentIdRef = useRef(tournamentId)
+  useEffect(() => { tournamentIdRef.current = tournamentId }, [tournamentId])
+
+  function checkAndAdvanceLevel() {
+    const sid = storeIdRef.current
+    if (!isRunningRef.current || !sid) return
+    const lsAt = levelStartedAtMsRef.current
+    if (lsAt === null || levelAdvancedRef.current || levelsToUseRef.current.length === 0) return
+    const elapsed = Math.floor((Date.now() - lsAt) / 1000)
+    const ds = Math.max(levelStartedRemainingRef.current - elapsed, 0)
+    if (ds > 0) return
+    levelAdvancedRef.current = true
+    const nextIndex = currentLevelIndexRef.current + 1
+    const lvs = levelsToUseRef.current
+    const tid = tournamentIdRef.current
+    if (nextIndex < lvs.length) {
+      const next = lvs[nextIndex]
+      const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
+      void updateDoc(doc(db, "stores", sid, "tournaments", tid), {
+        currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
+        timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
+      })
+      void playSound("levelup")
+    } else {
+      void updateDoc(doc(db, "stores", sid, "tournaments", tid), { timerRunning: false })
+    }
+  }
+
   // ── Wall-clock tick interval: no Firestore reads, purely local ───────────
   useEffect(() => {
     if (!isRunning || !storeId) return
@@ -348,7 +382,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       if (lsAt === null) return
 
       const elapsed = Math.floor((now - lsAt) / 1000)
-      const ds = Math.max(timeRemainingRef.current - elapsed, 0)
+      const ds = Math.max(levelStartedRemainingRef.current - elapsed, 0)
 
       // Sounds (deduplicated by lastSoundSecRef)
       if (ds !== lastSoundSecRef.current) {
@@ -357,27 +391,27 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
         lastSoundSecRef.current = ds
       }
 
-      // Level advance (fire once via levelAdvancedRef guard)
-      if (ds === 0 && !levelAdvancedRef.current && levelsToUseRef.current.length > 0) {
-        levelAdvancedRef.current = true
-        const nextIndex = currentLevelIndexRef.current + 1
-        const levels = levelsToUseRef.current
-        if (nextIndex < levels.length) {
-          const next = levels[nextIndex]
-          const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
-          void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
-            currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
-            timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
-          })
-          void playSound("levelup")
-        } else {
-          void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { timerRunning: false })
-        }
-      }
+      // Level advance
+      checkAndAdvanceLevel()
     }, 250)
 
     return () => clearInterval(id)
   }, [isRunning, storeId, tournamentId])
+
+  // ── Recover from background/sleep: re-render immediately and check level ─
+  // Browsers throttle or completely freeze setInterval when a tab/PWA is
+  // backgrounded. visibilitychange fires as soon as the page becomes visible
+  // again, giving us a reliable hook to (a) force a display update and
+  // (b) advance levels that expired while we were sleeping.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== "visible") return
+      setTickNow(Date.now())   // force immediate re-render with correct time
+      checkAndAdvanceLevel()   // catch any level that expired while hidden
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => document.removeEventListener("visibilitychange", onVisible)
+  }, []) // no deps needed: all state read via refs inside checkAndAdvanceLevel
 
   // ── Derived values ───────────────────────────────────────────────────────
   const totalPlayers = entry + reentry
