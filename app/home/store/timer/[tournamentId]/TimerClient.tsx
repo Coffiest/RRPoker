@@ -156,7 +156,15 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const timeRemainingRef = useRef(0)
   useEffect(() => { timeRemainingRef.current = timeRemaining }, [timeRemaining])
 
+  // isFirstRunningLoad: 初回スナップショットで isRunning が設定される瞬間は
+  // 「ユーザーが操作した」ではなく「画面を開いた」なので音を鳴らさない
+  const isFirstRunningLoad = useRef(true)
   useEffect(() => {
+    if (isFirstRunningLoad.current) {
+      isFirstRunningLoad.current = false
+      prevIsRunningRef.current = isRunning  // 初期状態として保存するだけ
+      return
+    }
     const wasRunning = prevIsRunningRef.current
     if ((!wasRunning && isRunning || wasRunning && !isRunning) && timeRemainingRef.current > 0) {
       void playSound("levelup")
@@ -346,29 +354,60 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const tournamentIdRef = useRef(tournamentId)
   useEffect(() => { tournamentIdRef.current = tournamentId }, [tournamentId])
 
+  // ── Multi-level catch-up: calculates the correct final level in one pass,
+  // then writes to Firestore ONCE. This handles both real-time expiry and the
+  // case where the app was closed for a long time (e.g. 3 hours).
+  //
+  // Why one pass first, then one write?
+  // The old approach wrote one level at a time. After each write, levelStartedAt
+  // became "now", so the next call saw elapsed≈0 and stopped — catching up only
+  // one level per visibilitychange event.
+  //
+  // Here we compute the target level purely in memory (no DB reads/writes), then
+  // emit a single updateDoc to jump straight to the correct state.
   function checkAndAdvanceLevel() {
     const sid = storeIdRef.current
     if (!isRunningRef.current || !sid) return
     const lsAt = levelStartedAtMsRef.current
     if (lsAt === null || levelAdvancedRef.current || levelsToUseRef.current.length === 0) return
-    const elapsed = Math.floor((Date.now() - lsAt) / 1000)
-    const ds = Math.max(levelStartedRemainingRef.current - elapsed, 0)
-    if (ds > 0) return
-    levelAdvancedRef.current = true
-    const nextIndex = currentLevelIndexRef.current + 1
+
     const lvs = levelsToUseRef.current
+    const elapsed = Math.floor((Date.now() - lsAt) / 1000)
+
+    // timeLeft > 0 → level still running, nothing to do
+    let timeLeft = levelStartedRemainingRef.current - elapsed
+    if (timeLeft > 0) return
+
+    // Walk forward through levels accumulating their durations until timeLeft > 0.
+    // Each iteration represents one level being fully consumed.
+    let idx = currentLevelIndexRef.current
     const tid = tournamentIdRef.current
-    if (nextIndex < lvs.length) {
-      const next = lvs[nextIndex]
-      const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
-      void updateDoc(doc(db, "stores", sid, "tournaments", tid), {
-        currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
-        timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
-      })
-      void playSound("levelup")
-    } else {
-      void updateDoc(doc(db, "stores", sid, "tournaments", tid), { timerRunning: false })
+
+    while (timeLeft <= 0) {
+      const nextIdx = idx + 1
+      if (nextIdx >= lvs.length) {
+        // Ran out of levels → end tournament
+        levelAdvancedRef.current = true
+        void updateDoc(doc(db, "stores", sid, "tournaments", tid), { timerRunning: false })
+        return
+      }
+      idx = nextIdx
+      // Treat zero/null duration as 1s to avoid infinite loop
+      const dur = typeof lvs[idx].duration === "number" && lvs[idx].duration! > 0
+        ? lvs[idx].duration! * 60 : 1
+      timeLeft += dur
     }
+
+    // Single write: jump straight to the correct level with the correct remaining time
+    levelAdvancedRef.current = true
+    void updateDoc(doc(db, "stores", sid, "tournaments", tid), {
+      currentLevelIndex: idx,
+      levelStartedAt: serverTimestamp(),
+      timeRemaining: timeLeft,
+      levelStartedRemaining: timeLeft,
+      timerRunning: true,
+    })
+    void playSound("levelup")
   }
 
   // ── Wall-clock tick interval: no Firestore reads, purely local ───────────

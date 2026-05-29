@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
@@ -19,10 +19,11 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  setDoc
+  setDoc,
+  where,
 } from "firebase/firestore"
 
-import { FiArrowLeft, FiTrash2 } from "react-icons/fi"
+import { FiArrowLeft, FiTrash2, FiSearch, FiX, FiMinus, FiPlus, FiUser } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -34,6 +35,14 @@ type RakeEntry = {
   amount: number
   memo?: string
   createdAt?: { seconds?: number }
+}
+
+type StampPlayer = {
+  uid: string
+  name: string
+  iconUrl?: string
+  stampCount: number
+  lastStampAt: Date | null
 }
 
 const CLR = {
@@ -175,6 +184,16 @@ export default function StoreSettingsPage() {
   const [postalCode, setPostalCode] = useState("")
   const [postalCodeError, setPostalCodeError] = useState("")
   const [postalCodeSuccess, setPostalCodeSuccess] = useState("")
+
+  // スタンプ管理
+  const [stampModalOpen, setStampModalOpen] = useState(false)
+  const [stampPlayers, setStampPlayers] = useState<StampPlayer[]>([])
+  const [stampLoading, setStampLoading] = useState(false)
+  const [stampSearch, setStampSearch] = useState("")
+  const [stampSort, setStampSort] = useState<"recent" | "name" | "count">("recent")
+  const [editStampPlayer, setEditStampPlayer] = useState<StampPlayer | null>(null)
+  const [editStampCount, setEditStampCount] = useState("")
+  const [editSaving, setEditSaving] = useState(false)
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -422,6 +441,63 @@ export default function StoreSettingsPage() {
     }
   }
 
+  const loadStampPlayers = async () => {
+    if (!storeId) return
+    setStampLoading(true)
+    try {
+      const usersSnap = await getDocs(
+        query(collection(db, "users"), where("joinedStores", "array-contains", storeId))
+      )
+      const players: StampPlayer[] = []
+      await Promise.all(usersSnap.docs.map(async userDoc => {
+        const userData = userDoc.data()
+        const stampSnap = await getDoc(doc(db, "users", userDoc.id, "storeStamp", storeId))
+        const stampData = stampSnap.data()
+        players.push({
+          uid: userDoc.id,
+          name: userData.name ?? userDoc.id,
+          iconUrl: userData.iconUrl,
+          stampCount: stampData?.stampCount ?? 0,
+          lastStampAt: stampData?.lastStampAt?.toDate?.() ?? null,
+        })
+      }))
+      setStampPlayers(players)
+    } finally {
+      setStampLoading(false)
+    }
+  }
+
+  const saveStampCount = async () => {
+    if (!storeId || !editStampPlayer) return
+    const count = parseInt(editStampCount, 10)
+    if (isNaN(count) || count < 0) return
+    setEditSaving(true)
+    try {
+      const stampRef = doc(db, "users", editStampPlayer.uid, "storeStamp", storeId)
+      await setDoc(stampRef, { stampCount: count }, { merge: true })
+      setStampPlayers(prev =>
+        prev.map(p => p.uid === editStampPlayer.uid ? { ...p, stampCount: count } : p)
+      )
+      setEditStampPlayer(null)
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const filteredStampPlayers = useMemo(() => {
+    let list = stampPlayers.filter(p =>
+      !stampSearch.trim() || p.name.toLowerCase().includes(stampSearch.toLowerCase())
+    )
+    if (stampSort === "recent") {
+      list = [...list].sort((a, b) => (b.lastStampAt?.getTime() ?? 0) - (a.lastStampAt?.getTime() ?? 0))
+    } else if (stampSort === "name") {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name, "ja"))
+    } else {
+      list = [...list].sort((a, b) => b.stampCount - a.stampCount)
+    }
+    return list
+  }, [stampPlayers, stampSearch, stampSort])
+
   const saveChipUnit = async () => {
     if (!storeId) return
     setChipUnitError("")
@@ -482,6 +558,14 @@ export default function StoreSettingsPage() {
                   {couponSuccess && <FeedbackText text={couponSuccess} color="green" />}
                 </div>
                 <PrimaryButton onClick={saveCouponName}>保存する</PrimaryButton>
+                <GhostButton onClick={() => {
+                  setStampSearch("")
+                  setStampSort("recent")
+                  setStampModalOpen(true)
+                  void loadStampPlayers()
+                }}>
+                  スタンプ数を管理
+                </GhostButton>
               </div>
             )}
           </SectionCard>
@@ -808,6 +892,159 @@ export default function StoreSettingsPage() {
                 <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── スタンプ管理モーダル ── */}
+      {stampModalOpen && (
+        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
+          <div className="w-full max-w-sm rounded-t-3xl flex flex-col" style={{ background: CLR.white, maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
+            {/* ハンドル + ヘッダー */}
+            <div className="shrink-0 px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${CLR.border}` }}>
+              <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>スタンプ管理</p>
+                <button type="button" onClick={() => setStampModalOpen(false)}>
+                  <FiX size={20} color={CLR.gray2} />
+                </button>
+              </div>
+              {/* 検索 */}
+              <div className="relative mb-3">
+                <FiSearch size={14} color={CLR.gray3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+                <input
+                  type="text"
+                  value={stampSearch}
+                  onChange={e => setStampSearch(e.target.value)}
+                  placeholder="名前で検索"
+                  className="w-full h-10 rounded-2xl pl-9 pr-4 text-[13px] outline-none"
+                  style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
+                />
+              </div>
+              {/* ソート */}
+              <div className="flex gap-2">
+                {([
+                  { key: "recent", label: "最近入店" },
+                  { key: "name",   label: "名前順" },
+                  { key: "count",  label: "スタンプ数" },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setStampSort(opt.key)}
+                    className="flex-1 h-8 rounded-xl text-[11px] font-semibold transition-all"
+                    style={{
+                      background: stampSort === opt.key ? CLR.gold : CLR.surface,
+                      color: stampSort === opt.key ? CLR.ink : CLR.gray2,
+                      border: `1px solid ${stampSort === opt.key ? CLR.goldDk : CLR.border}`,
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* プレイヤーリスト */}
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+              {stampLoading ? (
+                <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
+              ) : filteredStampPlayers.length === 0 ? (
+                <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>
+                  {stampSearch ? "該当するプレイヤーがいません" : "入店したことのあるプレイヤーがいません"}
+                </p>
+              ) : filteredStampPlayers.map(player => (
+                <button
+                  key={player.uid}
+                  type="button"
+                  onClick={() => { setEditStampPlayer(player); setEditStampCount(String(player.stampCount)) }}
+                  className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-all"
+                  style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}
+                >
+                  <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ background: CLR.border }}>
+                    {player.iconUrl
+                      ? <img src={player.iconUrl} alt={player.name} className="w-full h-full object-cover" />
+                      : <FiUser size={16} color={CLR.gray3} />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold truncate" style={{ color: CLR.ink }}>{player.name}</p>
+                    {player.lastStampAt && (
+                      <p className="text-[11px] mt-0.5" style={{ color: CLR.gray3 }}>
+                        最終入店 {player.lastStampAt.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex items-center gap-1.5">
+                    <span className="text-[20px] font-bold" style={{ color: CLR.ink }}>{player.stampCount}</span>
+                    <span className="text-[11px]" style={{ color: CLR.gray3 }}>個</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── スタンプ編集モーダル ── */}
+      {editStampPlayer && (
+        <div className="fixed inset-0 z-[130] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
+          onClick={() => setEditStampPlayer(null)}>
+          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+            onClick={e => e.stopPropagation()}>
+            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+
+            {/* プレイヤー情報 */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: CLR.surface }}>
+                {editStampPlayer.iconUrl
+                  ? <img src={editStampPlayer.iconUrl} alt={editStampPlayer.name} className="w-full h-full object-cover" />
+                  : <FiUser size={20} color={CLR.gray3} />
+                }
+              </div>
+              <div>
+                <p className="text-[16px] font-bold" style={{ color: CLR.ink }}>{editStampPlayer.name}</p>
+                <p className="text-[12px]" style={{ color: CLR.gray2 }}>スタンプ数を変更</p>
+              </div>
+            </div>
+
+            {/* スタンプ数コントロール */}
+            <div className="flex items-center justify-center gap-6 mb-5">
+              <button
+                type="button"
+                onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))}
+                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
+                style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}` }}
+              >
+                <FiMinus size={18} color={CLR.ink} />
+              </button>
+
+              <input
+                type="number"
+                value={editStampCount}
+                onChange={e => setEditStampCount(e.target.value)}
+                min={0}
+                className="w-24 h-16 rounded-2xl text-center text-[32px] font-bold outline-none"
+                style={{ background: CLR.surface, border: `2px solid ${CLR.gold}`, color: CLR.ink }}
+              />
+
+              <button
+                type="button"
+                onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))}
+                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
+                style={{ background: CLR.gold, border: `1.5px solid ${CLR.goldDk}` }}
+              >
+                <FiPlus size={18} color={CLR.ink} />
+              </button>
+            </div>
+
+            {/* 保存 / キャンセル */}
+            <div className="space-y-2">
+              <PrimaryButton onClick={saveStampCount} disabled={editSaving}>
+                {editSaving ? "保存中…" : "保存する"}
+              </PrimaryButton>
+              <GhostButton onClick={() => setEditStampPlayer(null)}>キャンセル</GhostButton>
+            </div>
           </div>
         </div>
       )}

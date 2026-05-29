@@ -73,6 +73,9 @@ export default function HomeHeader({
 	const [userIconUrl, setUserIconUrl] = useState<string | undefined>(undefined)
 	const prevCheckinStatusRef = useRef<string | undefined>(undefined)
 
+	// スタンプ ready バッジ
+	const [hasStampReady, setHasStampReady] = useState(false)
+
 	const isUserVariant = variant === 'user'
 
 
@@ -92,6 +95,15 @@ export default function HomeHeader({
 		})
 		return () => unsub()
 	}, [isUserVariant])
+
+	// ---- スタンプ ready 監視（12個以上で赤ドット）----
+	useEffect(() => {
+		if (!authUserId || !isUserVariant) return
+		const unsub = onSnapshot(collection(db, 'users', authUserId, 'storeStamp'), snap => {
+			setHasStampReady(snap.docs.some(d => (d.data().stampCount ?? 0) >= 12))
+		}, () => {})
+		return () => unsub()
+	}, [authUserId, isUserVariant])
 
 	// ---- 入店ステータス監視（user のみ）----
 	useEffect(() => {
@@ -263,9 +275,12 @@ export default function HomeHeader({
 						<button
 							type="button"
 							onClick={() => router.push('/home/tickets')}
-							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
 							<FiCreditCard className="text-[18px]" />
+							{hasStampReady && (
+								<span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
+							)}
 						</button>
 					)}
 

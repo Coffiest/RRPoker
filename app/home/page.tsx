@@ -16,6 +16,7 @@ import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
 const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
+const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
 import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
 
 type StoreInfo = {
@@ -127,10 +128,22 @@ export default function HomePage() {
   const [withdrawNotice, setWithdrawNotice] = useState<{ type: "approved" | "rejected" | "pending"; amount: number } | null>(null)
   const prevCurrentStoreIdRef = useRef<string | null>(null)
 
-  // ── チップ増減グラフ
+  // ── チップ増減グラフ（入店中）
   const [chipGraphTab, setChipGraphTab] = useState<"7" | "1m" | "all">("all")
   const [graphMode, setGraphMode] = useState<'all' | 'tournament'>('all')
   const graphTouchStartX = useRef<number | null>(null)
+
+  // ── 店舗詳細モーダル内グラフ
+  const [modalChipGraphTab, setModalChipGraphTab] = useState<"7" | "1m" | "all">("all")
+  const [modalGraphMode, setModalGraphMode] = useState<'all' | 'tournament'>('all')
+  const modalGraphTouchStartX = useRef<number | null>(null)
+
+  // ── 店舗詳細モーダル：残高
+  const [modalBalance, setModalBalance] = useState<number | null>(null)
+  const [modalNetGain, setModalNetGain] = useState<number | null>(null)
+
+  // ── プレイヤープロフィールモーダル
+  const [profileUid, setProfileUid] = useState<string | null>(null)
 
   // ── RR Rating 表示値（45未満は44.0〜45.0のランダム値で固定表示）
   const maskedRrDisplay = useRef<number | null>(null)
@@ -622,6 +635,27 @@ export default function HomePage() {
   prevCurrentStoreIdRef.current = currentStoreId
 }, [currentStoreId])
 
+  useEffect(() => {
+    if (selectedStore) {
+      setModalGraphMode('all')
+      setModalChipGraphTab('all')
+      setModalBalance(null)
+      setModalNetGain(null)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStore?.id])
+
+  useEffect(() => {
+    if (!selectedStore || !userId) return
+    const effectiveId = selectedStore.balanceGroupId ?? selectedStore.id
+    void getDoc(doc(db, "users", userId, "storeBalances", effectiveId)).then(snap => {
+      if (!snap.exists()) { setModalBalance(null); setModalNetGain(null); return }
+      const d = snap.data()
+      setModalBalance(typeof d.balance === "number" ? d.balance : null)
+      setModalNetGain(typeof d.netGain === "number" ? d.netGain : null)
+    }).catch(() => { setModalBalance(null); setModalNetGain(null) })
+  }, [selectedStore?.id, userId])
+
   // ── ロジック関数（完全保持）──────────────────────────────────────
   const currentStore = currentStoreId ? stores[currentStoreId] : null
 
@@ -865,6 +899,59 @@ const medalClass = (rank: number) => {
     return points
   }, [allNetGainTx, relatedStoreIds, chipGraphTab])
 
+  // ── 店舗詳細モーダル用グラフデータ（タブ非依存：消滅バグ防止）
+  const selectedStoreRelatedIds = useMemo(() => {
+    if (!selectedStore) return new Set<string>()
+    const bgId = selectedStore.balanceGroupId ?? selectedStore.id
+    const ids = new Set<string>([selectedStore.id, bgId])
+    Object.entries(stores).forEach(([id, info]) => {
+      if ((info.balanceGroupId ?? id) === bgId) ids.add(id)
+    })
+    return ids
+  }, [selectedStore, stores])
+
+  const modalChipGraphData = useMemo(() => {
+    const nowSec = Date.now() / 1000
+    const withDelta = allNetGainTx
+      .filter(tx => selectedStoreRelatedIds.has(tx.storeId))
+      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
+      .filter(x => x.delta !== null)
+    const filtered = (() => {
+      if (modalChipGraphTab === "7") return withDelta.slice(-7)
+      if (modalChipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
+      return withDelta
+    })()
+    let running = 0
+    const points: number[] = [0]
+    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
+    return points
+  }, [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab])
+
+  const modalTournamentGraphData = useMemo(() => {
+    const tournamentTypes = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
+    const nowSec = Date.now() / 1000
+    const withDelta = allNetGainTx
+      .filter(tx => selectedStoreRelatedIds.has(tx.storeId) && tournamentTypes.has(tx.type))
+      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
+      .filter(x => x.delta !== null)
+    const filtered = (() => {
+      if (modalChipGraphTab === "7") return withDelta.slice(-7)
+      if (modalChipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
+      return withDelta
+    })()
+    let running = 0
+    const points: number[] = [0]
+    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
+    return points
+  }, [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab])
+
+  // タブに関係なく全期間データが存在するかを判定（グラフ消滅バグ防止）
+  const modalHasAnyGraphData = useMemo(() => {
+    return allNetGainTx
+      .filter(tx => selectedStoreRelatedIds.has(tx.storeId))
+      .some(tx => txNetGainDelta(tx) !== null)
+  }, [allNetGainTx, selectedStoreRelatedIds])
+
   // ── RR Rating 表示値（45未満は44.0〜45.0で固定マスク）
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const displayRrRating = useMemo(() => {
@@ -945,23 +1032,29 @@ const medalClass = (rank: number) => {
   const scheduleEntries = useMemo(() => {
     const map: Record<string, any[]> = {}
     const daySet = new Set(scheduleDays.map(d => d.ds))
+
+    // 各トナメは自身の date スロットにのみ表示（週次展開しない）
+    // 理由: repeatWeekly=true のテンプレートが終了すると自動でインスタンス doc が
+    //       生成され、各週の date を持つ。週次展開するとインスタンスと重複する。
     calFavTournaments.forEach(t => {
       if (!t.date || typeof t.date !== "string") return
-      if (t.repeatWeekly) {
-        const base = new Date(t.date + "T00:00:00")
-        const dow = base.getDay()
-        scheduleDays.forEach(({ ds }) => {
-          const d = new Date(ds + "T00:00:00")
-          if (d.getDay() === dow) {
-            if (!map[ds]) map[ds] = []
-            map[ds].push({ ...t, date: ds })
-          }
-        })
-      } else if (daySet.has(t.date)) {
-        if (!map[t.date]) map[t.date] = []
-        map[t.date].push(t)
-      }
+      if (t.status === "finished") return          // 終了済みは非表示
+      if (!daySet.has(t.date)) return              // スケジュール表示窓外は無視
+      if (!map[t.date]) map[t.date] = []
+      map[t.date].push(t)
     })
+
+    // 同一スロットで storeId+name が重複する場合は1件に絞る（念のため）
+    Object.keys(map).forEach(ds => {
+      const seen = new Set<string>()
+      map[ds] = map[ds].filter(t => {
+        const key = `${t.storeId}__${t.name ?? t.id}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    })
+
     return map
   }, [calFavTournaments, scheduleDays])
 
@@ -1383,7 +1476,7 @@ const medalClass = (rank: number) => {
           <div data-tutorial="stats-grid" style={{ padding: '16px 18px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
               {[
-                { label: '参加', value: `${tournamentStats.plays}回`, deltaVal: null },
+                { label: 'トナメ参加数', value: `${tournamentStats.plays}回`, deltaVal: null },
                 { label: 'コスト合計', value: `${tournamentStats.totalCost}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalCost : null, deltaFmt: (v: number) => Number.isInteger(v) ? `${v >= 0 ? '+' : ''}${v}` : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
                 { label: 'リターン', value: `${tournamentStats.totalReward.toFixed(2)}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalReward : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}` },
               ].map((s, i) => (
@@ -1817,26 +1910,10 @@ const medalClass = (rank: number) => {
               <div className="flex items-center justify-between mb-3">
                 <p className="section-label">入店したことのある店舗</p>
                 <div className="flex items-center gap-2">
-                  {/* QRで入店 */}
-                  <button type="button" onClick={() => setIsQRModalOpen(true)}
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold transition-all active:scale-95"
-                    style={{ background: '#1C1C1E', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
-                      <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
-                      <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="white" strokeWidth="2.2"/>
-                      <rect x="14" y="14" width="3" height="3" rx="0.5" fill="white"/>
-                      <rect x="18" y="14" width="3" height="3" rx="0.5" fill="white"/>
-                      <rect x="14" y="18" width="3" height="3" rx="0.5" fill="white"/>
-                      <rect x="18" y="18" width="3" height="3" rx="0.5" fill="white"/>
-                    </svg>
-                    QR
-                  </button>
                   <button type="button" onClick={openJoinModal}
                     className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white"
                   >
-                    <FiSearch size={12} />New
+                    <FiSearch size={12} />店舗を検索
                   </button>
                 </div>
               </div>
@@ -1867,7 +1944,7 @@ const medalClass = (rank: number) => {
                 {/* ── セクションヘッダー */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 14px' }}>
                   <FiCalendar color="#F2A900" size={15} />
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>スケジュール</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>Events</p>
                 </div>
 
                 {/* ── 日付タブ（スクロール可） */}
@@ -1878,8 +1955,8 @@ const medalClass = (rank: number) => {
                   {scheduleDays.map(({ ds, day, dow, isSun, isSat }) => {
                     const entries = scheduleEntries[ds] ?? []
                     const selected = calScheduleTab === ds
-                    const dowColor = selected ? 'rgba(255,255,255,0.8)' : isSun ? '#FF3B30' : isSat ? '#007AFF' : '#8E8E93'
-                    const numColor = selected ? '#fff' : isSun ? '#FF3B30' : isSat ? '#007AFF' : '#1C1C1E'
+                    const dowColor = selected ? 'rgba(255,255,255,0.8)' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : '#8E8E93'
+                    const numColor = selected ? '#fff' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : '#1C1C1E'
                     return (
                       <button
                         key={ds}
@@ -2235,53 +2312,182 @@ const medalClass = (rank: number) => {
       )}
 
       {selectedStore && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
-            <div className="relative flex min-h-[32px] items-center justify-center mb-5">
-              <button type="button" onClick={() => setSelectedStore(null)} className="absolute left-0 text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
+        <div className="fixed inset-0 z-50 flex items-end justify-center modal-overlay" onClick={() => setSelectedStore(null)}>
+          <div
+            className="w-full max-w-sm bg-white shadow-2xl animate-slideUp flex flex-col"
+            style={{ borderRadius: '28px 28px 0 0', maxHeight: '88vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* ドラッグハンドル */}
+            <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
+
+            {/* 固定ヘッダー */}
+            <div className="relative flex min-h-[44px] items-center justify-center px-6 pt-3 pb-2 flex-shrink-0">
+              <button type="button" onClick={() => setSelectedStore(null)} className="absolute left-6 text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
               <button type="button" onClick={() => toggleFavoriteStore(selectedStore.id)}
-                className={`absolute right-0 flex h-9 w-9 items-center justify-center rounded-full border transition-all ${favoriteStores.includes(selectedStore.id) ? "border-[#F2A900] bg-[#F2A900]/10 text-[#F2A900]" : "border-gray-200 text-gray-400 hover:border-[#F2A900] hover:text-[#F2A900]"}`}
+                className={`absolute right-6 flex h-9 w-9 items-center justify-center rounded-full border transition-all ${favoriteStores.includes(selectedStore.id) ? "border-[#F2A900] bg-[#F2A900]/10 text-[#F2A900]" : "border-gray-200 text-gray-400 hover:border-[#F2A900] hover:text-[#F2A900]"}`}
               ><FiStar size={16} /></button>
               <h2 className="text-[17px] font-semibold text-gray-900">店舗詳細</h2>
             </div>
-            {favoriteMessage && <p className="mb-3 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
-            <div className="flex items-center gap-4 mb-4">
-              {selectedStore.iconUrl ? <img src={selectedStore.iconUrl} alt={selectedStore.name} className="h-16 w-16 rounded-2xl object-cover shadow-md" /> : <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-[13px] text-gray-400">店舗</div>}
-              <div>
-                <p className="text-[16px] font-semibold text-gray-900">{selectedStore.name}</p>
-                <p className="text-[12px] text-gray-400 mt-0.5">{selectedStore.address}</p>
+
+            {/* スクロール可能なボディ（下部にナビバー分のパディングを確保） */}
+            <div className="overflow-y-auto flex-1 px-6" style={{ paddingBottom: 'calc(80px + max(0px, env(safe-area-inset-bottom)))' }}>
+              {favoriteMessage && <p className="mb-3 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
+
+              {/* 店舗情報 */}
+              <div className="flex items-center gap-4 mb-4 mt-2">
+                {selectedStore.iconUrl ? <img src={selectedStore.iconUrl} alt={selectedStore.name} className="h-16 w-16 rounded-2xl object-cover shadow-md flex-shrink-0" /> : <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-[13px] text-gray-400 flex-shrink-0">店舗</div>}
+                <div>
+                  <p className="text-[16px] font-semibold text-gray-900">{selectedStore.name}</p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">{selectedStore.address}</p>
+                </div>
               </div>
-            </div>
-            <p className="text-[13px] text-gray-600 leading-relaxed mb-4">{selectedStore.description || "店舗の説明はまだありません"}</p>
-            {(selectedStore.snsInstagram || selectedStore.snsX || selectedStore.snsWeb) && (
-              <div className="flex items-center gap-3 mb-5">
-                {selectedStore.snsInstagram && (
-                  <a href={selectedStore.snsInstagram} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-95 transition-transform"
-                    style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }}>
-                    <FaInstagram size={18} />
-                  </a>
-                )}
-                {selectedStore.snsX && (
-                  <a href={selectedStore.snsX} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
-                    <FaXTwitter size={17} />
-                  </a>
-                )}
-                {selectedStore.snsWeb && (
-                  <a href={selectedStore.snsWeb} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
-                    <FiGlobe size={17} />
-                  </a>
-                )}
+              <p className="text-[13px] text-gray-600 leading-relaxed mb-4">{selectedStore.description || "店舗の説明はまだありません"}</p>
+              {(selectedStore.snsInstagram || selectedStore.snsX || selectedStore.snsWeb) && (
+                <div className="flex items-center gap-3 mb-5">
+                  {selectedStore.snsInstagram && (
+                    <a href={selectedStore.snsInstagram} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-95 transition-transform"
+                      style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }}>
+                      <FaInstagram size={18} />
+                    </a>
+                  )}
+                  {selectedStore.snsX && (
+                    <a href={selectedStore.snsX} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
+                      <FaXTwitter size={17} />
+                    </a>
+                  )}
+                  {selectedStore.snsWeb && (
+                    <a href={selectedStore.snsWeb} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
+                      <FiGlobe size={17} />
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* 残高サマリー */}
+              {(modalBalance !== null || modalNetGain !== null) && (
+                <div className="flex gap-3 mb-5">
+                  {modalBalance !== null && (
+                    <div className="flex-1 rounded-2xl p-3" style={{ background: '#F2F2F7' }}>
+                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">残高</p>
+                      <p className="text-[16px] font-bold text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {modalBalance.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {modalNetGain !== null && (
+                    <div className="flex-1 rounded-2xl p-3" style={{ background: '#F2F2F7' }}>
+                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">累計収支</p>
+                      <p
+                        className="text-[16px] font-bold"
+                        style={{
+                          fontVariantNumeric: 'tabular-nums',
+                          color: modalNetGain > 0 ? '#10b981' : modalNetGain < 0 ? '#ef4444' : '#1C1C1E',
+                        }}
+                      >
+                        {modalNetGain > 0 ? '+' : ''}{modalNetGain.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 収支グラフ（外側チェックはタブ非依存の modalHasAnyGraphData を使用） */}
+              {modalHasAnyGraphData && (() => {
+                const pts = modalGraphMode === 'all' ? modalChipGraphData : modalTournamentGraphData
+                const noData = pts.length < 2
+                const swipeHandlers = {
+                  onTouchStart: (e: React.TouchEvent) => { modalGraphTouchStartX.current = e.touches[0].clientX },
+                  onTouchEnd: (e: React.TouchEvent) => {
+                    if (modalGraphTouchStartX.current === null) return
+                    const dx = e.changedTouches[0].clientX - modalGraphTouchStartX.current
+                    if (Math.abs(dx) > 48) setModalGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
+                    modalGraphTouchStartX.current = null
+                  }
+                }
+                // ヘッダーとタブボタンは noData でも常に表示
+                const graphHeader = (
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
+                      <p className="text-[13px] font-semibold text-gray-900">
+                        {modalGraphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {(["7", "1m", "all"] as const).map(tab => (
+                        <button key={tab} type="button" onClick={() => setModalChipGraphTab(tab)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${modalChipGraphTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-white text-gray-500"}`}>
+                          {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+                const pageIndicators = (
+                  <div className="flex justify-center gap-1.5 mt-2">
+                    <div onClick={() => setModalGraphMode('all')}
+                      className={`rounded-full transition-all cursor-pointer ${modalGraphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                    <div onClick={() => setModalGraphMode('tournament')}
+                      className={`rounded-full transition-all cursor-pointer ${modalGraphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
+                  </div>
+                )
+                if (noData) {
+                  return (
+                    <div className="rounded-2xl mb-5 p-4" style={{ background: '#F2F2F7' }} {...swipeHandlers}>
+                      {graphHeader}
+                      <p className="text-center text-[12px] text-gray-400 py-4">この期間のデータがありません</p>
+                      {pageIndicators}
+                      <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
+                    </div>
+                  )
+                }
+                const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
+                const minV = Math.min(...pts), maxV = Math.max(...pts)
+                const range = maxV - minV || 1
+                const xs = pts.map((_, i) => PL + (i / (pts.length - 1)) * (W - PL - PR))
+                const ys = pts.map(v => PT + ((maxV - v) / range) * (H - PT - PB))
+                const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")
+                const zeroY = PT + ((maxV - 0) / range) * (H - PT - PB)
+                const lastVal = pts[pts.length - 1]
+                const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
+                return (
+                  <div className="rounded-2xl mb-5 p-4" style={{ background: '#F2F2F7' }} {...swipeHandlers}>
+                    {graphHeader}
+                    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
+                      {zeroY >= PT && zeroY <= H - PB && (
+                        <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+                      )}
+                      <text x={PL - 4} y={PT + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{maxV.toLocaleString()}</text>
+                      <text x={PL - 4} y={H - PB} textAnchor="end" fontSize="9" fill="#9ca3af">{minV.toLocaleString()}</text>
+                      <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={`${modalChipGraphTab}-${modalGraphMode}`} />
+                      {xs.map((x, i) => (
+                        <circle key={i} cx={x.toFixed(1)} cy={ys[i].toFixed(1)} r="2.5" fill={lineColor} />
+                      ))}
+                    </svg>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-[10px] text-gray-400">{pts.length - 1}回</p>
+                      <p className={`text-[12px] font-bold ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
+                        {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
+                      </p>
+                    </div>
+                    {pageIndicators}
+                    <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
+                  </div>
+                )
+              })()}
+
+              {/* アクションボタン */}
+              <div className="space-y-2.5">
+                <button type="button" onClick={() => joinStore(selectedStore.id)} className="h-12 w-full rounded-2xl gold-btn text-[15px] font-semibold text-gray-900">入店する</button>
+                <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
+                  className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[14px] font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                >現在入店中のプレイヤーを見る</button>
               </div>
-            )}
-            <div className="space-y-2.5">
-              <button type="button" onClick={() => joinStore(selectedStore.id)} className="h-12 w-full rounded-2xl gold-btn text-[15px] font-semibold text-gray-900">入店する</button>
-              <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
-                className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[14px] font-semibold text-gray-700 hover:bg-gray-50 transition-all"
-              >現在入店中のプレイヤーを見る</button>
-              <button type="button" className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[14px] font-semibold text-gray-400">DMを送る</button>
             </div>
           </div>
         </div>
@@ -2299,7 +2505,7 @@ const medalClass = (rank: number) => {
               {playersPreviewLoading ? <p className="text-center text-[13px] text-gray-400 py-8">読み込み中…</p>
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-gray-400 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
-                <div key={player.id} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors">
+                <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
                   {player.iconUrl ? <img src={player.iconUrl} alt={player.name} className="h-11 w-11 rounded-full object-cover" /> : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200"><FiUser className="text-[15px] text-gray-400" /></div>}
                   <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
                 </div>
@@ -2365,10 +2571,10 @@ const medalClass = (rank: number) => {
             <div style={{ overflowY: 'auto', flex: 1, padding: '4px 16px 40px' }}>
               {rrRankingLoading ? (
                 <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(60,60,67,0.45)', padding: '40px 0' }}>ロード中…</p>
-              ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).slice(0, 100).map((player, idx) => {
+              ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
                 const isMe = player.id === userId
                 return (
-                  <div key={player.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2 }}>
+                  <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#F2F2F7' }) }}>
                         {player.iconUrl
@@ -2399,7 +2605,7 @@ const medalClass = (rank: number) => {
             </div>
             <div className="space-y-2">
               {ranking.slice(0, 50).map((player, index) => (
-                <div key={player.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors">
+                <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
                   <div className="flex items-center gap-3">
                     <span className="w-8 text-[12px] text-gray-400 font-semibold text-right">{index + 1}位</span>
                     <span className="text-[13px] text-gray-800 font-medium">{player.name || "プレイヤー"}</span>
@@ -2650,6 +2856,9 @@ const medalClass = (rank: number) => {
       )}
 
       <HandHistoryModal userId={userId} creatorName={profile.name ?? "Unknown"} />
+
+      {/* プレイヤープロフィールモーダル */}
+      <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
       {/* フッター（変更なし） */}
       <PlayerBottomNav />

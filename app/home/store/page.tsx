@@ -2,6 +2,7 @@
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
+const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
 import { useEffect, useMemo, useRef, useState } from "react"
 const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
@@ -289,6 +290,7 @@ export default function StorePage() {
   const balanceSubsRef = useRef<Record<string, () => void>>({})
   const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
   const [adjustModalPlayer, setAdjustModalPlayer] = useState<any | null>(null)
+  const [profileUid, setProfileUid] = useState<string | null>(null)
   const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
   const [withdrawOtherOpenId, setWithdrawOtherOpenId] = useState<string | null>(null)
   const [depositOtherNetGain, setDepositOtherNetGain] = useState(false)
@@ -644,11 +646,15 @@ export default function StorePage() {
   setAdjustValue("")
 }
 
+  const STAMP_GOAL = 12
+
   const approvePlayer = async (playerId: string) => {
     if (!storeId) return
-    const storeSnap = await getDoc(doc(db, "stores", storeId)); const storeData = storeSnap.data()
-    await setDoc(doc(db, "users", playerId), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
+    const storeSnap = await getDoc(doc(db, "stores", storeId))
+    const storeData = storeSnap.data()
     const now = new Date()
+
+    // 1. バランス更新（status 変更より先に実行）
     try {
       const balRef = doc(db, "users", playerId, "storeBalances", balGroupId!)
       const balSnap = await getDoc(balRef); const ts = serverTimestamp()
@@ -660,27 +666,30 @@ export default function StorePage() {
       }
       await setDoc(balRef, { balance: cb, netGain: cn, storeId, lastVisitedAt: ts, ...(incr ? { visitCount: vc + 1, lastVisitCountedAt: ts } : {}) }, { merge: true })
     } catch {}
-    if (!storeData?.checkinBonusEnabled) return
-    try {
-      const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
-      const stampSnap = await getDoc(stampRef); let canStamp = true
-      if (stampSnap.exists()) {
-        const data = stampSnap.data()
-        if (data.lastStampAt?.toMillis) {
-          const getBase = (d: Date) => { const b = new Date(d); b.setHours(3,0,0,0); if (d.getHours() < 3) b.setDate(b.getDate()-1); return b.getTime() }
-          if (getBase(now) === getBase(new Date(data.lastStampAt.toMillis()))) canStamp = false
+
+    // 2. スタンプ更新（status 変更より先に実行）
+    // クーポンは自動発行せずプレイヤーが手動取得。STAMP_GOAL で上限キャップ。
+    if (storeData?.checkinBonusEnabled) {
+      try {
+        const stampRef = doc(db, "users", playerId, "storeStamp", storeId)
+        const stampSnap = await getDoc(stampRef); let canStamp = true
+        if (stampSnap.exists()) {
+          const data = stampSnap.data()
+          if (data.lastStampAt?.toMillis) {
+            const getBase = (d: Date) => { const b = new Date(d); b.setHours(3,0,0,0); if (d.getHours() < 3) b.setDate(b.getDate()-1); return b.getTime() }
+            if (getBase(now) === getBase(new Date(data.lastStampAt.toMillis()))) canStamp = false
+          }
         }
-      }
-      if (!canStamp) return
-      let newCount = 1
-      if (stampSnap.exists()) newCount = (stampSnap.data().stampCount ?? 0) + 1
-      if (newCount >= 12) {
-        await setDoc(doc(collection(db, "users", playerId, "coupons")), { name: storeData.checkinBonusCouponName, storeId, createdAt: serverTimestamp() })
-        await setDoc(stampRef, { stampCount: 0, lastStampAt: serverTimestamp() })
-      } else {
-        await setDoc(stampRef, { stampCount: newCount, lastStampAt: serverTimestamp() })
-      }
-    } catch {}
+        if (canStamp) {
+          const prev = stampSnap.exists() ? (stampSnap.data().stampCount ?? 0) : 0
+          const newCount = Math.min(prev + 1, STAMP_GOAL)
+          await setDoc(stampRef, { stampCount: newCount, lastStampAt: serverTimestamp() }, { merge: true })
+        }
+      } catch {}
+    }
+
+    // 3. ユーザー status を最後に更新（スナップショット発火タイミングをスタンプ書き込み後にする）
+    await setDoc(doc(db, "users", playerId), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
   }
 
   const rejectPlayer = async (playerId: string) => {
@@ -924,6 +933,7 @@ export default function StorePage() {
       {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
       {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
+      <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
@@ -1717,7 +1727,7 @@ export default function StorePage() {
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {pendingPlayers.map((player, idx) => (
                 <div key={player.id} style={{ padding: '12px 16px', borderBottom: idx < pendingPlayers.length - 1 ? '1px solid var(--sep)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
                     {player.iconUrl
                       ? <img src={player.iconUrl} style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }}/>
                       : <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: 'var(--label2)' }}/></div>
@@ -1796,7 +1806,7 @@ export default function StorePage() {
                     <div key={player.id} className="player-row"
                       style={{ background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.05)' : removingAdjustmentPlayerIds.includes(player.id) ? 'transparent' : '#fff', opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1, transition: 'opacity .3s, background .15s' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
                         <div style={{ position: 'relative' }}>
                           {player.iconUrl
                             ? <img src={player.iconUrl} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}/>
@@ -1806,7 +1816,7 @@ export default function StorePage() {
                         </div>
                         <div>
                           <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{player.name || player.id}</p>
-                          {player.playerId && <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)', marginTop: 1 }}>@{player.playerId}</p>}
+                          {player.playerId && <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)', marginTop: 1 }}>{player.playerId}</p>}
                         </div>
                       </div>
 
@@ -1862,77 +1872,83 @@ export default function StorePage() {
 
       {/* ── Adjust Modal ── */}
       {adjustModalPlayer && (
-        <div className="fixed inset-0 z-[999] flex items-end justify-center" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
-          <div className="ios-card su" style={{ width: '100%', maxWidth: 480, borderRadius: '24px 24px 0 0', padding: '22px 18px 40px', overflow: 'hidden' }}>
-            <div className="gold-line" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}/>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          onClick={() => { setAdjustModalPlayer(null); setAdjustValue("") }}>
+          <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+            onClick={e => e.stopPropagation()}>
 
             {/* ドラッグハンドル */}
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--sep)', margin: '0 auto 18px' }}/>
+            <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* ヘッダー */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {adjustModalPlayer.iconUrl
                   ? <img src={adjustModalPlayer.iconUrl} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}/>
-                  : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={15} style={{ color: 'var(--label2)' }}/></div>
+                  : <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: '#8E8E93' }}/></div>
                 }
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)' }}>{adjustModalPlayer.name}</p>
-                  <p style={{ fontSize: 11, color: 'var(--label2)' }}>手動調整</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{adjustModalPlayer.name}</p>
+                  <p style={{ fontSize: 11, color: '#8E8E93' }}>手動調整</p>
                 </div>
               </div>
               <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue("") }}
-                style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+              >×</button>
             </div>
 
-            {/* 金額入力 */}
-            <input
-              value={adjustValue} onChange={e => setAdjustValue(e.target.value)}
-              placeholder="金額を入力"
-              style={{ width: '100%', height: 52, borderRadius: 14, border: '1.5px solid var(--sep)', background: '#F2F2F7', padding: '0 16px', fontSize: 20, fontWeight: 800, textAlign: 'center', color: 'var(--label)', outline: 'none', marginBottom: 16, boxSizing: 'border-box', letterSpacing: '-0.5px' }}
-            />
+            {/* スクロール可能ボディ */}
+            <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
+              {/* 金額入力 */}
+              <input
+                value={adjustValue} onChange={e => setAdjustValue(e.target.value)}
+                placeholder="金額を入力"
+                inputMode="numeric"
+                style={{ width: '100%', height: 52, borderRadius: 14, border: '2px solid rgba(242,169,0,0.3)', background: '#F9F9F9', padding: '0 16px', fontSize: 22, fontWeight: 800, textAlign: 'center', color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box', letterSpacing: '-0.5px' }}
+              />
 
-            {/* リングゲーム */}
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>リングゲーム</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
-              {[{ l: 'Buy-in', t: 'buyin' }, { l: 'Cash Out', t: 'cashout' }, { l: 'チップ購入', t: 'chip' }].map(b => (
-                <button key={b.t} className="adj-btn adj-btn-dark" onClick={() => runStoreAdjustment(b.t)}>{b.l}</button>
-              ))}
+              {/* リングゲーム */}
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 8 }}>Ring Game</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+                {[{ l: 'Buy-in', t: 'buyin' }, { l: 'Cash Out', t: 'cashout' }, { l: 'チップ購入', t: 'chip' }].map(b => (
+                  <button key={b.t} onClick={() => runStoreAdjustment(b.t)}
+                    style={{ height: 42, borderRadius: 12, border: '1px solid #E5E5EA', background: '#F9F9F9', color: '#1C1C1E', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+                  >{b.l}</button>
+                ))}
+              </div>
+
+              {/* トーナメント */}
+              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 8 }}>Tournament</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
+                {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
+                  <button key={b.t} onClick={() => runStoreAdjustment(b.t)}
+                    style={{ height: 42, borderRadius: 12, border: '1px solid #E5E5EA', background: '#F9F9F9', color: '#1C1C1E', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
+                  >{b.l}</button>
+                ))}
+              </div>
+
+              {/* Prize */}
+              <button onClick={runPrizeAdjustment}
+                style={{ width: '100%', height: 42, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,rgba(242,169,0,0.12),rgba(242,169,0,0.18))', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+              >Prize</button>
+
+              {/* 手動調整セクション */}
+              <div style={{ borderTop: '1px solid #F2F2F7', paddingTop: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 10 }}>Manual Adjustment</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                  <button onClick={async () => { await runAdjustment("add", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}
+                    style={{ height: 44, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}
+                  >＋ Add</button>
+                  <button onClick={async () => { await runAdjustment("subtract", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}
+                    style={{ height: 44, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#FF3B30,#CC2200)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.25)' }}
+                  >− Subtract</button>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1C1C1E', fontWeight: 500, padding: '10px 12px', background: '#F9F9F9', borderRadius: 10 }}>
+                  <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: '#F2A900', width: 18, height: 18, cursor: 'pointer' }}/>
+                  純増値も更新
+                </label>
+              </div>
             </div>
-
-            {/* トーナメント */}
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>トーナメント</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6, marginBottom: 14 }}>
-              {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
-                <button key={b.t} className="adj-btn adj-btn-dark" onClick={() => runStoreAdjustment(b.t)}>{b.l}</button>
-              ))}
-            </div>
-
-            <button
-              className="adj-btn adj-btn-gold"
-              onClick={runPrizeAdjustment}
-              style={{ width: "100%", marginBottom: 14 }}
-            >
-              PRIZE
-            </button>
-
-
-
-            {/* 手動調整 */}
-            <div style={{ height: 1, background: 'var(--sep)', margin: '4px 0 14px' }}/>
-            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--label3)', marginBottom: 8 }}>手動調整</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-              <button className="adj-btn adj-btn-add" onClick={async () => { await runAdjustment("add", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}>
-                ＋ 加算
-              </button>
-              <button className="adj-btn adj-btn-sub" onClick={async () => { await runAdjustment("subtract", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}>
-                − 減算
-              </button>
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label2)', fontWeight: 500 }}>
-              <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
-              純増値も更新する
-            </label>
           </div>
         </div>
       )}

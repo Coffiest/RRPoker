@@ -99,7 +99,7 @@ const restoredRows = Object.entries(d.prizePool)
     } else {
       return {
         rank: Number(rank),
-        playerId: "",
+        playerId: val.playerId ?? "",   // ← 保存した playerId を復元
         amount: String(val.amount ?? ""),
         text: val.text ?? "",
         showText: Boolean(val.text)
@@ -243,10 +243,12 @@ setParticipants(list)
   const prizePool: Record<string, any> = {}
 
 rows.forEach(r => {
-  if (r.amount !== "" || r.text !== "") {
+  // playerId が選択されている場合も保存対象にする（下書き保存でプレイヤー情報を保持）
+  if (r.amount !== "" || r.text !== "" || r.playerId !== "") {
     prizePool[String(r.rank)] = {
       amount: r.amount === "" ? 0 : Number(r.amount),
-      text: r.text ?? ""
+      text: r.text ?? "",
+      playerId: r.playerId   // ← playerId を DB に保存
     }
   }
 })
@@ -567,205 +569,152 @@ for (const p of players) {
     setSubmitting(false)
   }
 
+  const MEDAL: Record<number, string> = {
+    1: 'linear-gradient(135deg,#FFD700,#E8A000)',
+    2: 'linear-gradient(135deg,#D4D4D4,#A8A8A8)',
+    3: 'linear-gradient(135deg,#CD7F32,#9A5E24)',
+  }
+
   return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
-   
-
-<div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-[0_25px_80px_rgba(0,0,0,0.18)] border border-gray-200">
-
-  {/* ヘッダー */}
-  <div className="flex items-center justify-between mb-3">
-
-    {/* 左：閉じる */}
-    <button
-      onClick={onClose}
-      className="h-9 w-9 rounded-full border border-gray-300 text-gray-700 flex items-center justify-center text-[16px] hover:bg-gray-100"
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
     >
-      ×
-    </button>
+      <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
 
-    <h2 className="text-[17px] font-bold text-gray-900">
-      Pay Out
-    </h2>
+        {/* ドラッグハンドル */}
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
 
-    {/* 右：保存 */}
-    <button
-      onClick={async () => {
-        await saveDraft()
-        onClose()
-      }}
-      className="h-9 w-9 rounded-full bg-green-500 text-white flex items-center justify-center text-[16px] font-bold hover:bg-green-600"
-    >
-      ✓
-    </button>
+        {/* ヘッダー */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+          <button
+            onClick={onClose}
+            style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+          >×</button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Pay Out</span>
+          <button
+            onClick={async () => { await saveDraft(); onClose() }}
+            style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
+          >✓</button>
+        </div>
 
-  </div>
-
-        {loading ? (
-          <p className="text-gray-500 text-center">Loading...</p>
-        ) : error ? (
-          <p className="text-red-500 text-center">{error}</p>
-        ) : (
-          <>
-            <div className="mb-3 text-[14px] text-gray-900 font-semibold">
-         
-              <div className="mb-3 text-[13px] text-gray-500">
-  総プライズ：
-</div>
-<div className="text-[20px] font-bold text-gray-900">
-  {fmtChip(totalPrize, chipUnit, chipUnitBefore)}
-</div>
-            </div>
-
-
-<div className="space-y-2 max-h-[45vh] overflow-y-auto">
-  {rows.map((r, idx) => (
-    <div key={idx} className="space-y-2 pb-2 border-b border-gray-100">
-
-      {/* 1行目 */}
-      <div className="grid grid-cols-[40px_1fr_90px_40px] gap-2 items-center">
-
-        <div className="text-[13px] text-gray-700">{r.rank}位</div>
-
-        <select
-          value={r.playerId}
-          onChange={e => {
-            const v = e.target.value
-            setRows(prev => prev.map((x, i) =>
-              i === idx ? { ...x, playerId: v } : x
-            ))
-          }}
-          className="h-10 rounded-xl border border-gray-200 px-2 text-[13px] text-gray-900 bg-white"
-        >
-          <option value="">選択</option>
-          {participants.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.name ?? p.id}
-            </option>
-          ))}
-        </select>
-
-        <input
-          value={r.amount}
-          onChange={e => {
-            const v = e.target.value
-            setRows(prev => prev.map((x, i) =>
-              i === idx ? { ...x, amount: v } : x
-            ))
-          }}
-          placeholder="金額"
-          inputMode="numeric"
-          className="h-10 rounded-xl border border-gray-200 px-2 text-[13px] text-gray-900 bg-white"
-        />
-
-        {/* ＋ボタン */}
-        <button
-          onClick={() => {
-            setRows(prev => prev.map((x, i) =>
-              i === idx ? { ...x, showText: !x.showText } : x
-            ))
-          }}
-          className="h-10 w-10 rounded-xl border border-gray-300 text-gray-900 font-bold bg-white hover:bg-gray-100"
-        >
-          ＋
-        </button>
-
-      </div>
-
-      {/* 2行目（条件付き表示） */}
-      {r.showText && (
-  <div className="pl-6 border-l-2 border-gray-200">
-    <input
-      value={r.text}
-      onChange={e => {
-        const v = e.target.value
-        setRows(prev => prev.map((x, i) =>
-          i === idx ? { ...x, text: v } : x
-        ))
-      }}
-      placeholder="景品・メモ"
-      className="w-full h-10 rounded-xl border border-gray-200 px-3 text-[13px] text-gray-900 bg-white placeholder:text-gray-400"
-    />
-  </div>
-)}
-
-    </div>
-  ))}
-</div>
-
-
-
-<textarea
-  value={comment}
-  onChange={e => setComment(e.target.value)}
-  placeholder="コメント（タイマー画面に表示される）"
-  className="w-full h-20 rounded-xl border border-gray-300 px-3 py-2 text-[14px] text-gray-900 bg-white mt-3 placeholder:text-gray-400"
-/>
-
-
-
-            <button
-              type="button"
-              onClick={addRow}
-              className="mt-3 w-full rounded-xl border border-gray-200 py-2 text-[13px] text-gray-700 hover:bg-gray-50"
-              disabled={submitting}
-            >
-              ＋入賞者追加
-            </button>
-
-            
-
-
-            <button
-              type="button"
-              onClick={() => {
-                const v = validate()
-                if (v) { setError(v); return }
-                setConfirmOpen(true)
-              }}
-              className="mt-3 w-full rounded-full bg-[#F2A900] hover:bg-red-700 text-white font-semibold py-2 text-[13px]"
-              disabled={submitting}
-            >
-              Pay Out
-            </button>
-
-
-
-            
-
-            {confirmOpen && (
-              <div className="fixed inset-0 z-[450] flex items-center justify-center bg-black/20 px-4">
-                <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl border border-gray-200">
-                  <p className="text-[13px] font-semibold text-gray-900 text-center">
-                    この操作は取り消せません。プライズを配布しますか？
-                  </p>
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setConfirmOpen(false)}
-                      className="rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 py-2 text-[13px] font-semibold"
-                      disabled={submitting}
-                    >
-                      キャンセル
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setConfirmOpen(false)
-                        await submitFinish()
-                      }}
-                      className="rounded-xl bg-red-600 hover:bg-red-700 text-white py-2 text-[13px] font-semibold"
-                      disabled={submitting}
-                    >
-                      実行
-                    </button>
-                  </div>
-                </div>
+        {/* スクロール可能ボディ */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
+          {loading ? (
+            <p style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+          ) : (
+            <>
+              {/* Prize Pool カード */}
+              <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '14px 18px', marginBottom: 16 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
+                <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
-            )}
-          </>
-        )}
+
+              {/* 順位行 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+                {rows.map((r, idx) => (
+                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 16, padding: '12px 14px' }}>
+                    {/* 順位バッジ + プレイヤー選択 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: r.rank <= 3 ? MEDAL[r.rank] : '#D1D1D6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: r.rank <= 3 ? '0 2px 6px rgba(0,0,0,0.18)' : 'none' }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>{r.rank}</span>
+                      </div>
+                      <select
+                        value={r.playerId}
+                        onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: e.target.value } : x))}
+                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 10px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+                      >
+                        <option value="">プレイヤーを選択</option>
+                        {participants.map(p => <option key={p.id} value={p.id}>{p.name ?? p.id}</option>)}
+                      </select>
+                    </div>
+                    {/* 金額 + テキストトグル */}
+                    <div style={{ display: 'flex', gap: 8, paddingLeft: 40 }}>
+                      <input
+                        value={r.amount}
+                        onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, amount: e.target.value } : x))}
+                        placeholder="金額"
+                        inputMode="numeric"
+                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 12px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                      />
+                      <button
+                        onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
+                        style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : '#8E8E93', fontSize: 20, fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >＋</button>
+                    </div>
+                    {/* 景品テキスト */}
+                    {r.showText && (
+                      <div style={{ paddingLeft: 40, marginTop: 8 }}>
+                        <input
+                          value={r.text}
+                          onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
+                          placeholder="景品・メモ"
+                          style={{ width: '100%', height: 36, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* 追加ボタン */}
+              <button
+                type="button"
+                onClick={addRow}
+                disabled={submitting}
+                style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: '#8E8E93', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 12 }}
+              >＋ 入賞者を追加</button>
+
+              {/* コメント */}
+              <textarea
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                placeholder="コメント（タイマー画面に表示）"
+                rows={2}
+                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#F2F2F7', padding: '12px 14px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 4 }}
+              />
+
+              {error && <p style={{ color: '#FF3B30', fontSize: 13, marginTop: 8, textAlign: 'center' }}>{error}</p>}
+            </>
+          )}
+        </div>
+
+        {/* フッター: Pay Out ボタン */}
+        <div style={{ padding: '12px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
+            disabled={submitting}
+            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
+          >Pay Out</button>
+        </div>
       </div>
+
+      {/* 確認ダイアログ */}
+      {confirmOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 450, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: '0 24px' }}>
+          <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>プライズを配布しますか？</p>
+              <p style={{ fontSize: 13, color: '#8E8E93', lineHeight: 1.6 }}>この操作は取り消せません</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                disabled={submitting}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+              >キャンセル</button>
+              <button
+                type="button"
+                onClick={async () => { setConfirmOpen(false); await submitFinish() }}
+                disabled={submitting}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: '#4A1010', color: '#fff', fontSize: 15, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}
+              >{submitting ? '実行中…' : '実行'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -8,6 +8,56 @@ import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { resizeImageToDataUrl } from '@/lib/image'
 import { isPlayerIdAvailable, validatePlayerId } from '@/lib/playerId'
 
+// ── ローマ字変換テーブル（複合音 → 単音の順）
+const KANA_MAP: Record<string, string> = {
+  'きゃ':'kya','きゅ':'kyu','きょ':'kyo','しゃ':'sha','しゅ':'shu','しょ':'sho',
+  'ちゃ':'cha','ちゅ':'chu','ちょ':'cho','にゃ':'nya','にゅ':'nyu','にょ':'nyo',
+  'ひゃ':'hya','ひゅ':'hyu','ひょ':'hyo','みゃ':'mya','みゅ':'myu','みょ':'myo',
+  'りゃ':'rya','りゅ':'ryu','りょ':'ryo','ぎゃ':'gya','ぎゅ':'gyu','ぎょ':'gyo',
+  'じゃ':'ja','じゅ':'ju','じょ':'jo','びゃ':'bya','びゅ':'byu','びょ':'byo',
+  'ぴゃ':'pya','ぴゅ':'pyu','ぴょ':'pyo',
+  'あ':'a','い':'i','う':'u','え':'e','お':'o',
+  'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+  'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
+  'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+  'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+  'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+  'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+  'や':'ya','ゆ':'yu','よ':'yo',
+  'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+  'わ':'wa','を':'wo','ん':'n',
+  'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+  'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+  'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
+  'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+  'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+  'っ':'','ー':'-',
+}
+
+function nameToRomaji(name: string): string {
+  // ASCII が含まれていればそのまま整形
+  const ascii = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+  if (ascii.length >= 2) return ascii
+  // カタカナ → ひらがな（Unicode オフセット 0x60）
+  const hira = name.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60))
+  let result = ''
+  let i = 0
+  while (i < hira.length) {
+    const two = hira.slice(i, i + 2)
+    if (KANA_MAP[two] !== undefined) { result += KANA_MAP[two]; i += 2 }
+    else { result += (KANA_MAP[hira[i]] ?? ''); i++ }
+  }
+  return result.replace(/[^a-z0-9_]/g, '')
+}
+
+const RANDOM_PREFIXES = ['ace','king','poker','lucky','royal','bluff','river','chips','flush','raise']
+
+function generateRandomId(): string {
+  const p = RANDOM_PREFIXES[Math.floor(Math.random() * RANDOM_PREFIXES.length)]
+  const n = Math.floor(Math.random() * 9000) + 1000
+  return `${p}_${n}`
+}
+
 export default function UserProfileOnboardingPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -23,8 +73,13 @@ export default function UserProfileOnboardingPage() {
   const [authReady, setAuthReady] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const idCheckTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const idCheckCache = useRef<Map<string, boolean>>(new Map())
   const [birthday, setBirthday] = useState('')
   const [iconHovered, setIconHovered] = useState(false)
+  const [showIdInfo, setShowIdInfo] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false)
+  const [autoGetLoading, setAutoGetLoading] = useState(false)
 
   const MAX_ICON_SIZE = 5 * 1024 * 1024
   const MAX_ICON_EDGE = 200
@@ -70,6 +125,17 @@ export default function UserProfileOnboardingPage() {
     setPreviewUrl(nextFile ? URL.createObjectURL(nextFile) : null)
   }
 
+  // 検証済みIDをキャッシュ付きで即座にセット
+  const applyId = (id: string) => {
+    const clean = id.replace(/^@/, '')
+    setPlayerId(clean)
+    setIdError('')
+    setIdStatus('available')
+    idCheckCache.current.set(`@${clean}`, true)
+    if (idCheckTimeoutRef.current) clearTimeout(idCheckTimeoutRef.current)
+  }
+
+  // キャッシュ活用 + デバウンス 250ms（旧 500ms）で高速化
   const handlePlayerIdChange = async (value: string) => {
     setPlayerId(value)
     setIdError('')
@@ -80,23 +146,88 @@ export default function UserProfileOnboardingPage() {
       setIdStatus(null)
       return
     }
+    const normalizedId = `@${value.replace(/^@/, '')}`
+    // キャッシュヒット → 即座に結果表示（ネットワーク不要）
+    if (idCheckCache.current.has(normalizedId)) {
+      if (idCheckTimeoutRef.current) clearTimeout(idCheckTimeoutRef.current)
+      const cached = idCheckCache.current.get(normalizedId)!
+      setIdStatus(cached ? 'available' : 'unavailable')
+      if (!cached) setIdError('このIDは既に使われています')
+      return
+    }
     setIdStatus('checking')
     if (idCheckTimeoutRef.current) clearTimeout(idCheckTimeoutRef.current)
     idCheckTimeoutRef.current = setTimeout(async () => {
       try {
-        const normalizedId = `@${value.replace(/^@/, '')}`
         if (userId) {
           const userDoc = await getDoc(doc(db, 'users', userId))
           if (userDoc.data()?.playerId === normalizedId) {
+            idCheckCache.current.set(normalizedId, true)
             setIdStatus('available'); setIdError(''); return
           }
         }
         const available = await isPlayerIdAvailable(value)
+        idCheckCache.current.set(normalizedId, available)
         if (available) { setIdStatus('available'); setIdError('') }
         else { setIdStatus('unavailable'); setIdError('このIDは既に使われています') }
       } catch { setIdError('IDの確認に失敗しました'); setIdStatus(null) }
-    }, 500)
+    }, 250)
   }
+
+  // サジェスト生成（ローマ字 + ランダム × 最大5候補を並列チェック）
+  const loadSuggestions = async (currentName: string) => {
+    setSuggestionsLoading(true)
+    setSuggestions([])
+    try {
+      const romaji = nameToRomaji(currentName)
+      const candidates = [
+        romaji,
+        romaji.length >= 2 ? `${romaji}_${Math.floor(Math.random() * 99) + 1}` : '',
+        generateRandomId(),
+        generateRandomId(),
+        generateRandomId(),
+      ].filter(c => c.length >= 2 && validatePlayerId(c).valid)
+
+      const results = await Promise.all(candidates.map(async c => {
+        const n = `@${c}`
+        if (idCheckCache.current.has(n)) return idCheckCache.current.get(n) ? c : null
+        const avail = await isPlayerIdAvailable(c)
+        idCheckCache.current.set(n, avail)
+        return avail ? c : null
+      }))
+      setSuggestions(results.filter((c): c is string => c !== null).slice(0, 2))
+    } catch { /* ignore */ } finally {
+      setSuggestionsLoading(false)
+    }
+  }
+
+  // 自動取得：未使用IDが見つかるまでランダム生成してフィールドにセット
+  const handleAutoGet = async () => {
+    setAutoGetLoading(true)
+    try {
+      for (let i = 0; i < 15; i++) {
+        const candidate = generateRandomId()
+        const n = `@${candidate}`
+        const avail = idCheckCache.current.has(n)
+          ? idCheckCache.current.get(n)!
+          : await isPlayerIdAvailable(candidate)
+        idCheckCache.current.set(n, avail)
+        if (avail) { applyId(candidate); break }
+      }
+    } catch { /* ignore */ } finally {
+      setAutoGetLoading(false)
+    }
+  }
+
+  // ポーカーネームが変わったらサジェストを再生成
+  useEffect(() => {
+    setSuggestions([])
+    if (!authReady || !name.trim()) { setSuggestionsLoading(false); return }
+    setSuggestionsLoading(true)
+    const t = setTimeout(() => loadSuggestions(name), 500)
+    return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, authReady])
 
   const handleNext = async () => {
     if (!name.trim()) { setError('ポーカーネームが入力されていません'); return }
@@ -341,33 +472,140 @@ export default function UserProfileOnboardingPage() {
 
           {/* Player ID */}
           <div className="mt-5">
+            {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">プレイヤーID(インスタのID的なやつ)</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-[14px] font-medium text-gray-700">Player ID</label>
+
+                
+                <button
+                  type="button"
+                  onClick={() => setShowIdInfo(v => !v)}
+                  aria-label="Player IDの説明"
+                  style={{
+                    width: 18, height: 18, borderRadius: '50%',
+                    border: `1.5px solid ${showIdInfo ? '#F2A900' : '#d1d5db'}`,
+                    background: showIdInfo ? 'rgba(242,169,0,0.08)' : '#f3f4f6',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10, fontWeight: 700,
+                    color: showIdInfo ? '#D4910A' : '#6b7280',
+                    cursor: 'pointer', transition: 'all 0.15s',
+                    flexShrink: 0,
+                  }}
+                >?</button>
+              </div>
               <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
-            <div className="relative">
-              <span
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-gray-400 pointer-events-none select-none"
-                style={{ lineHeight: 1 }}
-              >@</span>
+
+            {/* ? 説明パネル */}
+            {showIdInfo && (
+              <div className="mb-3 rounded-2xl p-3.5" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
+                <p className="text-[12px] font-semibold mb-2" style={{ color: '#92610A' }}>Player ID とは？</p>
+                <ul className="space-y-1.5">
+                  {[
+                    '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
+                    '一度設定すると変更できません。慎重に決めてください',
+                    '好きな値で大丈夫です。何でも構いません',
+                    '使える文字：半角英小文字 (a–z)・数字 (0–9)・アンダースコア (_)・ハイフン (-)',
+                  ].map((txt, i) => (
+                    <li key={i} className="flex items-start gap-1.5">
+                      <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 1 }}>•</span>
+                      <span className="text-[11px] leading-relaxed" style={{ color: '#92610A' }}>{txt}</span>
+                    </li>
+                  ))}
+                </ul>
+
+
+                
+              </div>
+
+              
+            )}
+
+            {/* @プレフィックス固定 + 入力フィールド */}
+            <div
+              className="flex items-stretch overflow-hidden transition-all"
+              style={{
+                height: 48, borderRadius: 16,
+                border: `1.5px solid ${idError ? '#f87171' : idStatus === 'available' ? '#34d399' : idStatus === 'unavailable' ? '#f87171' : '#e5e7eb'}`,
+                background: idError || idStatus === 'unavailable' ? '#fff5f5' : idStatus === 'available' ? '#f0fdf9' : '#f9fafb',
+              }}
+            >
+              <div className="flex items-center justify-center select-none flex-shrink-0"
+                style={{ width: 44, background: 'rgba(0,0,0,0.04)', borderRight: '1.5px solid rgba(0,0,0,0.07)' }}>
+                <span style={{ fontSize: 17, fontWeight: 700, color: '#6b7280', lineHeight: 1 }}>@</span>
+              </div>
               <input
                 type="text"
                 value={playerId.replace(/^@/, '')}
                 onChange={e => handlePlayerIdChange(e.target.value)}
                 placeholder="例: naoyuki"
-                className={`field-input pl-8 pr-20 ${
-                  idError ? 'has-error' :
-                  idStatus === 'available' ? 'is-ok' :
-                  idStatus === 'unavailable' ? 'is-taken' : ''
-                }`}
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 12px', minWidth: 0 }}
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-medium pointer-events-none">
-                {idStatus === 'checking' && <span className="text-gray-400">確認中…</span>}
-                {idStatus === 'available' && !idError && <span className="text-emerald-500">✓ 利用可</span>}
-                {idStatus === 'unavailable' && <span className="text-red-400">✗ 使用中</span>}
-              </span>
+              <div className="flex items-center pr-3 flex-shrink-0">
+                {idStatus === 'checking' && <span style={{ fontSize: 12, color: '#9ca3af' }}>確認中…</span>}
+                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}>✓ 利用可</span>}
+                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}>✗ 使用中</span>}
+              </div>
             </div>
             {idError && <p className="mt-1.5 text-[12px] text-red-400">{idError}</p>}
+
+            {/* おすすめ + 自動取得 */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-2">
+                <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>おすすめ</span>
+                <button
+                  type="button"
+                  onClick={handleAutoGet}
+                  disabled={autoGetLoading}
+                  className="flex items-center gap-1 transition-opacity"
+                  style={{ fontSize: 11, fontWeight: 600, color: '#F2A900', opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
+                >
+                  {autoGetLoading ? (
+                    <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/>
+                      <path fill="currentColor" opacity=".75" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                  ) : (
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 12a8 8 0 01-8 8m8-8a8 8 0 00-8-8m8 8H4m16 0l-3-3m3 3l-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  )}
+                  自動で取得
+                </button>
+              </div>
+
+
+              
+              <div className="flex gap-2 flex-wrap">
+                
+                {suggestionsLoading ? (
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>候補を検索中…</span>
+                ) : suggestions.length > 0 ? (
+                  suggestions.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => applyId(s)}
+                      style={{
+                        padding: '5px 12px', borderRadius: 99,
+                        fontSize: 12, fontWeight: 500,
+                        background: '#f3f4f6', color: '#374151',
+                        border: '1px solid #e5e7eb',
+                        cursor: 'pointer', transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFBF0'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F2A900'; (e.currentTarget as HTMLButtonElement).style.color = '#D4910A' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}
+                    >
+                      @{s}
+                    </button>
+                  ))
+                ) : (
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>ポーカーネームを入力するとおすすめが表示されます</span>
+                )}
+              </div>
+            </div>
+            
           </div>
 
           {/* Birthday */}

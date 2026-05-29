@@ -374,202 +374,202 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/20 backdrop-blur-[1px] px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-gray-100 animate-fadeIn">
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+      onClick={onClose}
+    >
+      <div
+        style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ドラッグハンドル */}
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
 
-        {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <button
-              onClick={onClose}
-              className="text-gray-900 text-xl font-bold px-2 py-1 hover:bg-gray-100 rounded"
-            >×</button>
-            <div />
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="text-green-600 text-xl font-bold px-2 py-1 hover:bg-green-50 rounded disabled:opacity-40"
-            >{isSaving ? "…" : "✓"}</button>
-          </div>
-
-          {/* Summary card */}
-          <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col items-center">
-              <span className="text-[11px] text-gray-500">Players</span>
-              <span className="text-lg font-semibold text-gray-900">
-                {(() => {
-                  const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0)
-                  return `${total - localBust}/${total}`
-                })()}
-              </span>
-            </div>
-            <div className="h-6 w-px bg-gray-200" />
-            <div className="flex flex-col items-center">
-              <span className="text-[11px] text-gray-500">Add-on</span>
-              <span className="text-lg font-semibold text-gray-900">
-                {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
-              </span>
-            </div>
-          </div>
+        {/* ヘッダー */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+          <button
+            onClick={onClose}
+            style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+          >×</button>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Players</span>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            style={{ width: 34, height: 34, borderRadius: '50%', background: isSaving ? '#E5E5EA' : 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSaving ? 'default' : 'pointer', boxShadow: isSaving ? 'none' : '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
+          >{isSaving ? '…' : '✓'}</button>
         </div>
 
-        {loading ? (
-          <p className="text-gray-500 text-center">Loading...</p>
-        ) : error ? (
-          <p className="text-red-500 text-center">{error}</p>
-        ) : (
-          <>
-            {/* Bust */}
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-800 tracking-wide">BUST :</span>
-              <div className="flex items-center gap-3">
-                <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
-                  className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition">ー</button>
-                <span className="text-xl font-bold text-gray-900 w-8 text-center">{localBust}</span>
-                <button onClick={() => handleTournamentBustChange(1)}
-                  className="w-7 h-7 rounded-full bg-orange-300 text-orange-600 hover:bg-orange-600 transition">＋</button>
+        {/* スクロール可能ボディ */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
+          {loading ? (
+            <p style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+          ) : error ? (
+            <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
+          ) : (
+            <>
+              {/* プレイヤー統計カード */}
+              <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '12px 14px', marginBottom: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ textAlign: 'center', paddingRight: 12, borderRight: '1px solid #D1D1D6' }}>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.05em', marginBottom: 4 }}>Players</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+                    {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
+                  </p>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.05em', marginBottom: 4 }}>Add-on</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+                    {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Search */}
-            <div className="mb-3">
+              {/* Bust コントロール */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, padding: '12px 16px', background: '#F2F2F7', borderRadius: 14 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>BUST</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
+                    style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', fontSize: 18, color: '#D4910A', opacity: localBust <= 0 ? 0.4 : 1 }}>−</button>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', minWidth: '36px', textAlign: 'center' }}>{localBust}</span>
+                  <button onClick={() => handleTournamentBustChange(1)}
+                    style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18, fontWeight: 700, color: '#D4910A' }}>＋</button>
+                </div>
+              </div>
+
+              {/* プレイヤー検索 */}
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="プレイヤー検索"
-                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm text-gray-900 placeholder:text-gray-400"
+                style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 14px', fontSize: 14, color: '#1C1C1E', outline: 'none', marginBottom: 12, boxSizing: 'border-box' }}
               />
-            </div>
 
-            {/* Player list */}
-            <div className="max-h-[50vh] overflow-y-auto space-y-3">
-              {allPlayers.length === 0 ? (
-                <p className="text-gray-500 text-center">プレイヤーが見つかりません</p>
-              ) : (
-                allPlayers.map(player => {
-                  const preview = computePreview(player)
-                  const extra = playerExtras[player.id]
-
-                  return (
-                    <div key={player.id} className="rounded-2xl bg-white border border-gray-200 px-4 py-3 shadow-sm">
-                      {/* Name row */}
-                      <div className="flex items-center gap-2 mb-2">
-                        {/* Icon */}
-                        {!player.isTemp && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-100 bg-gray-100">
-                            {player.iconUrl
-                              ? <img src={player.iconUrl} alt="" className="w-full h-full object-cover" />
-                              : <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-gray-400">
-                                  {(player.name ?? "?")[0]?.toUpperCase()}
-                                </div>
-                            }
-                          </div>
-                        )}
-
-                        {player.isTemp ? (
-                          <input
-                            value={player.name}
-                            onChange={e => updateTempPlayerName(player.id, e.target.value)}
-                            className="text-sm text-gray-900 font-semibold border-b border-gray-400 focus:outline-none flex-1 bg-white"
-                          />
-                        ) : (
-                          <span className="text-sm text-gray-900 font-semibold flex-1 truncate">{player.name}</span>
-                        )}
-
-                        {player.isTemp && (
-                          <button onClick={() => deleteTempPlayer(player.id)}
-                            className="text-gray-400 hover:text-red-500 text-lg px-1 shrink-0">×</button>
-                        )}
-                      </div>
-
-                      {/* Balance + preview */}
-                      {!player.isTemp && extra && (
-                        <div className="mb-2 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 px-3 py-1.5">
-                          <span className="text-[10px] font-bold tracking-widest uppercase text-amber-400 shrink-0">Bankroll</span>
-                          <span className="text-[15px] font-bold text-gray-900">{fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)}</span>
-                          {preview && (
-                            <div className="flex items-center gap-1 text-[12px] font-semibold ml-auto">
-                              {preview.totalPurchase > 0 && (
-                                <span className="text-green-600">+{fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)}</span>
-                              )}
-                              {preview.netFee !== 0 && (
-                                <span className={preview.netFee > 0 ? "text-green-600" : "text-red-500"}>
-                                  {preview.netFee > 0 ? "+" : ""}{fmtChip(preview.netFee, chipUnit, chipUnitBefore)}
-                                </span>
-                              )}
-                              <span className="text-gray-400">→</span>
-                              <span className={`font-bold text-[13px] ${preview.finalBalance < 0 ? "text-red-500" : "text-gray-800"}`}>
-                                {fmtChip(preview.finalBalance, chipUnit, chipUnitBefore)}
-                              </span>
+              {/* プレイヤーリスト */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {allPlayers.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: '#8E8E93', padding: '32px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
+                ) : (
+                  allPlayers.map(player => {
+                    const preview = computePreview(player)
+                    const extra = playerExtras[player.id]
+                    return (
+                      <div key={player.id} style={{ background: '#F9F9F9', borderRadius: 16, padding: '12px 14px', border: '1px solid #E5E5EA' }}>
+                        {/* プレイヤー名行 */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                          {!player.isTemp && player.iconUrl && (
+                            <img src={player.iconUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                          )}
+                          {!player.isTemp && !player.iconUrl && (
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#8E8E93', flexShrink: 0 }}>
+                              {(player.name ?? '?')[0]?.toUpperCase()}
                             </div>
                           )}
+                          {player.isTemp ? (
+                            <input
+                              value={player.name}
+                              onChange={e => updateTempPlayerName(player.id, e.target.value)}
+                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #D4910A', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
+                            />
+                          ) : (
+                            <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', flex: 1 }}>{player.name}</span>
+                          )}
+                          {player.isTemp && (
+                            <button onClick={() => deleteTempPlayer(player.id)}
+                              style={{ background: 'none', border: 'none', color: '#8E8E93', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
+                          )}
                         </div>
-                      )}
 
-                      {/* Entry / Reentry / Addon */}
-                      <div className="flex items-center justify-between text-center">
-                        {[
-                          { label: "Entry",   field: "entryCount" },
-                          { label: "Reentry", field: "reentryCount" },
-                          { label: "Addon",   field: "addonCount" },
-                        ].map(item => (
-                          <div key={item.field} className="flex flex-col items-center flex-1">
-                            <span className="text-[10px] text-gray-500 mb-1">{item.label}</span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleEntryChange(player.id, item.field as any, -1)}
-                                disabled={(player[item.field] ?? 0) <= 0}
-                                className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 text-sm disabled:opacity-30">−</button>
-                              <span className="text-base font-semibold text-gray-900 w-6 text-center">
-                                {player[item.field] ?? 0}
-                              </span>
-                              <button
-                                onClick={() => handleEntryChange(player.id, item.field as any, 1)}
-                                className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 text-sm">＋</button>
+                        {/* バンクロール + プレビュー */}
+                        {!player.isTemp && extra && (() => {
+                          const curStr = fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)
+                          const buyStr = preview && preview.totalPurchase > 0 ? `+${fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)}` : ''
+                          const feeStr = preview && preview.netFee !== 0 ? `${preview.netFee > 0 ? '+' : ''}${fmtChip(preview.netFee, chipUnit, chipUnitBefore)}` : ''
+                          const finStr = preview ? fmtChip(preview.finalBalance, chipUnit, chipUnitBefore) : ''
+                          const totalLen = curStr.length + buyStr.length + feeStr.length + finStr.length
+                          const wrap = totalLen > 18
+                          return (
+                            <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '9px 12px', marginBottom: 10 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
+                                <span style={{ fontSize: 9, fontWeight: 700, color: '#D4910A', letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0 }}>Bankroll</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
+                                {preview && (buyStr || feeStr) && (
+                                  <>
+                                    {buyStr && <span style={{ fontSize: 11, fontWeight: 600, color: '#34C759', whiteSpace: 'nowrap' }}>{buyStr}</span>}
+                                    {feeStr && <span style={{ fontSize: 11, fontWeight: 600, color: preview.netFee > 0 ? '#34C759' : '#FF3B30', whiteSpace: 'nowrap' }}>{feeStr}</span>}
+                                    <span style={{ fontSize: 10, color: '#8E8E93', whiteSpace: 'nowrap' }}>→</span>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: preview.finalBalance < 0 ? '#FF3B30' : '#1C1C1E', whiteSpace: 'nowrap' }}>{finStr}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })
-              )}
+                          )
+                        })()}
 
-              {/* Add temp player */}
-              <div className="mt-3">
+                        {/* Entry / Reentry / Addon */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                          {[
+                            { label: 'Entry', field: 'entryCount' },
+                            { label: 'Reentry', field: 'reentryCount' },
+                            { label: 'Addon', field: 'addonCount' },
+                          ].map(item => (
+                            <div key={item.field} style={{ textAlign: 'center' }}>
+                              <p style={{ fontSize: 10, color: '#8E8E93', fontWeight: 600, marginBottom: 6 }}>{item.label}</p>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                <button
+                                  onClick={() => handleEntryChange(player.id, item.field as any, -1)}
+                                  disabled={(player[item.field] ?? 0) <= 0}
+                                  style={{ width: 28, height: 28, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: '#8E8E93', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                <span style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', minWidth: '24px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
+                                <button
+                                  onClick={() => handleEntryChange(player.id, item.field as any, 1)}
+                                  style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', color: '#D4910A', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>＋</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              {/* 仮プレイヤー追加 */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
                 <input
                   value={newTempName} onChange={e => setNewTempName(e.target.value)}
                   placeholder="仮プレイヤー名"
-                  className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm text-gray-500 placeholder:text-gray-400"
+                  style={{ height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                 />
                 <button onClick={addTempPlayer}
-                  className="w-full mt-2 h-10 rounded-xl bg-[#F5A900] text-white text-sm">
-                  ＋ Add Players
-                </button>
+                  style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>＋ Add</button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 不足残高アラート */}
+        {insufficientAlert && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: '0 24px' }}
+            onClick={() => setInsufficientAlert(null)}>
+            <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
+              onClick={e => e.stopPropagation()}>
+              <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>所持バンクロール不足</p>
+                <p style={{ fontSize: 13, color: '#8E8E93', lineHeight: 1.5 }}>会計をしてください</p>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+                <button
+                  onClick={() => setInsufficientAlert(null)}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                >キャンセル</button>
+                <button
+                  onClick={confirmInsufficientPurchase}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1C1C1E', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                >確認</button>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
-
-      {/* ── Insufficient balance popup ── */}
-      {insufficientAlert && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-xs rounded-2xl bg-white p-5 shadow-2xl">
-            <p className="text-sm font-bold text-gray-900 mb-1">所持バンクロールが不足しています</p>
-            <p className="text-xs text-gray-500 mb-5">会計をしてください</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setInsufficientAlert(null)}
-                className="flex-1 h-10 rounded-xl border border-gray-200 text-sm text-gray-600 font-semibold"
-              >キャンセル</button>
-              <button
-                onClick={confirmInsufficientPurchase}
-                className="flex-1 h-10 rounded-xl bg-[#F5A900] text-white text-sm font-bold"
-              >確認</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

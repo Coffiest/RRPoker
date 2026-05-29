@@ -468,7 +468,7 @@ export default function MyPage() {
 
       {/* Toast */}
       {error && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#FF3B30', color: '#fff', padding: '10px 18px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(255,59,48,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#4A1010', color: '#fff', padding: '10px 18px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(74,16,16,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <FiAlertCircle size={15} />{error}
         </div>
       )}
@@ -614,7 +614,7 @@ export default function MyPage() {
             ) : (
               <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>{profile.birthday}</p>
             )}
-            {!profile.birthday && <p style={{ fontSize: 11, color: '#FF3B30', marginTop: 6 }}>※一度設定すると変更できません</p>}
+            {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 6 }}>※一度設定すると変更できません</p>}
           </div>
         </div>
 
@@ -629,7 +629,7 @@ export default function MyPage() {
             <FiChevronRight size={16} style={{ color: '#C7C7CC' }} />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#34C759', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiUser size={15} style={{ color: '#fff' }} />
             </div>
             <div style={{ flex: 1 }}>
@@ -646,7 +646,7 @@ export default function MyPage() {
               }}
               style={{
                 width: 51, height: 31, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
-                background: showInStore ? '#34C759' : '#E5E5EA',
+                background: showInStore ? '#F2A900' : '#E5E5EA',
                 transition: 'background 0.2s',
                 position: 'relative',
               }}
@@ -665,7 +665,7 @@ export default function MyPage() {
         <div className="mp-card" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <button type="button" onClick={logout}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#FF9500', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiLogOut size={15} style={{ color: '#fff' }} />
             </div>
             <span style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>ログアウト</span>
@@ -673,10 +673,10 @@ export default function MyPage() {
           </button>
           <button type="button" onClick={() => setShowDeleteConfirm(true)}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiAlertCircle size={15} style={{ color: '#fff' }} />
             </div>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#FF3B30' }}>アカウントを削除</span>
+            <span style={{ fontSize: 15, fontWeight: 500, color: '#7A2020' }}>アカウントを削除</span>
             <FiChevronRight size={16} style={{ color: '#C7C7CC', marginLeft: 'auto' }} />
           </button>
         </div>
@@ -737,7 +737,7 @@ export default function MyPage() {
             onClick={e => e.stopPropagation()}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <FiAlertCircle size={22} style={{ color: '#fff' }} />
               </div>
               <div>
@@ -745,8 +745,8 @@ export default function MyPage() {
                 <p style={{ fontSize: 12, color: '#8E8E93', marginTop: 2 }}>この操作は取り消せません</p>
               </div>
             </div>
-            <div style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.15)', borderRadius: 14, padding: '12px 14px', marginBottom: 22 }}>
-              <p style={{ fontSize: 13, color: '#FF3B30', fontWeight: 600, marginBottom: 4 }}>⚠️ 以下のデータが失われます</p>
+            <div style={{ background: 'rgba(74,16,16,0.06)', border: '1px solid rgba(74,16,16,0.15)', borderRadius: 14, padding: '12px 14px', marginBottom: 22 }}>
+              <p style={{ fontSize: 13, color: '#7A2020', fontWeight: 600, marginBottom: 4 }}>⚠️ 以下のデータが失われます</p>
               <p style={{ fontSize: 12, color: '#3C3C43', lineHeight: 1.7 }}>• 保持チップ・レート・戦績<br/>• すべてのアカウント情報</p>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -755,7 +755,7 @@ export default function MyPage() {
                 キャンセル
               </button>
               <button type="button" onClick={deleteAccount} disabled={isDeleting}
-                style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#FF3B30', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
+                style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#4A1010', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
                 {isDeleting ? "削除中..." : "削除する"}
               </button>
             </div>
