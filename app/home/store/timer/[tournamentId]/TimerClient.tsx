@@ -474,10 +474,17 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
           levelsToUseRef.current = data.customBlindLevels as Level[]
         }
 
-        // Now perform the catch-up calculation with fresh data
+        // CRITICAL: reset levelAdvancedRef so the check can actually run.
+        // This flag is normally cleared by the useEffect that watches currentLevelIndex
+        // (the React state). But here we only updated the ref — no state change fires,
+        // so that useEffect never runs, the flag stays true, and checkAndAdvanceLevel
+        // bails out at the top without doing any catch-up. Reset it explicitly.
+        levelAdvancedRef.current = false
+
         checkAndAdvanceLevel()
-      } catch (err) {
-        // If fetch fails, fall back to old cached data and try anyway
+      } catch {
+        // If fetch fails, fall back to cached ref values and try anyway
+        levelAdvancedRef.current = false
         checkAndAdvanceLevel()
       }
     }

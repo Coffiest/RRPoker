@@ -59,6 +59,20 @@ export default function StorePage() {
   const [expandPlayerOpen, setExpandPlayerOpen] = useState(false)
   const [expandPrizeOpen, setExpandPrizeOpen] = useState(false)
 
+  // ── Responsive scale for Adjust modal (design base: 480×680) ────────────
+  const ADJ_MODAL_W = 480
+  const ADJ_MODAL_H = 680
+  const [adjustModalScale, setAdjustModalScale] = useState(1)
+  useEffect(() => {
+    function computeAdjScale() {
+      const s = Math.min(1, (window.innerWidth - 32) / ADJ_MODAL_W, (window.innerHeight - 20) / ADJ_MODAL_H)
+      setAdjustModalScale(s)
+    }
+    computeAdjScale()
+    window.addEventListener("resize", computeAdjScale)
+    return () => window.removeEventListener("resize", computeAdjScale)
+  }, [])
+
   const openAdjustModal = (id: string, s: number, blindLevels?: AdjLevel[] | null) => {
     setAdjustModalOpen(p => ({ ...p, [id]: true }))
     setAdjustSeconds(p => ({ ...p, [id]: s }))
@@ -1431,65 +1445,87 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Adjust Modal (タイム調整 + ブラインド設定) ── */}
+        {/* ── Adjust Modal — Apple Bottom-Sheet ── */}
         {activeTournaments.map(t => adjustModalOpen[t.id] && (() => {
           const tab = adjustTab[t.id] ?? 'time'
           const adjLvs = adjustBlindLevels[t.id] ?? []
           return (
-            <div key={`adj-${t.id}`} className="fixed inset-0 z-[999] flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)' }}>
-              <div className="ios-card su" style={{ width: '100%', maxWidth: 380, padding: '20px 18px', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
+            <div key={`adj-${t.id}`} style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+              onClick={() => closeAdjustModal(t.id)}>
+              <div
+                style={{
+                  width: ADJ_MODAL_W, maxHeight: `min(${ADJ_MODAL_H}px, 92vh)`,
+                  borderRadius: '24px 24px 0 0', background: '#fff',
+                  display: 'flex', flexDirection: 'column',
+                  boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
+                  transform: `scale(${adjustModalScale})`, transformOrigin: 'center bottom',
+                  overflow: 'hidden',
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Drag Handle */}
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, flexShrink: 0 }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
+                </div>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexShrink: 0 }}>
-                  <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>Adjust</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>Adjust</p>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => closeAdjustModal(t.id)}
-                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                      style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
                     <button onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
-                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
+                      style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                    ><FiCheck size={16} style={{ color: '#fff' }}/></button>
                   </div>
                 </div>
 
-                {/* Tab switcher */}
-                <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexShrink: 0, background: 'var(--fill)', borderRadius: 12, padding: 4 }}>
-                  {(['time', 'blind'] as const).map(tb => (
-                    <button key={tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
-                      style={{
-                        flex: 1, height: 34, borderRadius: 9, border: 'none', cursor: 'pointer',
-                        fontSize: 13, fontWeight: 700, transition: 'all .15s',
-                        background: tab === tb ? '#fff' : 'transparent',
-                        color: tab === tb ? 'var(--label)' : 'var(--label3)',
-                        boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
-                      }}
-                    >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>
-                  ))}
+                {/* Tab switcher — Apple segmented control */}
+                <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 3 }}>
+                    {(['time', 'blind'] as const).map(tb => (
+                      <button key={tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
+                        style={{
+                          flex: 1, height: 34, borderRadius: 9, border: 'none', cursor: 'pointer',
+                          fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
+                          background: tab === tb ? '#fff' : 'transparent',
+                          color: tab === tb ? '#1C1C1E' : '#8E8E93',
+                          boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
+                        }}
+                      >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* ── Time tab ── */}
                 {tab === 'time' && (
-                  <>
-                    <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                      <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                  <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                    {/* Time display */}
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
                         {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
-                        <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
+                        <span style={{ color: '#8E8E93', fontWeight: 400 }}>:</span>
                         {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
                       </p>
                     </div>
+                    {/* Slider */}
                     <input type="range" min={0} max={7200} step={10}
                       value={adjustSeconds[t.id] ?? 0}
                       onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
-                      style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
+                      style={{ width: '100%', accentColor: '#F2A900', height: 5, borderRadius: 2.5, cursor: 'pointer' }}
                     />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {/* Quick buttons */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
                         <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
-                          style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none' }}
+                          style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#F2F2F7', color: '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s' }}
                         >{b.label}</button>
                       ))}
                     </div>
-                  </>
+                    {/* Safe area spacer */}
+                    <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
+                  </div>
                 )}
 
                 {/* ── Blind tab ── */}
@@ -1497,7 +1533,7 @@ export default function StorePage() {
                   const bInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all w-full"
                   let lvCount = 0
                   return (
-                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '12px 20px' }}>
                       {adjLvs.length === 0 && (
                         <p className="text-center text-[13px] text-gray-400 py-6">ブラインドが設定されていません</p>
                       )}
@@ -1609,16 +1645,16 @@ export default function StorePage() {
                       </div>
 
                       {/* Add buttons */}
-                      <div className="flex gap-2 mt-3 pb-1">
+                      <div style={{ display: 'flex', gap: 8, marginTop: 12, paddingBottom: 4 }}>
                         <button onClick={() => addAdjLevel(t.id)}
-                          className="flex-1 h-10 rounded-[10px] text-[13px] font-bold text-[#D4910A] cursor-pointer"
-                          style={{ border: '1.5px dashed rgba(242,169,0,0.5)', background: 'transparent' }}
+                          style={{ flex: 1, height: 42, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#D4910A', cursor: 'pointer', border: '1.5px dashed rgba(242,169,0,0.5)', background: 'rgba(242,169,0,0.04)' }}
                         >＋ レベル</button>
                         <button onClick={() => addAdjBreak(t.id)}
-                          className="flex-1 h-10 rounded-[10px] text-[13px] font-bold text-blue-500 cursor-pointer"
-                          style={{ border: '1.5px dashed rgba(59,130,246,0.4)', background: 'transparent' }}
+                          style={{ flex: 1, height: 42, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#3B82F6', cursor: 'pointer', border: '1.5px dashed rgba(59,130,246,0.4)', background: 'rgba(59,130,246,0.04)' }}
                         >＋ ブレイク</button>
                       </div>
+                      {/* Safe area spacer */}
+                      <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
                     </div>
                   )
                 })()}
