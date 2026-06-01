@@ -443,10 +443,43 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   // again, giving us a reliable hook to (a) force a display update and
   // (b) advance levels that expired while we were sleeping.
   useEffect(() => {
-    function onVisible() {
+    async function onVisible() {
       if (document.visibilityState !== "visible") return
       setTickNow(Date.now())   // force immediate re-render with correct time
-      checkAndAdvanceLevel()   // catch any level that expired while hidden
+
+      // Fetch latest Firestore data to ensure we have the correct
+      // levelStartedAt and levelStartedRemaining for accurate catch-up calculation.
+      // Don't rely on the snapshot listener which may lag after visibility change.
+      const sid = storeIdRef.current
+      const tid = tournamentIdRef.current
+      if (!sid || !tid || !isRunningRef.current) return
+
+      try {
+        const snap = await getDoc(doc(db, "stores", sid, "tournaments", tid))
+        const data = snap.data()
+        if (!data) return
+
+        // Update refs with fresh Firestore values before advancing level
+        const newLsAtMs = data.levelStartedAt?.toMillis?.() ?? null
+        levelStartedAtMsRef.current = newLsAtMs
+        const tr = typeof data.levelStartedRemaining === "number"
+          ? data.levelStartedRemaining
+          : (typeof data.timeRemaining === "number" ? data.timeRemaining : 0)
+        levelStartedRemainingRef.current = tr
+        currentLevelIndexRef.current = data.currentLevelIndex ?? 0
+
+        // Also update levels if custom blind levels are in Firestore
+        // This ensures levelsToUseRef has the correct data for catch-up calculation
+        if (Array.isArray(data.customBlindLevels) && data.customBlindLevels.length > 0) {
+          levelsToUseRef.current = data.customBlindLevels as Level[]
+        }
+
+        // Now perform the catch-up calculation with fresh data
+        checkAndAdvanceLevel()
+      } catch (err) {
+        // If fetch fails, fall back to old cached data and try anyway
+        checkAndAdvanceLevel()
+      }
     }
     document.addEventListener("visibilitychange", onVisible)
     return () => document.removeEventListener("visibilitychange", onVisible)

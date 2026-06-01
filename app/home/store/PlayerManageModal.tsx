@@ -379,7 +379,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       onClick={onClose}
     >
       <div
-        style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column', paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
         onClick={e => e.stopPropagation()}
       >
         {/* ドラッグハンドル */}

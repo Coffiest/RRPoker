@@ -150,18 +150,31 @@ export default function TournamentsPage() {
   const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
   const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
   const [bulkDuration, setBulkDuration] = useState("")
-  // Responsive scale for blind modal (design base: 560×720)
+  // ── Responsive scale constants (design bases) ─────────────────────────
   const BLIND_MODAL_W = 560
   const BLIND_MODAL_H = 720
+  const TOURN_MODAL_W = 448
+  const TOURN_MODAL_H = 700
+  const AI_MODAL_W = 390
+  const AI_MODAL_H = 580
+
   const [blindModalScale, setBlindModalScale] = useState(1)
+  const [tournModalScale, setTournModalScale] = useState(1)
+  const [aiModalScale, setAiModalScale] = useState(1)
+
+  // Single resize listener that keeps all modal scales in sync
   useEffect(() => {
-    function computeBlindScale() {
-      const s = Math.min(1, window.innerWidth / BLIND_MODAL_W, window.innerHeight / BLIND_MODAL_H)
-      setBlindModalScale(s)
+    function computeScales() {
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      setBlindModalScale(Math.min(1, vw / BLIND_MODAL_W, vh / BLIND_MODAL_H))
+      // 32px = 16px horizontal padding × 2; 40px = top/bottom safety margin
+      setTournModalScale(Math.min(1, (vw - 32) / TOURN_MODAL_W, (vh - 40) / TOURN_MODAL_H))
+      setAiModalScale(Math.min(1, vw / AI_MODAL_W, (vh * 0.92) / AI_MODAL_H))
     }
-    computeBlindScale()
-    window.addEventListener("resize", computeBlindScale)
-    return () => window.removeEventListener("resize", computeBlindScale)
+    computeScales()
+    window.addEventListener("resize", computeScales)
+    return () => window.removeEventListener("resize", computeScales)
   }, [])
 
   // AI struct generator
@@ -708,8 +721,16 @@ export default function TournamentsPage() {
 
       {/* ── Tournament modal ─────────────────────────────────────────────── */}
       {openModal && (
-        <div className="fixed inset-0 z-50 flex justify-center items-center px-4 modal-overlay animate-fadeIn">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 relative text-gray-900 max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
+        <div className="fixed inset-0 z-50 flex justify-center items-center modal-overlay animate-fadeIn">
+          <div
+            className="bg-white rounded-3xl p-6 relative text-gray-900 overflow-y-auto shadow-2xl animate-slideUp"
+            style={{
+              width: TOURN_MODAL_W,
+              maxHeight: `min(${TOURN_MODAL_H}px, 90vh)`,
+              transform: `scale(${tournModalScale})`,
+              transformOrigin: "center center",
+            }}
+          >
             <button className="act-btn absolute right-5 top-5 h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center" onClick={closeModal}>
               <FiX size={18} />
             </button>
@@ -1125,7 +1146,15 @@ export default function TournamentsPage() {
       {/* ── AI ストラクチャーモーダル ────────────────────────────────────── */}
       {isAiOpen && createPortal(
         <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/50">
-          <div className="w-full max-w-sm rounded-t-[28px] bg-white overflow-hidden flex flex-col max-h-[90vh]">
+          <div
+            className="rounded-t-[28px] bg-white overflow-hidden flex flex-col"
+            style={{
+              width: AI_MODAL_W,
+              maxHeight: `min(${AI_MODAL_H}px, 90vh)`,
+              transform: `scale(${aiModalScale})`,
+              transformOrigin: "center bottom",
+            }}
+          >
             {/* header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center gap-2">

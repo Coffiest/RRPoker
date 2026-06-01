@@ -1329,80 +1329,104 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Expand: インライン Adjust Modal (z:10001) ── */}
+        {/* ── Expand: インライン Adjust Modal - Apple Bottom-Sheet (z:10001) ── */}
         {expandAdjustOpen && expandedTimerId && (() => {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
-              <div className="ios-card" style={{ width: '100%', maxWidth: 360, padding: '22px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-                  <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>タイム調整</p>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0', background: '#fff', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 16px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+
+                {/* Drag Handle */}
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 0, flexShrink: 0 }}>
+                  <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
+                </div>
+
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
+                  <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => setExpandAdjustOpen(false)}
-                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><FiX size={14} style={{ color: 'var(--label2)' }}/></button>
+                      style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease-out' }}
+                    ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
                     <button onClick={async () => { await confirmAdjustTime(et.id); setExpandAdjustOpen(false) }}
-                      style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><FiCheck size={14} style={{ color: '#D4910A' }}/></button>
+                      style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)', transition: 'all 0.18s ease-out' }}
+                    ><FiCheck size={16} style={{ color: '#fff' }}/></button>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                  <p style={{ fontSize: 48, fontWeight: 900, color: 'var(--label)', letterSpacing: '-2px', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-                    {String(Math.floor((adjustSeconds[et.id] ?? 0) / 60)).padStart(2, "0")}
-                    <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
-                    {String((adjustSeconds[et.id] ?? 0) % 60).padStart(2, "0")}
-                  </p>
+
+                {/* Content - Scrollable */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+                  {/* Time Display */}
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+                      {String(Math.floor((adjustSeconds[et.id] ?? 0) / 60)).padStart(2, "0")}
+                      <span style={{ color: '#8E8E93', fontWeight: 400 }}>:</span>
+                      {String((adjustSeconds[et.id] ?? 0) % 60).padStart(2, "0")}
+                    </p>
+                  </div>
+
+                  {/* Slider */}
+                  <input type="range" min={0} max={7200} step={10}
+                    value={adjustSeconds[et.id] ?? 0}
+                    onChange={e => setAdjustSeconds(p => ({ ...p, [et.id]: Number(e.target.value) }))}
+                    style={{ width: '100%', accentColor: '#F2A900', height: 5, borderRadius: 2.5, cursor: 'pointer' }}
+                  />
+
+                  {/* Quick Adjust Buttons */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
+                      <button key={i} onClick={() => updateAdjustTime(et.id, b.diff)}
+                        style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#F2F2F7', color: b.diff > 0 ? '#1C1C1E' : '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s ease-out' }}
+                      >{b.label}</button>
+                    ))}
+                  </div>
                 </div>
-                <input type="range" min={0} max={7200} step={10}
-                  value={adjustSeconds[et.id] ?? 0}
-                  onChange={e => setAdjustSeconds(p => ({ ...p, [et.id]: Number(e.target.value) }))}
-                  style={{ width: '100%', marginBottom: 18, accentColor: '#F2A900' }}
-                />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                  {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
-                    <button key={i} onClick={() => updateAdjustTime(et.id, b.diff)}
-                      style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'var(--fill)', color: b.diff > 0 ? '#1a1a1a' : 'var(--label)', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none' }}
-                    >{b.label}</button>
-                  ))}
-                </div>
+
+                {/* Footer - Safe Area Inset */}
+                <div style={{ height: 'max(20px, env(safe-area-inset-bottom, 20px))', flexShrink: 0 }} />
               </div>
             </div>
           )
         })()}
 
-        {/* ── Expand: インライン Players Modal (z:10001) ── */}
+        {/* ── Expand: インライン Players Modal - Apple Bottom-Sheet (z:10001) ── */}
         {expandPlayerOpen && expandedTimerId && (() => {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001 }}>
-              <PlayerManageModal
-                tournamentId={et.id}
-                storeId={storeId}
-                balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
-                chipUnit={store?.chipUnitLabel}
-                chipUnitBefore={store?.chipUnitBefore}
-                onClose={() => setExpandPlayerOpen(false)}
-              />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
+                <PlayerManageModal
+                  tournamentId={et.id}
+                  storeId={storeId}
+                  balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
+                  chipUnit={store?.chipUnitLabel}
+                  chipUnitBefore={store?.chipUnitBefore}
+                  onClose={() => setExpandPlayerOpen(false)}
+                />
+              </div>
             </div>
           )
         })()}
 
-        {/* ── Expand: インライン Prize Modal (z:10001) ── */}
+        {/* ── Expand: インライン Prize Modal - Apple Bottom-Sheet (z:10001) ── */}
         {expandPrizeOpen && expandedTimerId && (() => {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001 }}>
-              <PrizeDistributeModal
-                tournamentId={et.id}
-                storeId={storeId}
-                balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
-                chipUnit={store?.chipUnitLabel}
-                chipUnitBefore={store?.chipUnitBefore}
-                onClose={() => setExpandPrizeOpen(false)}
-              />
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
+                <PrizeDistributeModal
+                  tournamentId={et.id}
+                  storeId={storeId}
+                  balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
+                  chipUnit={store?.chipUnitLabel}
+                  chipUnitBefore={store?.chipUnitBefore}
+                  onClose={() => setExpandPrizeOpen(false)}
+                />
+              </div>
             </div>
           )
         })()}
