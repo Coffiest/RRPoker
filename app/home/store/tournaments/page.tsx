@@ -161,16 +161,32 @@ export default function TournamentsPage() {
   const [blindModalScale, setBlindModalScale] = useState(1)
   const [tournModalScale, setTournModalScale] = useState(1)
   const [aiModalScale, setAiModalScale] = useState(1)
+  // Header buttons (+ Blind / + New) shrink to fit narrow viewports
+  const [headerBtnScale, setHeaderBtnScale] = useState(1)
+  // Day/history tab bar scales down so all 8 tabs are always visible without clipping
+  const [tabBarScale, setTabBarScale] = useState(1)
 
-  // Single resize listener that keeps all modal scales in sync
+  // Single resize listener that keeps all scales in sync
   useEffect(() => {
     function computeScales() {
       const vw = window.innerWidth
       const vh = window.innerHeight
+      const contentW = vw - 32  // subtract 2 × 16px horizontal padding
+
       setBlindModalScale(Math.min(1, vw / BLIND_MODAL_W, vh / BLIND_MODAL_H))
-      // 32px = 16px horizontal padding × 2; 40px = top/bottom safety margin
       setTournModalScale(Math.min(1, (vw - 32) / TOURN_MODAL_W, (vh - 40) / TOURN_MODAL_H))
       setAiModalScale(Math.min(1, vw / AI_MODAL_W, (vh * 0.92) / AI_MODAL_H))
+
+      // Header: title occupies ~160px, leave the rest for the two buttons (~210px natural width)
+      const TITLE_W = 160
+      const GAP_W  = 16
+      const BTN_NATURAL_W = 215  // "+ Blind" + gap + "+ New" at full size
+      const btnAvailable = contentW - TITLE_W - GAP_W
+      setHeaderBtnScale(Math.min(1, btnAvailable / BTN_NATURAL_W))
+
+      // Tab bar: 8 tabs × 44px + 7 gaps × 10px = 422px natural width
+      const TAB_NATURAL_W = 8 * 44 + 7 * 10
+      setTabBarScale(Math.min(1, contentW / TAB_NATURAL_W))
     }
     computeScales()
     window.addEventListener("resize", computeScales)
@@ -450,64 +466,52 @@ export default function TournamentsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen pb-28 text-gray-900" style={{ background: "#F5F5F7" }}>
+    <main style={{ minHeight: '100vh', paddingBottom: 112, background: '#F2F2F7', color: '#1C1C1E' }}>
       <style>{`
-        @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
-        @keyframes levelIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes commentIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes viewSlide { from{opacity:0;transform:translateX(16px)} to{opacity:1;transform:translateX(0)} }
-        .animate-slideUp { animation: slideUp 0.3s ease-out; }
-        .animate-fadeIn  { animation: fadeIn  0.3s ease-out; }
-        .blind-level-item { animation: levelIn 0.18s ease-out; }
-        .blind-comment-expand { animation: commentIn 0.16s ease-out; }
-        .blind-modal-view { animation: viewSlide 0.2s ease-out; }
+        @keyframes tUp    { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes tFade  { from{opacity:0} to{opacity:1} }
+        @keyframes levelIn{ from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes cIn    { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes lpulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        .t-in  { animation: tUp   0.28s ease-out both; }
+        .t-fade{ animation: tFade 0.22s ease-out both; }
+        .blind-level-item     { animation: levelIn 0.18s ease-out; }
+        .blind-comment-expand { animation: cIn     0.16s ease-out; }
+        .live-dot { animation: lpulse 1.5s ease-in-out infinite; }
+        .t-btn { transition: opacity 0.15s, transform 0.15s; cursor: pointer; }
+        .t-btn:active { opacity: 0.7; transform: scale(0.97); }
         .no-spin::-webkit-inner-spin-button,
-        .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .no-spin { -moz-appearance: textfield; }
-        .t-card { background:#fff; box-shadow:0 2px 8px rgba(242,169,0,0.06),0 8px 24px rgba(0,0,0,0.04); transition:all 0.2s; }
-        .t-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(242,169,0,0.1),0 12px 32px rgba(0,0,0,0.06); }
-        .active-card { background:linear-gradient(135deg,#FFF8E7 0%,#FFFDF5 100%); border:2px solid rgba(242,169,0,0.35); box-shadow:0 4px 20px rgba(242,169,0,0.18),0 8px 32px rgba(0,0,0,0.05); transition:all 0.2s; }
-        .h-card { background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
-        .glass-nav { background:rgba(255,255,255,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-        .modal-overlay { background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
-        .act-btn { transition:all 0.2s cubic-bezier(0.4,0,0.2,1); }
-        .act-btn:active { transform:scale(0.96); }
-        .itm-card { background:linear-gradient(135deg,#FFF7E6 0%,#FFFBF5 100%); border:1.5px solid #F2A900; box-shadow:0 2px 12px rgba(242,169,0,0.15); }
-        .non-itm-card { background:#F9F9F9; }
-        .tab-scroll { scrollbar-width:none; -ms-overflow-style:none; }
-        .tab-scroll::-webkit-scrollbar { display:none; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .live-dot { animation: pulse 1.5s ease-in-out infinite; }
+        .no-spin::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+        .no-spin { -moz-appearance:textfield; }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator { opacity:0.4; }
+        .itm-card { background:linear-gradient(135deg,#FFF8E5,#FFFBF0); border:1.5px solid rgba(242,169,0,0.4); }
+        .non-itm-card { background:rgba(120,120,128,0.06); border-radius:12px; }
       `}</style>
 
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
-      <div className="max-w-xl mx-auto px-4 pt-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 animate-slideUp">
+      <div style={{ maxWidth: 576, margin: '0 auto', padding: '0 16px' }}>
+        {/* ─ Page header ─ */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '22px 0 20px' }}>
           <div>
-            <h2 className="text-[26px] font-bold text-gray-900">Tournaments</h2>
-            <p className="text-[14px] text-gray-500 mt-1">トーナメント管理</p>
+            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', margin: 0 }}>Tournaments</h1>
+            <p style={{ fontSize: 13, color: 'rgba(60,60,67,0.45)', margin: '4px 0 0' }}>トーナメント管理</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsBlindModalOpen(true)}
-              className="act-btn flex items-center gap-1.5 bg-white border-2 border-[#F2A900] text-[#F2A900] px-4 py-2.5 rounded-2xl font-semibold text-[14px] shadow-sm hover:bg-[#F2A900]/5"
-            >
-              <FiPlus size={17} /> Blind
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, transform: `scale(${headerBtnScale})`, transformOrigin: 'right center' }}>
+            <button onClick={() => setIsBlindModalOpen(true)} className="t-btn"
+              style={{ display: 'flex', alignItems: 'center', gap: 5, height: 38, padding: '0 14px', borderRadius: 12, border: '1.5px solid rgba(242,169,0,0.5)', background: '#fff', color: '#D4910A', fontSize: 13, fontWeight: 700 }}>
+              <FiPlus size={14}/> Blind
             </button>
-            <button
-              onClick={() => { setEditData(null); setOpenModal(true) }}
-              className="act-btn flex items-center gap-2 bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-white px-5 py-3 rounded-2xl font-semibold shadow-lg"
-            >
-              <FiPlus size={20} /> New
+            <button onClick={() => { setEditData(null); setOpenModal(true) }} className="t-btn"
+              style={{ display: 'flex', alignItems: 'center', gap: 5, height: 38, padding: '0 16px', borderRadius: 12, background: '#F2A900', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 2px 8px rgba(242,169,0,0.28)' }}>
+              <FiPlus size={14}/> New
             </button>
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* Current (scheduled / active) tournaments */}
+        {/* ─ Current / active tournaments ─ */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
           {currentTournaments.map((t, index) => {
             const entries      = entriesMap[t.id] ?? []
             const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
@@ -515,179 +519,194 @@ export default function TournamentsPage() {
             const totalAddon   = entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0)
             const isActive     = t.status === "active"
             return (
-              <div key={t.id} className={`${isActive ? "active-card" : "t-card"} rounded-3xl p-5 animate-slideUp`} style={{ animationDelay: `${index * 0.05}s` }}>
+              <div key={t.id} className="t-in" style={{
+                animationDelay: `${index * 0.04}s`,
+                background: isActive ? 'linear-gradient(135deg,#FFFBF0,#FFF8E5)' : '#fff',
+                borderRadius: 20, padding: '16px 18px',
+                border: isActive ? '1.5px solid rgba(242,169,0,0.4)' : '1px solid rgba(0,0,0,0.06)',
+                boxShadow: isActive ? '0 4px 20px rgba(242,169,0,0.12)' : '0 1px 4px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.04)',
+              }}>
                 {isActive && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="flex items-center gap-1.5 text-[12px] font-bold text-[#D4910A] bg-[#F2A900]/15 px-3 py-1.5 rounded-full">
-                      <span className="live-dot inline-block h-2 w-2 rounded-full bg-[#F2A900]" />
-                      開催中！
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <span className="live-dot" style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#F2A900' }}/>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em' }}>LIVE</span>
                   </div>
                 )}
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center flex-wrap gap-2 mb-2">
-                      <h3 className="text-[18px] font-bold text-gray-900">{t.name}</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+                      <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, letterSpacing: '-0.3px' }}>{t.name}</h3>
                       {t.repeatWeekly && (
-                        <span className="flex items-center gap-1 text-[11px] font-semibold text-[#F2A900] bg-[#F2A900]/10 px-2 py-0.5 rounded-full">
-                          <FiRepeat size={10} /> 毎週
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#D4910A', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 8px', display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <FiRepeat size={9}/> 毎週
                         </span>
                       )}
-                      <span className="text-[12px] text-gray-500">E: {totalEntry} / R: {totalReentry} / A: {totalAddon}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-[13px] text-gray-600">
-                      <div className="flex items-center gap-1.5"><FiCalendar size={14} className="text-[#F2A900]" /><span>{t.date}</span></div>
-                      {t.startTime && <div className="flex items-center gap-1.5"><FiClock size={14} className="text-[#F2A900]" /><span>{t.startTime}</span></div>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(60,60,67,0.5)' }}>
+                        <FiCalendar size={11} style={{ color: '#F2A900' }}/> {t.date}
+                      </span>
+                      {t.startTime && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(60,60,67,0.5)' }}>
+                          <FiClock size={11} style={{ color: '#F2A900' }}/> {t.startTime}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 11, color: 'rgba(60,60,67,0.35)', fontWeight: 500 }}>
+                        E:{totalEntry} R:{totalReentry} A:{totalAddon}
+                      </span>
                     </div>
                   </div>
                   {t.status === "scheduled" && (
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleEdit(t)} className="act-btn h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600">
-                        <FiSettings size={16} />
+                    <div style={{ display: 'flex', gap: 6, flexShrink: 0, marginLeft: 10 }}>
+                      <button onClick={() => handleEdit(t)} className="t-btn"
+                        style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(120,120,128,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(60,60,67,0.5)' }}>
+                        <FiSettings size={15}/>
                       </button>
-                      <button onClick={() => handleDelete(t.id)} className="act-btn h-9 w-9 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-400">
-                        <FiTrash2 size={16} />
+                      <button onClick={() => handleDelete(t.id)} className="t-btn"
+                        style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
+                        <FiTrash2 size={15}/>
                       </button>
                     </div>
                   )}
                 </div>
                 {t.status === "scheduled" && (
-                  <button className="act-btn w-full h-12 rounded-2xl bg-[#F2A900] text-white font-semibold"
-                    onClick={() => handleStartTournament(t.id)} disabled={!!startingId}
-                  >
-                    {startingId === t.id ? "Starting..." : "スタートする"}
+                  <button onClick={() => handleStartTournament(t.id)} disabled={!!startingId} className="t-btn"
+                    style={{ width: '100%', height: 44, borderRadius: 12, background: '#F2A900', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, boxShadow: '0 2px 8px rgba(242,169,0,0.28)', opacity: startingId ? 0.7 : 1 }}>
+                    {startingId === t.id ? "Starting…" : "スタートする"}
                   </button>
                 )}
               </div>
             )
           })}
 
-          {/* Tab bar */}
-          <div className="mt-8 mb-1">
-            <div className="flex gap-2.5 overflow-x-auto tab-scroll pb-1">
+          {/* Tab bar — scale down so all 8 tabs fit without clipping on narrow screens */}
+          <div className="mt-8 mb-1" style={{ overflow: "hidden" }}>
+            <div
+              style={{ display: 'flex', gap: 8, transform: `scale(${tabBarScale})`, transformOrigin: 'left center', width: tabBarScale < 1 ? `${100 / tabBarScale}%` : undefined }}
+            >
               {([...DAYS, "履歴"] as string[]).map(tab => {
-                const isActive = activeTab === tab
-                const isToday  = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
+                const isAct = activeTab === tab
+                const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
                 return (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className="flex-shrink-0 flex flex-col items-center gap-1">
-                    <div
-                      className={`h-11 w-11 rounded-full flex items-center justify-center text-[15px] font-bold transition-all ${isActive ? "text-white" : "bg-white text-gray-600"}`}
-                      style={isActive ? { background: "#F2A900", boxShadow: "0 4px 12px rgba(242,169,0,0.35)" } : { boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-                    >
-                      {tab}
-                    </div>
-                    {isToday && <div className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-[#F2A900]" : "bg-gray-300"}`} />}
+                  <button key={tab} onClick={() => setActiveTab(tab)} className="t-btn"
+                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 15, fontWeight: 700, transition: 'all 0.18s',
+                      background: isAct ? '#F2A900' : '#fff',
+                      color: isAct ? '#fff' : 'rgba(60,60,67,0.6)',
+                      boxShadow: isAct ? '0 3px 10px rgba(242,169,0,0.35)' : '0 1px 4px rgba(0,0,0,0.07)',
+                    }}>{tab}</div>
+                    {isToday && <div style={{ width: 5, height: 5, borderRadius: '50%', background: isAct ? '#F2A900' : 'rgba(60,60,67,0.25)' }}/>}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          {/* Tab content */}
-          <div className="space-y-4 pt-2">
+          {/* ─ Tab content ─ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8 }}>
             {activeTab === "履歴" ? (
               <>
-                {/* Search bar */}
-                <div className="relative">
-                  <FiSearch size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    placeholder="トーナメント名で検索..."
-                    value={historySearch}
-                    onChange={e => setHistorySearch(e.target.value)}
-                    className="w-full bg-white border-2 border-gray-200 rounded-2xl pl-10 pr-4 py-2.5 text-[14px] text-gray-900 placeholder-gray-400 focus:border-[#F2A900] focus:outline-none transition-all"
+                {/* Search */}
+                <div style={{ position: 'relative' }}>
+                  <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(60,60,67,0.35)', pointerEvents: 'none' }}/>
+                  <input placeholder="トーナメント名で検索..." value={historySearch} onChange={e => setHistorySearch(e.target.value)}
+                    style={{ width: '100%', height: 40, borderRadius: 12, border: '1px solid rgba(0,0,0,0.08)', background: '#fff', paddingLeft: 32, paddingRight: historySearch ? 32 : 12, fontSize: 14, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                   />
                   {historySearch && (
-                    <button onClick={() => setHistorySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                      <FiX size={12} className="text-gray-500" />
+                    <button onClick={() => setHistorySearch("")} className="t-btn"
+                      style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', background: 'rgba(60,60,67,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FiX size={10} style={{ color: '#fff' }}/>
                     </button>
                   )}
                 </div>
                 {tabHistory.length === 0 ? (
-                  <p className="text-center text-[14px] text-gray-400 py-10">
+                  <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(60,60,67,0.4)', padding: '32px 0' }}>
                     {historySearch ? "該当する履歴がありません" : "履歴はまだありません"}
                   </p>
-                ) : (
-                  tabHistory.map((t, index) => {
+                ) : tabHistory.map((t, index) => {
                     const entries      = entriesMap[t.id] ?? []
                     const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
                     const totalReentry = entries.reduce((s: number, e: any) => s + (e.reentryCount ?? 0), 0)
                     const totalAddon   = entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0)
                     return (
-                      <div key={t.id} className="h-card rounded-3xl p-5 animate-slideUp" style={{ animationDelay: `${index * 0.05}s` }}>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <div className="flex items-center flex-wrap gap-2 mb-1">
-                              <h4 className="text-[16px] font-bold text-gray-900">{t.name}</h4>
-                              <span className="text-[12px] text-gray-500">E: {totalEntry} / R: {totalReentry} / A: {totalAddon}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-[12px] text-gray-500 mt-1">
-                              <FiClock size={12} /><span>{t.startedAt || t.createdAt}</span>
+                      <div key={t.id} className="t-in" style={{ animationDelay: `${index * 0.04}s`, background: '#fff', borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: 15, fontWeight: 700, margin: 0, letterSpacing: '-0.2px' }}>{t.name}</p>
+                            <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                              <span style={{ fontSize: 11, color: 'rgba(60,60,67,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                <FiClock size={10}/> {t.startedAt || t.createdAt}
+                              </span>
+                              <span style={{ fontSize: 11, color: 'rgba(60,60,67,0.4)' }}>E:{totalEntry} R:{totalReentry} A:{totalAddon}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => handleCopy(t)} className="act-btn h-8 w-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600" title="コピーして新規作成">
-                              <FiCopy size={14} />
+                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                            <button onClick={() => handleCopy(t)} className="t-btn"
+                              style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(120,120,128,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(60,60,67,0.5)' }}>
+                              <FiCopy size={13}/>
                             </button>
-                            <button onClick={() => handleDelete(t.id)} className="act-btn h-8 w-8 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-400" title="削除">
-                              <FiTrash2 size={14} />
+                            <button onClick={() => handleDelete(t.id)} className="t-btn"
+                              style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
+                              <FiTrash2 size={13}/>
                             </button>
                           </div>
                         </div>
-                        <div className="space-y-2.5">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {(entriesMap[t.id] ?? []).filter((e: any) => (e.entryCount ?? 0) > 0 || (e.reentryCount ?? 0) > 0 || (e.addonCount ?? 0) > 0)
                             .map((e: any, i: number) => {
                               const payout = t.payouts?.find((p: any) => p.playerId === e.id)
                               const isITM  = !!payout
                               return (
-                                <div key={i} className={`rounded-2xl px-4 py-3 ${isITM ? "itm-card" : "non-itm-card"}`}>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className={`text-[15px] font-bold ${isITM ? "text-[#F2A900]" : "text-gray-900"}`}>
+                                <div key={i} className={isITM ? "itm-card" : "non-itm-card"} style={{ padding: '10px 12px', borderRadius: 12 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600, color: isITM ? '#D4910A' : '#1C1C1E' }}>
                                       {isITM && typeof payout.rank === "number" && (
-                                        <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-[#F2A900] text-white text-[11px] font-bold mr-2">{payout.rank}</span>
+                                        <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#F2A900', color: '#fff', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{payout.rank}</span>
                                       )}
                                       {typeof e.name === "string" ? e.name : typeof e.id === "string" ? e.id : ""}
                                     </div>
                                     {isITM && (
-                                      <div className="flex items-center gap-1.5 bg-white/60 rounded-full px-3 py-1">
-                                        <FiAward size={14} className="text-[#F2A900]" />
-                                        <span className="text-[13px] font-bold text-[#F2A900]">{fmtChip(typeof payout.amount === "number" ? payout.amount : 0, chipUnit, chipUnitBefore)}</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.7)', borderRadius: 99, padding: '3px 10px' }}>
+                                        <FiAward size={12} style={{ color: '#F2A900' }}/>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: '#D4910A' }}>{fmtChip(typeof payout.amount === "number" ? payout.amount : 0, chipUnit, chipUnitBefore)}</span>
                                       </div>
                                     )}
                                   </div>
-                                  <div className="flex gap-3 text-[12px] text-gray-600 font-medium">
-                                    <span><span className="text-gray-400">E:</span>{e.entryCount ?? 0}</span>
-                                    <span><span className="text-gray-400">R:</span>{e.reentryCount ?? 0}</span>
-                                    <span><span className="text-gray-400">A:</span>{e.addonCount ?? 0}</span>
+                                  <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'rgba(60,60,67,0.5)' }}>
+                                    <span>E:{e.entryCount ?? 0}</span>
+                                    <span>R:{e.reentryCount ?? 0}</span>
+                                    <span>A:{e.addonCount ?? 0}</span>
                                   </div>
                                 </div>
                               )
-                            })
-                          }
+                            })}
                         </div>
                       </div>
                     )
-                  })
-                )}
+                  })}
               </>
             ) : (
               tabTemplates.length === 0 && tabInstances.length === 0 ? (
-                <p className="text-center text-[14px] text-gray-400 py-10">{activeTab}曜日のトーナメントはありません</p>
+                <p style={{ textAlign: 'center', fontSize: 13, color: 'rgba(60,60,67,0.4)', padding: '32px 0' }}>{activeTab}曜日のトーナメントはありません</p>
               ) : (
                 <>
                   {tabTemplates.length > 0 && (
-                    <div>
-                      <p className="text-[12px] font-semibold text-gray-500 mb-2 flex items-center gap-1.5">
-                        <FiRepeat size={12} className="text-[#F2A900]" /> 定期テンプレート
+                    <div style={{ marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(60,60,67,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <FiRepeat size={11} style={{ color: '#F2A900' }}/> 定期テンプレート
                       </p>
-                      <div className="space-y-2.5">
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {tabTemplates.map(t => (
-                          <div key={t.id} className="bg-white rounded-2xl p-4 flex items-center justify-between" style={{ boxShadow: "0 1px 4px rgba(242,169,0,0.1),0 2px 8px rgba(0,0,0,0.04)" }}>
+                          <div key={t.id} style={{ background: '#fff', borderRadius: 16, padding: '12px 14px', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                             <div>
-                              <p className="text-[15px] font-bold text-gray-900">{t.name}</p>
-                              <p className="text-[12px] text-gray-500 mt-0.5">次回: {t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
+                              <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{t.name}</p>
+                              <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', margin: '3px 0 0' }}>次回: {t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
                             </div>
-                            <button onClick={() => handleEdit(t)} className="act-btn h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600">
-                              <FiSettings size={15} />
+                            <button onClick={() => handleEdit(t)} className="t-btn"
+                              style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(120,120,128,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(60,60,67,0.5)' }}>
+                              <FiSettings size={14}/>
                             </button>
                           </div>
                         ))}
@@ -696,17 +715,15 @@ export default function TournamentsPage() {
                   )}
                   {tabInstances.length > 0 && (
                     <div>
-                      <p className="text-[12px] font-semibold text-gray-500 mb-2">今後の予定</p>
-                      <div className="space-y-2.5">
+                      <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(60,60,67,0.45)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>今後の予定</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {tabInstances.map(t => (
-                          <div key={t.id} className="bg-white rounded-2xl p-4" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-[15px] font-bold text-gray-900">{t.name}</p>
-                                <p className="text-[12px] text-gray-500 mt-0.5">{t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
-                              </div>
-                              <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{t.status}</span>
+                          <div key={t.id} style={{ background: '#fff', borderRadius: 16, padding: '12px 14px', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                            <div>
+                              <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{t.name}</p>
+                              <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', margin: '3px 0 0' }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
                             </div>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(60,60,67,0.45)', background: 'rgba(120,120,128,0.1)', borderRadius: 99, padding: '4px 10px' }}>{t.status}</span>
                           </div>
                         ))}
                       </div>

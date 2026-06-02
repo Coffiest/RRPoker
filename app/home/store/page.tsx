@@ -517,6 +517,11 @@ export default function StorePage() {
     return storePlayers.filter(p => (p.name ?? "").toLowerCase().includes(q) || p.id.toLowerCase().includes(q))
   }, [playerSearchInput, storePlayers])
 
+  // Live player from onSnapshot — always up-to-date even while modal is open
+  const liveAdjustPlayer = adjustModalPlayer
+    ? (storePlayers.find(p => p.id === adjustModalPlayer.id) ?? adjustModalPlayer)
+    : null
+
   const selectPlayer = async (playerId: string) => {
     setSelectedPlayerId(playerId); setPlayerSearchInput("")
     if (!storeId) return
@@ -537,7 +542,7 @@ export default function StorePage() {
     await updateDoc(balRef, updates)
     await updateDoc(doc(db, "depositRequests", req.id), { status: "approved" })
     await setDoc(doc(collection(db, "transactions")), {
-      storeId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
+      storeId: balGroupId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
       amount: req.amount, direction: "add", type: txType,
       comment: type === "other" ? depositOtherComment : null, createdAt: serverTimestamp(),
     })
@@ -557,7 +562,7 @@ export default function StorePage() {
     await updateDoc(balRef, updates)
     await updateDoc(doc(db, "withdrawRequests", req.id), { status: "approved" })
     await setDoc(doc(collection(db, "transactions")), {
-      storeId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
+      storeId: balGroupId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
       amount: req.amount, direction: "subtract", type: txType,
       comment: type === "other" ? withdrawOtherComment : null, createdAt: serverTimestamp(),
     })
@@ -590,7 +595,7 @@ export default function StorePage() {
       if (isNetGain) setSelectedPlayerNetGain(direction === "add" ? currentNG + amount : currentNG - amount)
     }
     await setDoc(doc(collection(db, "transactions")), {
-      storeId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction,
+      storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction,
       type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment", createdAt: serverTimestamp(),
     })
     setAdjustValue(""); setSelectedPlayerBalance(direction === "add" ? current + amount : current - amount)
@@ -599,66 +604,44 @@ export default function StorePage() {
   const runStoreAdjustment = async (adjustType: string) => {
     if (!storeId || !adjustModalPlayer) return
     const amount = Number(adjustValue)
-    if (!amount || amount < 1) return
+    if (!amount || amount < 1) { setAdjustError("金額を入力してください"); return }
+    setAdjustError("")
     const pid = adjustModalPlayer.id
     const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
     let bDiff = 0, nDiff = 0, type = "", direction: "add" | "subtract" = "add"
     switch (adjustType) {
-      case "buyin": bDiff = -amount; nDiff = -amount; type = "store_buyin"; direction = "subtract"; break
-      case "cashout": bDiff = amount; nDiff = amount; type = "store_cashout"; break
-      case "chip": bDiff = amount; nDiff = 0; type = "store_chip_purchase"; break
-      case "tE": bDiff = -amount; nDiff = -amount; type = "store_tournament_entry"; direction = "subtract"; break
-      case "tR": bDiff = -amount; nDiff = -amount; type = "store_tournament_reentry"; direction = "subtract"; break
-      case "tA": bDiff = -amount; nDiff = -amount; type = "store_tournament_addon"; direction = "subtract"; break
+      case "buyin":   bDiff = -amount; nDiff = -amount; type = "store_buyin";              direction = "subtract"; break
+      case "cashout": bDiff =  amount; nDiff =  amount; type = "store_cashout";                                   break
+      case "chip":    bDiff =  amount; nDiff =  0;      type = "store_chip_purchase";                             break
+      case "tE":      bDiff = -amount; nDiff = -amount; type = "store_tournament_entry";   direction = "subtract"; break
+      case "tR":      bDiff = -amount; nDiff = -amount; type = "store_tournament_reentry"; direction = "subtract"; break
+      case "tA":      bDiff = -amount; nDiff = -amount; type = "store_tournament_addon";   direction = "subtract"; break
       default: return
     }
+    // Write to Firestore — onSnapshot handles UI update, no optimistic setStorePlayers
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
-    setStorePlayers(prev => prev.map(p => p.id === pid ? { ...p, balance: p.balance + bDiff, netGain: nDiff !== 0 ? p.netGain + nDiff : p.netGain } : p))
-    await setDoc(doc(collection(db, "transactions")), { storeId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction, type, createdAt: serverTimestamp() })
+    await setDoc(doc(collection(db, "transactions")), { storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction, type, createdAt: serverTimestamp() })
     setAdjustModalPlayer(null); setAdjustValue("")
   }
 
   const runPrizeAdjustment = async () => {
-  if (!storeId || !adjustModalPlayer) return
-
-  const amount = Number(adjustValue)
-  if (!amount || amount < 1) return
-
-  const pid = adjustModalPlayer.id
-
-  const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
-
-  // バンクロール & 純増 両方加算
-  await updateDoc(balRef, {
-    balance: increment(amount),
-    netGain: increment(amount),
-  })
-
-  // トランザクション履歴
-  await setDoc(doc(collection(db, "transactions")), {
-    storeId,
-    playerId: pid,
-    playerName: adjustModalPlayer.name ?? null,
-    amount: amount,
-    direction: "add",
-    type: "tournament_payout",
-    createdAt: serverTimestamp(),
-  })
-
-  // UI更新
-  setStorePlayers(prev =>
-    prev.map(p =>
-      p.id === pid
-        ? { ...p, balance: p.balance + amount, netGain: p.netGain + amount }
-        : p
-    )
-  )
-
-  setAdjustModalPlayer(null)
-  setAdjustValue("")
-}
+    if (!storeId || !adjustModalPlayer) return
+    const amount = Number(adjustValue)
+    if (!amount || amount < 1) { setAdjustError("金額を入力してください"); return }
+    setAdjustError("")
+    const pid = adjustModalPlayer.id
+    const balRef = doc(db, "users", pid, "storeBalances", balGroupId!)
+    // Write to Firestore — onSnapshot handles UI update, no optimistic setStorePlayers
+    await updateDoc(balRef, { balance: increment(amount), netGain: increment(amount) })
+    await setDoc(doc(collection(db, "transactions")), {
+      storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null,
+      amount, direction: "add", type: "tournament_payout", createdAt: serverTimestamp(),
+    })
+    setAdjustModalPlayer(null)
+    setAdjustValue("")
+  }
 
   const STAMP_GOAL = 12
 
@@ -946,7 +929,7 @@ export default function StorePage() {
 
       {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
-      {historyPlayerId && storeId && <PlayerHistoryModal playerId={historyPlayerId} storeId={storeId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
+      {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
@@ -1812,43 +1795,60 @@ export default function StorePage() {
         )}
 
         {/* ── Players Section ── */}
-        <div className="su d4" style={{ marginTop: 20 }}>
-          <p className="section-hd">Players</p>
-          <div className="ios-card" style={{ overflow: 'hidden' }}>
-            {/* 検索 */}
-            <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--sep)' }}>
+        <div style={{ marginTop: 24 }}>
+
+          {/* Section header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}>
+            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', margin: 0 }}>Players</p>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-dk)' }}>{inPlayers.length + outPlayers.length}名</span>
+          </div>
+
+          {/* Glass card */}
+          <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+
+            {/* Search */}
+            <div style={{ padding: '12px 14px 0' }}>
               <div style={{ position: 'relative' }}>
-                <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: 'var(--label3)' }}/>
+                <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label3)', fontSize: 14, pointerEvents: 'none' }}/>
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
                   placeholder="プレイヤーを検索…"
-                  style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px solid var(--sep)', background: '#F2F2F7', paddingLeft: 34, paddingRight: 12, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }}
+                  style={{ width: '100%', height: 38, borderRadius: 12, border: 'none', background: 'var(--fill)', paddingLeft: 32, paddingRight: playerSearchInput ? 32 : 10, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
                 />
+                {playerSearchInput && (
+                  <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <FiX size={9} style={{ color: '#fff' }}/>
+                  </button>
+                )}
                 {playerSearchInput && filteredPlayers.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, marginTop: 4, background: '#fff', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
-                    {filteredPlayers.map(p => (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 4, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
+                    {filteredPlayers.map((p, i) => (
                       <button key={p.id} onClick={() => selectPlayer(p.id)}
-                        style={{ display: 'block', width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: '1px solid var(--sep)', fontSize: 14, fontWeight: 600, color: 'var(--label)', cursor: 'pointer' }}
-                      >{p.name ?? p.id}</button>
+                        style={{ display: 'block', width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', fontSize: 14, fontWeight: 600, color: 'var(--label)', cursor: 'pointer' }}
+                      >{p.name || '(不明なプレイヤー)'}</button>
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* タブ */}
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--sep)' }}>
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
               {(['in', 'out'] as const).map(tab => (
-                <button key={tab} className="tab-item" onClick={() => setActiveTab(tab)}
-                  style={{ color: activeTab === tab ? 'var(--gold-dk)' : 'var(--label3)', fontWeight: activeTab === tab ? 700 : 500 }}
-                >
-                  {tab === 'in' ? `入店中 (${inPlayers.length})` : `退店済 (${outPlayers.length})`}
-                  {activeTab === tab && <div style={{ position: 'absolute', bottom: 0, left: '25%', right: '25%', height: 2, background: 'var(--gold)', borderRadius: 1 }}/>}
+                <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                  flex: 1, height: 34, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+                  background: activeTab === tab ? 'var(--gold)' : 'var(--fill)',
+                  color: activeTab === tab ? '#fff' : 'var(--label3)',
+                  boxShadow: activeTab === tab ? '0 2px 8px rgba(242,169,0,0.3)' : 'none',
+                }}>
+                  {tab === 'in' ? `入店中  ${inPlayers.length}` : `退店済  ${outPlayers.length}`}
                 </button>
               ))}
             </div>
 
-            {/* プレイヤーリスト */}
+            <div style={{ height: 1, background: 'var(--sep)' }}/>
+
+            {/* Player rows */}
             {(() => {
               const list = activeTab === "in" ? inPlayers : outPlayers
               const kw = playerSearchInput.toLowerCase()
@@ -1862,37 +1862,49 @@ export default function StorePage() {
               ]
               return (
                 <>
-                  {merged.map(player => (
-                    <div key={player.id} className="player-row"
-                      style={{ background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.05)' : removingAdjustmentPlayerIds.includes(player.id) ? 'transparent' : '#fff', opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1, transition: 'opacity .3s, background .15s' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <div style={{ position: 'relative' }}>
-                          {player.iconUrl
-                            ? <img src={player.iconUrl} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}/>
-                            : <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: 'var(--label2)' }}/></div>
-                          }
-                          {player.isInStore && <div style={{ position: 'absolute', bottom: 1, right: 1, width: 10, height: 10, borderRadius: '50%', background: '#34C759', border: '1.5px solid white' }}/>}
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{player.name || player.id}</p>
-                          {player.playerId && <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)', marginTop: 1 }}>{player.playerId}</p>}
+                  {merged.map((player, idx) => (
+                    <div key={player.id} style={{
+                      display: 'flex', alignItems: 'center', padding: '10px 14px',
+                      borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
+                      background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.04)' : 'transparent',
+                      opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
+                      transition: 'opacity .28s, background .12s',
+                    }}>
+                      {/* Avatar */}
+                      <div style={{ position: 'relative', flexShrink: 0, marginRight: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                        {player.iconUrl
+                          ? <img src={player.iconUrl} style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', display: 'block' }}/>
+                          : <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <FiUser size={16} style={{ color: 'var(--label3)' }}/>
+                            </div>
+                        }
+                        {player.isInStore && (
+                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 11, height: 11, borderRadius: '50%', background: '#34C759', border: '2px solid #fff' }}/>
+                        )}
+                      </div>
+                      {/* Name + ID + Balance */}
+                      <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {player.name || <span style={{ color: 'var(--label3)', fontStyle: 'italic' }}>不明なプレイヤー</span>}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
+                          {player.playerId && <span style={{ fontSize: 10, color: 'var(--label3)' }}>{player.playerId}</span>}
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
+                            {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
+                          </span>
+                          <span style={{ fontSize: 10, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
+                            {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
+                          </span>
                         </div>
                       </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ textAlign: 'right', marginRight: 4 }}>
-                          <p style={{ fontSize: 13, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}</p>
-                          <p style={{ fontSize: 11, fontWeight: 700, color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
-                            {player.netGain >= 0 ? '+' : '-'}{fmtChip(Math.abs(player.netGain), store?.chipUnitLabel, store?.chipUnitBefore)}
-                          </p>
-                        </div>
+                      {/* Action buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                         <button onClick={() => setHistoryPlayerId(player.id)}
-                          style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                        ><FiClock size={13} style={{ color: 'var(--label2)' }}/></button>
-                        <button onClick={() => setAdjustModalPlayer(player)}
-                          style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(242,169,0,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                        ><FiDollarSign size={13} style={{ color: '#D4910A' }}/></button>
+                          style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        ><FiClock size={12} style={{ color: 'var(--label3)' }}/></button>
+                        <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
+                          style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(242,169,0,0.3)' }}
+                        ><FiDollarSign size={12} style={{ color: '#fff' }}/></button>
                         {player.isInStore ? (
                           <button
                             onClick={async () => {
@@ -1902,109 +1914,165 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,59,48,0.09)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                          ><FiLogOut size={13} style={{ color: '#FF3B30' }}/></button>
+                            style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          ><FiLogOut size={12} style={{ color: 'var(--label3)' }}/></button>
                         ) : activeTab === "out" && storeId && (
                           <button
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                          ><FiLogIn size={13} style={{ color: '#34C759' }}/></button>
+                            style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(52,199,89,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          ><FiLogIn size={12} style={{ color: '#34C759' }}/></button>
                         )}
                       </div>
                     </div>
                   ))}
+                  {merged.length === 0 && (
+                    <p style={{ textAlign: 'center', color: 'var(--label3)', padding: '28px 0', fontSize: 13, margin: 0 }}>プレイヤーがいません</p>
+                  )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 44, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#007AFF', borderTop: '1px solid var(--sep)' }}
+                      style={{ width: '100%', height: 42, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--gold-dk)' }}
                     >もっと見る</button>
                   )}
                 </>
               )
             })()}
-          </div>
-        </div>
+          </div>{/* /glass card */}
+        </div>{/* /players section */}
       </div>
 
-      {/* ── Bottom Nav（変更なし） ── */}
+      {/* ── Bottom Nav ── */}
       <StoreBottomNav />
 
-      {/* ── Adjust Modal ── */}
+      {/* ── Footer ── */}
+      <footer style={{ padding: '0 20px 44px', textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
+        <div style={{ height: 1, background: 'var(--sep)', marginBottom: 20 }}/>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+
+        </div>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.2</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
+        <div style={{ marginTop: 16 }}>
+        </div>
+      </footer>
+
+      {/* ── Adjust Modal ─────────────────────────────────────────────────── */}
       {adjustModalPlayer && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-          onClick={() => { setAdjustModalPlayer(null); setAdjustValue("") }}>
-          <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
+          onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError("") }}>
+
+          <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 24px rgba(0,0,0,0.1)', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
             onClick={e => e.stopPropagation()}>
 
-            {/* ドラッグハンドル */}
-            <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
-
-            {/* ヘッダー */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {adjustModalPlayer.iconUrl
-                  ? <img src={adjustModalPlayer.iconUrl} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }}/>
-                  : <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: '#8E8E93' }}/></div>
-                }
-                <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{adjustModalPlayer.name}</p>
-                  <p style={{ fontSize: 11, color: '#8E8E93' }}>手動調整</p>
-                </div>
-              </div>
-              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue("") }}
-                style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
-              >×</button>
+            {/* Drag handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 99, background: 'var(--sep)' }}/>
             </div>
 
-            {/* スクロール可能ボディ */}
-            <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
-              {/* 金額入力 */}
-              <input
-                value={adjustValue} onChange={e => setAdjustValue(e.target.value)}
-                placeholder="金額を入力"
-                inputMode="numeric"
-                style={{ width: '100%', height: 52, borderRadius: 14, border: '2px solid rgba(242,169,0,0.3)', background: '#F9F9F9', padding: '0 16px', fontSize: 22, fontWeight: 800, textAlign: 'center', color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box', letterSpacing: '-0.5px' }}
-              />
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {adjustModalPlayer.iconUrl
+                  ? <img src={adjustModalPlayer.iconUrl} style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'cover' }}/>
+                  : <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(242,169,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FiUser size={16} style={{ color: 'var(--gold)' }}/>
+                    </div>
+                }
+                <div>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0 }}>
+                    {adjustModalPlayer.name || '不明なプレイヤー'}
+                  </p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold-dk)', margin: '2px 0 0', fontVariantNumeric: 'tabular-nums' }}>
+                    {fmtChip(liveAdjustPlayer?.balance ?? 0, store?.chipUnitLabel, store?.chipUnitBefore)}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError("") }}
+                style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              ><FiX size={14} style={{ color: 'var(--label3)' }}/></button>
+            </div>
 
-              {/* リングゲーム */}
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 8 }}>Ring Game</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
-                {[{ l: 'Buy-in', t: 'buyin' }, { l: 'Cash Out', t: 'cashout' }, { l: 'チップ購入', t: 'chip' }].map(b => (
-                  <button key={b.t} onClick={() => runStoreAdjustment(b.t)}
-                    style={{ height: 42, borderRadius: 12, border: '1px solid #E5E5EA', background: '#F9F9F9', color: '#1C1C1E', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
-                  >{b.l}</button>
-                ))}
+            {/* Body */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 0' }}>
+
+              {/* Amount input */}
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ position: 'relative', borderBottom: adjustValue ? '2px solid var(--gold)' : '2px solid var(--sep)', transition: 'border-color 0.15s', paddingBottom: 4 }}>
+                  <input
+                    value={adjustValue} onChange={e => { setAdjustValue(e.target.value); setAdjustError("") }}
+                    placeholder="0"
+                    inputMode="numeric"
+                    style={{ width: '100%', border: 'none', background: 'transparent', padding: '0 32px 0 4px', fontSize: 32, fontWeight: 900, textAlign: 'center', color: adjustValue ? 'var(--label)' : 'var(--label3)', outline: 'none', boxSizing: 'border-box', letterSpacing: '-1px', fontVariantNumeric: 'tabular-nums' }}
+                  />
+                  {adjustValue && (
+                    <button onClick={() => setAdjustValue("")} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <FiX size={10} style={{ color: 'var(--label3)' }}/>
+                    </button>
+                  )}
+                </div>
+                {adjustError && (
+                  <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', margin: '6px 0 0' }}>{adjustError}</p>
+                )}
               </div>
 
-              {/* トーナメント */}
-              <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 8 }}>Tournament</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
-                {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
-                  <button key={b.t} onClick={() => runStoreAdjustment(b.t)}
-                    style={{ height: 42, borderRadius: 12, border: '1px solid #E5E5EA', background: '#F9F9F9', color: '#1C1C1E', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}
-                  >{b.l}</button>
-                ))}
+              {/* Ring Game */}
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
+                  {[
+                    { l: 'Buy-in',    t: 'buyin',   accent: false },
+                    { l: 'Cash Out',  t: 'cashout', accent: true  },
+                    { l: 'チップ購入', t: 'chip',    accent: false },
+                  ].map(b => (
+                    <button key={b.t} onClick={() => runStoreAdjustment(b.t)} style={{
+                      height: 44, borderRadius: 12, cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'opacity 0.15s',
+                      border: b.accent ? 'none' : '1.5px solid var(--sep)',
+                      background: b.accent ? 'var(--gold)' : '#fff',
+                      color: b.accent ? '#fff' : 'var(--label)',
+                      boxShadow: b.accent ? '0 3px 10px rgba(242,169,0,0.25)' : 'none',
+                    }}>{b.l}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tournament */}
+              <div style={{ marginBottom: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
+                  {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
+                    <button key={b.t} onClick={() => runStoreAdjustment(b.t)} style={{
+                      height: 44, borderRadius: 12, border: '1.5px solid var(--sep)', background: '#fff', color: 'var(--label)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    }}>{b.l}</button>
+                  ))}
+                </div>
               </div>
 
               {/* Prize */}
-              <button onClick={runPrizeAdjustment}
-                style={{ width: '100%', height: 42, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,rgba(242,169,0,0.12),rgba(242,169,0,0.18))', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}
-              >Prize</button>
+              <button onClick={runPrizeAdjustment} style={{
+                width: '100%', height: 44, borderRadius: 12, marginBottom: 14,
+                border: '1.5px solid rgba(242,169,0,0.4)', background: 'rgba(242,169,0,0.06)',
+                color: 'var(--gold-dk)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              }}>🏆  Prize / 入賞</button>
 
-              {/* 手動調整セクション */}
-              <div style={{ borderTop: '1px solid #F2F2F7', paddingTop: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8E8E93', marginBottom: 10 }}>Manual Adjustment</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-                  <button onClick={async () => { await runAdjustment("add", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}
-                    style={{ height: 44, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}
-                  >＋ Add</button>
-                  <button onClick={async () => { await runAdjustment("subtract", manualNetGain); setAdjustModalPlayer(null); setAdjustValue("") }}
-                    style={{ height: 44, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#FF3B30,#CC2200)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.25)' }}
-                  >− Subtract</button>
+              {/* Manual Adjustment */}
+              <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 14 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>Manual Adjustment</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                  <button onClick={async () => { await runAdjustment("add", manualNetGain); if (!adjustError) { setAdjustModalPlayer(null); setAdjustValue("") } }} style={{
+                    height: 48, borderRadius: 12, border: 'none',
+                    background: 'var(--gold)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
+                    boxShadow: '0 3px 10px rgba(242,169,0,0.25)',
+                  }}>＋ Add</button>
+                  <button onClick={async () => { await runAdjustment("subtract", manualNetGain); if (!adjustError) { setAdjustModalPlayer(null); setAdjustValue("") } }} style={{
+                    height: 48, borderRadius: 12,
+                    border: '1.5px solid var(--sep)', background: '#fff',
+                    color: 'var(--label)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                  }}>− Subtract</button>
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#1C1C1E', fontWeight: 500, padding: '10px 12px', background: '#F9F9F9', borderRadius: 10 }}>
-                  <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: '#F2A900', width: 18, height: 18, cursor: 'pointer' }}/>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label2)', fontWeight: 500, padding: '10px 12px', background: 'var(--fill)', borderRadius: 10, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: 'var(--gold)', width: 16, height: 16, cursor: 'pointer' }}/>
                   純増値も更新
                 </label>
               </div>
