@@ -1797,53 +1797,72 @@ export default function StorePage() {
         {/* ── Players Section ── */}
         <div style={{ marginTop: 24 }}>
 
-          {/* Section header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}>
-            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', margin: 0 }}>Players</p>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-dk)' }}>{inPlayers.length + outPlayers.length}名</span>
+          {/* Section header + stats */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}>
+            <p className="section-hd" style={{ marginBottom: 0 }}>Players</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Total balance of in-store players */}
+              {inPlayers.length > 0 && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums' }}>
+                  合計 {fmtChip(inPlayers.reduce((s, p) => s + (p.balance ?? 0), 0), store?.chipUnitLabel, store?.chipUnitBefore)}
+                </span>
+              )}
+              {/* In-store count badge */}
+              <span style={{ fontSize: 11, fontWeight: 800, background: '#34C759', color: '#fff', borderRadius: 99, padding: '2px 8px' }}>
+                {inPlayers.length}名
+              </span>
+            </div>
           </div>
 
-          {/* Glass card */}
-          <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+          {/* Main card */}
+          <div className="ios-card">
 
             {/* Search */}
-            <div style={{ padding: '12px 14px 0' }}>
+            <div style={{ padding: '14px 14px 0' }}>
               <div style={{ position: 'relative' }}>
-                <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label3)', fontSize: 14, pointerEvents: 'none' }}/>
+                <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
-                  placeholder="プレイヤーを検索…"
-                  style={{ width: '100%', height: 38, borderRadius: 12, border: 'none', background: 'var(--fill)', paddingLeft: 32, paddingRight: playerSearchInput ? 32 : 10, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
+                  placeholder="名前・IDで検索…"
+                  style={{ width: '100%', height: 40, borderRadius: 12, border: 'none', background: 'var(--fill)', paddingLeft: 34, paddingRight: playerSearchInput ? 34 : 12, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {playerSearchInput && (
-                  <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,0,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', background: 'rgba(60,60,67,0.2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                     <FiX size={9} style={{ color: '#fff' }}/>
                   </button>
                 )}
                 {playerSearchInput && filteredPlayers.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 4, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 6, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.14)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
                     {filteredPlayers.map((p, i) => (
                       <button key={p.id} onClick={() => selectPlayer(p.id)}
-                        style={{ display: 'block', width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', fontSize: 14, fontWeight: 600, color: 'var(--label)', cursor: 'pointer' }}
-                      >{p.name || '(不明なプレイヤー)'}</button>
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer' }}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <FiUser size={12} style={{ color: 'var(--label2)' }}/>
+                        </div>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{p.name || '(不明なプレイヤー)'}</span>
+                      </button>
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: 6, padding: '10px 14px' }}>
-              {(['in', 'out'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                  flex: 1, height: 34, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
-                  background: activeTab === tab ? 'var(--gold)' : 'var(--fill)',
-                  color: activeTab === tab ? '#fff' : 'var(--label3)',
-                  boxShadow: activeTab === tab ? '0 2px 8px rgba(242,169,0,0.3)' : 'none',
-                }}>
-                  {tab === 'in' ? `入店中  ${inPlayers.length}` : `退店済  ${outPlayers.length}`}
-                </button>
-              ))}
+            {/* Segmented tabs */}
+            <div style={{ padding: '10px 14px 12px' }}>
+              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 12, padding: 3, gap: 3 }}>
+                {(['in', 'out'] as const).map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                    flex: 1, height: 32, borderRadius: 10, border: 'none', cursor: 'pointer',
+                    fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+                    background: activeTab === tab ? '#fff' : 'transparent',
+                    color: activeTab === tab ? 'var(--label)' : 'var(--label2)',
+                    boxShadow: activeTab === tab ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  }}>
+                    {tab === 'in' ? `在店中 ${inPlayers.length}` : `退店済 ${outPlayers.length}`}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div style={{ height: 1, background: 'var(--sep)' }}/>
@@ -1864,47 +1883,64 @@ export default function StorePage() {
                 <>
                   {merged.map((player, idx) => (
                     <div key={player.id} style={{
-                      display: 'flex', alignItems: 'center', padding: '10px 14px',
+                      display: 'flex', alignItems: 'center', padding: '12px 14px',
+                      gap: 12,
                       borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
                       background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.04)' : 'transparent',
                       opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
                       transition: 'opacity .28s, background .12s',
                     }}>
-                      {/* Avatar */}
-                      <div style={{ position: 'relative', flexShrink: 0, marginRight: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                      {/* Avatar — circle with green online dot */}
+                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
                         {player.iconUrl
-                          ? <img src={player.iconUrl} style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', display: 'block' }}/>
-                          : <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <FiUser size={16} style={{ color: 'var(--label3)' }}/>
+                          ? <img src={player.iconUrl} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', display: 'block' }}/>
+                          : <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {player.name
+                                ? <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{player.name.charAt(0)}</span>
+                                : <FiUser size={18} style={{ color: '#fff' }}/>
+                              }
                             </div>
                         }
                         {player.isInStore && (
-                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 11, height: 11, borderRadius: '50%', background: '#34C759', border: '2px solid #fff' }}/>
+                          <div style={{ position: 'absolute', bottom: 0, right: 0, width: 13, height: 13, borderRadius: '50%', background: '#34C759', border: '2.5px solid #fff' }}/>
                         )}
                       </div>
-                      {/* Name + ID + Balance */}
+
+                      {/* Name + balance */}
                       <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {player.name || <span style={{ color: 'var(--label3)', fontStyle: 'italic' }}>不明なプレイヤー</span>}
+                        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px' }}>
+                          {player.name || <span style={{ color: 'var(--label2)', fontStyle: 'italic', fontWeight: 500, fontSize: 14 }}>不明なプレイヤー</span>}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 2 }}>
-                          {player.playerId && <span style={{ fontSize: 10, color: 'var(--label3)' }}>{player.playerId}</span>}
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                          {/* Balance */}
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
                             {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          <span style={{ fontSize: 10, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: player.netGain >= 0 ? '#34C759' : '#FF3B30' }}>
+                          {/* Net gain pill */}
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                            color: player.netGain >= 0 ? '#34C759' : '#FF3B30',
+                            background: player.netGain >= 0 ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.08)',
+                            borderRadius: 99, padding: '1px 6px',
+                          }}>
                             {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
+                          {player.playerId && (
+                            <span style={{ fontSize: 10, color: 'var(--label2)', fontFamily: 'monospace' }}>{player.playerId}</span>
+                          )}
                         </div>
                       </div>
-                      {/* Action buttons */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+
+                      {/* Action buttons — 36px touch targets */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                         <button onClick={() => setHistoryPlayerId(player.id)}
-                          style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        ><FiClock size={12} style={{ color: 'var(--label3)' }}/></button>
+                          style={{ width: 36, height: 36, borderRadius: 11, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        ><FiClock size={14} style={{ color: 'var(--label2)' }}/></button>
+
                         <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
-                          style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 6px rgba(242,169,0,0.3)' }}
-                        ><FiDollarSign size={12} style={{ color: '#fff' }}/></button>
+                          style={{ width: 36, height: 36, borderRadius: 11, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)' }}
+                        ><FiDollarSign size={15} style={{ color: '#fff' }}/></button>
+
                         {player.isInStore ? (
                           <button
                             onClick={async () => {
@@ -1914,31 +1950,40 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                          ><FiLogOut size={12} style={{ color: 'var(--label3)' }}/></button>
+                            style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          ><FiLogOut size={14} style={{ color: '#FF3B30' }}/></button>
                         ) : activeTab === "out" && storeId && (
                           <button
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(52,199,89,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                          ><FiLogIn size={12} style={{ color: '#34C759' }}/></button>
+                            style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(52,199,89,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                          ><FiLogIn size={14} style={{ color: '#34C759' }}/></button>
                         )}
                       </div>
                     </div>
                   ))}
                   {merged.length === 0 && (
-                    <p style={{ textAlign: 'center', color: 'var(--label3)', padding: '28px 0', fontSize: 13, margin: 0 }}>プレイヤーがいません</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', gap: 8 }}>
+                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiUsers size={20} style={{ color: 'var(--label2)' }}/>
+                      </div>
+                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>
+                        {activeTab === "in" ? "在店中のプレイヤーがいません" : "退店済みのプレイヤーがいません"}
+                      </p>
+                    </div>
                   )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 42, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--gold-dk)' }}
-                    >もっと見る</button>
+                      style={{ width: '100%', height: 44, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--gold-dk)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                    >
+                      もっと見る <FiChevronDown size={13}/>
+                    </button>
                   )}
                 </>
               )
             })()}
-          </div>{/* /glass card */}
+          </div>{/* /main card */}
         </div>{/* /players section */}
       </div>
 
@@ -1951,7 +1996,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.2</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.3</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
