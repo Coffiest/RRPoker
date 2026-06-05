@@ -1795,50 +1795,52 @@ export default function StorePage() {
         )}
 
         {/* ── Players Section ── */}
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 32 }}>
 
           {/* Section header + stats */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}>
-            <p className="section-hd" style={{ marginBottom: 0 }}>Players</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p className="section-hd" style={{ marginBottom: 0, letterSpacing: 0.5 }}>Players</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* Total balance of in-store players */}
               {inPlayers.length > 0 && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
                   合計 {fmtChip(inPlayers.reduce((s, p) => s + (p.balance ?? 0), 0), store?.chipUnitLabel, store?.chipUnitBefore)}
                 </span>
               )}
               {/* In-store count badge */}
-              <span style={{ fontSize: 11, fontWeight: 800, background: '#34C759', color: '#fff', borderRadius: 99, padding: '2px 8px' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '4px 10px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
                 {inPlayers.length}名
               </span>
             </div>
           </div>
 
           {/* Main card */}
-          <div className="ios-card">
+          <div className="ios-card" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)', borderRadius: 20 }}>
 
             {/* Search */}
-            <div style={{ padding: '14px 14px 0' }}>
+            <div style={{ padding: '16px 16px 0' }}>
               <div style={{ position: 'relative' }}>
-                <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
+                <FiSearch size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
                   placeholder="名前・IDで検索…"
-                  style={{ width: '100%', height: 40, borderRadius: 12, border: 'none', background: 'var(--fill)', paddingLeft: 34, paddingRight: playerSearchInput ? 34 : 12, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', height: 42, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 36, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
                 />
                 {playerSearchInput && (
-                  <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', background: 'rgba(60,60,67,0.2)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <FiX size={9} style={{ color: '#fff' }}/>
+                  <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', width: 22, height: 22, borderRadius: '50%', background: 'rgba(60,60,67,0.3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}>
+                    <FiX size={10} style={{ color: '#fff' }}/>
                   </button>
                 )}
                 {playerSearchInput && filteredPlayers.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 6, background: '#fff', borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.14)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 8, background: '#fff', borderRadius: 15, boxShadow: '0 10px 40px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
                     {filteredPlayers.map((p, i) => (
                       <button key={p.id} onClick={() => selectPlayer(p.id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '11px 14px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 11, width: '100%', padding: '12px 15px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer', transition: 'background 0.15s ease' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.02)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
                       >
-                        <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <FiUser size={12} style={{ color: 'var(--label2)' }}/>
+                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <FiUser size={13} style={{ color: 'var(--label2)' }}/>
                         </div>
                         <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{p.name || '(不明なプレイヤー)'}</span>
                       </button>
@@ -1849,15 +1851,15 @@ export default function StorePage() {
             </div>
 
             {/* Segmented tabs */}
-            <div style={{ padding: '10px 14px 12px' }}>
-              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 12, padding: 3, gap: 3 }}>
+            <div style={{ padding: '12px 16px 14px' }}>
+              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 13, padding: 4, gap: 4 }}>
                 {(['in', 'out'] as const).map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                    flex: 1, height: 32, borderRadius: 10, border: 'none', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 700, transition: 'all 0.18s',
+                    flex: 1, height: 34, borderRadius: 11, border: 'none', cursor: 'pointer',
+                    fontSize: 13, fontWeight: 700, transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     background: activeTab === tab ? '#fff' : 'transparent',
                     color: activeTab === tab ? 'var(--label)' : 'var(--label2)',
-                    boxShadow: activeTab === tab ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                    boxShadow: activeTab === tab ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
                   }}>
                     {tab === 'in' ? `在店中 ${inPlayers.length}` : `退店済 ${outPlayers.length}`}
                   </button>
@@ -1883,63 +1885,69 @@ export default function StorePage() {
                 <>
                   {merged.map((player, idx) => (
                     <div key={player.id} style={{
-                      display: 'flex', alignItems: 'center', padding: '12px 14px',
-                      gap: 12,
+                      display: 'flex', alignItems: 'center', padding: '13px 16px',
+                      gap: 13,
                       borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
-                      background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.04)' : 'transparent',
+                      background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.06)' : 'transparent',
                       opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
-                      transition: 'opacity .28s, background .12s',
+                      transition: 'opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease',
                     }}>
                       {/* Avatar — circle with green online dot */}
-                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s ease' }} onClick={() => setProfileUid(player.id)}>
                         {player.iconUrl
-                          ? <img src={player.iconUrl} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', display: 'block' }}/>
-                          : <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          ? <img src={player.iconUrl} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}/>
+                          : <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>
                               {player.name
-                                ? <span style={{ fontSize: 17, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{player.name.charAt(0)}</span>
-                                : <FiUser size={18} style={{ color: '#fff' }}/>
+                                ? <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{player.name.charAt(0)}</span>
+                                : <FiUser size={20} style={{ color: '#fff' }}/>
                               }
                             </div>
                         }
                         {player.isInStore && (
-                          <div style={{ position: 'absolute', bottom: 0, right: 0, width: 13, height: 13, borderRadius: '50%', background: '#34C759', border: '2.5px solid #fff' }}/>
+                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 15, height: 15, borderRadius: '50%', background: '#34C759', border: '3px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}/>
                         )}
                       </div>
 
                       {/* Name + balance */}
                       <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.2px' }}>
+                        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.3px' }}>
                           {player.name || <span style={{ color: 'var(--label2)', fontStyle: 'italic', fontWeight: 500, fontSize: 14 }}>不明なプレイヤー</span>}
                         </p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
-                          {/* Balance */}
-                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
+                        {/* Balance + net gain: flexWrap so they break before hitting buttons */}
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                             {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          {/* Net gain pill */}
                           <span style={{
-                            fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                            color: player.netGain >= 0 ? '#34C759' : '#FF3B30',
-                            background: player.netGain >= 0 ? 'rgba(52,199,89,0.1)' : 'rgba(255,59,48,0.08)',
-                            borderRadius: 99, padding: '1px 6px',
+                            fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums', flexShrink: 0,
+                            color: player.netGain >= 0 ? '#30B452' : '#FF453A',
+                            background: player.netGain >= 0 ? 'rgba(52,199,89,0.12)' : 'rgba(255,69,58,0.1)',
+                            borderRadius: 6, padding: '2px 8px',
                           }}>
                             {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          {player.playerId && (
-                            <span style={{ fontSize: 10, color: 'var(--label2)', fontFamily: 'monospace' }}>{player.playerId}</span>
-                          )}
                         </div>
+                        {/* Player ID: always on its own line to prevent button collision */}
+                        {player.playerId && (
+                          <p style={{ fontSize: 10, color: 'var(--label2)', fontFamily: 'monospace', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
+                            ID: {player.playerId}
+                          </p>
+                        )}
                       </div>
 
                       {/* Action buttons — 36px touch targets */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                         <button onClick={() => setHistoryPlayerId(player.id)}
-                          style={{ width: 36, height: 36, borderRadius: 11, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        ><FiClock size={14} style={{ color: 'var(--label2)' }}/></button>
+                          style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(120,120,128,0.2)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'var(--fill)'}
+                        ><FiClock size={15} style={{ color: 'var(--label2)', transition: 'color 0.15s ease' }}/></button>
 
                         <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
-                          style={{ width: 36, height: 36, borderRadius: 11, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)' }}
-                        ><FiDollarSign size={15} style={{ color: '#fff' }}/></button>
+                          style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)', transition: 'all 0.18s ease' }}
+                          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(242,169,0,0.45)'}
+                          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(242,169,0,0.35)'}
+                        ><FiDollarSign size={16} style={{ color: '#fff' }}/></button>
 
                         {player.isInStore ? (
                           <button
@@ -1950,34 +1958,43 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                          ><FiLogOut size={14} style={{ color: '#FF3B30' }}/></button>
+                            style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(255,59,48,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,59,48,0.15)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,59,48,0.1)'}
+                          ><FiLogOut size={15} style={{ color: '#FF3B30' }}/></button>
                         ) : activeTab === "out" && storeId && (
                           <button
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(52,199,89,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                          ><FiLogIn size={14} style={{ color: '#34C759' }}/></button>
+                            style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(52,199,89,0.18)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(52,199,89,0.12)'}
+                          ><FiLogIn size={15} style={{ color: '#34C759' }}/></button>
                         )}
                       </div>
                     </div>
                   ))}
                   {merged.length === 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 20px', gap: 8 }}>
-                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiUsers size={20} style={{ color: 'var(--label2)' }}/>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 10 }}>
+                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <FiUsers size={24} style={{ color: 'var(--label2)' }}/>
                       </div>
-                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>
+                      <p style={{ fontSize: 14, color: 'var(--label)', margin: 0, fontWeight: 600 }}>
                         {activeTab === "in" ? "在店中のプレイヤーがいません" : "退店済みのプレイヤーがいません"}
+                      </p>
+                      <p style={{ fontSize: 12, color: 'var(--label2)', margin: 0, textAlign: 'center' }}>
+                        {activeTab === "in" ? "プレイヤーが入店すると表示されます" : "プレイヤー管理でチェックイン状態を確認"}
                       </p>
                     </div>
                   )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 44, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 13, fontWeight: 700, color: 'var(--gold-dk)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}
+                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
-                      もっと見る <FiChevronDown size={13}/>
+                      もっと見る <FiChevronDown size={14} style={{ transition: 'transform 0.2s ease' }}/>
                     </button>
                   )}
                 </>
@@ -1996,7 +2013,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.3</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.4</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
