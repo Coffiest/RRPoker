@@ -2,9 +2,25 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { FiPlus, FiTrash2, FiRefreshCw, FiCheck, FiX } from "react-icons/fi"
+import { FiPlus, FiTrash2, FiRefreshCw, FiCheck, FiX, FiSearch } from "react-icons/fi"
 
 type CircleCode = { id: string; active: boolean; usedBy: string | null; createdAt?: number }
+
+type StoreSubscription = {
+  status: string | null
+  plan: string | null
+  cancelAtPeriodEnd: boolean
+  currentPeriodEnd: number | null
+}
+
+type Store = {
+  id: string
+  name: string
+  code: string
+  iconUrl: string | null
+  isFree: boolean
+  subscription: StoreSubscription | null
+}
 
 function api(path: string, method: string, body?: object) {
   const pw = sessionStorage.getItem("adminPw") ?? ""
@@ -15,15 +31,51 @@ function api(path: string, method: string, body?: object) {
   })
 }
 
+function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isFree: boolean }) {
+  if (isFree) {
+    return (
+      <span className="text-xs font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">
+        無料
+      </span>
+    )
+  }
+  if (!sub) {
+    return (
+      <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+        未登録
+      </span>
+    )
+  }
+  if (sub.status === "active") {
+    return (
+      <span className="text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+        {sub.plan === "circle" ? "サークル" : "スタンダード"}
+        {sub.cancelAtPeriodEnd ? "（解約予定）" : ""}
+      </span>
+    )
+  }
+  return (
+    <span className="text-xs font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">
+      {sub.status ?? "不明"}
+    </span>
+  )
+}
+
 export default function AdminPage() {
   const router = useRouter()
   const [tab, setTab] = useState<"codes" | "free">("codes")
+
+  // circle codes
   const [codes, setCodes] = useState<CircleCode[]>([])
   const [loadingCodes, setLoadingCodes] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const [freeStoreId, setFreeStoreId] = useState("")
-  const [freeMsg, setFreeMsg] = useState("")
-  const [freeSaving, setFreeSaving] = useState(false)
+
+  // stores
+  const [stores, setStores] = useState<Store[]>([])
+  const [loadingStores, setLoadingStores] = useState(false)
+  const [storeSearch, setStoreSearch] = useState("")
+  const [savingStoreId, setSavingStoreId] = useState<string | null>(null)
+
   const [authed, setAuthed] = useState(false)
   const [apiError, setApiError] = useState("")
 
@@ -47,8 +99,25 @@ export default function AdminPage() {
     }
   }
 
+  const fetchStores = async () => {
+    setLoadingStores(true)
+    setApiError("")
+    try {
+      const res = await api("/api/admin/stores", "GET")
+      if (res.status === 401) { router.replace("/login"); return }
+      if (!res.ok) { setApiError("APIエラーが発生しました (ストア取得失敗)"); return }
+      const data = await res.json()
+      setStores(data.stores ?? [])
+    } finally {
+      setLoadingStores(false)
+    }
+  }
+
   useEffect(() => {
-    if (authed) fetchCodes()
+    if (authed) {
+      fetchCodes()
+      fetchStores()
+    }
   }, [authed])
 
   const generateCode = async () => {
@@ -67,19 +136,24 @@ export default function AdminPage() {
     setCodes(prev => prev.map(c => c.id === code ? { ...c, active: false } : c))
   }
 
-  const setFree = async (isFree: boolean) => {
-    const sid = freeStoreId.trim()
-    if (!sid) return
-    setFreeSaving(true)
-    setFreeMsg("")
+  const toggleFree = async (storeId: string, currentIsFree: boolean) => {
+    setSavingStoreId(storeId)
     try {
-      const res = await api("/api/admin/free-store", "POST", { storeId: sid, isFree })
-      if (res.ok) setFreeMsg(isFree ? `${sid} を無料に設定しました` : `${sid} の無料設定を解除しました`)
-      else setFreeMsg("エラーが発生しました")
+      const res = await api("/api/admin/free-store", "POST", { storeId, isFree: !currentIsFree })
+      if (res.ok) {
+        setStores(prev => prev.map(s => s.id === storeId ? { ...s, isFree: !currentIsFree } : s))
+      } else {
+        setApiError("エラーが発生しました")
+      }
     } finally {
-      setFreeSaving(false)
+      setSavingStoreId(null)
     }
   }
+
+  const filteredStores = stores.filter(s => {
+    const q = storeSearch.toLowerCase()
+    return !q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q)
+  })
 
   if (!authed) return null
 
@@ -110,7 +184,7 @@ export default function AdminPage() {
               onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-[#F2A900] text-black" : "bg-gray-800 text-gray-300"}`}
             >
-              {t === "codes" ? "サークルコード" : "無料アカウント"}
+              {t === "codes" ? "サークルコード" : "ストア管理"}
             </button>
           ))}
         </div>
@@ -162,33 +236,54 @@ export default function AdminPage() {
         )}
 
         {tab === "free" && (
-          <div className="bg-gray-900 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-5">store IDを入力して無料設定のON/OFFを切り替えます。<br />store IDはFirestoreの stores コレクションのドキュメントIDです。</p>
-            <input
-              type="text"
-              value={freeStoreId}
-              onChange={e => setFreeStoreId(e.target.value)}
-              placeholder="Store ID"
-              className="w-full bg-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40 mb-4"
-            />
-            {freeMsg && (
-              <p className="text-sm text-green-400 mb-4">{freeMsg}</p>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setFree(true)}
-                disabled={freeSaving || !freeStoreId.trim()}
-                className="flex-1 py-3 rounded-xl bg-[#F2A900] text-black font-bold text-sm disabled:opacity-50"
-              >
-                無料に設定
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-400">{stores.length} ストア</p>
+              <button onClick={fetchStores} disabled={loadingStores} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
+                <FiRefreshCw size={13} className={loadingStores ? "animate-spin" : ""} /> 更新
               </button>
-              <button
-                onClick={() => setFree(false)}
-                disabled={freeSaving || !freeStoreId.trim()}
-                className="flex-1 py-3 rounded-xl bg-gray-700 text-white font-bold text-sm disabled:opacity-50"
-              >
-                無料設定を解除
-              </button>
+            </div>
+
+            <div className="relative mb-4">
+              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                value={storeSearch}
+                onChange={e => setStoreSearch(e.target.value)}
+                placeholder="ストア名・コード・IDで検索"
+                className="w-full bg-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40"
+              />
+            </div>
+
+            <div className="space-y-2">
+              {loadingStores && (
+                <p className="text-center text-gray-500 py-8 text-sm">読み込み中...</p>
+              )}
+              {!loadingStores && filteredStores.length === 0 && (
+                <p className="text-center text-gray-500 py-8 text-sm">ストアが見つかりません</p>
+              )}
+              {filteredStores.map(s => (
+                <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{s.name || "(名称未設定)"}</p>
+                    <p className="text-xs text-gray-500 font-mono truncate">{s.id}</p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <SubscriptionBadge sub={s.subscription} isFree={s.isFree} />
+                    <button
+                      onClick={() => toggleFree(s.id, s.isFree)}
+                      disabled={savingStoreId === s.id}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                        s.isFree
+                          ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                          : "bg-purple-600 text-white hover:bg-purple-500"
+                      }`}
+                    >
+                      {savingStoreId === s.id ? "..." : s.isFree ? "無料解除" : "無料にする"}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
