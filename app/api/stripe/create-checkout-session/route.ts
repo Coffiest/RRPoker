@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
   }
 
   const storeSnap = await adminDb.doc(`stores/${storeId}`).get()
-  let customerId: string | undefined = storeSnap.data()?.subscription?.stripeCustomerId
+  const storeData = storeSnap.data()
+  // Support both nested format and flat format
+  let customerId: string | undefined = storeData?.subscription?.stripeCustomerId || storeData?.["subscription.stripeCustomerId"]
 
   if (!customerId) {
     const customer = await stripe.customers.create({

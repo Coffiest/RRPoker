@@ -112,6 +112,12 @@ export default function BranchStorePage() {
       const sb = ringBlindSb.trim(), bb = ringBlindBb.trim()
       const blindPayload = sb && bb ? { ringBlindSb: Number(sb), ringBlindBb: Number(bb) } : {}
 
+      // Inherit the parent store's subscription so affiliate stores share the
+      // same billing state and contract end date. Stored as a nested object to
+      // match the webhook's update() writes (setDoc does not expand dot keys).
+      const parentSub = parentData?.subscription
+      const subscriptionPayload = parentSub?.stripeSubscriptionId ? { subscription: parentSub } : {}
+
       await setDoc(doc(db, 'stores', code), {
         name: name.trim(),
         postalCode: postalCode.trim(),
@@ -121,6 +127,7 @@ export default function BranchStorePage() {
         address: fullAddress,
         ...(iconUrl ? { iconUrl } : {}),
         ...blindPayload,
+        ...subscriptionPayload,
         code,
         ownerUid: user.uid,
         balanceGroupId,
