@@ -138,8 +138,7 @@ export default function PlayerBottomNav() {
   }, [])
 
   const handleCenter = () => {
-    if (currentStoreId) router.push('/home/transactions')
-    else setIsQROpen(true)
+    setIsQROpen(true)
   }
 
   const col = (tab: ActiveTab) => ({
@@ -243,9 +242,7 @@ export default function PlayerBottomNav() {
                   : '0 4px 14px rgba(242,169,0,0.45)',
                 transition: 'box-shadow 0.35s ease',
               }}>
-                {currentStoreId
-                  ? <FiCreditCard size={Math.round(19 * navScale)} style={{ color: '#fff' }} />
-                  : <MdQrCode2    size={Math.round(21 * navScale)} style={{ color: '#fff' }} />}
+                <MdQrCode2 size={Math.round(22 * navScale)} style={{ color: '#fff' }} />
               </div>
             </button>
 

@@ -250,16 +250,18 @@ export default function StoreMyPage() {
   useEffect(() => {
     if (!storeId) return
     const unsub = onSnapshot(doc(db, "stores", storeId), snap => {
-      const d = snap.data() ?? {}
-      const sub = d.subscription ?? (d["subscription.status"] ? {
-        status: d["subscription.status"],
-        plan: d["subscription.plan"],
-        interval: d["subscription.interval"],
-        currentPeriodEnd: d["subscription.currentPeriodEnd"],
-        cancelAtPeriodEnd: d["subscription.cancelAtPeriodEnd"],
-        stripeCustomerId: d["subscription.stripeCustomerId"],
-        stripeSubscriptionId: d["subscription.stripeSubscriptionId"],
-      } : null)
+      const d: Record<string, any> = snap.data() ?? {}
+      const nested = d.subscription ?? {}
+      const status = nested.status ?? d["subscription.status"]
+      const sub = status ? {
+        status,
+        plan: nested.plan ?? d["subscription.plan"],
+        interval: nested.interval ?? d["subscription.interval"],
+        currentPeriodEnd: nested.currentPeriodEnd ?? d["subscription.currentPeriodEnd"],
+        cancelAtPeriodEnd: nested.cancelAtPeriodEnd ?? d["subscription.cancelAtPeriodEnd"],
+        stripeCustomerId: nested.stripeCustomerId ?? d["subscription.stripeCustomerId"],
+        stripeSubscriptionId: nested.stripeSubscriptionId ?? d["subscription.stripeSubscriptionId"],
+      } : null
       setSubscription(sub)
     }, () => {})
     return () => unsub()
@@ -281,6 +283,28 @@ export default function StoreMyPage() {
       if (!res.ok) { setBillingError(data.error ?? "エラーが発生しました"); return }
       setShowCancelConfirm(false)
       setBillingSuccess("キャンセルを受け付けました。期間終了まで引き続きご利用いただけます。")
+    } catch {
+      setBillingError("エラーが発生しました")
+    } finally {
+      setBillingLoading(false)
+    }
+  }
+
+  const resumeSubscription = async () => {
+    setBillingLoading(true)
+    setBillingError("")
+    setBillingSuccess("")
+    try {
+      const user = auth.currentUser
+      if (!user) return
+      const token = await user.getIdToken()
+      const res = await fetch("/api/stripe/resume-subscription", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (!res.ok) { setBillingError(data.error ?? "エラーが発生しました"); return }
+      setBillingSuccess("サブスクリプションを再開しました。")
     } catch {
       setBillingError("エラーが発生しました")
     } finally {
@@ -845,6 +869,26 @@ export default function StoreMyPage() {
                     className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
                   >
                     サブスクリプションをキャンセル
+                  </button>
+                )}
+                {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
+                  <button
+                    type="button"
+                    onClick={resumeSubscription}
+                    disabled={billingLoading}
+                    className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                  >
+                    {billingLoading ? "処理中..." : "サブスクリプションを再開"}
+                  </button>
+                )}
+                {subscription.status === "canceled" && (
+                  <button
+                    type="button"
+                    onClick={() => router.push("/home/store/billing")}
+                    disabled={billingLoading}
+                    className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                  >
+                    プランを再開する
                   </button>
                 )}
               </div>

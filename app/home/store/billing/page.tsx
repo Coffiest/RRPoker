@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
-import { FiCheck } from "react-icons/fi"
+import { FiCheck, FiChevronLeft } from "react-icons/fi"
 
 type Subscription = {
   status: string
@@ -15,17 +15,16 @@ type Subscription = {
 }
 
 function normalizeSubscription(d: Record<string, any>): Subscription | null {
-  if (d.subscription?.status) return d.subscription as Subscription
-  if (d["subscription.status"]) {
-    return {
-      status: d["subscription.status"],
-      plan: d["subscription.plan"] ?? "",
-      interval: d["subscription.interval"] ?? "",
-      currentPeriodEnd: d["subscription.currentPeriodEnd"] ?? 0,
-      cancelAtPeriodEnd: d["subscription.cancelAtPeriodEnd"] ?? false,
-    }
+  const nested = d.subscription ?? {}
+  const status = nested.status ?? d["subscription.status"]
+  if (!status) return null
+  return {
+    status,
+    plan: nested.plan ?? d["subscription.plan"] ?? "",
+    interval: nested.interval ?? d["subscription.interval"] ?? "",
+    currentPeriodEnd: nested.currentPeriodEnd ?? d["subscription.currentPeriodEnd"] ?? 0,
+    cancelAtPeriodEnd: nested.cancelAtPeriodEnd ?? d["subscription.cancelAtPeriodEnd"] ?? false,
   }
-  return null
 }
 
 function BillingContent() {
@@ -154,6 +153,14 @@ function BillingContent() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-2xl">
+        <button
+          type="button"
+          onClick={() => router.push("/home/store/mypage")}
+          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-1 transition-colors"
+        >
+          <FiChevronLeft size={18} />
+          戻る
+        </button>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">プランを選択</h1>
           <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>
