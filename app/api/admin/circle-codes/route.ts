@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 
 function verifyAdmin(req: NextRequest) {
-  return req.headers.get("x-admin-password") === process.env.ADMIN_PASSWORD
+  const expected = (process.env.ADMIN_PASSWORD ?? "").trim()
+  if (!expected) return false
+  return (req.headers.get("x-admin-password") ?? "").trim() === expected
 }
 
 function randomCode() {
