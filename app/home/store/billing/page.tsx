@@ -31,6 +31,7 @@ function BillingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const success = searchParams.get("success") === "true"
+  const sessionId = searchParams.get("session_id")
 
   const [plan, setPlan] = useState<"standard" | "circle">("standard")
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly")
@@ -40,6 +41,25 @@ function BillingContent() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [storeId, setStoreId] = useState<string | null>(null)
   const [authReady, setAuthReady] = useState(false)
+  const [syncError, setSyncError] = useState("")
+  const [recovering, setRecovering] = useState(false)
+  const [recoverMsg, setRecoverMsg] = useState("")
+
+  // Confirm payment directly with Stripe (independent of the webhook). Pass the
+  // checkout session id after returning from Checkout, or omit it to recover an
+  // already-paid subscription that the webhook failed to record.
+  const syncSubscription = async (withSessionId?: string | null): Promise<boolean> => {
+    const user = auth.currentUser
+    if (!user) return false
+    const token = await user.getIdToken()
+    const res = await fetch("/api/stripe/sync-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ sessionId: withSessionId ?? undefined }),
+    })
+    const data = await res.json().catch(() => ({}))
+    return res.ok && data.ok === true
+  }
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -65,6 +85,23 @@ function BillingContent() {
     return () => unsub()
   }, [storeId])
 
+  // 決済から戻ってきたら、Webhookに依存せずStripeへ直接確認してFirestoreをActive化
+  useEffect(() => {
+    if (!success || !authReady || !storeId) return
+    let cancelled = false
+    setSyncError("")
+    ;(async () => {
+      // 数回リトライ（Stripe側の反映タイミング吸収）
+      for (let i = 0; i < 4 && !cancelled; i++) {
+        const ok = await syncSubscription(sessionId).catch(() => false)
+        if (ok || cancelled) return
+        await new Promise(r => setTimeout(r, 1500))
+      }
+      if (!cancelled) setSyncError("お支払いの確認に時間がかかっています。下のボタンで再確認できます。")
+    })()
+    return () => { cancelled = true }
+  }, [success, authReady, storeId, sessionId])
+
   // アクティブ or 無料フラグがあれば /home/store へ
   // success=true の場合は2秒待ってから（成功画面を見せる）
   useEffect(() => {
@@ -75,6 +112,21 @@ function BillingContent() {
     const t = setTimeout(() => router.replace("/home/store"), delay)
     return () => clearTimeout(t)
   }, [authReady, subscription, isFree, success, router])
+
+  const handleRecover = async () => {
+    setRecovering(true)
+    setRecoverMsg("")
+    setSyncError("")
+    try {
+      const ok = await syncSubscription(sessionId)
+      if (!ok) setRecoverMsg("有効なお支払いが見つかりませんでした。お支払い済みの場合は数分後に再度お試しください。")
+      // 成功時は onSnapshot がActive化を検知して自動遷移
+    } catch {
+      setRecoverMsg("確認中にエラーが発生しました")
+    } finally {
+      setRecovering(false)
+    }
+  }
 
   const handleSubscribe = async () => {
     setLoading(true)
@@ -117,7 +169,20 @@ function BillingContent() {
                 <div className="w-10 h-10 rounded-full border-4 border-[#F2A900] border-t-transparent animate-spin" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
-              <p className="text-sm text-gray-500">少々お待ちください</p>
+              <p className="text-sm text-gray-500">お支払いを確認しています</p>
+              {syncError && (
+                <>
+                  <p className="text-sm text-red-600 mt-5 mb-3">{syncError}</p>
+                  <button
+                    onClick={handleRecover}
+                    disabled={recovering}
+                    className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-3 text-[15px] disabled:opacity-60"
+                  >
+                    {recovering ? "確認中..." : "お支払いを再確認する"}
+                  </button>
+                  {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+                </>
+              )}
             </>
           )}
         </div>
@@ -253,6 +318,19 @@ function BillingContent() {
         <p className="text-xs text-gray-400 text-center mt-4">
           Stripeの安全な決済ページに移動します。いつでもキャンセル可能です。
         </p>
+
+        {/* すでに決済済みなのに反映されない場合の救済 */}
+        <div className="mt-6 pt-5 border-t border-gray-200 text-center">
+          <p className="text-xs text-gray-500 mb-3">お支払い済みなのに反映されない場合</p>
+          <button
+            onClick={handleRecover}
+            disabled={recovering}
+            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-3 text-[14px] hover:bg-gray-50 disabled:opacity-60 transition-all"
+          >
+            {recovering ? "確認中..." : "お支払いを確認して反映する"}
+          </button>
+          {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+        </div>
       </div>
     </div>
   )

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { storeId, plan, interval, circleCode: circleCode ?? "", uid },
-    success_url: `${origin}/home/store/billing?success=true`,
+    success_url: `${origin}/home/store/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/home/store/billing`,
     subscription_data: { metadata: { storeId, plan, interval, uid } },
   })
