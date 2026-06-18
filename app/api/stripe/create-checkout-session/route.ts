@@ -43,17 +43,11 @@ export async function POST(req: NextRequest) {
   // Support both nested format and flat format
   let customerId: string | undefined = storeData?.subscription?.stripeCustomerId || storeData?.["subscription.stripeCustomerId"]
 
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      metadata: { storeId },
-      email: userSnap.data()?.email,
-    })
-    customerId = customer.id
-  }
-
+  const email = userSnap.data()?.email
   const origin = req.headers.get("origin") ?? "https://rrpoker.com"
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
+
+  const createSession = (customer: string) => stripe.checkout.sessions.create({
+    customer,
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { storeId, plan, interval, circleCode: circleCode ?? "", uid },
@@ -62,5 +56,25 @@ export async function POST(req: NextRequest) {
     subscription_data: { metadata: { storeId, plan, interval, uid } },
   })
 
-  return NextResponse.json({ url: session.url })
+  try {
+    if (!customerId) {
+      const customer = await stripe.customers.create({ metadata: { storeId }, email })
+      customerId = customer.id
+    }
+    try {
+      const session = await createSession(customerId)
+      return NextResponse.json({ url: session.url })
+    } catch (e: any) {
+      // Stored customer doesn't exist in the current Stripe mode (e.g. leftover
+      // test-mode customer after switching to live keys). Create a fresh one.
+      if (e?.code === "resource_missing") {
+        const customer = await stripe.customers.create({ metadata: { storeId }, email })
+        const session = await createSession(customer.id)
+        return NextResponse.json({ url: session.url })
+      }
+      throw e
+    }
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message ?? "決済セッションの作成に失敗しました" }, { status: 500 })
+  }
 }
