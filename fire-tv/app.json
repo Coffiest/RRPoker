@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "RRPoker Timer",
+    "slug": "rrpoker-timer",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.rrpoker.timer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "intentFilters": [
+        {
+          "action": "android.intent.action.MAIN",
+          "category": [
+            "android.intent.category.LEANBACK_LAUNCHER"
+          ]
+        }
+      ]
+    }
+  }
+}
