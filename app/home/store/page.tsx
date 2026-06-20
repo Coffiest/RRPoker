@@ -20,7 +20,7 @@ import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign,
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
-  FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2,
+  FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
 } from "react-icons/fi"
 
 type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
@@ -299,6 +299,7 @@ export default function StorePage() {
   const [adjustValue, setAdjustValue] = useState("")
   const [adjustError, setAdjustError] = useState("")
   const [manualNetGain, setManualNetGain] = useState(false)
+  const [negativeConfirmAction, setNegativeConfirmAction] = useState<{ run: () => void; resultingBalance: number } | null>(null)
   const [storePlayers, setStorePlayers] = useState<any[]>([])
   const playerMetaRef = useRef<Record<string, any>>({})
   const balanceSubsRef = useRef<Record<string, () => void>>({})
@@ -571,7 +572,7 @@ export default function StorePage() {
   const rejectDeposit = async (req: DepositRequest) => { await updateDoc(doc(db, "depositRequests", req.id), { status: "rejected" }) }
   const rejectWithdraw = async (req: WithdrawRequest) => { await updateDoc(doc(db, "withdrawRequests", req.id), { status: "rejected" }) }
 
-  const runAdjustment = async (direction: "add" | "subtract", isNetGain: boolean) => {
+  const runAdjustment = async (direction: "add" | "subtract", isNetGain: boolean, skipConfirm = false) => {
     if (!storeId || !adjustModalPlayer) { setAdjustError("プレイヤーを選択してください"); return }
     const amount = Number(adjustValue)
     if (!amount || amount < 1) { setAdjustError("数字は1以上で入力してください"); return }
@@ -581,27 +582,33 @@ export default function StorePage() {
     const balSnap = await getDoc(balRef)
     const current = balSnap.data()?.balance ?? 0
     const currentNG = balSnap.data()?.netGain ?? 0
-    if (direction === "subtract" && current < amount) { setAdjustError("残高が不足しています"); return }
+    const resultingBalance = direction === "add" ? current + amount : current - amount
+
+    if (!skipConfirm && resultingBalance < 0) {
+      setNegativeConfirmAction({ run: () => runAdjustment(direction, isNetGain, true), resultingBalance })
+      return
+    }
+
     if (!balSnap.exists()) {
-      const newBal = direction === "add" ? amount : 0
-      const newNG = isNetGain && direction === "add" ? amount : 0
+      const newBal = direction === "add" ? amount : -amount
+      const newNG = isNetGain ? newBal : 0
       await setDoc(balRef, { balance: newBal, netGain: newNG, storeId }, { merge: true })
       setSelectedPlayerBalance(newBal); setSelectedPlayerNetGain(newNG)
     } else {
       const updates: Record<string, any> = { balance: increment(direction === "add" ? amount : -amount) }
       if (isNetGain) updates.netGain = increment(direction === "add" ? amount : -amount)
       await updateDoc(balRef, updates)
-      setSelectedPlayerBalance(direction === "add" ? current + amount : current - amount)
+      setSelectedPlayerBalance(resultingBalance)
       if (isNetGain) setSelectedPlayerNetGain(direction === "add" ? currentNG + amount : currentNG - amount)
     }
     await setDoc(doc(collection(db, "transactions")), {
       storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction,
       type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment", createdAt: serverTimestamp(),
     })
-    setAdjustValue(""); setSelectedPlayerBalance(direction === "add" ? current + amount : current - amount)
+    setAdjustValue(""); setAdjustModalPlayer(null)
   }
 
-  const runStoreAdjustment = async (adjustType: string) => {
+  const runStoreAdjustment = async (adjustType: string, skipConfirm = false) => {
     if (!storeId || !adjustModalPlayer) return
     const amount = Number(adjustValue)
     if (!amount || amount < 1) { setAdjustError("金額を入力してください"); return }
@@ -618,6 +625,17 @@ export default function StorePage() {
       case "tA":      bDiff = -amount; nDiff = -amount; type = "store_tournament_addon";   direction = "subtract"; break
       default: return
     }
+
+    if (!skipConfirm && bDiff < 0) {
+      const balSnap = await getDoc(balRef)
+      const current = balSnap.data()?.balance ?? 0
+      const resultingBalance = current + bDiff
+      if (resultingBalance < 0) {
+        setNegativeConfirmAction({ run: () => runStoreAdjustment(adjustType, true), resultingBalance })
+        return
+      }
+    }
+
     // Write to Firestore — onSnapshot handles UI update, no optimistic setStorePlayers
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
@@ -2122,12 +2140,12 @@ export default function StorePage() {
               <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 14 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>Manual Adjustment</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                  <button onClick={async () => { await runAdjustment("add", manualNetGain); if (!adjustError) { setAdjustModalPlayer(null); setAdjustValue("") } }} style={{
+                  <button onClick={() => runAdjustment("add", manualNetGain)} style={{
                     height: 48, borderRadius: 12, border: 'none',
                     background: 'var(--gold)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
                     boxShadow: '0 3px 10px rgba(242,169,0,0.25)',
                   }}>＋ Add</button>
-                  <button onClick={async () => { await runAdjustment("subtract", manualNetGain); if (!adjustError) { setAdjustModalPlayer(null); setAdjustValue("") } }} style={{
+                  <button onClick={() => runAdjustment("subtract", manualNetGain)} style={{
                     height: 48, borderRadius: 12,
                     border: '1.5px solid var(--sep)', background: '#fff',
                     color: 'var(--label)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
@@ -2138,6 +2156,36 @@ export default function StorePage() {
                   純増値も更新
                 </label>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── バンクロールがマイナスになる場合の確認 ── */}
+      {negativeConfirmAction && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: '0 24px' }}
+          onClick={() => setNegativeConfirmAction(null)}>
+          <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                <FiAlertTriangle size={24} style={{ color: '#FF3B30' }}/>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', marginBottom: 6 }}>バンクロールがマイナスになります</p>
+              <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5 }}>
+                変更後の残高: {fmtChip(negativeConfirmAction.resultingBalance, store?.chipUnitLabel, store?.chipUnitBefore)}
+                <br/>このまま続行しますか？
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+              <button
+                onClick={() => setNegativeConfirmAction(null)}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: 'var(--fill)', color: 'var(--label)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+              >キャンセル</button>
+              <button
+                onClick={() => { const action = negativeConfirmAction; setNegativeConfirmAction(null); action?.run() }}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.3)' }}
+              >続行</button>
             </div>
           </div>
         </div>
