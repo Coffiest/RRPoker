@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Image } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import QRCode from 'react-native-qrcode-svg'
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth'
+import { usePairing } from '@/hooks/usePairing'
 import { useTVDimensions, useRemoteControl, RemoteKey, getFontSize } from '@/lib/firetvUtils'
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://rrpoker.vercel.app'
 
 const COLORS = {
   gold: '#F2A900',
@@ -17,11 +21,26 @@ interface LoginScreenProps {
 
 export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const { login, loading, error } = useFirebaseAuth()
+  const { code: pairingCode, status: pairingStatus, error: pairingError, startPairing, stopPolling } = usePairing()
   const tvDims = useTVDimensions()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loginMode, setLoginMode] = useState<'email' | 'qr'>('email')
+  const [loginMode, setLoginMode] = useState<'email' | 'pairing'>('email')
   const [focusedField, setFocusedField] = useState<'email' | 'password'>('email')
+
+  useEffect(() => {
+    if (loginMode === 'pairing') {
+      startPairing()
+    } else {
+      stopPolling()
+    }
+  }, [loginMode])
+
+  useEffect(() => {
+    if (pairingStatus === 'confirmed') {
+      onLoginSuccess()
+    }
+  }, [pairingStatus])
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -142,9 +161,9 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             )}
           </TouchableOpacity>
 
-          {/* QR コード切り替え */}
+          {/* コード連携に切り替え */}
           <TouchableOpacity
-            onPress={() => setLoginMode('qr')}
+            onPress={() => setLoginMode('pairing')}
             style={{
               paddingVertical: 12,
               paddingHorizontal: 24,
@@ -154,31 +173,86 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             }}
           >
             <Text style={{ fontSize: labelFontSize, color: COLORS.dark, textAlign: 'center' }}>
-              QR コードでログイン
+              スマホでコード連携してログイン
             </Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={{ alignItems: 'center', width: '100%' }}>
-          <Text style={{ fontSize: smallFontSize, color: COLORS.dark, marginBottom: 40 }}>
-            以下の QR コードをスキャンしてください
+        <View style={{ alignItems: 'center', width: '100%', maxWidth: 800 }}>
+          <Text style={{ fontSize: smallFontSize, color: COLORS.dark, marginBottom: 32, textAlign: 'center' }}>
+            スマホのカメラでQRコードを読み込むか、{'\n'}「TVと連携」からこのコードを入力してください
           </Text>
-          {/* QR コード表示エリア（実装時に qr-code ライブラリを使用） */}
-          <View
-            style={{
-              width: 400,
-              height: 400,
-              backgroundColor: '#fff',
-              borderRadius: 12,
-              marginBottom: 40,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 2,
-              borderColor: COLORS.border,
-            }}
-          >
-            <Text style={{ fontSize: labelFontSize, color: '#999' }}>QR コード</Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 48, marginBottom: 32 }}>
+            {/* QRコード */}
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: 16,
+                padding: 20,
+                borderWidth: 1,
+                borderColor: COLORS.border,
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 220,
+                minWidth: 220,
+              }}
+            >
+              {pairingStatus === 'waiting' && !pairingCode ? (
+                <ActivityIndicator size="large" color={COLORS.gold} />
+              ) : pairingCode ? (
+                <QRCode value={`${API_BASE_URL}/home/pair?code=${pairingCode}`} size={180} />
+              ) : null}
+            </View>
+
+            {/* ペアリングコード表示 */}
+            <View
+              style={{
+                backgroundColor: COLORS.lightGray,
+                borderRadius: 16,
+                paddingVertical: 32,
+                paddingHorizontal: 56,
+                minWidth: 280,
+                alignItems: 'center',
+              }}
+            >
+              {pairingStatus === 'waiting' && !pairingCode ? (
+                <ActivityIndicator size="large" color={COLORS.gold} />
+              ) : (
+                <Text style={{ fontSize: fontSize * 2, fontWeight: 'bold', color: COLORS.dark, letterSpacing: 12 }}>
+                  {pairingCode ?? '------'}
+                </Text>
+              )}
+            </View>
           </View>
+
+          {pairingStatus === 'expired' && (
+            <Text style={{ fontSize: smallFontSize, color: '#d32f2f', marginBottom: 24, textAlign: 'center' }}>
+              コードの有効期限が切れました
+            </Text>
+          )}
+          {pairingError && (
+            <Text style={{ fontSize: smallFontSize, color: '#d32f2f', marginBottom: 24, textAlign: 'center' }}>
+              {pairingError}
+            </Text>
+          )}
+
+          {(pairingStatus === 'expired' || pairingStatus === 'error') && (
+            <TouchableOpacity
+              onPress={startPairing}
+              style={{
+                backgroundColor: COLORS.gold,
+                borderRadius: 12,
+                paddingVertical: 16,
+                paddingHorizontal: 32,
+                marginBottom: 24,
+              }}
+            >
+              <Text style={{ fontSize: smallFontSize, fontWeight: 'bold', color: COLORS.dark, textAlign: 'center' }}>
+                コードを再発行
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* メール入力に戻る */}
           <TouchableOpacity
@@ -191,7 +265,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               borderColor: COLORS.border,
             }}
           >
-            <Text style={{ fontSize: labelFontSize, color: COLORS.dark }}>
+            <Text style={{ fontSize: labelFontSize, color: COLORS.dark, textAlign: 'center' }}>
               メールアドレスでログイン
             </Text>
           </TouchableOpacity>

@@ -3,7 +3,13 @@ import { doc, onSnapshot } from 'firebase/firestore'
 import { Timestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
+export interface PrizeEntry {
+  amount: number
+  text?: string
+}
+
 export interface TimerState {
+  loaded: boolean
   timeRemaining: number
   timerRunning: boolean
   currentLevelIndex: number
@@ -19,6 +25,7 @@ export interface TimerState {
   totalEntry: number
   totalReentry: number
   totalAddon: number
+  prizePool: Record<string, PrizeEntry>
 }
 
 export function useTimerSync(
@@ -26,6 +33,7 @@ export function useTimerSync(
   tournamentId: string | null
 ): TimerState {
   const [state, setState] = useState<TimerState>({
+    loaded: false,
     timeRemaining: 0,
     timerRunning: false,
     currentLevelIndex: 0,
@@ -41,6 +49,7 @@ export function useTimerSync(
     totalEntry: 0,
     totalReentry: 0,
     totalAddon: 0,
+    prizePool: {},
   })
 
   const lastSeenLsAtMsRef = useRef<number | null>(null)
@@ -56,26 +65,30 @@ export function useTimerSync(
 
         // levelStartedAt が変わった時だけ levelStartedRemaining を snapshot
         const newLsAtMs = d.levelStartedAt?.toMillis?.() ?? null
-        let newLevelStartedRemaining = state.levelStartedRemaining
+        const levelChanged = newLsAtMs !== lastSeenLsAtMsRef.current
+        if (levelChanged) lastSeenLsAtMsRef.current = newLsAtMs
 
-        if (newLsAtMs !== lastSeenLsAtMsRef.current) {
-          lastSeenLsAtMsRef.current = newLsAtMs
-          newLevelStartedRemaining =
-            typeof d.levelStartedRemaining === 'number'
-              ? d.levelStartedRemaining
-              : typeof d.timeRemaining === 'number'
-              ? d.timeRemaining
-              : 0
+        const prizePool: Record<string, PrizeEntry> = {}
+        for (const [place, v] of Object.entries(d.prizePool ?? {})) {
+          const entry = v as any
+          prizePool[place] = { amount: typeof entry?.amount === 'number' ? entry.amount : 0, text: entry?.text ?? '' }
         }
 
         setState((prev) => ({
           ...prev,
+          loaded: true,
           timeRemaining: d.timeRemaining ?? 0,
           timerRunning: d.timerRunning ?? false,
           currentLevelIndex: d.currentLevelIndex ?? 0,
           customBlindLevels: d.customBlindLevels ?? [],
           levelStartedAt: newLsAtMs,
-          levelStartedRemaining: newLevelStartedRemaining,
+          levelStartedRemaining: levelChanged
+            ? typeof d.levelStartedRemaining === 'number'
+              ? d.levelStartedRemaining
+              : typeof d.timeRemaining === 'number'
+              ? d.timeRemaining
+              : 0
+            : prev.levelStartedRemaining,
           name: d.name ?? '',
           comment: d.comment ?? '',
           entryStack: d.entryStack ?? 0,
@@ -85,6 +98,7 @@ export function useTimerSync(
           totalEntry: d.totalEntry ?? 0,
           totalReentry: d.totalReentry ?? 0,
           totalAddon: d.totalAddon ?? 0,
+          prizePool,
         }))
       }
     )

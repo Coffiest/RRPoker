@@ -18,6 +18,10 @@ export function getCommonMenuItems(router: ReturnType<typeof useRouter>, variant
       onClick: () => router.push('/home/store/settings'),
     })
   }
+  items.push({
+    label: 'TVと連携',
+    onClick: () => router.push('/home/pair'),
+  })
   // 必要に応じて他の共通項目を追加
   return items
 }

@@ -83,9 +83,3 @@ export function useRemoteControl(
   }, [handlers])
 }
 
-// QR コード用のカメラアクセス（Fire TV では LL でカメラ使用不可の場合が多いため、メール/パスの方がメイン）
-export function supportsCamera(): boolean {
-  // Fire TV が カメラサポートしているか確認
-  // ほとんどの Fire Stick はカメラなし
-  return false
-}

@@ -32,8 +32,8 @@ export function useTournamentList(user: User | null, storeId: string | null) {
 
     try {
       // store 配下の tournaments を監視
-      // status フィルター：開催中のみ
-      const constraints: QueryConstraint[] = []
+      // status フィルター：進行中（active）のみ選択可能にする
+      const constraints: QueryConstraint[] = [where('status', '==', 'active')]
 
       const q = query(
         collection(db, 'stores', storeId, 'tournaments'),

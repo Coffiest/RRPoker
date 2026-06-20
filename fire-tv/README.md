@@ -4,7 +4,8 @@ Amazon Fire Stick 用のタイマー表示アプリケーション。
 
 ## 機能
 
-- **ログイン**: Firebase Authentication（メール・パスワード、QR コード）
+- **ログイン**: Firebase Authentication（メール・パスワード、スマホでのコードペアリング）
+  - Fire Stick にはカメラがないため、TV に表示された6桁コードをスマホの RRPoker サイト（`/home/pair`）で入力してログインする方式
 - **トナメリスト**: Firestore から開催中のトーナメント一覧を取得・表示
 - **タイマー表示**: リアルタイムでタイマーを表示、自動調整
 - **リモコン対応**: Fire TV リモコンでの操作（↑↓OK、戻る）
