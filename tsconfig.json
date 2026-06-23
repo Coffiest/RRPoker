@@ -39,6 +39,7 @@
   ],
   "exclude": [
     "node_modules",
-    "fire-tv"
+    "fire-tv",
+    "ios-app"
   ]
 }
