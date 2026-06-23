@@ -159,7 +159,10 @@ service cloud.firestore {
 
     match /transactions/{transactionId} {
       allow read: if isSignedIn();
-      allow write: if isStoreOwner(request.resource.data.storeId);
+      allow create, update: if isStoreOwner(request.resource.data.storeId);
+      // 履歴の個別削除は許可しない。店舗の「履歴とチップを全て削除」機能からの
+      // 一括削除（storeBalancesのリセットと同時に行う）のみを許可する。
+      allow delete: if isStoreOwner(resource.data.storeId);
     }
 
     match /friendRequests/{requestId} {

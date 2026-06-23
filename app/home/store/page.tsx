@@ -3,7 +3,7 @@
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
@@ -22,6 +22,7 @@ import {
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign,
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
+  FiCreditCard, FiRefreshCw, FiPlusCircle, FiAward, FiMessageSquare, FiSend, FiInbox,
 } from "react-icons/fi"
 
 type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
@@ -36,6 +37,58 @@ type PlayerInfo = { id: string; name?: string; iconUrl?: string; visitCount?: nu
 function fmtChip(amount: number, unit?: string, before?: boolean): string {
   if (!unit) return amount.toLocaleString()
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
+// 残高への加減方向だけをアイコンの色で示す、見た目を統一したアクションタイル。
+// ボタン自体の地色・枠線・タイポグラフィは常に同一にし、特定のボタンだけが
+// 目立つ配色にならないようにする（Apple Walletの取引アイコンと同じ考え方）。
+type ActionTileProps = { label: string; icon: ReactNode; direction: "add" | "subtract"; onClick: () => void; disabled?: boolean }
+function ActionTile({ label, icon, direction, onClick, disabled }: ActionTileProps) {
+  const tintBg = direction === "add" ? "rgba(52,199,89,0.12)" : "rgba(255,59,48,0.1)"
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
+        height: 78, borderRadius: 16, border: "1px solid var(--sep)", background: "#fff",
+        cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, padding: 0,
+        WebkitTapHighlightColor: "transparent", transition: "background 0.15s ease, transform 0.12s ease",
+      }}
+      onPointerDown={e => { if (!disabled) { e.currentTarget.style.background = "var(--fill)"; e.currentTarget.style.transform = "scale(0.96)" } }}
+      onPointerUp={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "scale(1)" }}
+      onPointerLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "scale(1)" }}
+    >
+      <div style={{ width: 34, height: 34, borderRadius: 11, background: tintBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {icon}
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--label)" }}>{label}</span>
+    </button>
+  )
+}
+
+// iOS標準のUISwitchを模した自前のトグル（チェックボックスは使用しない）
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      style={{
+        width: 51, height: 31, borderRadius: 31, border: "none", flexShrink: 0, padding: 0, cursor: "pointer",
+        background: checked ? "#34C759" : "rgba(120,120,128,0.16)", position: "relative",
+        transition: "background-color 0.2s ease", WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <span style={{
+        position: "absolute", top: 2, left: checked ? 22 : 2, width: 27, height: 27, borderRadius: "50%",
+        background: "#fff", boxShadow: "0 3px 8px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.08)",
+        transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
+      }}/>
+    </button>
+  )
 }
 
 export default function StorePage() {
@@ -300,6 +353,7 @@ export default function StorePage() {
   const [adjustValue, setAdjustValue] = useState("")
   const [adjustError, setAdjustError] = useState("")
   const [manualNetGain, setManualNetGain] = useState(false)
+  const [manualComment, setManualComment] = useState("")
   const [negativeConfirmAction, setNegativeConfirmAction] = useState<{ run: () => void; resultingBalance: number } | null>(null)
   const [storePlayers, setStorePlayers] = useState<any[]>([])
   const playerMetaRef = useRef<Record<string, any>>({})
@@ -609,9 +663,10 @@ export default function StorePage() {
     }
     await setDoc(doc(collection(db, "transactions")), {
       storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction,
-      type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment", createdAt: serverTimestamp(),
+      type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment",
+      comment: manualComment.trim() || null, createdAt: serverTimestamp(),
     })
-    setAdjustValue(""); setAdjustModalPlayer(null)
+    setAdjustValue(""); setAdjustModalPlayer(null); setManualComment("")
   }
 
   const runStoreAdjustment = async (adjustType: string, skipConfirm = false) => {
@@ -647,7 +702,7 @@ export default function StorePage() {
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
     await setDoc(doc(collection(db, "transactions")), { storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction, type, createdAt: serverTimestamp() })
-    setAdjustModalPlayer(null); setAdjustValue("")
+    setAdjustModalPlayer(null); setAdjustValue(""); setManualComment("")
   }
 
   const runPrizeAdjustment = async () => {
@@ -665,6 +720,7 @@ export default function StorePage() {
     })
     setAdjustModalPlayer(null)
     setAdjustValue("")
+    setManualComment("")
   }
 
   const STAMP_GOAL = 12
@@ -953,7 +1009,7 @@ export default function StorePage() {
 
       {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
-      {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
+      {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
@@ -2037,7 +2093,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.9</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.10</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
@@ -2047,7 +2103,7 @@ export default function StorePage() {
       {/* ── Adjust Modal ─────────────────────────────────────────────────── */}
       {adjustModalPlayer && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-          onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError("") }}>
+          onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError(""); setManualComment("") }}>
 
           <div style={{ width: '100%', maxWidth: 480, background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 24px rgba(0,0,0,0.1)', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
             onClick={e => e.stopPropagation()}>
@@ -2075,7 +2131,7 @@ export default function StorePage() {
                   </p>
                 </div>
               </div>
-              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError("") }}
+              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError(""); setManualComment("") }}
                 style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               ><FiX size={14} style={{ color: 'var(--label3)' }}/></button>
             </div>
@@ -2083,84 +2139,105 @@ export default function StorePage() {
             {/* Body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 0' }}>
 
-              {/* Amount input */}
-              <div style={{ marginBottom: 18 }}>
-                <div style={{ position: 'relative', borderBottom: adjustValue ? '2px solid var(--gold)' : '2px solid var(--sep)', transition: 'border-color 0.15s', paddingBottom: 4 }}>
+              {/* Amount input — Apple Cash／Wallet 風の大きな金額表示 */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{
+                  position: 'relative', background: 'var(--fill)', borderRadius: 18,
+                  padding: '22px 44px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 3,
+                }}>
+                  {store?.chipUnitBefore && store?.chipUnitLabel && (
+                    <span style={{ fontSize: 22, fontWeight: 700, color: adjustValue ? 'var(--label2)' : 'var(--label3)' }}>{store.chipUnitLabel}</span>
+                  )}
                   <input
                     value={adjustValue} onChange={e => { setAdjustValue(e.target.value); setAdjustError("") }}
                     placeholder="0"
                     inputMode="numeric"
-                    style={{ width: '100%', border: 'none', background: 'transparent', padding: '0 32px 0 4px', fontSize: 32, fontWeight: 900, textAlign: 'center', color: adjustValue ? 'var(--label)' : 'var(--label3)', outline: 'none', boxSizing: 'border-box', letterSpacing: '-1px', fontVariantNumeric: 'tabular-nums' }}
+                    size={Math.max((adjustValue || '0').length, 1)}
+                    style={{
+                      border: 'none', background: 'transparent', outline: 'none', padding: 0,
+                      fontSize: 40, fontWeight: 800, textAlign: 'center', minWidth: 24, maxWidth: '100%',
+                      color: adjustValue ? 'var(--label)' : 'var(--label3)', letterSpacing: '-1px',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
                   />
+                  {!store?.chipUnitBefore && store?.chipUnitLabel && (
+                    <span style={{ fontSize: 22, fontWeight: 700, color: adjustValue ? 'var(--label2)' : 'var(--label3)' }}>{store.chipUnitLabel}</span>
+                  )}
                   {adjustValue && (
-                    <button onClick={() => setAdjustValue("")} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                      <FiX size={10} style={{ color: 'var(--label3)' }}/>
+                    <button onClick={() => setAdjustValue("")} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', width: 26, height: 26, borderRadius: '50%', background: 'rgba(120,120,128,0.16)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <FiX size={11} style={{ color: 'var(--label2)' }}/>
                     </button>
                   )}
                 </div>
                 {adjustError && (
-                  <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', margin: '6px 0 0' }}>{adjustError}</p>
+                  <p style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#FF3B30', margin: '8px 0 0' }}>{adjustError}</p>
                 )}
               </div>
 
               {/* Ring Game */}
-              <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
-                  {[
-                    { l: 'Buy-in',    t: 'buyin',   accent: false },
-                    { l: 'Cash Out',  t: 'cashout', accent: true  },
-                    { l: 'チップ購入', t: 'chip',    accent: false },
-                  ].map(b => (
-                    <button key={b.t} onClick={() => runStoreAdjustment(b.t)} style={{
-                      height: 44, borderRadius: 12, cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'opacity 0.15s',
-                      border: b.accent ? 'none' : '1.5px solid var(--sep)',
-                      background: b.accent ? 'var(--gold)' : '#fff',
-                      color: b.accent ? '#fff' : 'var(--label)',
-                      boxShadow: b.accent ? '0 3px 10px rgba(242,169,0,0.25)' : 'none',
-                    }}>{b.l}</button>
-                  ))}
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  <ActionTile label="Buy-in" direction="subtract" icon={<FiSend size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('buyin')} />
+                  <ActionTile label="Cash Out" direction="add" icon={<FiInbox size={15} style={{ color: '#34C759' }}/>} onClick={() => runStoreAdjustment('cashout')} />
+                  <ActionTile label="チップ購入" direction="add" icon={<FiCreditCard size={15} style={{ color: '#34C759' }}/>} onClick={() => runStoreAdjustment('chip')} />
                 </div>
               </div>
 
               {/* Tournament */}
-              <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7 }}>
-                  {[{ l: 'Entry', t: 'tE' }, { l: 'Re-entry', t: 'tR' }, { l: 'Add-on', t: 'tA' }].map(b => (
-                    <button key={b.t} onClick={() => runStoreAdjustment(b.t)} style={{
-                      height: 44, borderRadius: 12, border: '1.5px solid var(--sep)', background: '#fff', color: 'var(--label)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    }}>{b.l}</button>
-                  ))}
+              <div style={{ marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+                  <ActionTile label="Entry" direction="subtract" icon={<FiPlay size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tE')} />
+                  <ActionTile label="Re-entry" direction="subtract" icon={<FiRefreshCw size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tR')} />
+                  <ActionTile label="Add-on" direction="subtract" icon={<FiPlusCircle size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tA')} />
                 </div>
               </div>
 
               {/* Prize */}
-              <button onClick={runPrizeAdjustment} style={{
-                width: '100%', height: 44, borderRadius: 12, marginBottom: 14,
-                border: '1.5px solid rgba(242,169,0,0.4)', background: 'rgba(242,169,0,0.06)',
-                color: 'var(--gold-dk)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              }}>🏆  Prize / 入賞</button>
+              <div style={{ marginBottom: 16 }}>
+                <button
+                  type="button"
+                  onClick={runPrizeAdjustment}
+                  style={{
+                    width: '100%', height: 52, borderRadius: 16, border: '1px solid var(--sep)', background: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, cursor: 'pointer', padding: 0,
+                    WebkitTapHighlightColor: 'transparent', transition: 'background 0.15s ease, transform 0.12s ease',
+                  }}
+                  onPointerDown={e => { e.currentTarget.style.background = 'var(--fill)'; e.currentTarget.style.transform = 'scale(0.98)' }}
+                  onPointerUp={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1)' }}
+                  onPointerLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: 9, background: 'rgba(52,199,89,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FiAward size={14} style={{ color: '#34C759' }}/>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>プライズ</span>
+                </button>
+              </div>
 
-              {/* Manual Adjustment */}
-              <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>Manual Adjustment</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-                  <button onClick={() => runAdjustment("add", manualNetGain)} style={{
-                    height: 48, borderRadius: 12, border: 'none',
-                    background: 'var(--gold)', color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-                    boxShadow: '0 3px 10px rgba(242,169,0,0.25)',
-                  }}>＋ Add</button>
-                  <button onClick={() => runAdjustment("subtract", manualNetGain)} style={{
-                    height: 48, borderRadius: 12,
-                    border: '1.5px solid var(--sep)', background: '#fff',
-                    color: 'var(--label)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                  }}>− Subtract</button>
+              {/* 手動調整 */}
+              <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 16, marginBottom: 4 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>手動調整</p>
+
+                {/* コメント */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--fill)', borderRadius: 12, padding: '0 12px', marginBottom: 10 }}>
+                  <FiMessageSquare size={14} style={{ color: 'var(--label3)', flexShrink: 0 }}/>
+                  <input
+                    value={manualComment} onChange={e => setManualComment(e.target.value)}
+                    placeholder="コメント（任意）"
+                    style={{ flex: 1, height: 42, border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: 'var(--label)' }}
+                  />
                 </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label2)', fontWeight: 500, padding: '10px 12px', background: 'var(--fill)', borderRadius: 10, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={manualNetGain} onChange={e => setManualNetGain(e.target.checked)} style={{ accentColor: 'var(--gold)', width: 16, height: 16, cursor: 'pointer' }}/>
-                  純増値も更新
-                </label>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                  <ActionTile label="手動プラス" direction="add" icon={<FiPlus size={16} style={{ color: '#34C759' }}/>} onClick={() => runAdjustment('add', manualNetGain)} />
+                  <ActionTile label="手動マイナス" direction="subtract" icon={<FiMinus size={16} style={{ color: '#FF3B30' }}/>} onClick={() => runAdjustment('subtract', manualNetGain)} />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--fill)', borderRadius: 14 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--label)' }}>純増値も更新</span>
+                  <ToggleSwitch checked={manualNetGain} onChange={setManualNetGain} />
+                </div>
               </div>
             </div>
           </div>

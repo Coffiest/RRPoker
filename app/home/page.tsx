@@ -741,7 +741,9 @@ export default function HomePage() {
 
   const getHistoryLabel = (type: string, comment?: string) => {
     const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "預入（購入）", deposit_approved_pure_increase: "預入（純増）", withdraw_approved: "引き出し", withdraw_request: "引き出し申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "プライズ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
-    return map[type] ?? "不明"
+    const label = map[type] ?? "不明"
+    if (comment && (type === "manual_adjustment" || type === "manual_adjustment_net_gain")) return `${label}：${comment}`
+    return label
   }
   const getHistoryAmount = (item: any) => { if (item.type === "withdraw") return formatSignedChipValue(-item.amount); if (item.type === "manual_adjustment") { const signedValue = item.direction === "subtract" ? -item.amount : item.amount; return formatSignedChipValue(signedValue) }; return formatSignedChipValue(item.amount) }
   
@@ -1603,6 +1605,45 @@ const medalClass = (rank: number) => {
         {/* ════ 入店中 ════ */}
         {currentStoreId && currentStore ? (
           <>
+            {/* 入店中の店舗カード */}
+            <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
+              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
+                {currentStore.iconUrl
+                  ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
+                  : <div className="flex h-full w-full items-center justify-center"><FiHome className="text-gray-300" size={20} /></div>
+                }
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[#34C759]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-gray-400">入店中</p>
+                </div>
+                <p className="mt-0.5 truncate text-[15px] font-semibold text-gray-900 tracking-[-0.2px]">{currentStore.name}</p>
+              </div>
+              {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
+                <div className="flex flex-shrink-0 items-center gap-2">
+                  {currentStore.snsInstagram && (
+                    <a href={currentStore.snsInstagram} target="_blank" rel="noopener noreferrer"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm transition-transform active:scale-90">
+                      <FaInstagram size={16} />
+                    </a>
+                  )}
+                  {currentStore.snsX && (
+                    <a href={currentStore.snsX} target="_blank" rel="noopener noreferrer"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-transform active:scale-90">
+                      <FaXTwitter size={15} />
+                    </a>
+                  )}
+                  {currentStore.snsWeb && (
+                    <a href={currentStore.snsWeb} target="_blank" rel="noopener noreferrer"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-transform active:scale-90">
+                      <FiGlobe size={15} />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* 退店ボタン */}
             <button data-tutorial="checkout-btn" type="button" onClick={handleLeaveStore}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"

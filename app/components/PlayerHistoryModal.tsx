@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore"
+import { collection, query, where, onSnapshot, orderBy, getDocs, writeBatch, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { FiX, FiArrowUp, FiArrowDown } from "react-icons/fi"
+import { FiX, FiArrowUp, FiArrowDown, FiTrash2, FiAlertTriangle } from "react-icons/fi"
 
 type Transaction = {
   id: string
@@ -17,6 +17,7 @@ type Transaction = {
 type Props = {
   playerId: string
   storeId: string
+  playerName?: string
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
@@ -35,7 +36,7 @@ function formatDate(ts: any) {
 function formatType(type: string, comment?: string) {
   switch (type) {
     case "manual_adjustment":
-    case "manual_adjustment_net_gain": return "手動調整"
+    case "manual_adjustment_net_gain": return comment ? `手動調整：${comment}` : "手動調整"
     case "deposit_approved_purchase":  return "預入（購入）"
     case "deposit_approved_pure_increase": return "預入（純増）"
     case "withdraw_approved":          return "引き出し"
@@ -64,8 +65,11 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerHistoryModal({ playerId, storeId, chipUnit, chipUnitBefore, onClose }: Props) {
+export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose }: Props) {
   const [history, setHistory] = useState<Transaction[]>([])
+  const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false)
+  const [wiping, setWiping] = useState(false)
+  const [wipeError, setWipeError] = useState("")
 
   useEffect(() => {
     if (!playerId || !storeId) return
@@ -82,6 +86,39 @@ export default function PlayerHistoryModal({ playerId, storeId, chipUnit, chipUn
     })
     return () => unsub()
   }, [playerId, storeId])
+
+  // 履歴とバンクロールをまとめて削除（個別削除は不可・全削除のみ）。
+  // balance/netGainを同時にリセットすることで、チップ増減グラフとの不整合を防ぐ。
+  const wipeHistoryAndBalance = async () => {
+    setWiping(true)
+    setWipeError("")
+    try {
+      const snap = await getDocs(
+        query(collection(db, "transactions"), where("playerId", "==", playerId), where("storeId", "==", storeId))
+      )
+      const docs = snap.docs
+      const CHUNK = 450
+      for (let i = 0; i < docs.length; i += CHUNK) {
+        const batch = writeBatch(db)
+        docs.slice(i, i + CHUNK).forEach(d => batch.delete(d.ref))
+        if (i + CHUNK >= docs.length) {
+          batch.set(doc(db, "users", playerId, "storeBalances", storeId), { balance: 0, netGain: 0 }, { merge: true })
+        }
+        await batch.commit()
+      }
+      if (docs.length === 0) {
+        await writeBatch(db)
+          .set(doc(db, "users", playerId, "storeBalances", storeId), { balance: 0, netGain: 0 }, { merge: true })
+          .commit()
+      }
+      setWipeConfirmOpen(false)
+      onClose()
+    } catch {
+      setWipeError("削除中にエラーが発生しました")
+    } finally {
+      setWiping(false)
+    }
+  }
 
   return (
     <div
@@ -167,7 +204,62 @@ export default function PlayerHistoryModal({ playerId, storeId, chipUnit, chipUn
             })
           )}
         </div>
+
+        {/* Danger zone */}
+        <div style={{ padding: '12px 18px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
+          <button
+            onClick={() => setWipeConfirmOpen(true)}
+            style={{
+              width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.08)',
+              color: '#FF3B30', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            }}
+          >
+            <FiTrash2 size={14} />
+            履歴とチップを全て削除
+          </button>
+        </div>
       </div>
+
+      {/* Wipe confirmation */}
+      {wipeConfirmOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: '0 24px' }}
+          onClick={e => { e.stopPropagation(); if (!wiping) setWipeConfirmOpen(false) }}
+        >
+          <div
+            style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                <FiAlertTriangle size={24} style={{ color: '#FF3B30' }}/>
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 6 }}>
+                {playerName ?? 'このプレイヤー'}の履歴を全て削除しますか？
+              </p>
+              <p style={{ fontSize: 13, color: 'rgba(60,60,67,0.6)', lineHeight: 1.5, margin: 0 }}>
+                チップ履歴（{history.length}件）と所持チップ・純増値が全て0になります。<br/>この操作は取り消せません。
+              </p>
+              {wipeError && (
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', marginTop: 10 }}>{wipeError}</p>
+              )}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+              <button
+                onClick={() => setWipeConfirmOpen(false)}
+                disabled={wiping}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: 'rgba(120,120,128,0.12)', color: 'rgba(28,28,30,1)', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: wiping ? 0.6 : 1 }}
+              >キャンセル</button>
+              <button
+                onClick={wipeHistoryAndBalance}
+                disabled={wiping}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.3)', opacity: wiping ? 0.6 : 1 }}
+              >{wiping ? '削除中...' : '完全に削除する'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
