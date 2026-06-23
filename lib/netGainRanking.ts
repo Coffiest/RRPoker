@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, query, where, Timestamp } from "firebase/firestore"
+import { collection, doc, getDocs, getDoc, query, where, Timestamp, type QuerySnapshot, type DocumentData } from "firebase/firestore"
 import { db } from "./firebase"
 
 export type NetGainPlayer = {
@@ -74,11 +74,7 @@ function txNetGainDelta(tx: { type: string; amount?: number; direction?: string 
   }
 }
 
-export async function getMonthlyNetGainRanking(
-  storeId: string,
-  year: number,
-  month: number, // 0-indexed (JS Date convention)
-): Promise<NetGainPlayer[]> {
+async function getMonthNetGainTotals(storeId: string, year: number, month: number): Promise<Map<string, number>> {
   const startOfMonth = new Date(year, month, 1, 0, 0, 0, 0)
   const startOfNextMonth = new Date(year, month + 1, 1, 0, 0, 0, 0)
 
@@ -88,17 +84,7 @@ export async function getMonthlyNetGainRanking(
     where("createdAt", ">=", Timestamp.fromDate(startOfMonth)),
     where("createdAt", "<", Timestamp.fromDate(startOfNextMonth)),
   )
-
-  const [txSnap, usersSnap] = await Promise.all([
-    getDocs(txQuery),
-    getDocs(collection(db, "users")),
-  ])
-
-  const userMap = new Map<string, { name?: string; iconUrl?: string }>()
-  for (const u of usersSnap.docs) {
-    const d = u.data()
-    userMap.set(u.id, { name: d?.name, iconUrl: d?.iconUrl })
-  }
+  const txSnap = await getDocs(txQuery)
 
   const totals = new Map<string, number>()
   for (const txDoc of txSnap.docs) {
@@ -108,6 +94,42 @@ export async function getMonthlyNetGainRanking(
     const delta = txNetGainDelta(tx as any)
     if (delta === null) continue
     totals.set(playerId, (totals.get(playerId) ?? 0) + delta)
+  }
+  return totals
+}
+
+async function getYearNetGainTotals(storeId: string, year: number): Promise<Map<string, number>> {
+  const startOfYear = new Date(year, 0, 1, 0, 0, 0, 0)
+  const startOfNextYear = new Date(year + 1, 0, 1, 0, 0, 0, 0)
+
+  const txQuery = query(
+    collection(db, "transactions"),
+    where("storeId", "==", storeId),
+    where("createdAt", ">=", Timestamp.fromDate(startOfYear)),
+    where("createdAt", "<", Timestamp.fromDate(startOfNextYear)),
+  )
+  const txSnap = await getDocs(txQuery)
+
+  const totals = new Map<string, number>()
+  for (const txDoc of txSnap.docs) {
+    const tx = txDoc.data()
+    const playerId: string = tx.playerId
+    if (!playerId) continue
+    const delta = txNetGainDelta(tx as any)
+    if (delta === null) continue
+    totals.set(playerId, (totals.get(playerId) ?? 0) + delta)
+  }
+  return totals
+}
+
+function rankFromTotals(
+  totals: Map<string, number>,
+  usersSnap: QuerySnapshot<DocumentData>,
+): NetGainPlayer[] {
+  const userMap = new Map<string, { name?: string; iconUrl?: string }>()
+  for (const u of usersSnap.docs) {
+    const d = u.data()
+    userMap.set(u.id, { name: d?.name, iconUrl: d?.iconUrl })
   }
 
   const players: NetGainPlayer[] = []
@@ -125,4 +147,48 @@ export async function getMonthlyNetGainRanking(
     if (lastValue === null || p.netGain !== lastValue) { currentRank = i + 1; lastValue = p.netGain }
     return { ...p, rank: currentRank }
   })
+}
+
+export async function getMonthlyNetGainRanking(
+  storeId: string,
+  year: number,
+  month: number, // 0-indexed (JS Date convention)
+): Promise<NetGainPlayer[]> {
+  const [totals, usersSnap] = await Promise.all([
+    getMonthNetGainTotals(storeId, year, month),
+    getDocs(collection(db, "users")),
+  ])
+  return rankFromTotals(totals, usersSnap)
+}
+
+// 複数の月をまとめて合算した純増ランキング。各月を並列取得してプレイヤーごとに合計し、1回だけ順位付けする。
+export async function getMultiMonthNetGainRanking(
+  storeId: string,
+  months: { year: number; month: number }[],
+): Promise<NetGainPlayer[]> {
+  if (months.length === 0) return []
+
+  const [totalsList, usersSnap] = await Promise.all([
+    Promise.all(months.map(m => getMonthNetGainTotals(storeId, m.year, m.month))),
+    getDocs(collection(db, "users")),
+  ])
+
+  const combined = new Map<string, number>()
+  for (const totals of totalsList) {
+    for (const [id, val] of totals.entries()) {
+      combined.set(id, (combined.get(id) ?? 0) + val)
+    }
+  }
+  return rankFromTotals(combined, usersSnap)
+}
+
+export async function getYearlyNetGainRanking(
+  storeId: string,
+  year: number,
+): Promise<NetGainPlayer[]> {
+  const [totals, usersSnap] = await Promise.all([
+    getYearNetGainTotals(storeId, year),
+    getDocs(collection(db, "users")),
+  ])
+  return rankFromTotals(totals, usersSnap)
 }

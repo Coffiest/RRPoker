@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
-import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiTrendingUp, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2, FiGlobe } from "react-icons/fi"
+import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2, FiGlobe } from "react-icons/fi"
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
@@ -11,7 +11,7 @@ import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
-import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
+import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
@@ -55,6 +55,210 @@ function txNetGainDelta(tx: any): number | null {
   }
 }
 
+// 累積値だけでなく、各点の日時・単発の増減もタップ詳細表示用に保持する
+type GraphPoint = { cumulative: number; delta: number | null; sec: number | null }
+type GraphShelfPage = { key: string; label: string; points: GraphPoint[] }
+
+const TOURNAMENT_TX_TYPES = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
+const RING_TX_TYPES = new Set(['store_buyin', 'store_cashout'])
+
+function buildGraphPoints(
+  txs: any[], storeIds: Set<string>, typeFilter: Set<string> | null, tab: "7" | "1m" | "all"
+): GraphPoint[] {
+  const nowSec = Date.now() / 1000
+  const withDelta = txs
+    .filter(tx => storeIds.has(tx.storeId) && (!typeFilter || typeFilter.has(tx.type)))
+    .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
+    .filter((x): x is { delta: number; sec: number } => x.delta !== null)
+  const filtered = tab === "7" ? withDelta.slice(-7) : tab === "1m" ? withDelta.filter(x => x.sec >= nowSec - 30 * 86400) : withDelta
+  let running = 0
+  const points: GraphPoint[] = [{ cumulative: 0, delta: null, sec: null }]
+  filtered.forEach(({ delta, sec }) => { running += delta; points.push({ cumulative: running, delta, sec }) })
+  return points
+}
+
+function formatGraphPointDate(sec: number): string {
+  const d = new Date(sec * 1000)
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+type GraphTooltipState = { cardKey: string; idx: number; left: number; top: number; above: boolean }
+
+// Apple Music / Netflix のシェルフUI。section-cardのような外枠は持たせず、
+// セクションタイトルはページの背景に直接置く。カード自体だけが白背景+枠+影を持ち、
+// バンクロールカードに近い横幅の3枚が横一列に並んで、ページ全体を包む「1枚の箱」には見えないようにする。
+// 横スクロール領域は overflow-x のみを持ち、touchAction: 'pan-x' で縦スクロールと分離する。
+function GraphShelf({
+  sectionTitle, periodTab, onPeriodChange, pages, edgeInset = 16,
+}: {
+  sectionTitle: string
+  periodTab: "7" | "1m" | "all"
+  onPeriodChange: (tab: "7" | "1m" | "all") => void
+  pages: GraphShelfPage[]
+  edgeInset?: number
+}) {
+  const [tooltip, setTooltip] = useState<GraphTooltipState | null>(null)
+
+  const closeTooltip = () => setTooltip(null)
+
+  const renderCard = (page: GraphShelfPage) => {
+    const { points } = page
+    const noData = points.length < 2
+    if (noData) {
+      return (
+        <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
+          <p className="text-[13px] font-semibold text-gray-900">{page.label}</p>
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-center text-[12px] text-gray-400">この期間のデータがありません</p>
+          </div>
+        </div>
+      )
+    }
+
+    const cumulatives = points.map(p => p.cumulative)
+    const lastVal = cumulatives[cumulatives.length - 1]
+    const peak = Math.max(...cumulatives)
+    const trough = Math.min(...cumulatives)
+    const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
+
+    const W = 280, H = 130, PL = 8, PR = 8, PT = 10, PB = 10
+    const minV = Math.min(...cumulatives), maxV = Math.max(...cumulatives)
+    const range = maxV - minV || 1
+    const xs = cumulatives.map((_, i) => PL + (i / (cumulatives.length - 1)) * (W - PL - PR))
+    const ys = cumulatives.map(v => PT + ((maxV - v) / range) * (H - PT - PB))
+    const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")
+    const zeroY = PT + ((maxV - 0) / range) * (H - PT - PB)
+
+    return (
+      <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
+        {/* ヘッダー：種別ラベル + 最終値（ヒーロー数値） */}
+        <div className="flex items-end justify-between">
+          <p className="text-[13px] font-semibold text-gray-500">{page.label}</p>
+          <p className={`text-[22px] font-extrabold leading-none ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
+            {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
+          </p>
+        </div>
+
+        {/* チャート：各点タップで日付＋増減のツールチップを表示 */}
+        <div className="relative mt-2 flex-1">
+          <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full" preserveAspectRatio="none">
+            {zeroY >= PT && zeroY <= H - PB && (
+              <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
+            )}
+            <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            {points.map((p, i) => {
+              if (p.delta === null || p.sec === null) return null
+              const isSelected = tooltip?.cardKey === page.key && tooltip.idx === i
+              const dotColor = p.delta > 0 ? "#10b981" : p.delta < 0 ? "#ef4444" : "#9ca3af"
+              return (
+                <g key={i} style={{ cursor: "pointer" }}
+                  onClick={e => {
+                    e.stopPropagation()
+                    if (tooltip?.cardKey === page.key && tooltip.idx === i) { closeTooltip(); return }
+                    const circ = (e.currentTarget as SVGGElement).querySelector('circle:not([fill="transparent"])')!
+                    const rect = circ.getBoundingClientRect()
+                    const tipW = 200
+                    const above = rect.top >= 200
+                    const left = Math.min(Math.max(rect.left + rect.width / 2 - tipW / 2, 8), window.innerWidth - tipW - 8)
+                    const top = above ? rect.top - 92 : rect.bottom + 10
+                    setTooltip({ cardKey: page.key, idx: i, left, top, above })
+                  }}
+                >
+                  <circle cx={xs[i]} cy={ys[i]} r={14} fill="transparent" />
+                  <circle cx={xs[i]} cy={ys[i]} r={isSelected ? 4.5 : 3} fill={dotColor} stroke="#fff" strokeWidth={1.2} />
+                </g>
+              )
+            })}
+          </svg>
+        </div>
+
+        {/* 関連情報：件数・最高値・最安値 */}
+        <div className="mt-2 grid grid-cols-3 gap-1.5">
+          {[
+            { label: "件数", value: `${points.length - 1}回` },
+            { label: "最高", value: peak.toLocaleString() },
+            { label: "最安", value: trough.toLocaleString() },
+          ].map(s => (
+            <div key={s.label} className="rounded-lg bg-gray-50 py-1.5 text-center">
+              <p className="text-[8px] font-semibold text-gray-400">{s.label}</p>
+              <p className="text-[11px] font-bold text-gray-900">{s.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div data-tutorial="chip-graph">
+      {/* セクションタイトル：カード化せず、ページの背景に直接置く */}
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2">
+          <FiBarChart2 className="text-[15px] text-[#F2A900]" />
+          <p className="text-[15px] font-bold text-gray-900">{sectionTitle}</p>
+        </div>
+        <div className="flex gap-1">
+          {(["7", "1m", "all"] as const).map(tab => (
+            <button key={tab} type="button" onClick={() => { onPeriodChange(tab); closeTooltip() }}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${periodTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
+              {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* バンクロールカードに近い横幅の3枚を横一列に並べ、ネイティブのスクロール＋スナップでブラウズする */}
+      <div
+        className="flex gap-3 overflow-x-auto overflow-y-hidden no-scrollbar"
+        onScroll={closeTooltip}
+        style={{
+          scrollSnapType: "x mandatory",
+          touchAction: "pan-x",
+          marginLeft: -edgeInset, marginRight: -edgeInset,
+          paddingLeft: edgeInset, paddingRight: edgeInset,
+        }}
+      >
+        {pages.map(renderCard)}
+      </div>
+
+      {/* タップした点の詳細ツールチップ（fixed配置でoverflow:hiddenの影響を受けない） */}
+      {tooltip && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 499 }} onClick={closeTooltip} />
+      )}
+      {tooltip && (() => {
+        const page = pages.find(p => p.key === tooltip.cardKey)
+        const point = page?.points[tooltip.idx]
+        if (!page || !point || point.delta === null || point.sec === null) return null
+        const deltaColor = point.delta > 0 ? "#10b981" : point.delta < 0 ? "#ef4444" : "#6b7280"
+        return (
+          <div style={{ position: "fixed", left: tooltip.left, top: tooltip.top, width: 200, zIndex: 500 }} onClick={e => e.stopPropagation()}>
+            {!tooltip.above && (
+              <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "6px solid #fff", filter: "drop-shadow(0 -1px 1px rgba(0,0,0,0.06))" }} />
+            )}
+            <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.06)", padding: "10px 14px" }}>
+              <p style={{ fontSize: 10, color: "rgba(60,60,67,0.5)", marginBottom: 4 }}>{formatGraphPointDate(point.sec)}</p>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ fontSize: 11, color: "rgba(60,60,67,0.55)" }}>変動</span>
+                <span style={{ fontSize: 16, fontWeight: 800, color: deltaColor }}>
+                  {point.delta > 0 ? "+" : ""}{point.delta.toLocaleString()}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginTop: 2 }}>
+                <span style={{ fontSize: 11, color: "rgba(60,60,67,0.55)" }}>この時点の累計</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E" }}>{point.cumulative.toLocaleString()}</span>
+              </div>
+            </div>
+            {tooltip.above && (
+              <div style={{ position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #fff", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.06))" }} />
+            )}
+          </div>
+        )
+      })()}
+    </div>
+  )
+}
+
 export default function HomePage() {
   const getVisitCountResetBase = (date: Date) => {
     const base = new Date(date)
@@ -92,10 +296,21 @@ export default function HomePage() {
   const [ranking, setRanking] = useState<NetGainPlayer[]>([])
   const [userRank, setUserRank] = useState<NetGainPlayer | null>(null)
   const [rankingLoading, setRankingLoading] = useState(true)
-  const [rankingTab, setRankingTab] = useState<'all' | 'monthly'>('all')
+  const [rankingTab, setRankingTab] = useState<'all' | 'monthly' | 'yearly'>('all')
   const [monthlyRanking, setMonthlyRanking] = useState<NetGainPlayer[]>([])
   const [monthlyUserRank, setMonthlyUserRank] = useState<NetGainPlayer | null>(null)
   const [monthlyRankingLoading, setMonthlyRankingLoading] = useState(false)
+  // 0=今月、1=1ヶ月前 … とさかのぼる、Eventsの日付タブと同じ「もっと見る」で拡張する方式
+  const [rankingMonthOffset, setRankingMonthOffset] = useState(0)
+  const [rankingMonthsBackCount, setRankingMonthsBackCount] = useState(6)
+  const rankingMonthScrollRef = useRef<HTMLDivElement>(null)
+  // 複数月選択モード：オンのときは月タブがチェック式になり、選択した月の純増を合算する
+  const [rankingMultiSelectMode, setRankingMultiSelectMode] = useState(false)
+  const [rankingSelectedMonthOffsets, setRankingSelectedMonthOffsets] = useState<Set<number>>(new Set([0]))
+  // 年別ランキング：0=今年、1=1年前 … 月別タブと同じUI/さかのぼり方式
+  const [rankingYearOffset, setRankingYearOffset] = useState(0)
+  const [rankingYearsBackCount, setRankingYearsBackCount] = useState(5)
+  const rankingYearScrollRef = useRef<HTMLDivElement>(null)
   const [isPlayersModalOpen, setIsPlayersModalOpen] = useState(false)
   const [playersPreview, setPlayersPreview] = useState<StorePlayer[]>([])
   const [playersPreviewStore, setPlayersPreviewStore] = useState<StoreInfo | null>(null)
@@ -130,13 +345,9 @@ export default function HomePage() {
 
   // ── チップ増減グラフ（入店中）
   const [chipGraphTab, setChipGraphTab] = useState<"7" | "1m" | "all">("all")
-  const [graphMode, setGraphMode] = useState<'all' | 'tournament'>('all')
-  const graphTouchStartX = useRef<number | null>(null)
 
-  // ── 店舗詳細モーダル内グラフ
+  // ── 店舗詳細モーダル内グラフ（Apple Music/Spotify風の横スクロールシェルフ）
   const [modalChipGraphTab, setModalChipGraphTab] = useState<"7" | "1m" | "all">("all")
-  const [modalGraphMode, setModalGraphMode] = useState<'all' | 'tournament'>('all')
-  const modalGraphTouchStartX = useRef<number | null>(null)
 
   // ── 店舗詳細モーダル：残高
   const [modalBalance, setModalBalance] = useState<number | null>(null)
@@ -429,15 +640,50 @@ export default function HomePage() {
       if (!currentStoreId || rankingTab !== 'monthly') return
       setMonthlyRankingLoading(true)
       try {
+        const effectiveId = stores[currentStoreId]?.balanceGroupId ?? currentStoreId
         const now = new Date()
-        const data = await getMonthlyNetGainRanking(currentStoreId, now.getFullYear(), now.getMonth())
+        let data: NetGainPlayer[]
+        if (rankingMultiSelectMode) {
+          const months = Array.from(rankingSelectedMonthOffsets).map(offset => {
+            const d = new Date(now.getFullYear(), now.getMonth() - offset, 1)
+            return { year: d.getFullYear(), month: d.getMonth() }
+          })
+          data = await getMultiMonthNetGainRanking(effectiveId, months)
+        } else {
+          const target = new Date(now.getFullYear(), now.getMonth() - rankingMonthOffset, 1)
+          data = await getMonthlyNetGainRanking(effectiveId, target.getFullYear(), target.getMonth())
+        }
         setMonthlyRanking(data)
         if (userId) setMonthlyUserRank(getMyNetGainRank(userId, data))
       } catch (e) { console.error("Failed to fetch monthly ranking:", e); setMonthlyRanking([]); setMonthlyUserRank(null) }
       finally { setMonthlyRankingLoading(false) }
     }
     fetchMonthlyRanking()
-  }, [userId, currentStoreId, rankingTab])
+  }, [userId, currentStoreId, rankingTab, rankingMonthOffset, rankingMultiSelectMode, rankingSelectedMonthOffsets, stores])
+
+  // 年別ランキング（月別と同じ monthlyRanking 系のstateを共用。同時に表示されるのはどちらか一方のため）
+  useEffect(() => {
+    const fetchYearlyRanking = async () => {
+      if (!currentStoreId || rankingTab !== 'yearly') return
+      setMonthlyRankingLoading(true)
+      try {
+        const effectiveId = stores[currentStoreId]?.balanceGroupId ?? currentStoreId
+        const targetYear = new Date().getFullYear() - rankingYearOffset
+        const data = await getYearlyNetGainRanking(effectiveId, targetYear)
+        setMonthlyRanking(data)
+        if (userId) setMonthlyUserRank(getMyNetGainRank(userId, data))
+      } catch (e) { console.error("Failed to fetch yearly ranking:", e); setMonthlyRanking([]); setMonthlyUserRank(null) }
+      finally { setMonthlyRankingLoading(false) }
+    }
+    fetchYearlyRanking()
+  }, [userId, currentStoreId, rankingTab, rankingYearOffset, stores])
+
+  useEffect(() => {
+    setRankingMonthOffset(0)
+    setRankingMultiSelectMode(false)
+    setRankingSelectedMonthOffsets(new Set([0]))
+    setRankingYearOffset(0)
+  }, [currentStoreId])
 
   useEffect(() => {
     const animateCount = (target: number, ref: MutableRefObject<number>, setter: Dispatch<SetStateAction<number>>) => {
@@ -637,7 +883,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (selectedStore) {
-      setModalGraphMode('all')
       setModalChipGraphTab('all')
       setModalBalance(null)
       setModalNetGain(null)
@@ -860,46 +1105,22 @@ const medalClass = (rank: number) => {
   }
 
 // ── チップグラフ用データ計算（全トランザクション純増値）
-  const chipGraphData = useMemo(() => {
-    const nowSec = Date.now() / 1000
-
-    const withDelta = allNetGainTx
-  .filter(tx => relatedStoreIds.has(tx.storeId))
-  .map(tx => ({ tx, delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
-  .filter(x => x.delta !== null)
-
-
-    const filtered = (() => {
-      if (chipGraphTab === "7") return withDelta.slice(-7)
-      if (chipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
-      return withDelta
-    })()
-    let running = 0
-    const points: number[] = [0]
-    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
-    return points
-  }, [allNetGainTx, relatedStoreIds, chipGraphTab])
-
-
+  const chipGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, relatedStoreIds, null, chipGraphTab),
+    [allNetGainTx, relatedStoreIds, chipGraphTab]
+  )
 
   // ── トーナメント専用グラフデータ
-  const tournamentGraphData = useMemo(() => {
-    const tournamentTypes = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
-    const nowSec = Date.now() / 1000
-    const withDelta = allNetGainTx
-      .filter(tx => relatedStoreIds.has(tx.storeId) && tournamentTypes.has(tx.type))
-      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
-      .filter(x => x.delta !== null)
-    const filtered = (() => {
-      if (chipGraphTab === "7") return withDelta.slice(-7)
-      if (chipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
-      return withDelta
-    })()
-    let running = 0
-    const points: number[] = [0]
-    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
-    return points
-  }, [allNetGainTx, relatedStoreIds, chipGraphTab])
+  const tournamentGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, relatedStoreIds, TOURNAMENT_TX_TYPES, chipGraphTab),
+    [allNetGainTx, relatedStoreIds, chipGraphTab]
+  )
+
+  // ── リング（キャッシュゲーム）専用グラフデータ
+  const ringGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, relatedStoreIds, RING_TX_TYPES, chipGraphTab),
+    [allNetGainTx, relatedStoreIds, chipGraphTab]
+  )
 
   // ── 店舗詳細モーダル用グラフデータ（タブ非依存：消滅バグ防止）
   const selectedStoreRelatedIds = useMemo(() => {
@@ -912,40 +1133,20 @@ const medalClass = (rank: number) => {
     return ids
   }, [selectedStore, stores])
 
-  const modalChipGraphData = useMemo(() => {
-    const nowSec = Date.now() / 1000
-    const withDelta = allNetGainTx
-      .filter(tx => selectedStoreRelatedIds.has(tx.storeId))
-      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
-      .filter(x => x.delta !== null)
-    const filtered = (() => {
-      if (modalChipGraphTab === "7") return withDelta.slice(-7)
-      if (modalChipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
-      return withDelta
-    })()
-    let running = 0
-    const points: number[] = [0]
-    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
-    return points
-  }, [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab])
+  const modalChipGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, selectedStoreRelatedIds, null, modalChipGraphTab),
+    [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab]
+  )
 
-  const modalTournamentGraphData = useMemo(() => {
-    const tournamentTypes = new Set(['store_tournament_entry', 'store_tournament_reentry', 'store_tournament_addon', 'tournament_payout'])
-    const nowSec = Date.now() / 1000
-    const withDelta = allNetGainTx
-      .filter(tx => selectedStoreRelatedIds.has(tx.storeId) && tournamentTypes.has(tx.type))
-      .map(tx => ({ delta: txNetGainDelta(tx), sec: tx.createdAt?.seconds ?? 0 }))
-      .filter(x => x.delta !== null)
-    const filtered = (() => {
-      if (modalChipGraphTab === "7") return withDelta.slice(-7)
-      if (modalChipGraphTab === "1m") return withDelta.filter(x => x.sec >= nowSec - 30 * 86400)
-      return withDelta
-    })()
-    let running = 0
-    const points: number[] = [0]
-    filtered.forEach(({ delta }) => { running += delta!; points.push(running) })
-    return points
-  }, [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab])
+  const modalTournamentGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, selectedStoreRelatedIds, TOURNAMENT_TX_TYPES, modalChipGraphTab),
+    [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab]
+  )
+
+  const modalRingGraphData = useMemo(
+    () => buildGraphPoints(allNetGainTx, selectedStoreRelatedIds, RING_TX_TYPES, modalChipGraphTab),
+    [allNetGainTx, selectedStoreRelatedIds, modalChipGraphTab]
+  )
 
   // タブに関係なく全期間データが存在するかを判定（グラフ消滅バグ防止）
   const modalHasAnyGraphData = useMemo(() => {
@@ -1387,6 +1588,8 @@ const medalClass = (rank: number) => {
         .stamp-new-press { animation:stampPress 0.58s cubic-bezier(0.36,0.07,0.19,0.97) both; }
         .ink-spread      { animation:inkSpread  0.75s ease-out 0.08s both; }
         .stamp-card-in   { animation:stampCardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
 
       <PullToRefresh onRefresh={() => window.location.reload()} />
@@ -1663,15 +1866,11 @@ const medalClass = (rank: number) => {
                     {/* Top row */}
                     <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#F2A900 0%,#B87000 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 3px 10px rgba(242,169,0,0.5),0 1px 0 rgba(255,255,255,0.18) inset', flexShrink:0 }}>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="9" stroke="rgba(255,255,255,0.9)" strokeWidth="1.8"/>
-                            <circle cx="12" cy="12" r="3.6" fill="rgba(255,255,255,0.9)"/>
-                            <line x1="3" y1="12" x2="7.8" y2="12" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
-                            <line x1="16.2" y1="12" x2="21" y2="12" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
-                            <line x1="12" y1="3" x2="12" y2="7.8" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
-                            <line x1="12" y1="16.2" x2="12" y2="21" stroke="rgba(255,255,255,0.65)" strokeWidth="1.8" strokeLinecap="round"/>
-                          </svg>
+                        <div style={{ width:36, height:36, borderRadius:10, overflow:'hidden', background:'linear-gradient(135deg,#F2A900 0%,#B87000 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 3px 10px rgba(242,169,0,0.5),0 1px 0 rgba(255,255,255,0.18) inset', flexShrink:0 }}>
+                          {currentStore.iconUrl
+                            ? <img src={currentStore.iconUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                            : <FiHome size={18} style={{ color:'rgba(255,255,255,0.9)' }} />
+                          }
                         </div>
                         <div>
                           <p style={{ fontSize:9, fontWeight:700, color:'rgba(255,255,255,0.36)', letterSpacing:'0.22em', textTransform:'uppercase', marginBottom:3 }}>Bankroll</p>
@@ -1762,126 +1961,45 @@ const medalClass = (rank: number) => {
               </div>
             </div>
 
-            {/* チップ増減グラフ（スワイプで全体⇔トナメ切替） */}
-            {chipGraphData.length >= 2 && (() => {
-              const pts = graphMode === 'all' ? chipGraphData : tournamentGraphData
-              const noData = pts.length < 2
-              const swipeHandlers = {
-                onTouchStart: (e: React.TouchEvent) => { graphTouchStartX.current = e.touches[0].clientX },
-                onTouchEnd: (e: React.TouchEvent) => {
-                  if (graphTouchStartX.current === null) return
-                  const dx = e.changedTouches[0].clientX - graphTouchStartX.current
-                  if (Math.abs(dx) > 48) setGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
-                  graphTouchStartX.current = null
-                }
-              }
-              const pageIndicators = (
-                <div className="flex justify-center gap-1.5 mt-2">
-                  <div onClick={() => setGraphMode('all')}
-                    className={`rounded-full transition-all cursor-pointer ${graphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                  <div onClick={() => setGraphMode('tournament')}
-                    className={`rounded-full transition-all cursor-pointer ${graphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                </div>
-              )
-              if (noData) {
-                return (
-                  <div data-tutorial="chip-graph" className="section-card animate-slideUp" {...swipeHandlers}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">
-                        {graphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
-                      </p>
-                    </div>
-                    <p className="text-center text-[12px] text-gray-400 py-6">データが不足しています</p>
-                    {pageIndicators}
-                    <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
-                  </div>
-                )
-              }
-              const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
-              const minV = Math.min(...pts), maxV = Math.max(...pts)
-              const range = maxV - minV || 1
-              const xs = pts.map((_, i) => PL + (i / (pts.length - 1)) * (W - PL - PR))
-              const ys = pts.map(v => PT + ((maxV - v) / range) * (H - PT - PB))
-              const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")
-              const zeroY = PT + ((maxV - 0) / range) * (H - PT - PB)
-              const lastVal = pts[pts.length - 1]
-              const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
-              return (
-                <div data-tutorial="chip-graph" className="section-card animate-slideUp" {...swipeHandlers}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">
-                        {graphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      {(["7", "1m", "all"] as const).map(tab => (
-                        <button key={tab} type="button" onClick={() => setChipGraphTab(tab)}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${chipGraphTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
-                          {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
-                    {zeroY >= PT && zeroY <= H - PB && (
-                      <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
-                    )}
-                    <text x={PL - 4} y={PT + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{maxV.toLocaleString()}</text>
-                    <text x={PL - 4} y={H - PB} textAnchor="end" fontSize="9" fill="#9ca3af">{minV.toLocaleString()}</text>
-                    <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                      vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={`${chipGraphTab}-${graphMode}`} />
-                    {xs.map((x, i) => (
-                      <circle key={i} cx={x.toFixed(1)} cy={ys[i].toFixed(1)} r="2.5" fill={lineColor} />
-                    ))}
-                  </svg>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-[10px] text-gray-400">{pts.length - 1}回</p>
-                    <p className={`text-[12px] font-bold ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
-                      {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
-                    </p>
-                  </div>
-                  {pageIndicators}
-                  <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
-                </div>
-              )
-            })()}
-
-            {/* クイックスタット（入店中） */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="stat-chip">
-                <p className="section-label mb-1">残高</p>
-                <p className="text-[20px] font-bold text-gray-900 ticker">{formatChipValue(displayBalance)}</p>
-              </div>
-              <div className="stat-chip">
-                <p className="section-label mb-1">純増</p>
-                <p className={`text-[20px] font-bold ticker ${displayNetGain > 0 ? "net-positive" : displayNetGain < 0 ? "net-negative" : "net-neutral"}`}>
-                  {formatSignedChipValue(displayNetGain)}
-                </p>
-              </div>
-            </div>
+            {/* チップ増減グラフ（Apple Music風シェルフUI：総収支/トナメ/リングを横スクロール） */}
+            {chipGraphData.length >= 2 && (
+              <GraphShelf
+                sectionTitle="収支グラフ"
+                periodTab={chipGraphTab}
+                onPeriodChange={setChipGraphTab}
+                pages={[
+                  { key: "all", label: "総収支", points: chipGraphData },
+                  { key: "tournament", label: "トナメ収支", points: tournamentGraphData },
+                  { key: "ring", label: "リング収支", points: ringGraphData },
+                ]}
+              />
+            )}
 
             {/* ランキング */}
             <div data-tutorial="store-ranking" className="section-card animate-slideUp">
               {/* ヘッダー */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <FiTrendingUp className="text-[17px] text-[#F2A900]" />
+                  <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
+                    {currentStore.iconUrl
+                      ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
+                      : <div className="flex h-full w-full items-center justify-center"><FiHome className="text-gray-300" size={12} /></div>
+                    }
+                  </div>
                   <p className="text-[12px] font-semibold text-gray-900">店内純増ランキング</p>
-                  <span className="rounded-full bg-[#F2A900]/10 px-2 py-0.5 text-[6px] font-bold text-[#D4910A]">{currentStore.name}</span>
                 </div>
                 {(rankingTab === 'all' ? ranking : monthlyRanking).length > 3 && (
-                  <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)} className="text-[6px] font-semibold text-[#F2A900]">もっと見る</button>
+                  <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)}
+                    className="rounded-full bg-[#F2A900]/10 px-3 py-1.5 text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
                 )}
               </div>
 
               {/* タブ */}
-              <div style={{ display: 'flex', gap: 6, marginBottom: 14, background: '#F2F2F7', borderRadius: 12, padding: 4 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: (rankingTab === 'monthly' || rankingTab === 'yearly') ? 10 : 14, background: '#F2F2F7', borderRadius: 12, padding: 4 }}>
                 {([
                   { key: 'all', label: '全期間' },
-                  { key: 'monthly', label: (() => { const n = new Date(); return `${n.getMonth() + 1}月` })() },
+                  { key: 'monthly', label: '月別' },
+                  { key: 'yearly', label: '年別' },
                 ] as const).map(tab => (
                   <button
                     key={tab.key}
@@ -1898,6 +2016,133 @@ const medalClass = (rank: number) => {
                   </button>
                 ))}
               </div>
+
+              {/* 月選択タブ（Eventsの日付タブと同じ見た目・スワイプで月を選び、もっと見るで過去にさかのぼる） */}
+              {rankingTab === 'monthly' && (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] text-gray-400">
+                      {rankingMultiSelectMode ? `${rankingSelectedMonthOffsets.size}ヶ月を合算中` : '月をタップして切替'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRankingMultiSelectMode(v => {
+                          const next = !v
+                          if (next) setRankingSelectedMonthOffsets(new Set([rankingMonthOffset]))
+                          return next
+                        })
+                      }}
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${rankingMultiSelectMode ? "bg-[#F2A900] text-gray-900" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
+                    >
+                      {rankingMultiSelectMode ? "完了" : "複数月を選択"}
+                    </button>
+                  </div>
+                  <div
+                    ref={rankingMonthScrollRef}
+                    style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}
+                  >
+                    {Array.from({ length: rankingMonthsBackCount }, (_, i) => {
+                      const now = new Date()
+                      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+                      return { offset: i, label: i === 0 ? '今月' : `${d.getMonth() + 1}月`, year: d.getFullYear() }
+                    }).map(m => {
+                      const selected = rankingMultiSelectMode ? rankingSelectedMonthOffsets.has(m.offset) : rankingMonthOffset === m.offset
+                      return (
+                        <button
+                          key={m.offset}
+                          type="button"
+                          onClick={() => {
+                            if (rankingMultiSelectMode) {
+                              setRankingSelectedMonthOffsets(prev => {
+                                const next = new Set(prev)
+                                if (next.has(m.offset)) next.delete(m.offset)
+                                else next.add(m.offset)
+                                return next
+                              })
+                            } else {
+                              setRankingMonthOffset(m.offset)
+                            }
+                          }}
+                          style={{
+                            flexShrink: 0, minWidth: 56, padding: '8px 4px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+                            background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
+                            boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                            transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                          }}
+                        >
+                          <span style={{ fontSize: 9, fontWeight: 700, color: selected ? 'rgba(255,255,255,0.8)' : '#8E8E93' }}>{m.year}</span>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: selected ? '#fff' : '#1C1C1E' }}>{m.label}</span>
+                        </button>
+                      )
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRankingMonthsBackCount(c => c + 6)
+                        setTimeout(() => {
+                          if (rankingMonthScrollRef.current) rankingMonthScrollRef.current.scrollLeft = rankingMonthScrollRef.current.scrollWidth
+                        }, 50)
+                      }}
+                      style={{
+                        flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                        padding: '8px 4px', borderRadius: 12, border: '1.5px dashed #D1C9BD', cursor: 'pointer', background: 'transparent',
+                      }}
+                    >
+                      <span style={{ fontSize: 14, color: '#AEAEB2', lineHeight: 1 }}>›</span>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: '#AEAEB2' }}>もっと見る</span>
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* 年選択タブ（月別タブと同じ見た目・スワイプで年を選び、もっと見るで過去にさかのぼる） */}
+              {rankingTab === 'yearly' && (
+                <div
+                  ref={rankingYearScrollRef}
+                  style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}
+                >
+                  {Array.from({ length: rankingYearsBackCount }, (_, i) => {
+                    const y = new Date().getFullYear() - i
+                    return { offset: i, year: y, label: i === 0 ? '今年' : `${y}年` }
+                  }).map(yr => {
+                    const selected = rankingYearOffset === yr.offset
+                    return (
+                      <button
+                        key={yr.offset}
+                        type="button"
+                        onClick={() => setRankingYearOffset(yr.offset)}
+                        style={{
+                          flexShrink: 0, minWidth: 64, padding: '8px 4px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+                          background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
+                          boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                          transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: 800, color: selected ? '#fff' : '#1C1C1E' }}>{yr.label}</span>
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRankingYearsBackCount(c => c + 5)
+                      setTimeout(() => {
+                        if (rankingYearScrollRef.current) rankingYearScrollRef.current.scrollLeft = rankingYearScrollRef.current.scrollWidth
+                      }, 50)
+                    }}
+                    style={{
+                      flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                      padding: '8px 4px', borderRadius: 12, border: '1.5px dashed #D1C9BD', cursor: 'pointer', background: 'transparent',
+                    }}
+                  >
+                    <span style={{ fontSize: 14, color: '#AEAEB2', lineHeight: 1 }}>›</span>
+                    <span style={{ fontSize: 8, fontWeight: 700, color: '#AEAEB2' }}>もっと見る</span>
+                  </button>
+                </div>
+              )}
 
               {/* 自分の順位カード */}
               {(() => {
@@ -2111,6 +2356,14 @@ const medalClass = (rank: number) => {
 
           </>
         )}
+
+        {/* フッター（バージョン・製作者情報） */}
+        <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
+          <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.8.0</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
+        </footer>
       </div>
 
       {/* ════ モーダル群（ロジック完全保持・デザインのみ刷新）════ */}
@@ -2436,91 +2689,22 @@ const medalClass = (rank: number) => {
                 </div>
               )}
 
-              {/* 収支グラフ（外側チェックはタブ非依存の modalHasAnyGraphData を使用） */}
-              {modalHasAnyGraphData && (() => {
-                const pts = modalGraphMode === 'all' ? modalChipGraphData : modalTournamentGraphData
-                const noData = pts.length < 2
-                const swipeHandlers = {
-                  onTouchStart: (e: React.TouchEvent) => { modalGraphTouchStartX.current = e.touches[0].clientX },
-                  onTouchEnd: (e: React.TouchEvent) => {
-                    if (modalGraphTouchStartX.current === null) return
-                    const dx = e.changedTouches[0].clientX - modalGraphTouchStartX.current
-                    if (Math.abs(dx) > 48) setModalGraphMode(prev => prev === 'all' ? 'tournament' : 'all')
-                    modalGraphTouchStartX.current = null
-                  }
-                }
-                // ヘッダーとタブボタンは noData でも常に表示
-                const graphHeader = (
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-                      <p className="text-[13px] font-semibold text-gray-900">
-                        {modalGraphMode === 'all' ? '総収支グラフ' : 'トナメ収支グラフ'}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      {(["7", "1m", "all"] as const).map(tab => (
-                        <button key={tab} type="button" onClick={() => setModalChipGraphTab(tab)}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${modalChipGraphTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-white text-gray-500"}`}>
-                          {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
-                const pageIndicators = (
-                  <div className="flex justify-center gap-1.5 mt-2">
-                    <div onClick={() => setModalGraphMode('all')}
-                      className={`rounded-full transition-all cursor-pointer ${modalGraphMode === 'all' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                    <div onClick={() => setModalGraphMode('tournament')}
-                      className={`rounded-full transition-all cursor-pointer ${modalGraphMode === 'tournament' ? 'w-4 h-1.5 bg-[#F2A900]' : 'w-1.5 h-1.5 bg-gray-300'}`} />
-                  </div>
-                )
-                if (noData) {
-                  return (
-                    <div className="rounded-2xl mb-5 p-4" style={{ background: '#F2F2F7' }} {...swipeHandlers}>
-                      {graphHeader}
-                      <p className="text-center text-[12px] text-gray-400 py-4">この期間のデータがありません</p>
-                      {pageIndicators}
-                      <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
-                    </div>
-                  )
-                }
-                const W = 300, H = 100, PL = 36, PR = 8, PT = 8, PB = 16
-                const minV = Math.min(...pts), maxV = Math.max(...pts)
-                const range = maxV - minV || 1
-                const xs = pts.map((_, i) => PL + (i / (pts.length - 1)) * (W - PL - PR))
-                const ys = pts.map(v => PT + ((maxV - v) / range) * (H - PT - PB))
-                const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")
-                const zeroY = PT + ((maxV - 0) / range) * (H - PT - PB)
-                const lastVal = pts[pts.length - 1]
-                const lineColor = lastVal >= 0 ? "#10b981" : "#ef4444"
-                return (
-                  <div className="rounded-2xl mb-5 p-4" style={{ background: '#F2F2F7' }} {...swipeHandlers}>
-                    {graphHeader}
-                    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 100 }}>
-                      {zeroY >= PT && zeroY <= H - PB && (
-                        <line x1={PL} y1={zeroY.toFixed(1)} x2={W - PR} y2={zeroY.toFixed(1)} stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3,3" />
-                      )}
-                      <text x={PL - 4} y={PT + 4} textAnchor="end" fontSize="9" fill="#9ca3af">{maxV.toLocaleString()}</text>
-                      <text x={PL - 4} y={H - PB} textAnchor="end" fontSize="9" fill="#9ca3af">{minV.toLocaleString()}</text>
-                      <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                        vectorEffect="non-scaling-stroke" pathLength="1" className="chart-line" key={`${modalChipGraphTab}-${modalGraphMode}`} />
-                      {xs.map((x, i) => (
-                        <circle key={i} cx={x.toFixed(1)} cy={ys[i].toFixed(1)} r="2.5" fill={lineColor} />
-                      ))}
-                    </svg>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-[10px] text-gray-400">{pts.length - 1}回</p>
-                      <p className={`text-[12px] font-bold ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
-                        {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
-                      </p>
-                    </div>
-                    {pageIndicators}
-                    <p className="text-center text-[9px] text-gray-300 mt-1">← スワイプで切替 →</p>
-                  </div>
-                )
-              })()}
+              {/* 収支グラフ（Apple Music風シェルフUI：総収支/トナメ/リングを横スクロール） */}
+              {modalHasAnyGraphData && (
+                <div className="mb-5">
+                  <GraphShelf
+                    sectionTitle="収支グラフ"
+                    periodTab={modalChipGraphTab}
+                    onPeriodChange={setModalChipGraphTab}
+                    edgeInset={24}
+                    pages={[
+                      { key: "all", label: "総収支", points: modalChipGraphData },
+                      { key: "tournament", label: "トナメ収支", points: modalTournamentGraphData },
+                      { key: "ring", label: "リング収支", points: modalRingGraphData },
+                    ]}
+                  />
+                </div>
+              )}
 
               {/* アクションボタン */}
               <div className="space-y-2.5">
