@@ -10,6 +10,7 @@ import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, Fi
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
+import { isSubscriptionActive, subscriptionPlanLabel } from "@/lib/subscription-client"
 
 type StoreProfile = {
   name?: string
@@ -261,6 +262,7 @@ export default function StoreMyPage() {
         cancelAtPeriodEnd: nested.cancelAtPeriodEnd ?? d["subscription.cancelAtPeriodEnd"],
         stripeCustomerId: nested.stripeCustomerId ?? d["subscription.stripeCustomerId"],
         stripeSubscriptionId: nested.stripeSubscriptionId ?? d["subscription.stripeSubscriptionId"],
+        provider: nested.provider,
       } : null
       setSubscription(sub)
     }, () => {})
@@ -806,34 +808,38 @@ export default function StoreMyPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-[13px] text-gray-500">プラン</span>
                   <span className="text-[14px] font-semibold text-gray-900">
-                    {subscription.plan === "circle" ? "サークル応援プラン" : "スタンダード"}
-                    <span className="ml-2 text-[12px] font-normal text-gray-500">
-                      {subscription.interval === "yearly" ? "年払い" : "月払い"}
-                    </span>
+                    {subscriptionPlanLabel(subscription)}
+                    {subscription.provider !== "admin_free" && (
+                      <span className="ml-2 text-[12px] font-normal text-gray-500">
+                        {subscription.interval === "yearly" ? "年払い" : "月払い"}
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[13px] text-gray-500">ステータス</span>
-                  {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+                  {isSubscriptionActive(subscription) && !subscription.cancelAtPeriodEnd && (
                     <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">有効</span>
                   )}
-                  {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
+                  {isSubscriptionActive(subscription) && subscription.cancelAtPeriodEnd && (
                     <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full">キャンセル予定</span>
                   )}
                   {subscription.status === "past_due" && (
                     <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-3 py-0.5 rounded-full">支払い失敗</span>
                   )}
-                  {subscription.status === "canceled" && (
+                  {!isSubscriptionActive(subscription) && subscription.status !== "past_due" && (
                     <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-3 py-0.5 rounded-full">停止中</span>
                   )}
                 </div>
                 {subscription.currentPeriodEnd && (
                   <div className="flex justify-between items-center">
                     <span className="text-[13px] text-gray-500">
-                      {subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
+                      {subscription.provider === "admin_free"
+                        ? "無料期間終了日"
+                        : subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
                     </span>
                     <span className="text-[13px] text-gray-700">
-                      {new Date(subscription.currentPeriodEnd * 1000).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                      {new Date(subscription.currentPeriodEnd * 1000).toLocaleString("ja-JP", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                 )}
@@ -853,35 +859,55 @@ export default function StoreMyPage() {
               )}
 
               <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={openPortal}
-                  disabled={billingLoading}
-                  className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
-                >
-                  {billingLoading ? "処理中..." : "カードを変更"}
-                </button>
-                {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCancelConfirm(true)}
-                    disabled={billingLoading}
-                    className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
-                  >
-                    サブスクリプションをキャンセル
-                  </button>
+                {subscription.provider === "admin_free" ? (
+                  <p className="text-[12px] text-gray-500 text-center px-2">
+                    運営による無料期間が適用されています。終了日を過ぎると自動的に停止します。
+                  </p>
+                ) : subscription.provider === "apple_iap" ? (
+                  <>
+                    <a
+                      href="itms-apps://apps.apple.com/account/subscriptions"
+                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
+                    >
+                      サブスクリプションを管理（App Store）
+                    </a>
+                    <p className="text-[12px] text-gray-500 text-center px-2">
+                      ご契約はApp Storeで管理されています。変更・キャンセルはiOSの「設定」アプリまたはApp Storeから行えます。
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={openPortal}
+                      disabled={billingLoading}
+                      className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                    >
+                      {billingLoading ? "処理中..." : "カードを変更"}
+                    </button>
+                    {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+                      <button
+                        type="button"
+                        onClick={() => setShowCancelConfirm(true)}
+                        disabled={billingLoading}
+                        className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
+                      >
+                        サブスクリプションをキャンセル
+                      </button>
+                    )}
+                    {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
+                      <button
+                        type="button"
+                        onClick={resumeSubscription}
+                        disabled={billingLoading}
+                        className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                      >
+                        {billingLoading ? "処理中..." : "サブスクリプションを再開"}
+                      </button>
+                    )}
+                  </>
                 )}
-                {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
-                  <button
-                    type="button"
-                    onClick={resumeSubscription}
-                    disabled={billingLoading}
-                    className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
-                  >
-                    {billingLoading ? "処理中..." : "サブスクリプションを再開"}
-                  </button>
-                )}
-                {subscription.status === "canceled" && (
+                {!isSubscriptionActive(subscription) && (
                   <button
                     type="button"
                     onClick={() => router.push("/home/store/billing")}

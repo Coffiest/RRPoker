@@ -9,6 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/status-bar": "^8.0.2",
+    "@revenuecat/purchases-capacitor": "^13.2.0",
     "@stripe/stripe-js": "^9.6.0",
     "firebase": "^12.9.0",
     "firebase-admin": "^13.10.0",

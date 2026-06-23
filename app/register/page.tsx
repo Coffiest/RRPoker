@@ -6,6 +6,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
+import { isNativeIOS } from "@/lib/platform"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -372,25 +373,29 @@ export default function RegisterPage() {
               <p style={{ fontSize:12, color:'var(--label2)' }}>無料アカウントを作成してください</p>
             </div>
 
-            {/* Google */}
-            <button className="btn-google" onClick={handleGoogleRegister} disabled={isLoading || googleLoading}>
-              {googleLoading
-                ? <div className="spinner-dark"/>
-                : <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-                    <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
-                    <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
-                    <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
-                    <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
-                  </svg>
-              }
-              <span style={{ fontSize:15, fontWeight:600 }}>{googleLoading ? '処理中…' : 'Googleで新規登録'}</span>
-            </button>
+            {/* Google — iOSネイティブアプリではsignInWithPopupが安定動作しないため非表示 */}
+            {!isNativeIOS() && (
+              <>
+                <button className="btn-google" onClick={handleGoogleRegister} disabled={isLoading || googleLoading}>
+                  {googleLoading
+                    ? <div className="spinner-dark"/>
+                    : <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+                        <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
+                        <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
+                        <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
+                        <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
+                      </svg>
+                  }
+                  <span style={{ fontSize:15, fontWeight:600 }}>{googleLoading ? '処理中…' : 'Googleで新規登録'}</span>
+                </button>
 
-            <div style={{ display:'flex', alignItems:'center', gap:10, margin:'16px 0' }}>
-              <div className="divider-line" style={{ flex:1 }}/>
-              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.03em' }}>またはメールで</span>
-              <div className="divider-line" style={{ flex:1 }}/>
-            </div>
+                <div style={{ display:'flex', alignItems:'center', gap:10, margin:'16px 0' }}>
+                  <div className="divider-line" style={{ flex:1 }}/>
+                  <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.03em' }}>またはメールで</span>
+                  <div className="divider-line" style={{ flex:1 }}/>
+                </div>
+              </>
+            )}
 
             {/* メール */}
             <div style={{ marginBottom:10 }}>
@@ -539,7 +544,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.7.8 </p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.7.9 </p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>

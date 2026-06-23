@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
 import { FiCheck, FiChevronLeft } from "react-icons/fi"
+import { isNativeIOS } from "@/lib/platform"
+import { purchaseStorePlan } from "@/lib/iap"
+import { isSubscriptionActive } from "@/lib/subscription-client"
 
 type Subscription = {
   status: string
@@ -12,6 +15,7 @@ type Subscription = {
   interval: string
   currentPeriodEnd: number
   cancelAtPeriodEnd: boolean
+  provider?: string
 }
 
 function normalizeSubscription(d: Record<string, any>): Subscription | null {
@@ -24,6 +28,7 @@ function normalizeSubscription(d: Record<string, any>): Subscription | null {
     interval: nested.interval ?? d["subscription.interval"] ?? "",
     currentPeriodEnd: nested.currentPeriodEnd ?? d["subscription.currentPeriodEnd"] ?? 0,
     cancelAtPeriodEnd: nested.cancelAtPeriodEnd ?? d["subscription.cancelAtPeriodEnd"] ?? false,
+    provider: nested.provider,
   }
 }
 
@@ -86,8 +91,10 @@ function BillingContent() {
   }, [storeId])
 
   // 決済から戻ってきたら、Webhookに依存せずStripeへ直接確認してFirestoreをActive化
+  // （iOS StoreKit購入はStripeセッションを持たないため対象外。RevenueCatのWebhookが
+  // Firestoreを更新するのを待ち、下のonSnapshotがActive化を検知して自動遷移する）
   useEffect(() => {
-    if (!success || !authReady || !storeId) return
+    if (!success || !authReady || !storeId || isNativeIOS()) return
     let cancelled = false
     setSyncError("")
     ;(async () => {
@@ -106,7 +113,7 @@ function BillingContent() {
   // success=true の場合は2秒待ってから（成功画面を見せる）
   useEffect(() => {
     if (!authReady) return
-    const canAccess = subscription?.status === "active" || isFree
+    const canAccess = isSubscriptionActive(subscription) || isFree
     if (!canAccess) return
     const delay = success ? 2000 : 0
     const t = setTimeout(() => router.replace("/home/store"), delay)
@@ -128,10 +135,35 @@ function BillingContent() {
     }
   }
 
+  const handleSubscribeIOS = async () => {
+    const user = auth.currentUser
+    if (!user) return
+    const token = await user.getIdToken()
+    const trimmedCode = circleCode.trim()
+
+    if (plan === "circle") {
+      const res = await fetch("/api/iap/verify-circle-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ circleCode: trimmedCode }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(data.error ?? "シリアルコードが無効です"); return }
+    }
+
+    await purchaseStorePlan(plan, billingInterval, plan === "circle" ? trimmedCode : undefined)
+    // RevenueCatのWebhookがFirestoreを更新するのをonSnapshotが検知し自動遷移する
+    router.replace("/home/store/billing?success=true")
+  }
+
   const handleSubscribe = async () => {
     setLoading(true)
     setError("")
     try {
+      if (isNativeIOS()) {
+        await handleSubscribeIOS()
+        return
+      }
       const user = auth.currentUser
       if (!user) return
       const token = await user.getIdToken()
@@ -143,15 +175,15 @@ function BillingContent() {
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? "エラーが発生しました"); return }
       window.location.href = data.url
-    } catch {
-      setError("エラーが発生しました")
+    } catch (e: any) {
+      setError(e?.message ?? "エラーが発生しました")
     } finally {
       setLoading(false)
     }
   }
 
   if (success) {
-    const isActive = subscription?.status === "active" || isFree
+    const isActive = isSubscriptionActive(subscription) || isFree
     return (
       <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">
@@ -316,7 +348,13 @@ function BillingContent() {
         </button>
 
         <p className="text-xs text-gray-400 text-center mt-4">
-          Stripeの安全な決済ページに移動します。いつでもキャンセル可能です。
+          {isNativeIOS()
+            ? "App Storeを通じて購入します。管理・キャンセルはいつでもiOSの設定から行えます。"
+            : "Stripeの安全な決済ページに移動します。いつでもキャンセル可能です。"}
+        </p>
+        <p className="text-xs text-gray-400 text-center mt-2">
+          ご購入により<a href="/terms" target="_blank" rel="noopener noreferrer" className="underline">利用規約</a>と
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline">プライバシーポリシー</a>に同意したものとみなされます。
         </p>
 
         {/* すでに決済済みなのに反映されない場合の救済 */}

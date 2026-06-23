@@ -25,6 +25,7 @@ async function syncToOwnedStores(sub: Stripe.Subscription, storeId: string, uid:
     interval: interval ?? sub.metadata?.interval,
     currentPeriodEnd: sub.items.data[0]?.current_period_end ?? 0,
     cancelAtPeriodEnd: sub.cancel_at_period_end,
+    provider: "stripe",
   })))
   await adminDb.doc(`_stripeSubMap/${sub.id}`).set({ storeId, uid })
 }

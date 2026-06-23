@@ -11,6 +11,7 @@ type StoreSubscription = {
   plan: string | null
   cancelAtPeriodEnd: boolean
   currentPeriodEnd: number | null
+  provider: string | null
 }
 
 type Store = {
@@ -32,6 +33,26 @@ function api(path: string, method: string, body?: object) {
 }
 
 function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isFree: boolean }) {
+  if (sub?.provider === "admin_free") {
+    const expired = sub.currentPeriodEnd ? sub.currentPeriodEnd * 1000 <= Date.now() : false
+    if (expired) {
+      return (
+        <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+          手動無料化（終了）
+        </span>
+      )
+    }
+    return (
+      <span className="text-xs font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">
+        手動無料化
+        {sub.currentPeriodEnd && (
+          <span className="ml-1 font-normal">
+            〜{new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
+          </span>
+        )}
+      </span>
+    )
+  }
   if (isFree) {
     return (
       <span className="text-xs font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">
@@ -75,6 +96,9 @@ export default function AdminPage() {
   const [loadingStores, setLoadingStores] = useState(false)
   const [storeSearch, setStoreSearch] = useState("")
   const [savingStoreId, setSavingStoreId] = useState<string | null>(null)
+  const [freeModalStore, setFreeModalStore] = useState<Store | null>(null)
+  const [freeDuration, setFreeDuration] = useState<"1m" | "1y" | "custom">("1m")
+  const [freeCustomMonths, setFreeCustomMonths] = useState("")
 
   const [authed, setAuthed] = useState(false)
   const [apiError, setApiError] = useState("")
@@ -136,12 +160,35 @@ export default function AdminPage() {
     setCodes(prev => prev.map(c => c.id === code ? { ...c, active: false } : c))
   }
 
-  const toggleFree = async (storeId: string, currentIsFree: boolean) => {
+  const revokeFree = async (storeId: string) => {
     setSavingStoreId(storeId)
     try {
-      const res = await api("/api/admin/free-store", "POST", { storeId, isFree: !currentIsFree })
+      const res = await api("/api/admin/free-store", "POST", { storeId, isFree: false })
       if (res.ok) {
-        setStores(prev => prev.map(s => s.id === storeId ? { ...s, isFree: !currentIsFree } : s))
+        await fetchStores()
+      } else {
+        setApiError("エラーが発生しました")
+      }
+    } finally {
+      setSavingStoreId(null)
+    }
+  }
+
+  const confirmGrantFree = async () => {
+    if (!freeModalStore) return
+    const months = freeDuration === "1m" ? 1 : freeDuration === "1y" ? 12 : parseInt(freeCustomMonths, 10)
+    if (!Number.isFinite(months) || months <= 0) {
+      setApiError("無料期間（ヶ月数）を正しく入力してください")
+      return
+    }
+    setSavingStoreId(freeModalStore.id)
+    try {
+      const res = await api("/api/admin/free-store", "POST", { storeId: freeModalStore.id, isFree: true, months })
+      if (res.ok) {
+        setFreeModalStore(null)
+        setFreeDuration("1m")
+        setFreeCustomMonths("")
+        await fetchStores()
       } else {
         setApiError("エラーが発生しました")
       }
@@ -271,7 +318,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3 shrink-0">
                     <SubscriptionBadge sub={s.subscription} isFree={s.isFree} />
                     <button
-                      onClick={() => toggleFree(s.id, s.isFree)}
+                      onClick={() => s.isFree ? revokeFree(s.id) : setFreeModalStore(s)}
                       disabled={savingStoreId === s.id}
                       className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
                         s.isFree
@@ -284,6 +331,62 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Grant Free Period Modal */}
+        {freeModalStore && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-sm rounded-2xl bg-gray-900 p-6 shadow-2xl">
+              <h2 className="text-base font-bold mb-1">無料期間を設定</h2>
+              <p className="text-xs text-gray-400 mb-4 truncate">{freeModalStore.name || freeModalStore.id}</p>
+
+              <div className="space-y-2 mb-4">
+                {([
+                  { id: "1m" as const, label: "今日から1ヶ月無料" },
+                  { id: "1y" as const, label: "今日から1年無料" },
+                  { id: "custom" as const, label: "ヶ月数を指定" },
+                ]).map(opt => (
+                  <label key={opt.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="radio"
+                      name="freeDuration"
+                      checked={freeDuration === opt.id}
+                      onChange={() => setFreeDuration(opt.id)}
+                      className="accent-[#F2A900]"
+                    />
+                    {opt.label}
+                  </label>
+                ))}
+                {freeDuration === "custom" && (
+                  <input
+                    type="number"
+                    min={1}
+                    value={freeCustomMonths}
+                    onChange={e => setFreeCustomMonths(e.target.value)}
+                    placeholder="例: 3"
+                    className="w-full bg-gray-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40 ml-6"
+                    style={{ width: "calc(100% - 1.5rem)" }}
+                  />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFreeModalStore(null)}
+                  className="flex-1 h-10 rounded-xl bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={confirmGrantFree}
+                  disabled={savingStoreId === freeModalStore.id}
+                  className="flex-1 h-10 rounded-xl bg-purple-600 text-sm font-bold text-white hover:bg-purple-500 disabled:opacity-50"
+                >
+                  {savingStoreId === freeModalStore.id ? "..." : "適用する"}
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
               plan: data.subscription.plan ?? null,
               cancelAtPeriodEnd: data.subscription.cancelAtPeriodEnd ?? false,
               currentPeriodEnd: data.subscription.currentPeriodEnd ?? null,
+              provider: data.subscription.provider ?? null,
             }
           : null,
       }

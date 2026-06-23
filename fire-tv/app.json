@@ -3,7 +3,14 @@
     "name": "RRPoker Timer",
     "slug": "rrpoker-timer",
     "version": "1.0.0",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/icon.png",
+      "backgroundColor": "#ffffff",
+      "resizeMode": "contain"
+    },
     "android": {
       "package": "com.rrpoker.timer",
       "adaptiveIcon": {
@@ -17,7 +24,14 @@
             "android.intent.category.LEANBACK_LAUNCHER"
           ]
         }
-      ]
-    }
+      ],
+      "versionCode": 2
+    },
+    "extra": {
+      "eas": {
+        "projectId": "233e955c-3fb7-4e01-a84e-103dcc1bf2d0"
+      }
+    },
+    "owner": "coffiest-o0"
   }
 }

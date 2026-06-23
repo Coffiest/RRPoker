@@ -19,11 +19,14 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         '/verify-code',
         '/password-reset-verify',
         '/verify-email',
+        '/privacy',
+        '/terms',
         '/'
       ]
       
       if (!user && !publicPaths.includes(pathname)) {
-        router.replace('/login')
+        const target = pathname + window.location.search
+        router.replace(`/login?redirect=${encodeURIComponent(target)}`)
       }
     })
     return () => unsub()

@@ -10,6 +10,7 @@ import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+import { isSubscriptionActive } from "@/lib/subscription-client"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import {
@@ -407,9 +408,14 @@ export default function StorePage() {
       if (sid) {
         const storeSnap = await getDoc(doc(db, "stores", sid))
         const d = storeSnap.data() ?? {}
-        const status = d.subscription?.status ?? d["subscription.status"] ?? null
+        const nested = d.subscription ?? {}
+        const sub = {
+          status: nested.status ?? d["subscription.status"] ?? null,
+          currentPeriodEnd: nested.currentPeriodEnd ?? d["subscription.currentPeriodEnd"] ?? null,
+          provider: nested.provider ?? null,
+        }
         const isFree = d.isFree === true
-        if (status !== "active" && !isFree) {
+        if (!isSubscriptionActive(sub) && !isFree) {
           router.replace("/home/store/billing")
           return
         }
@@ -2031,7 +2037,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.8</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.7.9</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>

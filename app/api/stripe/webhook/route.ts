@@ -20,6 +20,7 @@ async function updateStoreSubscription(storeId: string, sub: Stripe.Subscription
     "subscription.status": sub.status,
     "subscription.currentPeriodEnd": currentPeriodEnd,
     "subscription.cancelAtPeriodEnd": sub.cancel_at_period_end,
+    "subscription.provider": "stripe",
   }
   if (plan) fields["subscription.plan"] = plan
   if (interval) fields["subscription.interval"] = interval
@@ -92,7 +93,9 @@ export async function POST(req: NextRequest) {
       ))
       break
     }
-    case "invoice.payment_failed": {
+    case "invoice.payment_succeeded": {
+      // 更新時の請求が確定した瞬間に次回更新日を最新化する
+      // （customer.subscription.updated より早く届く場合があるため明示的に同期）
       const invoice = event.data.object as Stripe.Invoice
       const subId = getSubIdFromInvoice(invoice)
       if (!subId) break
@@ -100,9 +103,28 @@ export async function POST(req: NextRequest) {
       const storeId = mapSnap.data()?.storeId
       const uid = mapSnap.data()?.uid
       if (!storeId) break
+      const sub = await stripe.subscriptions.retrieve(subId)
+      const storeIds = await getOwnedStoreIds(storeId, uid)
+      await Promise.all(storeIds.map(id => updateStoreSubscription(id, sub, sub.metadata?.plan, sub.metadata?.interval)))
+      break
+    }
+    case "invoice.payment_failed": {
+      // 更新日を過ぎた時点で課金が確認できなかった場合、Stripeの自動リトライを待たず
+      // その場でサブスクリプションを即時終了する（仕様により猶予期間なし）
+      const invoice = event.data.object as Stripe.Invoice
+      const subId = getSubIdFromInvoice(invoice)
+      if (!subId) break
+      const mapSnap = await adminDb.doc(`_stripeSubMap/${subId}`).get()
+      const storeId = mapSnap.data()?.storeId
+      const uid = mapSnap.data()?.uid
+      if (!storeId) break
+      await stripe.subscriptions.cancel(subId).catch(() => {})
       const storeIds = await getOwnedStoreIds(storeId, uid)
       await Promise.all(storeIds.map(id =>
-        adminDb.doc(`stores/${id}`).update({ "subscription.status": "past_due" })
+        adminDb.doc(`stores/${id}`).update({
+          "subscription.status": "canceled",
+          "subscription.cancelAtPeriodEnd": false,
+        })
       ))
       break
     }
