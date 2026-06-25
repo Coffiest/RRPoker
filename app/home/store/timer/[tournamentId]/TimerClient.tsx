@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiX } from "react-icons/fi"
-import { addDoc, serverTimestamp, Timestamp } from "firebase/firestore"
+import { addDoc } from "firebase/firestore"
 import { useParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firestore"
@@ -301,24 +301,6 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     if (!storeId) return
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { [`prizePool.${place}`]: value })
   }
-  async function pauseTimer() {
-    if (!storeId) return
-    // Compute remaining from the frozen snapshot + elapsed — no Firestore read needed,
-    // and unaffected by any external writes to timeRemaining.
-    const lsAt = levelStartedAtMsRef.current
-    const elapsed = lsAt !== null ? Math.floor((Date.now() - lsAt) / 1000) : 0
-    const remaining = Math.max(levelStartedRemainingRef.current - elapsed, 0)
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { timerRunning: false, timeRemaining: remaining })
-  }
-  async function resumeTimer() {
-    if (!storeId) return
-    // timeRemaining was saved accurately by pauseTimer; stamp levelStartedAt = now
-    // and persist levelStartedRemaining so all clients freeze on the right value.
-    const remaining = timeRemaining  // local state, set by onSnapshot from pauseTimer's write
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
-      timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining,
-    })
-  }
 
   const levelsToUse = useMemo<Level[]>(() => {
     if (Array.isArray(customBlindLevels) && customBlindLevels.length > 0) return customBlindLevels
@@ -330,87 +312,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     return []
   }, [customBlindLevels, tournamentBlindPresetId, selectedPreset, blindPresets])
 
-  async function skipLevel() {
-    if (!storeId) return
-    const nextIndex = currentLevelIndex + 1
-    const next = levelsToUse[nextIndex]; if (!next) return
-    const nextDur = typeof next.duration === "number" ? next.duration * 60 : 0
-    await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), {
-      currentLevelIndex: nextIndex, levelStartedAt: serverTimestamp(),
-      timeRemaining: nextDur, levelStartedRemaining: nextDur, timerRunning: true,
-    })
-  }
-
-  // ── Keep a ref so the interval always sees the latest levels ────────────
-  const levelsToUseRef = useRef<Level[]>([])
-  useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
-
-  // ── Shared level-advance logic (used by both interval and visibility handler) ──
-  // Returns true if an advance was fired.
-  const isRunningRef = useRef(false)
-  useEffect(() => { isRunningRef.current = isRunning }, [isRunning])
-  const storeIdRef = useRef<string | null>(null)
-  useEffect(() => { storeIdRef.current = storeId }, [storeId])
-  const tournamentIdRef = useRef(tournamentId)
-  useEffect(() => { tournamentIdRef.current = tournamentId }, [tournamentId])
-
-  // ── Multi-level catch-up: calculates the correct final level in one pass,
-  // then writes to Firestore ONCE. This handles both real-time expiry and the
-  // case where the app was closed for a long time (e.g. 3 hours).
-  //
-  // Why one pass first, then one write?
-  // The old approach wrote one level at a time. After each write, levelStartedAt
-  // became "now", so the next call saw elapsed≈0 and stopped — catching up only
-  // one level per visibilitychange event.
-  //
-  // Here we compute the target level purely in memory (no DB reads/writes), then
-  // emit a single updateDoc to jump straight to the correct state.
-  function checkAndAdvanceLevel() {
-    const sid = storeIdRef.current
-    if (!isRunningRef.current || !sid) return
-    const lsAt = levelStartedAtMsRef.current
-    if (lsAt === null || levelAdvancedRef.current || levelsToUseRef.current.length === 0) return
-
-    const lvs = levelsToUseRef.current
-    const elapsed = Math.floor((Date.now() - lsAt) / 1000)
-
-    // timeLeft > 0 → level still running, nothing to do
-    let timeLeft = levelStartedRemainingRef.current - elapsed
-    if (timeLeft > 0) return
-
-    // Walk forward through levels accumulating their durations until timeLeft > 0.
-    // Each iteration represents one level being fully consumed.
-    let idx = currentLevelIndexRef.current
-    const tid = tournamentIdRef.current
-
-    while (timeLeft <= 0) {
-      const nextIdx = idx + 1
-      if (nextIdx >= lvs.length) {
-        // Ran out of levels → end tournament
-        levelAdvancedRef.current = true
-        void updateDoc(doc(db, "stores", sid, "tournaments", tid), { timerRunning: false })
-        return
-      }
-      idx = nextIdx
-      // Treat zero/null duration as 1s to avoid infinite loop
-      const dur = typeof lvs[idx].duration === "number" && lvs[idx].duration! > 0
-        ? lvs[idx].duration! * 60 : 1
-      timeLeft += dur
-    }
-
-    // Single write: jump straight to the correct level with the correct remaining time
-    levelAdvancedRef.current = true
-    void updateDoc(doc(db, "stores", sid, "tournaments", tid), {
-      currentLevelIndex: idx,
-      levelStartedAt: serverTimestamp(),
-      timeRemaining: timeLeft,
-      levelStartedRemaining: timeLeft,
-      timerRunning: true,
-    })
-    void playSound("levelup")
-  }
-
-  // ── Wall-clock tick interval: no Firestore reads, purely local ───────────
+  // ── Wall-clock tick interval: display updates only (level advance now server-driven) ─
   useEffect(() => {
     if (!isRunning || !storeId) return
 
@@ -429,68 +331,23 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
         if (ds === 3 || ds === 2 || ds === 1) void playSound("countdown")
         lastSoundSecRef.current = ds
       }
-
-      // Level advance
-      checkAndAdvanceLevel()
     }, 250)
 
     return () => clearInterval(id)
   }, [isRunning, storeId, tournamentId])
 
-  // ── Recover from background/sleep: re-render immediately and check level ─
-  // Browsers throttle or completely freeze setInterval when a tab/PWA is
-  // backgrounded. visibilitychange fires as soon as the page becomes visible
-  // again, giving us a reliable hook to (a) force a display update and
-  // (b) advance levels that expired while we were sleeping.
+  // ── Recover from background/sleep: re-render immediately ─
+  // When returning from background, force a display update so the clock
+  // catches up to server time. The server (Cloud Scheduler, every 1 min) has
+  // already advanced levels, and onSnapshot will reflect the latest state.
   useEffect(() => {
-    async function onVisible() {
+    function onVisible() {
       if (document.visibilityState !== "visible") return
       setTickNow(Date.now())   // force immediate re-render with correct time
-
-      // Fetch latest Firestore data to ensure we have the correct
-      // levelStartedAt and levelStartedRemaining for accurate catch-up calculation.
-      // Don't rely on the snapshot listener which may lag after visibility change.
-      const sid = storeIdRef.current
-      const tid = tournamentIdRef.current
-      if (!sid || !tid || !isRunningRef.current) return
-
-      try {
-        const snap = await getDoc(doc(db, "stores", sid, "tournaments", tid))
-        const data = snap.data()
-        if (!data) return
-
-        // Update refs with fresh Firestore values before advancing level
-        const newLsAtMs = data.levelStartedAt?.toMillis?.() ?? null
-        levelStartedAtMsRef.current = newLsAtMs
-        const tr = typeof data.levelStartedRemaining === "number"
-          ? data.levelStartedRemaining
-          : (typeof data.timeRemaining === "number" ? data.timeRemaining : 0)
-        levelStartedRemainingRef.current = tr
-        currentLevelIndexRef.current = data.currentLevelIndex ?? 0
-
-        // Also update levels if custom blind levels are in Firestore
-        // This ensures levelsToUseRef has the correct data for catch-up calculation
-        if (Array.isArray(data.customBlindLevels) && data.customBlindLevels.length > 0) {
-          levelsToUseRef.current = data.customBlindLevels as Level[]
-        }
-
-        // CRITICAL: reset levelAdvancedRef so the check can actually run.
-        // This flag is normally cleared by the useEffect that watches currentLevelIndex
-        // (the React state). But here we only updated the ref — no state change fires,
-        // so that useEffect never runs, the flag stays true, and checkAndAdvanceLevel
-        // bails out at the top without doing any catch-up. Reset it explicitly.
-        levelAdvancedRef.current = false
-
-        checkAndAdvanceLevel()
-      } catch {
-        // If fetch fails, fall back to cached ref values and try anyway
-        levelAdvancedRef.current = false
-        checkAndAdvanceLevel()
-      }
     }
     document.addEventListener("visibilitychange", onVisible)
     return () => document.removeEventListener("visibilitychange", onVisible)
-  }, []) // no deps needed: all state read via refs inside checkAndAdvanceLevel
+  }, [])
 
   // ── Derived values ───────────────────────────────────────────────────────
   const totalPlayers = entry + reentry

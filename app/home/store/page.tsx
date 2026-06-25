@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
+import { startTournamentTimer, pauseTournamentTimer, resumeTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -138,8 +139,13 @@ export default function StorePage() {
     setAdjustSeconds(p => ({ ...p, [id]: Math.max(0, (p[id] ?? 0) + diff) }))
   const confirmAdjustTime = async (id: string) => {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timeRemaining: adjustSeconds[id], levelStartedAt: serverTimestamp(), levelStartedRemaining: adjustSeconds[id] })
-    closeAdjustModal(id)
+    try {
+      await adjustTournamentTime(storeId, id, adjustSeconds[id])
+      closeAdjustModal(id)
+    } catch (error) {
+      console.error("Failed to adjust time:", error)
+      alert("時間調整に失敗しました")
+    }
   }
   const confirmAdjustBlinds = async (id: string) => {
     if (!storeId) return
@@ -207,18 +213,21 @@ export default function StorePage() {
 
   async function startTimer(id: string) {
     if (!storeId) return
-    const ref = doc(db, "stores", storeId, "tournaments", id)
-    const snap = await getDoc(ref); const data = snap.data()
-    const remaining = typeof data?.timeRemaining === "number" ? data.timeRemaining : 1200
-    await updateDoc(ref, { timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining })
+    try {
+      await startTournamentTimer(storeId, id)
+    } catch (error) {
+      console.error("Failed to start timer:", error)
+      alert("タイマー開始に失敗しました")
+    }
   }
   async function resumeTimer(id: string) {
     if (!storeId) return
-    // timeRemaining was saved accurately by pauseTimer; stamp levelStartedAt = now.
-    const ref = doc(db, "stores", storeId, "tournaments", id)
-    const snap = await getDoc(ref); const data = snap.data()
-    const remaining = typeof data?.timeRemaining === "number" ? data.timeRemaining : 1200
-    await updateDoc(ref, { timerRunning: true, levelStartedAt: serverTimestamp(), levelStartedRemaining: remaining })
+    try {
+      await resumeTournamentTimer(storeId, id)
+    } catch (error) {
+      console.error("Failed to resume timer:", error)
+      alert("タイマー再開に失敗しました")
+    }
   }
   async function stopTimer(id: string) {
     if (!storeId) return
@@ -239,55 +248,33 @@ export default function StorePage() {
   }
   async function nextLevel(id: string) {
     if (!storeId) return
-    const ref = doc(db, "stores", storeId, "tournaments", id)
-    const snap = await getDoc(ref); const data = snap.data()
-    if (!data) return
-    const current = typeof data.currentLevelIndex === "number" ? data.currentLevelIndex : 0
-    const t = activeTournaments.find(t => t.id === id); if (!t) return
-    const custom = Array.isArray(t.customBlindLevels) ? t.customBlindLevels : null
-    const defaults = [
-      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
-      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
-      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
-      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
-    ]
-    const levels = custom && custom.length > 0 ? custom : defaults
-    const nextIdx = Math.min(current + 1, levels.length - 1)
-    const nextLevel = levels[nextIdx]
-    const dur = typeof nextLevel?.duration === "number" && nextLevel.duration > 0 ? nextLevel.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: nextIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), levelStartedRemaining: dur, timerRunning: data.timerRunning ?? false })
+    const t = activeTournaments.find(t => t.id === id)
+    if (!t) return
+    const current = t.currentLevelIndex ?? 0
+    try {
+      await setTournamentLevel(storeId, id, current + 1)
+    } catch (error) {
+      console.error("Failed to advance level:", error)
+      alert("レベル変更に失敗しました")
+    }
   }
   async function pauseTimer(id: string) {
     if (!storeId) return
-    const ref = doc(db, "stores", storeId, "tournaments", id)
-    const snap = await getDoc(ref); const data = snap.data(); if (!data) return
-    // Use levelStartedRemaining (frozen at resume time) — not timeRemaining which
-    // may have been corrupted by old cached code. Fall back to timeRemaining if not set.
-    const startRemaining = typeof data.levelStartedRemaining === "number"
-      ? data.levelStartedRemaining
-      : (typeof data.timeRemaining === "number" ? data.timeRemaining : 0)
-    const elapsed = data.levelStartedAt ? Math.floor((Date.now() - data.levelStartedAt.toMillis()) / 1000) : 0
-    const remaining = Math.max(startRemaining - elapsed, 0)
-    await updateDoc(ref, { timerRunning: false, timeRemaining: remaining })
+    try {
+      await pauseTournamentTimer(storeId, id)
+    } catch (error) {
+      console.error("Failed to pause timer:", error)
+      alert("タイマー一時停止に失敗しました")
+    }
   }
   async function prevLevel(id: string, currentLevel: number) {
     if (!storeId) return
-    const ref = doc(db, "stores", storeId, "tournaments", id)
-    const snap = await getDoc(ref); const data = snap.data()
-    if (!data) return
-    const t = activeTournaments.find(t => t.id === id); if (!t) return
-    const custom = Array.isArray(t.customBlindLevels) ? t.customBlindLevels : null
-    const defaults = [
-      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
-      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
-      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
-      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
-    ]
-    const levels = custom && custom.length > 0 ? custom : defaults
-    const prevIdx = Math.max(0, currentLevel - 1)
-    const prevLvl = levels[prevIdx]
-    const dur = typeof prevLvl?.duration === "number" && prevLvl.duration > 0 ? prevLvl.duration * 60 : 1200
-    await updateDoc(ref, { currentLevelIndex: prevIdx, timeRemaining: dur, levelStartedAt: serverTimestamp(), levelStartedRemaining: dur, timerRunning: data.timerRunning ?? false })
+    try {
+      await setTournamentLevel(storeId, id, Math.max(0, currentLevel - 1))
+    } catch (error) {
+      console.error("Failed to go to previous level:", error)
+      alert("レベル変更に失敗しました")
+    }
   }
 
   const [role, setRole] = useState<string | null>(null)
@@ -2093,7 +2080,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.0</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.1</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
