@@ -8,6 +8,8 @@ const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: fal
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, pauseTournamentTimer, resumeTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
+import { computeLiveLevelState, type TimerLevel } from "@/lib/timerCompute"
+import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -38,6 +40,35 @@ type PlayerInfo = { id: string; name?: string; iconUrl?: string; visitCount?: nu
 function fmtChip(amount: number, unit?: string, before?: boolean): string {
   if (!unit) return amount.toLocaleString()
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
+}
+
+// Fallback blind schedule used when a tournament has no customBlindLevels yet
+// (mirrors the fallback already used elsewhere for tournaments without a saved preset).
+const DEFAULT_BLIND_LEVELS: TimerLevel[] = [
+  { type: "level", smallBlind: 15, bigBlind: 30, ante: 30, duration: 20 },
+  { type: "level", smallBlind: 20, bigBlind: 40, ante: 40, duration: 20 },
+  { type: "level", smallBlind: 25, bigBlind: 50, ante: 50, duration: 20 },
+  { type: "level", smallBlind: 30, bigBlind: 60, ante: 60, duration: 20 },
+  { type: "level", smallBlind: 40, bigBlind: 80, ante: 80, duration: 20 },
+  { type: "level", smallBlind: 50, bigBlind: 100, ante: 100, duration: 20 },
+  { type: "level", smallBlind: 75, bigBlind: 150, ante: 150, duration: 20 },
+  { type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 },
+]
+
+// Computes "what level/remaining-time is correct right now" for a tournament card,
+// using the same catch-up logic as TimerClient.tsx and the server, so the operator
+// panel's buttons never act on a stale Firestore-cached level index.
+function getLiveLevelState(t: any) {
+  const levels = Array.isArray(t.customBlindLevels) && t.customBlindLevels.length > 0
+    ? t.customBlindLevels : DEFAULT_BLIND_LEVELS
+  return computeLiveLevelState(
+    t.currentLevelIndex ?? 0,
+    t.levelStartedAtMs ?? null,
+    t.timerRunning ? (t.levelStartedRemaining ?? t.timeRemaining ?? 0) : (t.timeRemaining ?? 0),
+    levels,
+    t.timerRunning ?? false,
+    getServerNow()
+  )
 }
 
 // 残高への加減方向だけをアイコンの色で示す、見た目を統一したアクションタイル。
@@ -98,6 +129,8 @@ export default function StorePage() {
     if (date.getHours() < 3) base.setDate(base.getDate() - 1)
     return base.getTime()
   }
+
+  useEffect(() => { ensureClockCalibrated() }, [])
 
   const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
@@ -233,26 +266,13 @@ export default function StorePage() {
     if (!storeId) return
     await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false })
   }
-  function getNextLevelDurationSeconds(tournament: any, nextIndex: number) {
-    const custom = Array.isArray(tournament.customBlindLevels) ? tournament.customBlindLevels : null
-    const defaults = [
-      { smallBlind:15,bigBlind:30,ante:30,duration:20 }, { smallBlind:20,bigBlind:40,ante:40,duration:20 },
-      { smallBlind:25,bigBlind:50,ante:50,duration:20 }, { smallBlind:30,bigBlind:60,ante:60,duration:20 },
-      { smallBlind:40,bigBlind:80,ante:80,duration:20 }, { smallBlind:50,bigBlind:100,ante:100,duration:20 },
-      { smallBlind:75,bigBlind:150,ante:150,duration:20 }, { smallBlind:100,bigBlind:200,ante:200,duration:20 },
-    ]
-    const levels = custom && custom.length > 0 ? custom : defaults
-    const level = levels[Math.min(nextIndex, levels.length - 1)]
-    if (!level) return 0
-    return (typeof level.duration === "number" && level.duration > 0 ? level.duration : 20) * 60
-  }
   async function nextLevel(id: string) {
     if (!storeId) return
     const t = activeTournaments.find(t => t.id === id)
     if (!t) return
-    const current = t.currentLevelIndex ?? 0
+    const live = getLiveLevelState(t)
     try {
-      await setTournamentLevel(storeId, id, current + 1)
+      await setTournamentLevel(storeId, id, live.levelIndex + 1)
     } catch (error) {
       console.error("Failed to advance level:", error)
       alert("レベル変更に失敗しました")
@@ -267,10 +287,13 @@ export default function StorePage() {
       alert("タイマー一時停止に失敗しました")
     }
   }
-  async function prevLevel(id: string, currentLevel: number) {
+  async function prevLevel(id: string) {
     if (!storeId) return
+    const t = activeTournaments.find(t => t.id === id)
+    if (!t) return
+    const live = getLiveLevelState(t)
     try {
-      await setTournamentLevel(storeId, id, Math.max(0, currentLevel - 1))
+      await setTournamentLevel(storeId, id, Math.max(0, live.levelIndex - 1))
     } catch (error) {
       console.error("Failed to go to previous level:", error)
       alert("レベル変更に失敗しました")
@@ -315,6 +338,8 @@ export default function StorePage() {
           timeRemaining: data.timeRemaining ?? 1200, selectedPreset: data.selectedPreset ?? "",
           customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
           timerRunning: data.timerRunning ?? false,
+          levelStartedAtMs: data.levelStartedAt?.toMillis?.() ?? null,
+          levelStartedRemaining: typeof data.levelStartedRemaining === "number" ? data.levelStartedRemaining : null,
         })
       }
       setActiveTournaments(list)
@@ -1216,7 +1241,7 @@ export default function StorePage() {
                         <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
                           <FiClock size={14}/> Timer
                         </button>
-                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, t.timeRemaining, t.customBlindLevels)}>
+                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
                           <FiEdit3 size={14}/> Adjust
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
@@ -1229,7 +1254,7 @@ export default function StorePage() {
 
                       {/* Timer controls */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
-                        <button className="timer-btn" onClick={() => prevLevel(t.id, t.currentLevelIndex ?? 0)}
+                        <button className="timer-btn" onClick={() => prevLevel(t.id)}
                           style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
                         ><FiSkipBack size={17} style={{ color: 'var(--label)' }}/></button>
 
@@ -1341,7 +1366,7 @@ export default function StorePage() {
 
                     {/* 中央: タイマー制御 */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <button className="timer-btn" onClick={() => prevLevel(et.id, et.currentLevelIndex ?? 0)} style={btnBase}>
+                      <button className="timer-btn" onClick={() => prevLevel(et.id)} style={btnBase}>
                         <div style={iconCircle()}>
                           <FiSkipBack size={17} style={{ color: '#fff' }} />
                         </div>
@@ -1367,7 +1392,7 @@ export default function StorePage() {
 
                     {/* 右: アクション */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: et.timeRemaining })); setExpandAdjustOpen(true) }} style={btnBase}>
+                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: getLiveLevelState(et).remainingSec })); setExpandAdjustOpen(true) }} style={btnBase}>
                         <div style={iconCircle()}>
                           <FiEdit3 size={15} style={{ color: '#fff' }} />
                         </div>
@@ -2080,7 +2105,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.1</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.1-fix2</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>

@@ -171,6 +171,17 @@ export const expireStoreBalances = onSchedule(
   }
 )
 
+/**
+ * 🔵 Server Time (Callable)
+ * Lets clients measure their local clock's offset from the server, so wall-clock
+ * timer math (elapsed = clientNow - serverTimestamp) stays correct even when a
+ * device's clock is off by a few seconds.
+ */
+export const getServerTime = onCall(
+  { region: "asia-northeast1" },
+  async () => ({ serverTimeMs: Date.now() })
+)
+
 // ════════════════════════════════════════════════════════════════════════
 // 🔵 Tournament Timer Control (server-authoritative, advanced via Cloud Scheduler)
 // ════════════════════════════════════════════════════════════════════════
@@ -216,7 +227,8 @@ function computeCatchUp(
   levelStartedRemaining: number,
   levels: BlindLevel[]
 ): { newLevelIndex: number; newTimeRemaining: number } | null {
-  const elapsed = Math.floor((Date.now() - levelStartedAtMs) / 1000)
+  // Clamped to >= 0 for the same reason as the client-side computeLiveLevelState.
+  const elapsed = Math.max(0, Math.floor((Date.now() - levelStartedAtMs) / 1000))
   let timeLeft = levelStartedRemaining - elapsed
 
   if (timeLeft > 0) return null // Level still running

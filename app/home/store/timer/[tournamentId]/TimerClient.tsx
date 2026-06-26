@@ -7,6 +7,8 @@ import { useParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firestore"
 import { createPortal } from "react-dom"
+import { computeLiveLevelState } from "@/lib/timerCompute"
+import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 const AudioContextClass =
@@ -74,6 +76,7 @@ export default function TimerClient() {
   }
 
   useEffect(() => { loadAudioFiles() }, [])
+  useEffect(() => { ensureClockCalibrated() }, [])
 
   const params = useParams()
   const tournamentId = params.tournamentId as string
@@ -311,19 +314,26 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     }
     return []
   }, [customBlindLevels, tournamentBlindPresetId, selectedPreset, blindPresets])
+  const levelsToUseRef = useRef<Level[]>(levelsToUse)
+  useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
 
   // ── Wall-clock tick interval: display updates only (level advance now server-driven) ─
   useEffect(() => {
     if (!isRunning || !storeId) return
 
     const id = setInterval(() => {
-      const now = Date.now()
-      setTickNow(now)
+      setTickNow(Date.now())
       const lsAt = levelStartedAtMsRef.current
       if (lsAt === null) return
 
-      const elapsed = Math.floor((now - lsAt) / 1000)
-      const ds = Math.max(levelStartedRemainingRef.current - elapsed, 0)
+      // Same catch-up computation as the render-time display, so the warning sounds
+      // (10/3/2/1 sec) fire for the correct level even exactly at a level boundary.
+      // Uses getServerNow() (not raw Date.now()) so a skewed device clock never throws
+      // off the countdown — see lib/serverClock.ts.
+      const { remainingSec: ds } = computeLiveLevelState(
+        currentLevelIndexRef.current, lsAt, levelStartedRemainingRef.current,
+        levelsToUseRef.current, true, getServerNow()
+      )
 
       // Sounds (deduplicated by lastSoundSecRef)
       if (ds !== lastSoundSecRef.current) {
@@ -354,27 +364,31 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const alivePlayers = totalPlayers - bust
   const totalChips = entry * entryStack + reentry * reentryStack + addon * addonStack
   const averageStack = alivePlayers > 0 ? Math.floor(totalChips / alivePlayers) : 0
-  const level = levelsToUse[currentLevelIndex] ?? null
-  const nextLevel = currentLevelIndex < levelsToUse.length - 1 ? levelsToUse[currentLevelIndex + 1] : level
   // tickNow is read here only to force a re-render every 250ms when running.
-  // The actual computation uses Date.now() (never stale) and levelStartedRemaining
-  // (a snapshot frozen at the moment levelStartedAt was last written), so any
-  // external writes to timeRemaining — e.g. old cached code decrementing it — are ignored.
+  // The actual computation below always uses getServerNow() (clock-skew-corrected,
+  // never stale) plus the frozen anchor (currentLevelIndex/levelStartedAt/
+  // levelStartedRemaining), via the same catch-up function the server uses — so the
+  // displayed level/blinds/time are always correct immediately, with zero dependency
+  // on a server push having happened yet, and zero sensitivity to this device's clock.
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   void tickNow
-  const displaySeconds = (() => {
-    if (!isRunning || levelStartedAtMs === null) return timeRemaining
-    const elapsed = Math.floor((Date.now() - levelStartedAtMs) / 1000)
-    return Math.max(levelStartedRemaining - elapsed, 0)
-  })()
+  const { levelIndex: liveLevelIndex, remainingSec: displaySeconds } = computeLiveLevelState(
+    currentLevelIndex,
+    levelStartedAtMs,
+    isRunning ? levelStartedRemaining : timeRemaining,
+    levelsToUse,
+    isRunning,
+    getServerNow()
+  )
+  const level = levelsToUse[liveLevelIndex] ?? null
+  const nextLevel = liveLevelIndex < levelsToUse.length - 1 ? levelsToUse[liveLevelIndex + 1] : level
   const minutes = Math.floor(displaySeconds / 60)
   const seconds = displaySeconds % 60
-  const currentLevel = levelsToUse[currentLevelIndex]
-  const totalLevelSeconds = typeof currentLevel?.duration === "number" ? currentLevel.duration * 60 : 1
+  const totalLevelSeconds = typeof level?.duration === "number" ? level.duration * 60 : 1
   const progress = totalLevelSeconds > 0 ? (displaySeconds / totalLevelSeconds) * 100 : 0
   const nextBreakSeconds = (() => {
     let total = displaySeconds
-    for (let i = currentLevelIndex + 1; i < levelsToUse.length; i++) {
+    for (let i = liveLevelIndex + 1; i < levelsToUse.length; i++) {
       const lv = levelsToUse[i]
       if (lv.type === "break") break
       if (typeof lv.duration === "number") total += lv.duration * 60
@@ -383,7 +397,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   })()
   const nextBreakMin = Math.floor(nextBreakSeconds / 60)
   const nextBreakSec = nextBreakSeconds % 60
-  const hasNextBreak = levelsToUse.slice(currentLevelIndex + 1).some(lv => lv.type === "break")
+  const hasNextBreak = levelsToUse.slice(liveLevelIndex + 1).some(lv => lv.type === "break")
   const totalPrize = Object.values(prizePool).reduce((a, b) => a + (Number(b?.amount) || 0), 0)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
@@ -453,7 +467,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
                   <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#C8820A] flex-shrink-0">
-                    LEVEL&nbsp;{currentLevelIndex + 1}
+                    LEVEL&nbsp;{liveLevelIndex + 1}
                   </span>
                 )}
                 {level?.type === "break" && (
@@ -529,7 +543,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     — B R E A K —
                   </p>
                   <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
-                  {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
+                  {isPresetSelected && liveLevelIndex < levelsToUse.length - 1 && (
                     <>
                       <span className="text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">NEXT</span>
                       {nextLevel?.type === "break"
@@ -553,7 +567,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       </div>
                     </>
                   )}
-                  {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
+                  {isPresetSelected && liveLevelIndex >= levelsToUse.length - 1 && (
                     <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "24px" }}>
                       <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
                         <span>NEXT</span><span>BREAK</span>
@@ -589,7 +603,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   {/* Horizontal separator */}
                   <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
                   {/* NEXT BLIND + NEXT BREAK — same row */}
-                  {isPresetSelected && currentLevelIndex < levelsToUse.length - 1 && (
+                  {isPresetSelected && liveLevelIndex < levelsToUse.length - 1 && (
                     <>
                       {/* NEXT BLIND — col 1: 2-line, centered */}
                       <span className="flex flex-col items-center text-[30px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
@@ -619,7 +633,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     </>
                   )}
                   {/* NEXT BREAK only — at last level */}
-                  {isPresetSelected && currentLevelIndex >= levelsToUse.length - 1 && (
+                  {isPresetSelected && liveLevelIndex >= levelsToUse.length - 1 && (
                     <div style={{ gridColumn: "1 / -1", display: "flex", alignItems: "center", gap: "24px" }}>
                       <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
                         <span>NEXT</span><span>BREAK</span>
