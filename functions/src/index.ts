@@ -219,24 +219,29 @@ async function resolveLevels(
   return (Array.isArray(presetData?.levels) ? presetData.levels : []) as BlindLevel[]
 }
 
-// Helper: compute how many levels to advance in one pass
-// Returns { newLevelIndex, newTimeRemaining } or null if tournament is over
+// Helper: compute how many levels to advance in one pass.
+// Returns null ONLY when the current level is still running and no write is needed.
+// "Tournament finished" is a distinct, explicit result (finished: true) — callers must
+// not treat null and "finished" as the same thing, or every still-running tournament
+// gets paused the next time this runs.
 function computeCatchUp(
   currentIdx: number,
   levelStartedAtMs: number,
   levelStartedRemaining: number,
   levels: BlindLevel[]
-): { newLevelIndex: number; newTimeRemaining: number } | null {
+): { newLevelIndex: number; newTimeRemaining: number; finished: boolean } | null {
   // Clamped to >= 0 for the same reason as the client-side computeLiveLevelState.
   const elapsed = Math.max(0, Math.floor((Date.now() - levelStartedAtMs) / 1000))
   let timeLeft = levelStartedRemaining - elapsed
 
-  if (timeLeft > 0) return null // Level still running
+  if (timeLeft > 0) return null // Level still running — nothing to do
 
   let idx = currentIdx
   while (timeLeft <= 0) {
     const nextIdx = idx + 1
-    if (nextIdx >= levels.length) return null // Tournament over
+    if (nextIdx >= levels.length) {
+      return { newLevelIndex: idx, newTimeRemaining: 0, finished: true } // Tournament over
+    }
     idx = nextIdx
     const dur =
       typeof levels[idx]?.duration === "number" && levels[idx].duration! > 0
@@ -245,7 +250,7 @@ function computeCatchUp(
     timeLeft += dur
   }
 
-  return { newLevelIndex: idx, newTimeRemaining: timeLeft }
+  return { newLevelIndex: idx, newTimeRemaining: timeLeft, finished: false }
 }
 
 /**
@@ -518,8 +523,9 @@ export const recoverStuckTournamentTimers = onSchedule(
           .collection("tournaments")
           .doc(tournamentId)
 
-        if (!catchUp) {
-          // Tournament should be over
+        if (!catchUp) continue // Level still running — nothing to do
+
+        if (catchUp.finished) {
           await tournamentRef.update({ timerRunning: false })
           continue
         }
