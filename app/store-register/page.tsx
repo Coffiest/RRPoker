@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react"
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { createUserWithEmailAndPassword, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
+import { isNativeIOS } from "@/lib/platform"
+import { signInWithApple } from "@/lib/appleAuth"
 
 export default function StoreRegisterPage() {
   const router = useRouter()
@@ -15,6 +17,8 @@ export default function StoreRegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleLoading, setAppleLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -65,6 +69,30 @@ export default function StoreRegisterPage() {
     } catch (e: any) {
       setError(getAuthErrorMessage(e.code))
     } finally { setIsLoading(false) }
+  }
+
+  const handleGoogleRegister = async () => {
+    setError(''); setGoogleLoading(true)
+    try {
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
+      await setDoc(doc(db, "users", user.uid), { email: user.email, role: 'store', createdAt: serverTimestamp() }, { merge: true })
+      router.replace("/onboarding/store")
+    } catch (e: any) {
+      if (e.code === "auth/popup-blocked") { setError("ポップアップがブロックされています。"); return }
+      setError(getAuthErrorMessage(e.code))
+    } finally { setGoogleLoading(false) }
+  }
+
+  const handleAppleRegister = async () => {
+    setError(''); setAppleLoading(true)
+    try {
+      await signInWithApple("store")
+      router.replace("/onboarding/store")
+    } catch {
+      setError("Appleサインインに失敗しました")
+    } finally { setAppleLoading(false) }
   }
 
   const orb1x = Math.sin(orbPhase * 0.6) * 40
@@ -249,6 +277,43 @@ export default function StoreRegisterPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
             <div style={{ width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(#F2A900,#D4910A)' }} />
             <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>アカウント情報</p>
+          </div>
+
+          {/* ソーシャル登録 — 丸アイコン */}
+          <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
+            {!isNativeIOS() && (
+              <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
+                style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.08)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
+              >
+                {googleLoading
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
+                  : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
+                      <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
+                      <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
+                      <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
+                    </svg>
+                }
+              </button>
+            )}
+            <button onClick={handleAppleRegister} disabled={isLoading || appleLoading}
+              style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.25)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
+            >
+              {appleLoading
+                ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(0,0,0,0.1)', borderTopColor:'#000', animation:'spin .65s linear infinite' }}/>
+                : <svg width="16" height="20" viewBox="0 0 16 20" fill="black">
+                    <path d="M13.15 10.44c-.02-2.05 1.67-3.04 1.75-3.09-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.47.74-3.11.74-.64 0-1.62-.72-2.67-.7-1.37.02-2.64.8-3.34 2.02C1.27 10.26 2.3 14.5 3.84 16.87c.77 1.16 1.68 2.44 2.88 2.4 1.16-.05 1.59-.74 2.99-.74 1.4 0 1.79.74 3.01.71 1.24-.02 2.03-1.17 2.79-2.33.88-1.33 1.24-2.63 1.26-2.7-.03-.01-2.4-.92-2.62-3.77z"/>
+                    <path d="M11.06 4.66c.63-.78 1.06-1.86.94-2.95-.91.04-2.02.62-2.67 1.38-.58.67-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.69-1.24z"/>
+                  </svg>
+              }
+            </button>
+          </div>
+
+          {/* or 区切り */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+            <div style={{ height:1, background:'rgba(255,255,255,0.08)', flex:1 }}/>
+            <span style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:'0.04em' }}>または</span>
+            <div style={{ height:1, background:'rgba(255,255,255,0.08)', flex:1 }}/>
           </div>
 
           {/* メール */}

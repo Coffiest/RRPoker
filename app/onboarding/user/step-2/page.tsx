@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
 
 const FEATURES = [
   {
@@ -306,7 +306,11 @@ export default function UserWelcomePage() {
         <div className="mt-7 d6">
           <button
             type="button"
-            onClick={() => router.replace('/home')}
+            onClick={async () => {
+              const user = auth.currentUser
+              if (user) await setDoc(doc(db, 'users', user.uid), { profileCompleted: true }, { merge: true })
+              router.replace('/home')
+            }}
             className="btn-primary flex h-[54px] w-full items-center justify-center gap-2 rounded-[20px] text-[16px] font-semibold text-gray-900"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">

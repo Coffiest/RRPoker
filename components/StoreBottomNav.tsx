@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { FiHome, FiUser, FiPlus } from 'react-icons/fi'
+import { hapticTap } from '@/lib/haptics'
 
 type ActiveTab = 'home' | 'action' | 'mypage'
 
@@ -84,7 +85,7 @@ export default function StoreBottomNav() {
         {/* Home */}
         <button
           type="button"
-          onClick={() => router.push('/home/store')}
+          onClick={() => { hapticTap(); router.push('/home/store') }}
           className="flex flex-col items-center gap-1"
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
@@ -96,7 +97,7 @@ export default function StoreBottomNav() {
         <div className="flex justify-center">
           <button
             type="button"
-            onClick={() => router.push('/home/store/tournaments')}
+            onClick={() => { hapticTap(); router.push('/home/store/tournaments') }}
             className="flex items-center justify-center active:scale-95 transition-all"
             style={{
               width: 48,
@@ -118,7 +119,7 @@ export default function StoreBottomNav() {
         {/* Mypage */}
         <button
           type="button"
-          onClick={() => router.push('/home/store/mypage')}
+          onClick={() => { hapticTap(); router.push('/home/store/mypage') }}
           className="flex flex-col items-center gap-1"
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >

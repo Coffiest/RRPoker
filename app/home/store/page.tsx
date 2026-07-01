@@ -10,6 +10,7 @@ import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, pauseTournamentTimer, resumeTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { computeLiveLevelState, type TimerLevel } from "@/lib/timerCompute"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
+import { hapticAction, hapticTap, hapticError } from "@/lib/haptics"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -239,6 +240,7 @@ export default function StorePage() {
     setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
   }
   const toggleTimer = async (id: string) => {
+    hapticAction()
     timerRunning[id] ? await pauseTimer(id) : await resumeTimer(id)
   }
 
@@ -271,10 +273,12 @@ export default function StorePage() {
     const t = activeTournaments.find(t => t.id === id)
     if (!t) return
     const live = getLiveLevelState(t)
+    hapticTap()
     try {
       await setTournamentLevel(storeId, id, live.levelIndex + 1)
     } catch (error) {
       console.error("Failed to advance level:", error)
+      hapticError()
       alert("レベル変更に失敗しました")
     }
   }
@@ -292,10 +296,12 @@ export default function StorePage() {
     const t = activeTournaments.find(t => t.id === id)
     if (!t) return
     const live = getLiveLevelState(t)
+    hapticTap()
     try {
       await setTournamentLevel(storeId, id, Math.max(0, live.levelIndex - 1))
     } catch (error) {
       console.error("Failed to go to previous level:", error)
+      hapticError()
       alert("レベル変更に失敗しました")
     }
   }
@@ -2105,7 +2111,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.2</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.3</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>

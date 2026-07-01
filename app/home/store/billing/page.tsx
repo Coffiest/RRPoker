@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
 import { FiCheck, FiChevronLeft } from "react-icons/fi"
-import { isNativeIOS } from "@/lib/platform"
+import { isNativeApp, isNativeIOS } from "@/lib/platform"
 import { purchaseStorePlan } from "@/lib/iap"
 import { isSubscriptionActive } from "@/lib/subscription-client"
 
@@ -91,10 +91,10 @@ function BillingContent() {
   }, [storeId])
 
   // 決済から戻ってきたら、Webhookに依存せずStripeへ直接確認してFirestoreをActive化
-  // （iOS StoreKit購入はStripeセッションを持たないため対象外。RevenueCatのWebhookが
+  // （ネイティブアプリのIAP購入はStripeセッションを持たないため対象外。RevenueCatのWebhookが
   // Firestoreを更新するのを待ち、下のonSnapshotがActive化を検知して自動遷移する）
   useEffect(() => {
-    if (!success || !authReady || !storeId || isNativeIOS()) return
+    if (!success || !authReady || !storeId || isNativeApp()) return
     let cancelled = false
     setSyncError("")
     ;(async () => {
@@ -135,7 +135,7 @@ function BillingContent() {
     }
   }
 
-  const handleSubscribeIOS = async () => {
+  const handleSubscribeNative = async () => {
     const user = auth.currentUser
     if (!user) return
     const token = await user.getIdToken()
@@ -160,8 +160,8 @@ function BillingContent() {
     setLoading(true)
     setError("")
     try {
-      if (isNativeIOS()) {
-        await handleSubscribeIOS()
+      if (isNativeApp()) {
+        await handleSubscribeNative()
         return
       }
       const user = auth.currentUser
@@ -350,6 +350,8 @@ function BillingContent() {
         <p className="text-xs text-gray-400 text-center mt-4">
           {isNativeIOS()
             ? "App Storeを通じて購入します。管理・キャンセルはいつでもiOSの設定から行えます。"
+            : isNativeApp()
+            ? "Google Playを通じて購入します。管理・キャンセルはいつでもPlayストアの設定から行えます。"
             : "Stripeの安全な決済ページに移動します。いつでもキャンセル可能です。"}
         </p>
         <p className="text-xs text-gray-400 text-center mt-2">

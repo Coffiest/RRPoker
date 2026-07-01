@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { adminDb } from "@/lib/firebase-admin"
 import { patchSubscription } from "@/lib/store-subscription"
 
-// Apple App Store Connect product identifiers -> {plan, interval}, mirroring
-// the Stripe PRICE_IDS map in app/api/stripe/create-checkout-session/route.ts
-const APPLE_PRODUCT_MAP: Record<string, { plan: string; interval: string }> = {
+// App Store / Play Store product identifiers -> {plan, interval}, mirroring
+// the Stripe PRICE_IDS map in app/api/stripe/create-checkout-session/route.ts.
+// Same identifier strings are used for both stores' subscription products
+// (see lib/iap.ts), so one map covers both — distinguished by event.store instead.
+const PRODUCT_MAP: Record<string, { plan: string; interval: string }> = {
   "com.rrpoker.app.standard.monthly": { plan: "standard", interval: "monthly" },
   "com.rrpoker.app.standard.yearly": { plan: "standard", interval: "yearly" },
   "com.rrpoker.app.circle.monthly": { plan: "circle", interval: "monthly" },
@@ -33,12 +35,15 @@ export async function POST(req: NextRequest) {
   const storeId: string | undefined = userSnap.data()?.storeId
   if (!storeId) return NextResponse.json({ received: true })
 
-  const mapped = productId ? APPLE_PRODUCT_MAP[productId] : undefined
+  const mapped = productId ? PRODUCT_MAP[productId] : undefined
   const currentPeriodEnd = event.expiration_at_ms ? Math.floor(event.expiration_at_ms / 1000) : undefined
+  // RevenueCat's event.store is "APP_STORE" or "PLAY_STORE" (also "STRIPE"/"AMAZON" for
+  // other integrations, not used here since web keeps its own direct Stripe checkout).
+  const provider = event.store === "PLAY_STORE" ? "google_play" : "apple_iap"
 
   if (ACTIVE_EVENTS.has(type)) {
     await patchSubscription(storeId, {
-      provider: "apple_iap",
+      provider,
       status: "active",
       plan: mapped?.plan,
       interval: mapped?.interval,
@@ -48,18 +53,18 @@ export async function POST(req: NextRequest) {
 
     // Circle-plan serial code consumption: the client attaches the
     // verified code as a RevenueCat subscriber attribute before purchasing
-    // (see Purchases.setAttributes in the billing page), since StoreKit
-    // purchases carry no custom checkout metadata like Stripe sessions do.
+    // (see Purchases.setAttributes in the billing page), since StoreKit/Play
+    // Billing purchases carry no custom checkout metadata like Stripe sessions do.
     const circleCode = event.subscriber_attributes?.circle_code?.value
     if (mapped?.plan === "circle" && circleCode) {
       await adminDb.doc(`circleSerialCodes/${circleCode}`).set({ usedBy: storeId, usedAt: Date.now() }, { merge: true })
     }
   } else if (type === "CANCELLATION") {
-    await patchSubscription(storeId, { provider: "apple_iap", cancelAtPeriodEnd: true })
+    await patchSubscription(storeId, { provider, cancelAtPeriodEnd: true })
   } else if (ENDED_EVENTS.has(type)) {
-    await patchSubscription(storeId, { provider: "apple_iap", status: "canceled", cancelAtPeriodEnd: false })
+    await patchSubscription(storeId, { provider, status: "canceled", cancelAtPeriodEnd: false })
   } else if (type === "BILLING_ISSUE") {
-    await patchSubscription(storeId, { provider: "apple_iap", status: "past_due" })
+    await patchSubscription(storeId, { provider, status: "past_due" })
   }
 
   return NextResponse.json({ received: true })

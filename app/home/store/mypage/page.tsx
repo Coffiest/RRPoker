@@ -875,6 +875,20 @@ export default function StoreMyPage() {
                       ご契約はApp Storeで管理されています。変更・キャンセルはiOSの「設定」アプリまたはApp Storeから行えます。
                     </p>
                   </>
+                ) : subscription.provider === "google_play" ? (
+                  <>
+                    <a
+                      href="https://play.google.com/store/account/subscriptions"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
+                    >
+                      サブスクリプションを管理（Google Play）
+                    </a>
+                    <p className="text-[12px] text-gray-500 text-center px-2">
+                      ご契約はGoogle Playで管理されています。変更・キャンセルはPlayストアから行えます。
+                    </p>
+                  </>
                 ) : (
                   <>
                     <button

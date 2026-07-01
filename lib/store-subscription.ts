@@ -23,8 +23,8 @@ export type SubFields = {
   interval?: string
   currentPeriodEnd?: number
   cancelAtPeriodEnd?: boolean
-  // 'stripe'（Web）/ 'apple_iap'（iOS StoreKit経由）/ 'admin_free'（運営による手動無料化）
-  provider?: "stripe" | "apple_iap" | "admin_free"
+  // 'stripe'（Web）/ 'apple_iap'（iOS StoreKit経由）/ 'google_play'（Android Play Billing経由）/ 'admin_free'（運営による手動無料化）
+  provider?: "stripe" | "apple_iap" | "google_play" | "admin_free"
 }
 
 // Read a store's subscription, merging the canonical nested object with any

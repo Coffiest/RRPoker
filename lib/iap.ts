@@ -1,6 +1,10 @@
 import { Purchases } from "@revenuecat/purchases-capacitor"
+import { Capacitor } from "@capacitor/core"
 
-// Mirrors APPLE_PRODUCT_MAP in app/api/iap/revenuecat-webhook/route.ts
+// Mirrors APPLE_PRODUCT_MAP / ANDROID_PRODUCT_MAP in app/api/iap/revenuecat-webhook/route.ts
+// Same identifier strings are reused for both stores' product/subscription IDs
+// (Google Play allows this dotted format too) so this map and the webhook's
+// product->plan lookup don't need a second, parallel set of IDs.
 const PRODUCT_IDS: Record<string, string> = {
   "standard:monthly": "com.rrpoker.app.standard.monthly",
   "standard:yearly": "com.rrpoker.app.standard.yearly",
@@ -9,10 +13,12 @@ const PRODUCT_IDS: Record<string, string> = {
 }
 
 export async function configureIAP(uid: string) {
-  await Purchases.configure({
-    apiKey: process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY!,
-    appUserID: uid,
-  })
+  const platform = Capacitor.getPlatform()
+  const apiKey = platform === "android"
+    ? process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_API_KEY!
+    : process.env.NEXT_PUBLIC_REVENUECAT_IOS_API_KEY!
+
+  await Purchases.configure({ apiKey, appUserID: uid })
 }
 
 export async function purchaseStorePlan(plan: "standard" | "circle", interval: "monthly" | "yearly", circleCode?: string) {

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation"
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { useSearchParams } from "next/navigation"
 import { isNativeIOS } from "@/lib/platform"
+import { signInWithApple } from "@/lib/appleAuth"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [isUnverified, setIsUnverified] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleLoading, setAppleLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [emailFocus, setEmailFocus] = useState(false)
   const [pwFocus, setPwFocus] = useState(false)
@@ -99,10 +101,14 @@ export default function LoginPage() {
         await setDoc(doc(db, "users", user.uid), { role: 'player' }, { merge: true })
         router.replace("/onboarding/user/profile"); return
       }
-      const role = snap.data()?.role
-      if (role === "player") { router.replace(safeRedirect ?? "/home"); return }
+      const data = snap.data()
+      const role = data?.role
+      if (role === "player") {
+        if (!data?.profileCompleted) { router.replace("/onboarding/user/profile"); return }
+        router.replace(safeRedirect ?? "/home"); return
+      }
       if (role === "store") {
-        const storeId = snap.data()?.storeId
+        const storeId = data?.storeId
         if (!storeId) { router.replace("/onboarding/store"); return }
         router.replace(safeRedirect ?? "/home/store"); return
       }
@@ -126,10 +132,14 @@ export default function LoginPage() {
         await setDoc(doc(db, "users", user.uid), { email: user.email, createdAt: serverTimestamp(), provider: "google", role: 'player' }, { merge: true })
         router.replace("/onboarding/user/profile"); return
       }
-      const role = snap.data()?.role
-      if (role === "player") { router.replace(safeRedirect ?? "/home"); return }
+      const data = snap.data()
+      const role = data?.role
+      if (role === "player") {
+        if (!data?.profileCompleted) { router.replace("/onboarding/user/profile"); return }
+        router.replace(safeRedirect ?? "/home"); return
+      }
       if (role === "store") {
-        const storeId = snap.data()?.storeId
+        const storeId = data?.storeId
         if (!storeId) { router.replace("/onboarding/store"); return }
         router.replace(safeRedirect ?? "/home/store"); return
       }
@@ -140,6 +150,25 @@ export default function LoginPage() {
       if (e.code === "auth/network-request-failed") { setError("ネットワークエラーが発生しました。"); return }
       setError("Googleログインに失敗しました")
     } finally { setGoogleLoading(false) }
+  }
+
+  const handleAppleLogin = async () => {
+    setError(''); setAppleLoading(true)
+    try {
+      if (redirect === "delete") { router.replace("/home/mypage?delete=1"); return }
+      const safeRedirect = redirect && redirect.startsWith("/") && redirect !== "/login" ? redirect : null
+      const result = await signInWithApple("player")
+      if (result.isNewUser) { router.replace("/onboarding/user/profile"); return }
+      if (result.role === "player") {
+        const snap = await getDoc(doc(db, "users", result.uid))
+        if (!snap.data()?.profileCompleted) { router.replace("/onboarding/user/profile"); return }
+        router.replace(safeRedirect ?? "/home"); return
+      }
+      if (result.role === "store") { router.replace(safeRedirect ?? "/home/store"); return }
+      router.replace("/onboarding/user/profile")
+    } catch {
+      setError("Appleログインに失敗しました")
+    } finally { setAppleLoading(false) }
   }
 
   // ── Ambient orb positions ──
@@ -442,7 +471,7 @@ export default function LoginPage() {
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.6 }}>
-              ポーカーライフをもっとスマートに。<br/>ログインして始めましょう。
+              Redefine Poker. As a Sport. For the World.
             </p>
           </div>
 
@@ -458,40 +487,51 @@ export default function LoginPage() {
 
             {/* タイトル */}
             <div style={{ marginBottom:20 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>ログイン</p>
-              <p style={{ fontSize:12, color:'var(--label2)' }}>アカウントにサインインしてください</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Login</p>
+              
             </div>
 
-            {/* Google（最上部）— iOSネイティブアプリではFirebaseのsignInWithPopupが
-                安定動作しないため非表示（メール/パスワードのみ提供） */}
-            {!isNativeIOS() && (
-              <>
-                <button className="btn-google" onClick={handleGoogleLogin} disabled={loading || googleLoading}>
+            {/* ソーシャルログイン — 丸アイコン */}
+            <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
+              {!isNativeIOS() && (
+                <button onClick={handleGoogleLogin} disabled={loading || googleLoading}
+                  style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
+                >
                   {googleLoading
-                    ? <div className="spinner-white" style={{ borderTopColor:'#555' }}/>
-                    : <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+                    ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
+                    : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
                         <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
                         <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
                         <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
                       </svg>
                   }
-                  <span style={{ fontSize:15, fontWeight:600 }}>{googleLoading ? '認証中…' : 'Googleでサインイン'}</span>
                 </button>
+              )}
+              <button onClick={handleAppleLogin} disabled={loading || appleLoading}
+                style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#000', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
+              >
+                {appleLoading
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .65s linear infinite' }}/>
+                  : <svg width="16" height="20" viewBox="0 0 16 20" fill="white">
+                      <path d="M13.15 10.44c-.02-2.05 1.67-3.04 1.75-3.09-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.47.74-3.11.74-.64 0-1.62-.72-2.67-.7-1.37.02-2.64.8-3.34 2.02C1.27 10.26 2.3 14.5 3.84 16.87c.77 1.16 1.68 2.44 2.88 2.4 1.16-.05 1.59-.74 2.99-.74 1.4 0 1.79.74 3.01.71 1.24-.02 2.03-1.17 2.79-2.33.88-1.33 1.24-2.63 1.26-2.7-.03-.01-2.4-.92-2.62-3.77z"/>
+                      <path d="M11.06 4.66c.63-.78 1.06-1.86.94-2.95-.91.04-2.02.62-2.67 1.38-.58.67-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.69-1.24z"/>
+                    </svg>
+                }
+              </button>
+            </div>
 
-                {/* 区切り */}
-                <div style={{ display:'flex', alignItems:'center', gap:10, margin:'16px 0' }}>
-                  <div className="divider-line" style={{ flex:1 }}/>
-                  <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.03em' }}>またはメールで</span>
-                  <div className="divider-line" style={{ flex:1 }}/>
-                </div>
-              </>
-            )}
+            {/* or 区切り */}
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+              <div className="divider-line" style={{ flex:1 }}/>
+              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>or</span>
+              <div className="divider-line" style={{ flex:1 }}/>
+            </div>
 
             {/* メール */}
             <div style={{ marginBottom:10 }}>
               <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>
-                メールアドレス
+                Email
               </label>
               <div className={`field-wrap${emailFocus?' focused':''}${error&&!email?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
@@ -516,7 +556,7 @@ export default function LoginPage() {
             {/* パスワード */}
             <div style={{ marginBottom:6 }}>
               <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>
-                パスワード
+                Password
               </label>
               <div className={`field-wrap${pwFocus?' focused':''}${error&&!password?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
@@ -545,7 +585,7 @@ export default function LoginPage() {
             <div style={{ textAlign:'right', marginBottom:18 }}>
               <button type="button" onClick={() => router.push('/forgot-password')}
                 style={{ fontSize:12, fontWeight:600, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'4px 0', opacity:0.85 }}
-              >パスワードを忘れた方</button>
+              >Forgot Password?</button>
             </div>
 
             {/* エラー */}
@@ -573,17 +613,17 @@ export default function LoginPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  ログイン
+                  Login
                 </>
               )}
             </button>
 
             {/* 新規登録 */}
             <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-              <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちでない方は</span>
+   
               <button type="button" onClick={() => router.push('/register')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >新規登録 →</button>
+              >Create Account</button>
             </div>
             {/* 店舗向け */}
             <div style={{ marginTop:10, textAlign:'center' }}>
@@ -624,12 +664,12 @@ export default function LoginPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.2</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.3</p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p
             style={{ fontSize:10, color:'var(--label3)', cursor:'pointer', userSelect:'none' }}
             onClick={() => { setAdminModalOpen(true); setAdminPw(""); setAdminError("") }}
-          >製作者 : なおゆき a.k.a. Turn dead man</p>
+          >製作者 : なおゆき </p>
         </div>
 
       </div>

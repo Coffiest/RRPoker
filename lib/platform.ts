@@ -7,3 +7,20 @@ export function isNativeIOS(): boolean {
     return false
   }
 }
+
+export function isNativeAndroid(): boolean {
+  try {
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android"
+  } catch {
+    return false
+  }
+}
+
+/** True on either native wrapper (iOS or Android) — for behavior that isn't store-specific. */
+export function isNativeApp(): boolean {
+  try {
+    return Capacitor.isNativePlatform()
+  } catch {
+    return false
+  }
+}

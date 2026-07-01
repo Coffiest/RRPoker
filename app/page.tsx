@@ -281,7 +281,7 @@ export default function TopPage() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              ログイン
+              Lonin
             </button>
 
           
@@ -545,7 +545,7 @@ export default function TopPage() {
           <img src="/logo.png" alt="RRPoker" style={{ width:28, height:28, borderRadius:8, objectFit:'cover' }}/>
           <span style={{ fontSize:13, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
         </div>
-        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.8.2</p>
+        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.8.3</p>
         <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize:10, color:'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop:16 }}>

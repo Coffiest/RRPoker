@@ -64,15 +64,11 @@ html, body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
 }
 
 .font-display {
   font-family: "Playfair Display", serif;
-}
-
-.font-ui {
-  font-family: "Plus Jakarta Sans", sans-serif;
 }
 
 .page-slide-in {

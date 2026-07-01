@@ -7,6 +7,7 @@ import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
 import { isNativeIOS } from "@/lib/platform"
+import { signInWithApple } from "@/lib/appleAuth"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [appleLoading, setAppleLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [showCPw, setShowCPw] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -95,11 +97,21 @@ export default function RegisterPage() {
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       await setDoc(doc(db, "users", user.uid), { email: user.email, createdAt: serverTimestamp() }, { merge: true })
-      router.replace("/onboarding")
+      router.replace("/onboarding/user/profile")
     } catch (e: any) {
       if (e.code === "auth/popup-blocked") { setError("ポップアップがブロックされています。"); return }
       setError(getAuthErrorMessage(e.code))
     } finally { setGoogleLoading(false) }
+  }
+
+  const handleAppleRegister = async () => {
+    setError(''); setAppleLoading(true)
+    try {
+      await signInWithApple("player")
+      router.replace("/onboarding/user/profile")
+    } catch {
+      setError("Appleサインインに失敗しました")
+    } finally { setAppleLoading(false) }
   }
 
   const orb1x = Math.sin(orbPhase * 0.7) * 28
@@ -340,7 +352,7 @@ export default function RegisterPage() {
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.65 }}>
-              アカウントを作成して<br/>ポーカーライフをスタートしましょう。
+              Redefine Poker. As a Sport. For the World.
             </p>
           </div>
 
@@ -369,37 +381,50 @@ export default function RegisterPage() {
 
           <div style={{ padding:'22px 20px 24px' }}>
             <div style={{ marginBottom:20 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>新規登録</p>
-              <p style={{ fontSize:12, color:'var(--label2)' }}>無料アカウントを作成してください</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Create account</p>
+              <p style={{ fontSize:12, color:'var(--label2)' }}>無料でアカウントを新規作成</p>
             </div>
 
-            {/* Google — iOSネイティブアプリではsignInWithPopupが安定動作しないため非表示 */}
-            {!isNativeIOS() && (
-              <>
-                <button className="btn-google" onClick={handleGoogleRegister} disabled={isLoading || googleLoading}>
+            {/* ソーシャル登録 — 丸アイコン */}
+            <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
+              {!isNativeIOS() && (
+                <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
+                  style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
+                >
                   {googleLoading
-                    ? <div className="spinner-dark"/>
-                    : <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+                    ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
+                    : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
                         <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
                         <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
                         <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
                       </svg>
                   }
-                  <span style={{ fontSize:15, fontWeight:600 }}>{googleLoading ? '処理中…' : 'Googleで新規登録'}</span>
                 </button>
+              )}
+              <button onClick={handleAppleRegister} disabled={isLoading || appleLoading}
+                style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#000', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
+              >
+                {appleLoading
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .65s linear infinite' }}/>
+                  : <svg width="16" height="20" viewBox="0 0 16 20" fill="white">
+                      <path d="M13.15 10.44c-.02-2.05 1.67-3.04 1.75-3.09-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.47.74-3.11.74-.64 0-1.62-.72-2.67-.7-1.37.02-2.64.8-3.34 2.02C1.27 10.26 2.3 14.5 3.84 16.87c.77 1.16 1.68 2.44 2.88 2.4 1.16-.05 1.59-.74 2.99-.74 1.4 0 1.79.74 3.01.71 1.24-.02 2.03-1.17 2.79-2.33.88-1.33 1.24-2.63 1.26-2.7-.03-.01-2.4-.92-2.62-3.77z"/>
+                      <path d="M11.06 4.66c.63-.78 1.06-1.86.94-2.95-.91.04-2.02.62-2.67 1.38-.58.67-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.69-1.24z"/>
+                    </svg>
+                }
+              </button>
+            </div>
 
-                <div style={{ display:'flex', alignItems:'center', gap:10, margin:'16px 0' }}>
-                  <div className="divider-line" style={{ flex:1 }}/>
-                  <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.03em' }}>またはメールで</span>
-                  <div className="divider-line" style={{ flex:1 }}/>
-                </div>
-              </>
-            )}
+            {/* or 区切り */}
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+              <div className="divider-line" style={{ flex:1 }}/>
+              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>or</span>
+              <div className="divider-line" style={{ flex:1 }}/>
+            </div>
 
             {/* メール */}
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>メールアドレス</label>
+              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Email</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -422,7 +447,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>パスワード</label>
+              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Password</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -456,7 +481,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:6 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>パスワード（確認）</label>
+              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Password (Confirm)</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -500,19 +525,19 @@ export default function RegisterPage() {
               ) : (
                 <>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  アカウントを作成
+                  Create account !
                 </>
               )}
             </button>
 
             {/* ログインへ */}
             <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-              <span style={{ fontSize:13, color:'var(--label2)' }}>すでにアカウントをお持ちの方は</span>
+              <span style={{ fontSize:13, color:'var(--label2)' }}></span>
               <button type="button" onClick={() => router.push('/login')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >ログイン →</button>
+              >Login →</button>
             </div>
             {/* 店舗向け */}
             <div style={{ marginTop:10, textAlign:'center' }}>
@@ -544,7 +569,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.2 </p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.3 </p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>

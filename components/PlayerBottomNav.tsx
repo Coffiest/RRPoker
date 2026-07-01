@@ -8,6 +8,7 @@ import { doc, onSnapshot } from 'firebase/firestore'
 import { FiHome, FiUser, FiCreditCard } from 'react-icons/fi'
 import { MdQrCode2 } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
+import { hapticTap } from '@/lib/haptics'
 
 type ActiveTab = 'home' | 'action' | 'mypage'
 
@@ -138,6 +139,7 @@ export default function PlayerBottomNav() {
   }, [])
 
   const handleCenter = () => {
+    hapticTap()
     setIsQROpen(true)
   }
 
@@ -213,7 +215,7 @@ export default function PlayerBottomNav() {
             {/* ホーム */}
             <button
               type="button"
-              onClick={() => router.push('/home')}
+              onClick={() => { hapticTap(); router.push('/home') }}
               style={{ flex: 1, ...col('home'), background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: itemGap, padding: 0 }}
             >
@@ -249,7 +251,7 @@ export default function PlayerBottomNav() {
             {/* マイページ */}
             <button
               type="button"
-              onClick={() => router.push('/home/mypage')}
+              onClick={() => { hapticTap(); router.push('/home/mypage') }}
               style={{ flex: 1, ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: itemGap, padding: 0 }}
             >
