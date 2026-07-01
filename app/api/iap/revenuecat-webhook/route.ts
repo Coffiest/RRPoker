@@ -7,10 +7,9 @@ import { patchSubscription } from "@/lib/store-subscription"
 // Same identifier strings are used for both stores' subscription products
 // (see lib/iap.ts), so one map covers both — distinguished by event.store instead.
 const PRODUCT_MAP: Record<string, { plan: string; interval: string }> = {
-  "com.rrpoker.app.standard.monthly": { plan: "standard", interval: "monthly" },
-  "com.rrpoker.app.standard.yearly": { plan: "standard", interval: "yearly" },
-  "com.rrpoker.app.circle.monthly": { plan: "circle", interval: "monthly" },
-  "com.rrpoker.app.circle.yearly": { plan: "circle", interval: "yearly" },
+  "com.rrpoker.standard.monthly": { plan: "standard", interval: "monthly" },
+  "com.rrpoker.circle.monthly":   { plan: "circle",   interval: "monthly" },
+  "com.rrpoker.circle.yearly":    { plan: "circle",   interval: "yearly"  },
 }
 
 const ACTIVE_EVENTS = new Set(["INITIAL_PURCHASE", "RENEWAL", "UNCANCELLATION", "PRODUCT_CHANGE"])

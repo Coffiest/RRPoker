@@ -222,10 +222,17 @@ function BillingContent() {
     )
   }
 
-  const stdMonthly = 19800
-  const stdYearly = 198000
-  const circMonthly = 2980
-  const circYearly = 29800
+  const iosNative = isNativeIOS()
+
+  // iOS App Store prices (Apple 30%手数料込み)
+  // Standard年額はApp Storeで販売しない（Appleの上限¥160,000を超えるため）→ Web/Stripe限定
+  const stdMonthly  = iosNative ? 29000  : 19800
+  const stdYearly   = 198000  // App Store非対応・Stripe/Web限定（iOS/Web共通で元価格を表示）
+  const circMonthly = iosNative ? 4300   : 2980
+  const circYearly  = iosNative ? 43000  : 29800
+
+  // iOSでStandard年額を選択した場合はWebへ誘導
+  const iosWebOnlyPlan = iosNative && plan === "standard" && billingInterval === "yearly"
 
   const plans = [
     {
@@ -263,6 +270,12 @@ function BillingContent() {
           <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>
         </div>
 
+        {iosNative && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-6 text-[13px] text-blue-800 leading-relaxed">
+            <span className="font-semibold">Webブラウザからの購入がお得です。</span>{" "}
+            <a href="https://rrpoker.vercel.app/home/store/billing" className="underline font-medium">こちら</a>からStripe決済で購入すると、Standard月額¥19,800・年額¥198,000でご利用いただけます。
+          </div>
+        )}
         <div className="flex items-center justify-center gap-3 mb-8">
           <button
             onClick={() => setBillingInterval("monthly")}
@@ -304,6 +317,9 @@ function BillingContent() {
                   <div>
                     <span className="text-2xl font-bold text-gray-900">¥{p.yearly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/年</span></span>
                     <div className="text-xs text-gray-500 mt-0.5">（¥{p.perMonth.toLocaleString()}/月換算）</div>
+                    {iosNative && p.id === "standard" && (
+                      <span className="inline-block mt-1 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">Web限定</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -339,13 +355,29 @@ function BillingContent() {
           </div>
         )}
 
-        <button
-          onClick={handleSubscribe}
-          disabled={loading}
-          className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[16px] disabled:opacity-60 transition-opacity"
-        >
-          {loading ? "処理中..." : "サブスクリプションを開始する"}
-        </button>
+        {iosWebOnlyPlan ? (
+          <div className="space-y-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-[13px] text-amber-800 leading-relaxed">
+              Standard年額プランはApp Storeではご購入いただけません。Webブラウザから¥198,000でご購入ください。
+            </div>
+            <a
+              href="https://rrpoker.vercel.app/home/store/billing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[16px]"
+            >
+              Webブラウザで購入する（¥198,000/年）
+            </a>
+          </div>
+        ) : (
+          <button
+            onClick={handleSubscribe}
+            disabled={loading}
+            className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[16px] disabled:opacity-60 transition-opacity"
+          >
+            {loading ? "処理中..." : "サブスクリプションを開始する"}
+          </button>
+        )}
 
         <p className="text-xs text-gray-400 text-center mt-4">
           {isNativeIOS()

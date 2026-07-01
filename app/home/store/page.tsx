@@ -2111,7 +2111,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.3</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.4</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
