@@ -6,7 +6,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
-import { isNativeIOS } from "@/lib/platform"
+import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
 
 export default function RegisterPage() {
@@ -387,7 +387,7 @@ export default function RegisterPage() {
 
             {/* ソーシャル登録 — 丸アイコン */}
             <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
-              {!isNativeIOS() && (
+              {!isEmbeddedWebView() && (
                 <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
                   style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
                 >
