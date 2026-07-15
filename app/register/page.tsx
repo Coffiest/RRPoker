@@ -6,11 +6,13 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
-import { isNativeIOS } from "@/lib/platform"
+import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
+import { useLanguage } from "@/lib/i18n"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -387,7 +389,7 @@ export default function RegisterPage() {
 
             {/* ソーシャル登録 — 丸アイコン */}
             <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
-              {!isNativeIOS() && (
+              {!isEmbeddedWebView() && (
                 <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
                   style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
                 >
@@ -515,6 +517,11 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {/* プライバシー注記 */}
+            <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:12, textAlign:'center' }}>
+              {t('register.privacyNotice')}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
+            </p>
+
             {/* 登録ボタン */}
             <button className={`btn-gold${success?' success-state':''}`} onClick={handleRegister} disabled={isLoading || googleLoading}>
               {isLoading ? <div className="spinner"/>
@@ -569,7 +576,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.4 </p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.5 </p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>

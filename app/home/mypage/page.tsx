@@ -503,6 +503,11 @@ export default function MyPage() {
               <p style={{ fontSize: tourStats.plays === 0 ? 28 : 46, fontWeight: 800, color: tourStats.plays === 0 ? 'rgba(255,255,255,0.6)' : '#fff', lineHeight: 1, letterSpacing: '-1.5px', textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
+              {tourStats.plays === 0 && (
+                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', marginTop: 3, maxWidth: 150, lineHeight: 1.4 }}>
+                  大会結果確定後に表示
+                </p>
+              )}
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { resizeImageToDataUrl } from '@/lib/image'
+import { useLanguage } from '@/lib/i18n'
 
 const generateCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -17,6 +18,7 @@ const generateCode = () => {
 
 export default function StoreOnboardingPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [name, setName] = useState('')
   const [postalCode, setPostalCode] = useState('')
@@ -97,14 +99,14 @@ export default function StoreOnboardingPage() {
   const validate = () => {
     const nextMissing = {
       name: !name.trim(),
-      postalCode: !postalCode.trim(),
-      addressLine: !addressLine.trim(),
-      addressDetail: !addressDetail.trim(),
+      postalCode: false,
+      addressLine: false,
+      addressDetail: false,
       icon: false,
     }
     setMissingFields(nextMissing)
 
-    if (nextMissing.name || nextMissing.postalCode || nextMissing.addressLine || nextMissing.addressDetail) {
+    if (nextMissing.name) {
       setError('必須項目が入力されていません')
       return false
     }
@@ -149,7 +151,7 @@ export default function StoreOnboardingPage() {
 
       const iconUrl = iconDataUrl ?? undefined
 
-      const fullAddress = `${postalCode} ${addressLine} ${addressDetail}`
+      const fullAddress = [postalCode.trim(), addressLine.trim(), addressDetail.trim()].filter(Boolean).join(' ')
 
       const sbRaw = ringBlindSb.trim()
       const bbRaw = ringBlindBb.trim()
@@ -379,10 +381,15 @@ export default function StoreOnboardingPage() {
             </div>
           </div>
 
+          {/* 住所は任意 */}
+          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 14, background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 12, padding: '10px 12px' }}>
+            {t('storeOnboarding.addressOptionalNote')}
+          </p>
+
           {/* 郵便番号 */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
-              郵便番号<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
+              郵便番号 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.postalCode ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
@@ -398,7 +405,7 @@ export default function StoreOnboardingPage() {
           {/* 住所 丁目 */}
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
-              住所、丁目<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
+              住所、丁目 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressLine ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
@@ -413,7 +420,7 @@ export default function StoreOnboardingPage() {
           {/* 番地 etc */}
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
-              番地、マンション名、号室など<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
+              番地、マンション名、号室など <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressDetail ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
@@ -490,7 +497,7 @@ export default function StoreOnboardingPage() {
             )}
           </button>
           <p style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginTop: 12 }}>
-            * は必須項目です
+            * は必須項目です（店舗名のみ必須）
           </p>
         </div>
 

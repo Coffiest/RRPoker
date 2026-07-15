@@ -12,6 +12,8 @@ export function getAuthErrorMessage(code: string): string {
       return "パスワードは6文字以上で入力してください"
     case "auth/too-many-requests":
       return "試行回数が多すぎます。しばらくしてから再度お試しください"
+    case "auth/operation-not-supported-in-this-environment":
+      return "このブラウザではGoogleログインをご利用いただけません。SafariまたはChromeで開いてお試しください。"
     default:
       return "認証中にエラーが発生しました"
   }

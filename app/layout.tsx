@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google"
 import AuthGuard from '@/components/AuthGuard'
 import CapacitorBoot from '@/components/CapacitorBoot'
+import { LanguageProvider } from '@/lib/i18n'
 import "./globals.css"
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -59,11 +60,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${jakarta.className} ${playfair.className} min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip bg-white flex flex-col`}>
         <CapacitorBoot />
-        <AuthGuard>
-          <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">
-            <div className="flex-1">{children}</div>
-          </div>
-        </AuthGuard>
+        <LanguageProvider>
+          <AuthGuard>
+            <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">
+              <div className="flex-1">{children}</div>
+            </div>
+          </AuthGuard>
+        </LanguageProvider>
       </body>
     </html>
   )

@@ -6,11 +6,13 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
-import { isNativeIOS } from "@/lib/platform"
+import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
+import { useLanguage } from "@/lib/i18n"
 
 export default function StoreRegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -281,7 +283,7 @@ export default function StoreRegisterPage() {
 
           {/* ソーシャル登録 — 丸アイコン */}
           <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
-            {!isNativeIOS() && (
+            {!isEmbeddedWebView() && (
               <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
                 style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.08)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
               >
@@ -398,6 +400,10 @@ export default function StoreRegisterPage() {
               <p style={{ fontSize: 12, color: '#FF3B30', fontWeight: 600, textAlign: 'center' }}>{error}</p>
             </div>
           )}
+
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 12, textAlign: 'center' }}>
+            {t('storeRegister.privacyNotice')}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#F2A900', fontWeight: 700 }}>{t('common.privacyPolicy')}</a>{t('storeRegister.privacyNoticeSuffix')}
+          </p>
 
           <button className={`sr-btn${success ? ' success-state' : ''}`} onClick={handleRegister} disabled={isLoading}>
             {isLoading ? <div className="sr-spinner" />
