@@ -9,9 +9,11 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { useSearchParams } from "next/navigation"
 import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
+import { useLanguage } from "@/lib/i18n"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect")
 
@@ -86,14 +88,14 @@ export default function LoginPage() {
   }
 
   const handleLogin = async () => {
-    if (!email || !password) { setError('メールアドレスとパスワードを入力してください'); return }
+    if (!email || !password) { setError(t('login.emptyError')); return }
     setError(''); setLoading(true)
     try {
       const credential = await signInWithEmailAndPassword(auth, email, password)
       const user = credential.user
       if (redirect === "delete") { router.replace("/home/mypage?delete=1"); return }
       const safeRedirect = redirect && redirect.startsWith("/") && redirect !== "/login" ? redirect : null
-      if (!user.emailVerified) { setIsUnverified(true); setError("メール認証が完了していません"); setLoading(false); return }
+      if (!user.emailVerified) { setIsUnverified(true); setError(t('login.unverified')); setLoading(false); return }
       const snap = await getDoc(doc(db, "users", user.uid))
       setSuccess(true)
       await new Promise(r => setTimeout(r, 600))
@@ -115,7 +117,7 @@ export default function LoginPage() {
       await setDoc(doc(db, "users", user.uid), { role: 'player' }, { merge: true })
       router.replace("/onboarding/user/profile")
     } catch {
-      setError("メールまたはパスワードが違います")
+      setError(t('login.wrongCredentials'))
     } finally { setLoading(false) }
   }
 
@@ -146,10 +148,10 @@ export default function LoginPage() {
       await setDoc(doc(db, "users", user.uid), { role: 'player' }, { merge: true })
       router.replace("/onboarding/user/profile")
     } catch (e: any) {
-      if (e.code === "auth/popup-blocked") { setError("ポップアップがブロックされています。ブラウザの設定をご確認ください。"); return }
-      if (e.code === "auth/network-request-failed") { setError("ネットワークエラーが発生しました。"); return }
-      if (e.code === "auth/operation-not-supported-in-this-environment") { setError("このブラウザではGoogleログインをご利用いただけません。SafariまたはChromeで開いてお試しください。"); return }
-      setError("Googleログインに失敗しました")
+      if (e.code === "auth/popup-blocked") { setError(t('login.popupBlocked')); return }
+      if (e.code === "auth/network-request-failed") { setError(t('login.networkError')); return }
+      if (e.code === "auth/operation-not-supported-in-this-environment") { setError(t('login.unsupportedBrowser')); return }
+      setError(t('login.googleFailed'))
     } finally { setGoogleLoading(false) }
   }
 
@@ -168,7 +170,7 @@ export default function LoginPage() {
       if (result.role === "store") { router.replace(safeRedirect ?? "/home/store"); return }
       router.replace("/onboarding/user/profile")
     } catch {
-      setError("Appleログインに失敗しました")
+      setError(t('login.appleFailed'))
     } finally { setAppleLoading(false) }
   }
 
@@ -593,7 +595,7 @@ export default function LoginPage() {
             {error && (
               <div className="error-box" style={{ marginBottom:14 }}>
                 <p style={{ fontSize:12, color:'var(--red)', fontWeight:600, textAlign:'center' }}>{error}</p>
-                {isUnverified && <p style={{ fontSize:11, color:'var(--red)', textAlign:'center', marginTop:3, opacity:0.8 }}>メール受信ボックスをご確認ください</p>}
+                {isUnverified && <p style={{ fontSize:11, color:'var(--red)', textAlign:'center', marginTop:3, opacity:0.8 }}>{t('login.checkInbox')}</p>}
               </div>
             )}
 
@@ -632,7 +634,7 @@ export default function LoginPage() {
                 style={{ fontSize:12, color:'rgba(60,60,67,0.45)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'7px 16px', display:'inline-flex', alignItems:'center', gap:5 }}
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                店舗の方はこちら
+                {t('login.storeOwner')}
               </button>
             </div>
           </div>
@@ -640,7 +642,7 @@ export default function LoginPage() {
 
         {/* ── バンクロールプレビュー ── */}
         <div className="appear d4" style={{ marginTop:16 }}>
-          <p className="section-hd" style={{ marginBottom:10 }}>ログイン後のホーム画面</p>
+          <p className="section-hd" style={{ marginBottom:10 }}>{t('login.homePreview')}</p>
           <div style={{ borderRadius:22, padding:20, position:'relative', overflow:'hidden', background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 55%,#1C1C1E 100%)', boxShadow:'0 8px 28px rgba(0,0,0,0.16)', animation:'card-float 4.5s ease-in-out infinite' }}>
             <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.16) 0%,transparent 60%)', pointerEvents:'none' }}/>
             <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
@@ -653,7 +655,7 @@ export default function LoginPage() {
               <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
               <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:6 }}>+ 4,500</p>
               <div style={{ marginTop:12, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.38),transparent)' }}/>
-              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>※ ログイン後、実際の残高が表示されます</p>
+              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>{t('login.previewNote')}</p>
             </div>
           </div>
         </div>
@@ -665,7 +667,7 @@ export default function LoginPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.4</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.5</p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p
             style={{ fontSize:10, color:'var(--label3)', cursor:'pointer', userSelect:'none' }}

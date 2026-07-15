@@ -8,9 +8,11 @@ import { useRouter } from "next/navigation"
 import { getAuthErrorMessage } from "src/lib/auth-error"
 import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
+import { useLanguage } from "@/lib/i18n"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { t } = useLanguage()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -515,6 +517,11 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {/* プライバシー注記 */}
+            <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:12, textAlign:'center' }}>
+              {t('register.privacyNotice')}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
+            </p>
+
             {/* 登録ボタン */}
             <button className={`btn-gold${success?' success-state':''}`} onClick={handleRegister} disabled={isLoading || googleLoading}>
               {isLoading ? <div className="spinner"/>
@@ -569,7 +576,7 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.4 </p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.8.5 </p>
           <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>

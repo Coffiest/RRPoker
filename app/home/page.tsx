@@ -18,6 +18,7 @@ import dynamic from "next/dynamic"
 const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
 import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
+import { useLanguage } from "@/lib/i18n"
 
 type StoreInfo = {
   id: string
@@ -260,6 +261,7 @@ function GraphShelf({
 }
 
 export default function HomePage() {
+  const { t } = useLanguage()
   const getVisitCountResetBase = (date: Date) => {
     const base = new Date(date)
     base.setHours(3, 0, 0, 0)
@@ -362,6 +364,30 @@ export default function HomePage() {
 
   // ── QR modal
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
+
+  // ── 位置情報の利用同意（一度同意すれば以後は聞かない）
+  const [showGeoConsentModal, setShowGeoConsentModal] = useState(false)
+  const [geoReloadKey, setGeoReloadKey] = useState(0)
+
+  useEffect(() => {
+    if (!userId) return
+    if (typeof window === "undefined" || !navigator.geolocation) return
+    try {
+      const consent = window.localStorage.getItem("rrpoker_geo_consent")
+      if (!consent) setShowGeoConsentModal(true)
+    } catch {}
+  }, [userId])
+
+  const handleGeoAllow = () => {
+    try { window.localStorage.setItem("rrpoker_geo_consent", "granted") } catch {}
+    setShowGeoConsentModal(false)
+    setGeoReloadKey(k => k + 1)
+  }
+
+  const handleGeoDecline = () => {
+    try { window.localStorage.setItem("rrpoker_geo_consent", "declined") } catch {}
+    setShowGeoConsentModal(false)
+  }
 
   // ── RR Rating tooltip (fixed position to escape overflow:hidden)
   const rrRatingBtnRef = useRef<HTMLButtonElement>(null)
@@ -768,18 +794,19 @@ export default function HomePage() {
           })
         })
 
-        // 現在地取得（失敗してもOK）
+        // 現在地取得（失敗してもOK。位置情報の利用に同意済みの場合のみ取得する）
         let userLat: number | null = null
         let userLng: number | null = null
-        if (navigator.geolocation) {
-          try {
+        try {
+          const geoConsent = window.localStorage.getItem("rrpoker_geo_consent")
+          if (geoConsent === "granted" && navigator.geolocation) {
             const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
               navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
             })
             userLat = pos.coords.latitude
             userLng = pos.coords.longitude
-          } catch {}
-        }
+          }
+        } catch {}
 
         // Haversine距離（km）
         const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
@@ -826,7 +853,7 @@ export default function HomePage() {
       } catch {}
     }
     loadCalTournaments()
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, geoReloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── カレンダー詳細モーダルが開いたときリアルタイム購読
   useEffect(() => {
@@ -1656,7 +1683,12 @@ const medalClass = (rank: number) => {
             {/* メイン数値 */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
               {tournamentStats.plays === 0 ? (
-                <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                <div>
+                  <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                  <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.55)', marginTop: 6, lineHeight: 1.5, maxWidth: 220 }}>
+                    {t('tourneyStat.pendingNote')}
+                  </p>
+                </div>
               ) : (
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
                   <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
@@ -2360,7 +2392,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.8.4</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.8.5</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2466,8 +2498,37 @@ const medalClass = (rank: number) => {
           >
             <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>トナメ偏差値とは？</p>
             ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
+            {tournamentStats.plays === 0 && (
+              <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#92610A' }}>
+                「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・賞金）が確定すると、ここに数値が表示されます。
+              </p>
+            )}
           </div>
         </>
+      )}
+
+      {/* ── 位置情報の利用同意モーダル ── */}
+      {showGeoConsentModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center modal-overlay">
+          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-slideUp shadow-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
+              <FiGlobe className="text-[24px] text-[#F2A900]" />
+            </div>
+            <p className="text-[17px] font-bold text-gray-900 mb-2">{t('geo.title')}</p>
+            <p className="text-[13px] text-gray-500 leading-relaxed mb-1">
+              {t('geo.body')}
+            </p>
+            <p className="text-[12px] text-gray-400 leading-relaxed mb-5">
+              {t('geo.changeInSettings')}
+            </p>
+            <button onClick={handleGeoAllow} className="w-full h-11 rounded-2xl font-semibold text-[14px] mb-2" style={{ background: '#F2A900', color: '#1a1a1a' }}>
+              {t('geo.allow')}
+            </button>
+            <button onClick={handleGeoDecline} className="w-full h-11 rounded-2xl bg-gray-100 text-gray-600 font-semibold text-[14px]">
+              {t('geo.decline')}
+            </button>
+          </div>
+        </div>
       )}
 
       {isPendingModalOpen && (

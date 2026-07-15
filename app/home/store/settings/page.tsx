@@ -6,6 +6,7 @@ import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+import { useLanguage, type Language } from "@/lib/i18n"
 
 import {
   addDoc,
@@ -149,6 +150,7 @@ function FeedbackText({ text, color }: { text: string; color: "green" | "red" })
 
 export default function StoreSettingsPage() {
   const router = useRouter()
+  const { language, setLanguage, t } = useLanguage()
   const [storeId, setStoreId] = useState<string | null>(null)
   const [store, setStore] = useState<StoreInfo | null>(null)
   const [chipExpiryInput, setChipExpiryInput] = useState("")
@@ -537,6 +539,36 @@ export default function StoreSettingsPage() {
         <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
         <div className="mt-6 space-y-4">
+
+          {/* ── 表示言語 ── */}
+          <SectionCard>
+            <SectionTitle title={t('settings.language')} subtitle={t('settings.languageNote')} />
+            <div className="flex gap-2">
+              {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
+                <button
+                  key={opt.v}
+                  type="button"
+                  onClick={() => setLanguage(opt.v)}
+                  className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+                  style={{
+                    background: language === opt.v ? CLR.gold : CLR.surface,
+                    color: language === opt.v ? CLR.ink : CLR.gray2,
+                    border: `1.5px solid ${language === opt.v ? CLR.goldDk : CLR.border}`,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </SectionCard>
+
+          {/* ── プライバシー ── */}
+          <SectionCard>
+            <SectionTitle title={t('common.privacyPolicy')} />
+            <GhostButton onClick={() => window.open('/privacy', '_blank')}>
+              {t('common.privacyPolicy')}
+            </GhostButton>
+          </SectionCard>
 
           {/* ── 入店ボーナス ── */}
           <SectionCard>
