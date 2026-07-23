@@ -14,6 +14,7 @@ import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import PullToRefresh from "@/app/components/PullToRefresh"
+import PokerArtPromoBanner from "@/app/components/PokerArtPromoBanner"
 import dynamic from "next/dynamic"
 const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
@@ -1625,6 +1626,11 @@ const medalClass = (rank: number) => {
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
       <div className="mx-auto max-w-sm px-4 space-y-5">
+
+        {/* ════ 姉妹アプリ Poker ART の告知バナー（タップで Poker ART へ） ════ */}
+        <div className="mt-6">
+          <PokerArtPromoBanner />
+        </div>
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card animate-slideUp${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden' }}>
