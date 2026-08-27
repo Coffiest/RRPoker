@@ -448,7 +448,7 @@ export default function TournamentHistoryPage() {
 
               {/* Buy-in breakdown */}
               <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '14px 16px', marginBottom: 12 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>Buy-in 内訳</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 10 }}>Buy-in 内訳</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -479,11 +479,11 @@ export default function TournamentHistoryPage() {
               {/* Result stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Prize</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>Prize</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : '#C7C7CC' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
                 <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#8E8E93', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>ROI</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>ROI</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : '#8E8E93' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
                   </p>

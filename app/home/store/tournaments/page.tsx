@@ -834,7 +834,7 @@ export default function TournamentsPage() {
                 ].map((row, i) => (
                   <div key={row.feeKey} style={{ borderBottom: i < 2 ? '1px solid var(--sep)' : 'none' }}>
                     <div style={{ padding: '10px 16px 0', display: 'flex', alignItems: 'center' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{row.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>{row.label}</span>
                     </div>
                     <div style={{ display: 'flex', padding: '4px 16px 10px', gap: 10 }}>
                       {[[row.feeKey, '費用', '0'], [row.stackKey, 'スタック', '0']].map(([key, placeholder, defVal]) => (

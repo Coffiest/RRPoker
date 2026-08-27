@@ -90,7 +90,7 @@ export default function StoreBottomNav() {
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <FiHome size={22} />
-          <span style={{ fontSize: 10, fontWeight: col('home').fontWeight }}>ホーム</span>
+          <span style={{ fontSize: 10, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
         </button>
 
         {/* Center */}
@@ -124,7 +124,7 @@ export default function StoreBottomNav() {
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <FiUser size={22} />
-          <span style={{ fontSize: 10, fontWeight: col('mypage').fontWeight }}>マイページ</span>
+          <span style={{ fontSize: 10, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
         </button>
       </div>
     </nav>

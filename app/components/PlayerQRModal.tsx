@@ -51,7 +51,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '5px 14px' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#D4910A', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>入店QRコード</span>
+            <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#D4910A' }}>入店QRコード</span>
           </div>
           <button
             type="button"
@@ -87,7 +87,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
           </div>
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{name || 'プレイヤー'}</p>
-            <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
+            <p className="term-comment" style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
           </div>
         </div>
       </div>

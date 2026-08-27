@@ -1678,7 +1678,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* ラベル */}
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.7)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
 
             {/* メイン数値 */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
@@ -1691,7 +1691,7 @@ const medalClass = (rank: number) => {
                 </div>
               ) : (
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-                  <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                  <p className="tech-num" style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
                     {(animRrRating ?? displayRrRating).toFixed(2)}
                   </p>
                   {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
@@ -1893,6 +1893,8 @@ const medalClass = (rank: number) => {
                 {/* ── Front ── */}
                 <div className="bank-card-face bank-card-front">
                   <div className="bank-card-shine" />
+                  {/* ドットマトリクス。基板・計器のテクスチャを与える */}
+                  <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.22, pointerEvents:'none' }} />
                   <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
 
                     {/* Top row */}
@@ -1905,7 +1907,7 @@ const medalClass = (rank: number) => {
                           }
                         </div>
                         <div>
-                          <p style={{ fontSize:9, fontWeight:700, color:'rgba(255,255,255,0.36)', letterSpacing:'0.22em', textTransform:'uppercase', marginBottom:3 }}>Bankroll</p>
+                          <p className="tech-label tech-label-bracket" style={{ fontSize:9, color:'rgba(255,255,255,0.36)', marginBottom:3 }}>Bankroll</p>
                           <p style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.78)', lineHeight:1 }}>{currentStore.name}</p>
                         </div>
                       </div>
@@ -1917,10 +1919,10 @@ const medalClass = (rank: number) => {
 
                     {/* Balance hero */}
                     <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
-                      <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:9 }}>
+                      <p className="tech-label" style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:9 }}>
                         {showBB && blindBb ? 'BB 表示' : 'Chip Balance'}
                       </p>
-                      <p style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', fontVariantNumeric:'tabular-nums', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
+                      <p className="tech-num" style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
                         <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
                       </p>
                       {displayNetGain !== 0 && (
@@ -1936,9 +1938,9 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
                       <div>
                         {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                          <p style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
+                          <p className="tech-num" style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
                         )}
-                        <p style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3, letterSpacing:'0.12em', textTransform:'uppercase' }}>Tap to switch BB</p>
+                        <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3 }}>Tap to switch BB</p>
                       </div>
                       <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                         {[0,1,2].map(i => <div key={i} style={{ width:5, height:5, borderRadius:'50%', background:'rgba(255,255,255,0.13)' }} />)}
@@ -1957,7 +1959,7 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:13 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                         <FiClock style={{ color:'rgba(255,255,255,0.42)', fontSize:13 }} />
-                        <span style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.52)', letterSpacing:'0.22em', textTransform:'uppercase' }}>History</span>
+                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.52)' }}>History</span>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(false)}
                         style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 13px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.58)', cursor:'pointer' }}>
@@ -1979,9 +1981,9 @@ const medalClass = (rank: number) => {
                           <div key={item.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:13, background:'rgba(255,255,255,0.042)', border:'1px solid rgba(255,255,255,0.07)', marginBottom:7 }}>
                             <div style={{ minWidth:0, flex:1 }}>
                               <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</p>
-                              <p style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
+                              <p className="tech-num" style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
                             </div>
-                            <p style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', fontVariantNumeric:'tabular-nums', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
+                            <p className="tech-num" style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
                           </div>
                         )
                       })}

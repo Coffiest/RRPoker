@@ -605,7 +605,7 @@ for (const p of players) {
             <>
               {/* Prize Pool カード */}
               <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '14px 18px', marginBottom: 16 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 

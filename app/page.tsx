@@ -247,9 +247,12 @@ export default function TopPage() {
         .menu-slide{ animation:slide-in-right .28s cubic-bezier(.22,1,.36,1); }
 
         .section-hd{
-          font-size:11px; font-weight:700; letter-spacing:.06em;
+          font-family:var(--stack-mono);
+          font-size:11px; font-weight:700; letter-spacing:.16em;
           text-transform:uppercase; color:var(--label2); margin-bottom:10px; padding:0 2px;
         }
+        /* 見出しの前に付く計器風のインデックス記号 */
+        .section-hd::before{ content:'//'; opacity:.4; margin-right:.55em; }
       `}</style>
 
       {/* ════════════════════════════════
@@ -271,7 +274,7 @@ export default function TopPage() {
             style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'default', padding:0 }}
           >
             <img src="/logo.png" alt="RRPoker logo" style={{ height:60, width:60 }} />
-            <span style={{ fontSize:18, fontWeight:700, color:'#1C1C1E', letterSpacing:'-0.2px' }}>RRPOKER</span>
+            <span className="font-display" style={{ fontSize:18, fontWeight:700, color:'#1C1C1E', letterSpacing:'-0.2px' }}>RRPOKER</span>
           </button>
 
           {/* 右：ログインボタン + ハンバーガー */}
@@ -281,7 +284,7 @@ export default function TopPage() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Lonin
+              Login
             </button>
 
           
@@ -336,6 +339,9 @@ export default function TopPage() {
         position:'relative', overflow:'hidden',
         background:'linear-gradient(180deg,#FFFBF0 0%,#F2F2F7 100%)',
       }}>
+        {/* 方眼オーバーレイ。設計図的な下地を敷く */}
+        <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.55, pointerEvents:'none' }}/>
+
         {/* 背景 orb */}
         <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out infinite', pointerEvents:'none' }}/>
         <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s infinite', pointerEvents:'none' }}/>
@@ -355,10 +361,10 @@ export default function TopPage() {
 
           {/* テキスト */}
           <div className="d1" style={{ textAlign:'center', marginBottom:6 }}>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--gold)', marginBottom:10 }}>
+            <p className="term-prompt tech-caret" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--gold)', marginBottom:10 }}>
               The Poker Management App
             </p>
-            <h1 style={{ fontSize:33, fontWeight:900, letterSpacing:'-0.8px', color:'var(--label)', lineHeight:1.22, marginBottom:10 }}>
+            <h1 className="font-display" style={{ fontSize:33, fontWeight:900, letterSpacing:'-0.8px', color:'var(--label)', lineHeight:1.22, marginBottom:10 }}>
               ポーカーライフを、<br/>
               <span className="shimmer-text">次のレベルへ。</span>
             </h1>
@@ -390,10 +396,10 @@ export default function TopPage() {
             { icon:'🏅', label:'ランキング', sub:'自動更新' },
             { icon:'📝', label:'トナメ記録', sub:'自動保存' },
           ].map((s, i) => (
-            <div key={i} className="ios-card" style={{ padding:'14px 8px', textAlign:'center' }}>
+            <div key={i} className="ios-card tech-corners" style={{ padding:'14px 8px', textAlign:'center' }}>
               <div style={{ fontSize:22, marginBottom:5 }}>{s.icon}</div>
               <p style={{ fontSize:11, fontWeight:700, color:'var(--label)', marginBottom:2 }}>{s.label}</p>
-              <p style={{ fontSize:10, color:'var(--gold-dk)', fontWeight:600 }}>{s.sub}</p>
+              <p className="tech-label" style={{ color:'var(--gold-dk)' }}>{s.sub}</p>
             </div>
           ))}
         </div>
@@ -460,7 +466,7 @@ export default function TopPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
-              <p style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)' }}>Bank Roll</p>
+              <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)' }}>Bank Roll</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom:18, fontWeight:500 }}>○○ ポーカークラブ</p>
@@ -481,7 +487,7 @@ export default function TopPage() {
           <div style={{ background:'linear-gradient(135deg,#F2A900,#D4910A)', padding:'20px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:'-40%', right:'-10%', width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(255,255,255,0.16) 0%,transparent 70%)' }}/>
             <div style={{ position:'absolute', bottom:'-20px', left:'-20px', width:100, height:100, borderRadius:'50%', background:'radial-gradient(circle,rgba(0,0,0,0.07) 0%,transparent 70%)' }}/>
-            <p style={{ fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:4, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
+            <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:4, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
             <div style={{ display:'flex', alignItems:'flex-end', gap:10, position:'relative', zIndex:1 }}>
               <p style={{ fontSize:40, fontWeight:900, color:'white', letterSpacing:'-1px', lineHeight:1 }}>65.75</p>
               <div style={{ background:'rgba(255,255,255,0.22)', borderRadius:99, padding:'3px 9px', marginBottom:4 }}>

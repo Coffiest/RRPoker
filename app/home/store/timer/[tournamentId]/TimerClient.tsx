@@ -423,12 +423,14 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#fff" }} onClick={unlockAudio} onTouchStart={unlockAudio}>
       <div style={{ width: DESIGN_W, height: DESIGN_H, marginLeft: scaleOffset.x, marginTop: scaleOffset.y, transform: `scale(${scale})`, transformOrigin: "top left" }}>
       <main className="overflow-hidden relative" style={{ background: "#fff", width: DESIGN_W, height: DESIGN_H }}>
+        {/* 方眼の下地。投影時に計器盤らしい奥行きを与える */}
+        <div className="tech-grid" aria-hidden style={{ position: "absolute", inset: 0, opacity: 0.5, pointerEvents: "none", backgroundSize: "48px 48px" }} />
         <style>{`
           @keyframes colonBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
           @keyframes pauseFadeIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
           .colon-blink { animation: colonBlink 1s step-start infinite; }
           .pause-badge { animation: pauseFadeIn 0.18s ease-out; }
-          .timer-num { font-variant-numeric:tabular-nums; }
+          .timer-num { font-variant-numeric:tabular-nums slashed-zero; font-feature-settings:"zero" 1, "tnum" 1; }
           .prize-input::-webkit-inner-spin-button,
           .prize-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
           .prize-input { -moz-appearance:textfield; }
@@ -456,7 +458,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
             {/* TOURNAMENT NAME */}
             <div className="flex-none text-center" style={{ padding: "18px 56px 12px" }}>
-              <h1 className="text-[56px] font-black tracking-[0.18em] uppercase leading-none text-gray-900">
+              <h1 className="font-display text-[56px] font-black tracking-[0.18em] uppercase leading-none text-gray-900">
                 {tournamentName || " "}
               </h1>
             </div>

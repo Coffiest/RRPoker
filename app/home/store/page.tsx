@@ -1130,7 +1130,7 @@ export default function StorePage() {
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
               <div style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, background: 'white', borderRadius: 20, padding: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', minWidth: 220 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {ownedStores.map(s => (
                     <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left' }}>
@@ -2194,7 +2194,7 @@ export default function StorePage() {
 
               {/* Ring Game */}
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Buy-in" direction="subtract" icon={<FiSend size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('buyin')} />
                   <ActionTile label="Cash Out" direction="add" icon={<FiInbox size={15} style={{ color: '#34C759' }}/>} onClick={() => runStoreAdjustment('cashout')} />
@@ -2204,7 +2204,7 @@ export default function StorePage() {
 
               {/* Tournament */}
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Entry" direction="subtract" icon={<FiPlay size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tE')} />
                   <ActionTile label="Re-entry" direction="subtract" icon={<FiRefreshCw size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tR')} />
@@ -2235,7 +2235,7 @@ export default function StorePage() {
 
               {/* 手動調整 */}
               <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 16, marginBottom: 4 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>手動調整</p>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>手動調整</p>
 
                 {/* コメント */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--fill)', borderRadius: 12, padding: '0 12px', marginBottom: 10 }}>

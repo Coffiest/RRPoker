@@ -258,16 +258,23 @@ export default function HomeHeader({
 		menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)
 
 	return (
-		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+		<header className="tech-grid sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
 		<style>{`html { overflow-x: hidden; }`}</style>
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
 					type="button"
 					onClick={() => router.push(homePath)}
-					className="flex items-center gap-0 text-[18px] font-semibold text-gray-900"
+					className="flex items-center gap-0 text-left"
 				>
 					<img src="/icon-192x192.png" alt="RRPoker logo" className="h-[60px] w-[60px]" />
-					<span>RRPOKER</span>
+					<span className="flex flex-col leading-none">
+						<span className="font-display text-[18px] font-bold tracking-tight text-gray-900">RRPOKER</span>
+						{/* 稼働中であることを示す計器風のサブラベル */}
+						<span className="mt-[3px] flex items-center gap-1.5">
+							<span className="tech-status-dot" />
+							<span className="tech-label text-gray-400">{isUserVariant ? 'PLAYER' : 'STORE'}</span>
+						</span>
+					</span>
 				</button>
 
 				<div className="flex items-center gap-2">
@@ -344,7 +351,7 @@ export default function HomeHeader({
 					}`}
 				>
 					<div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-						<p className="text-[14px] font-semibold text-gray-900">メニュー</p>
+						<p className="term-prompt-arrow text-[14px] font-semibold text-gray-900">メニュー</p>
 						<button onClick={() => setIsMenuOpen(false)} className="text-[13px] text-gray-500">
 							閉じる
 						</button>
@@ -389,7 +396,7 @@ export default function HomeHeader({
 
 							{/* ヘッダー */}
 							<div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
-								<p className="text-[15px] font-semibold text-gray-900">お知らせ</p>
+								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">お知らせ</p>
 								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-gray-400 font-medium">閉じる</button>
 							</div>
 
@@ -422,8 +429,8 @@ export default function HomeHeader({
 												>
 													<div className="flex items-center gap-2 mb-1">
 														{isUnread && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
-														<span className="text-[11px] font-bold text-[#D4910A] flex-1">{n.storeName}</span>
-														<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+														<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
+														<span className="tech-num text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
 													</div>
 													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 												</div>
@@ -437,8 +444,8 @@ export default function HomeHeader({
 											>
 												<div className="flex items-center gap-2 mb-1">
 													{!n.read && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
-													<span className="text-[11px] font-bold text-[#D4910A] flex-1">{n.storeName}</span>
-													<span className="text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+													<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
+													<span className="tech-num text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
 												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 											</div>

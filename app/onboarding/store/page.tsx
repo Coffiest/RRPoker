@@ -316,7 +316,7 @@ export default function StoreOnboardingPage() {
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '4px 12px', marginBottom: 12, position: 'relative', zIndex: 1 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
 
           <h1 style={{ fontSize: 23, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1.3, position: 'relative', zIndex: 1 }}>
@@ -363,7 +363,7 @@ export default function StoreOnboardingPage() {
 
         {/* 基本情報カード */}
         <div className="so-appear so-d3" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
 
           {/* 店舗名 */}
           <div style={{ marginBottom: 14 }}>
@@ -436,7 +436,7 @@ export default function StoreOnboardingPage() {
 
         {/* 詳細情報カード */}
         <div className="so-appear so-d4" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
 
           {/* 説明 */}
           <div style={{ marginBottom: 18 }}>

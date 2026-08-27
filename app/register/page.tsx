@@ -426,7 +426,7 @@ export default function RegisterPage() {
 
             {/* メール */}
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Email</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Email</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -449,7 +449,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Password</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Password</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -483,7 +483,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:6 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>Password (Confirm)</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Password (Confirm)</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">

@@ -220,7 +220,7 @@ export default function PlayerBottomNav() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: itemGap, padding: 0 }}
             >
               <FiHome size={iconSize} />
-              <span style={{ fontSize: labelSize, fontWeight: col('home').fontWeight }}>ホーム</span>
+              <span style={{ fontSize: labelSize, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
             </button>
 
             {/* センター（QR / 取引） */}
@@ -256,7 +256,7 @@ export default function PlayerBottomNav() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: itemGap, padding: 0 }}
             >
               <FiUser size={iconSize} />
-              <span style={{ fontSize: labelSize, fontWeight: col('mypage').fontWeight }}>マイページ</span>
+              <span style={{ fontSize: labelSize, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
             </button>
           </div>
 

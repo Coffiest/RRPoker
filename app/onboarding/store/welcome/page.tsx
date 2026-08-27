@@ -147,7 +147,7 @@ export default function StoreWelcomePage() {
           {/* 完了バッジ */}
           <div className="sw-appear sw-d1" style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(52,199,89,0.1)', border:'1px solid rgba(52,199,89,0.25)', borderRadius:99, padding:'5px 14px', marginBottom:18 }}>
             <span className="sw-live-dot" style={{ width:7, height:7, borderRadius:'50%', background:'#34C759', display:'inline-block', boxShadow:'0 0 6px rgba(52,199,89,0.9)' }}/>
-            <span style={{ fontSize:11, fontWeight:800, color:'#34C759', letterSpacing:'0.08em', textTransform:'uppercase' }}>店舗登録完了</span>
+            <span style={{ fontSize:11, fontWeight:800, color:'#34C759', letterSpacing: '0.16em', textTransform:'uppercase' }}>店舗登録完了</span>
           </div>
 
           <h1 className="sw-name-anim" style={{ fontSize:30, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
@@ -163,7 +163,7 @@ export default function StoreWelcomePage() {
         <div className="sw-appear sw-d3" style={{ marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
             <div style={{ width:3, height:14, borderRadius:2, background:'linear-gradient(#F2A900,#D4910A)' }}/>
-            <p style={{ fontSize:11, fontWeight:800, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.3)' }}>店舗でできること</p>
+            <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.3)' }}>店舗でできること</p>
           </div>
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
