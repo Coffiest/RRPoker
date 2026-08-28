@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] px-4 py-12">
+    <div className="tech-grid min-h-screen bg-[#FAFAFA] px-4 py-12">
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
@@ -17,7 +17,7 @@ export default function TermsPage() {
           戻る
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">利用規約</h1>
+        <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">利用規約</h1>
         <p className="text-xs text-gray-400 mb-8">最終更新日: 2026年6月21日</p>
 
         <div className="space-y-8 text-sm leading-7 text-gray-700">

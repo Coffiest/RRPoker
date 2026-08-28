@@ -600,12 +600,12 @@ for (const p of players) {
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
           ) : (
             <>
               {/* Prize Pool カード */}
               <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '14px 18px', marginBottom: 16 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
+                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 

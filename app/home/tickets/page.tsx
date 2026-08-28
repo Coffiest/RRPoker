@@ -244,7 +244,7 @@ export default function TicketsPage() {
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: "#8E8E93" }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: "#8E8E93" }}>読み込み中…</p>
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
@@ -403,10 +403,10 @@ export default function TicketsPage() {
             <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(242,169,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <FiCreditCard size={26} color="#D4910A" />
             </div>
-            <p style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 6 }}>
+            <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 6 }}>
               {selectedCoupon.name}
             </p>
-            <p style={{ fontSize: 13, color: "#8E8E93", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
+            <p className="term-comment" style={{ fontSize: 13, color: "#8E8E93", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
               スタッフにこの画面を見せてください
             </p>
 

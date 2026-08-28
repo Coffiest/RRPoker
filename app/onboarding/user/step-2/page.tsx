@@ -210,7 +210,7 @@ export default function UserWelcomePage() {
             <p className="text-[13px] font-semibold uppercase tracking-[1px] text-[#F2A900] mb-2">
               Welcome
             </p>
-            <h1 className="text-[26px] font-bold tracking-[-0.4px] text-gray-900 leading-tight">
+            <h1 className="font-display text-[26px] font-bold tracking-[-0.4px] text-gray-900 leading-tight">
               <span className="shimmer-text">{name || 'プレイヤー'}</span>
               <span className="text-gray-900"> さん、</span>
               <br />ようこそ！

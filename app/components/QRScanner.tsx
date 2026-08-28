@@ -119,12 +119,23 @@ export default function QRScanner({ onScan, onClose }: Props) {
           <div key={i} style={{ position: 'absolute', width: 28, height: 28, animation: 'scan-frame-pulse 2s ease-in-out infinite', ...s }} />
         ))}
         <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', width: 240, height: 2, background: 'linear-gradient(90deg, transparent, #F2A900, transparent)', animation: 'scan-beam 2s ease-in-out infinite', borderRadius: 2 }} />
+
+        {/* 照準線。光学系の測距レティクルを模した中央十字 */}
+        <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 10px)', width: 20, height: 1, background: 'rgba(242,169,0,0.5)' }} />
+        <div style={{ position: 'absolute', top: 'calc(50% - 10px)', left: '50%', width: 1, height: 20, background: 'rgba(242,169,0,0.5)' }} />
+
+        {/* 走査枠の目盛り */}
+        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', left: 'calc(50% - 120px)', color: 'rgba(242,169,0,0.75)' }}>SCAN</div>
+        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', right: 'calc(50% - 120px)', color: 'rgba(255,255,255,0.35)' }}>240×240</div>
       </div>
 
       {/* Header */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '52px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div/>
-        <p style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span className="tech-status-dot" />
+          <span className="tech-label" style={{ color: 'rgba(255,255,255,0.55)' }}>LIVE</span>
+        </div>
+        <p className="term-prompt-arrow" style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
         <button type="button" onClick={() => { stopCamera(); onClose() }}
           style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
         >
@@ -135,11 +146,11 @@ export default function QRScanner({ onScan, onClose }: Props) {
       {/* Instructions */}
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px 48px', textAlign: 'center' }}>
         {error ? (
-          <p style={{ fontSize: 14, color: '#FF3B30', fontWeight: 600 }}>{error}</p>
+          <p className="term-prompt" style={{ fontSize: 14, color: '#FF3B30', fontWeight: 600 }}>{error}</p>
         ) : (
           <>
             <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 6 }}>プレイヤーのQRコードを枠内に合わせてください</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
+            <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
           </>
         )}
       </div>

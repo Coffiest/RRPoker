@@ -499,7 +499,7 @@ export default function MyPage() {
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 2 }}>トナメ偏差値</p>
+              <p className="term-prompt-arrow" style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 2 }}>トナメ偏差値</p>
               <p style={{ fontSize: tourStats.plays === 0 ? 28 : 46, fontWeight: 800, color: tourStats.plays === 0 ? 'rgba(255,255,255,0.6)' : '#fff', lineHeight: 1, letterSpacing: '-1.5px', textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
@@ -579,7 +579,7 @@ export default function MyPage() {
           {/* ── 拡張プロフィール ── */}
           <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '14px 20px 18px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <p style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.04em', textTransform: 'uppercase' }}>プロフィール詳細</p>
+              <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.06em' }}>プロフィール詳細</p>
               <button type="button"
                 onClick={() => { setDraftRegion(profile.region ?? ""); setDraftFavoriteHand(profile.favoriteHand ?? ""); setDraftPokerHistory(profile.pokerHistory ?? ""); setIsEditingExtProfile(true) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, background: '#F2F2F7', border: 'none', cursor: 'pointer' }}>
@@ -596,7 +596,7 @@ export default function MyPage() {
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F2F2F7', borderRadius: 10, padding: '7px 12px' }}>
                   <span style={{ fontSize: 14 }}>{item.icon}</span>
                   <div>
-                    <p style={{ fontSize: 9, color: '#C7C7CC', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 1 }}>{item.label}</p>
+                    <p style={{ fontSize: 9, color: '#C7C7CC', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 1 }}>{item.label}</p>
                     <p style={{ fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : '#C7C7CC' }}>{item.value || '未設定'}</p>
                   </div>
                 </div>
@@ -606,7 +606,7 @@ export default function MyPage() {
 
           {/* 誕生日 */}
           <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '14px 20px 18px' }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>誕生日</p>
+            <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.06em', marginBottom: 8 }}>誕生日</p>
             {!profile.birthday ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}

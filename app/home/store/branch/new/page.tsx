@@ -204,7 +204,7 @@ export default function BranchStorePage() {
 
         {/* 基本情報 */}
         <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
 
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>店舗名（正式名称）<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
@@ -237,7 +237,7 @@ export default function BranchStorePage() {
 
         {/* 詳細情報 */}
         <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
 
           <div style={{ marginBottom: 18 }}>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>店舗の説明</label>

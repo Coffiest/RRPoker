@@ -120,7 +120,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
         <div style={{ overflowY: 'auto', flex: 1, padding: '20px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p style={{ fontSize: 13, color: '#8E8E93' }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: '#8E8E93' }}>読み込み中…</p>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
@@ -162,10 +162,10 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 800, color: '#D4910A', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 10, color: '#D4910A', marginBottom: 6 }}>
                     RR Rating
                   </p>
-                  <p style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>
+                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>
                     {rrDisplay}
                   </p>
                 </div>
@@ -193,7 +193,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.03em', marginBottom: 6 }}>
                       {label}
                     </p>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                       {value}
                     </p>
                   </div>
