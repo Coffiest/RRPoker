@@ -884,7 +884,7 @@ export default function StoreSettingsPage() {
             {rakeView === "history" && (
               <div>
                 {sortedRakeEntries.length === 0 ? (
-                  <p className="text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
+                  <p className="term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
                 ) : (
                   <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-3">
                     {sortedRakeEntries.map(entry => (
@@ -980,7 +980,7 @@ export default function StoreSettingsPage() {
             {/* プレイヤーリスト */}
             <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
               {stampLoading ? (
-                <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
+                <p className="term-comment text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
               ) : filteredStampPlayers.length === 0 ? (
                 <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>
                   {stampSearch ? "該当するプレイヤーがいません" : "入店したことのあるプレイヤーがいません"}

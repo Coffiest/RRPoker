@@ -93,7 +93,7 @@ export default function HandPage() {
     <div className="min-h-screen flex items-center justify-center" style={{ background: CLR.bg }}>
       <div className="text-center px-6">
         <p className="text-[40px] mb-3">🃏</p>
-        <p className="text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
+        <p className="term-comment text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
         <p className="text-[13px] mt-1" style={{ color: CLR.gray3 }}>このリンクは無効です</p>
       </div>
     </div>

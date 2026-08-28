@@ -138,7 +138,7 @@ export default function HistoryPage() {
       <main className="min-h-screen bg-white px-5">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
-          <p className="text-[14px] text-gray-500">入店中の店舗がありません</p>
+          <p className="term-comment text-[14px] text-gray-500">入店中の店舗がありません</p>
           <button
             type="button"
             onClick={() => router.replace("/home")}
@@ -156,12 +156,12 @@ export default function HistoryPage() {
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[22px] font-semibold text-gray-900">入出金履歴</h1>
+          <h1 className="font-display term-prompt-arrow text-[22px] font-semibold text-gray-900">入出金履歴</h1>
         </div>
 
         <div className="mt-6 space-y-3">
           {sortedItems.length === 0 ? (
-            <p className="text-center text-[13px] text-gray-500">履歴がありません</p>
+            <p className="term-comment text-center text-[13px] text-gray-500">履歴がありません</p>
           ) : (
             sortedItems.map(item => (
               <div key={item.id} className="rounded-[20px] border border-gray-200 p-3">

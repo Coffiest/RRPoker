@@ -222,8 +222,8 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="appear d0">
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
-            <h1 style={{ fontSize:24, fontWeight:900, letterSpacing:'-0.5px', color:'var(--label)', lineHeight:1.25, marginBottom:8 }}>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
+            <h1 className="font-display" style={{ fontSize:24, fontWeight:900, letterSpacing:'-0.5px', color:'var(--label)', lineHeight:1.25, marginBottom:8 }}>
               確認メールを<br/>
               <span className="shimmer-text">送信しました</span>
             </h1>
@@ -303,7 +303,7 @@ export default function VerifyEmailPage() {
         {/* ── チェックリストカード ── */}
         <div className="appear d2 ios-card" style={{ marginTop:12, overflow:'hidden' }}>
           <div style={{ padding:'18px 20px' }}>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing:'0.05em', textTransform:'uppercase', color:'var(--label2)', marginBottom:12 }}>メールが届かない場合</p>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label2)', marginBottom:12 }}>メールが届かない場合</p>
             {[
               { icon:'📁', text:'迷惑メールフォルダを確認する' },
               { icon:'✉️', text:'入力したメールアドレスが正しいか確認する' },

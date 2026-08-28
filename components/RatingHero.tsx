@@ -39,7 +39,8 @@ export default function RatingHero({
     <div style={{ position: 'relative', zIndex: 1 }}>
       {/* ラベル行 */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
+        {/* ラベルの意匠は main のテック基調刷新に合わせる(モノスペース + 広めの字送り)。 */}
+        <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.7)' }}>
           {title}
         </p>
         {onInfo && (
@@ -82,7 +83,7 @@ export default function RatingHero({
           </div>
         ) : (
           <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-            <p style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+            <p className="tech-num" style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
               {rating.toFixed(2)}
             </p>
             {delta !== null && Math.abs(delta) > 0.001 && (

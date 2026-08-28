@@ -84,26 +84,34 @@ function PairPageInner() {
       />
       <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
-          <p style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+            <span className="tech-status-dot" />
+            <span className="tech-label" style={{ color: '#8E8E93' }}>DEVICE LINK</span>
+          </div>
+          <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
             TVと連携
           </p>
-          <p style={{ fontSize: 15, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>
+          <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>
             Fire TV / Fire Stick 端末の画面に表示されているQRコードを読み込むと自動で連携されます。{'\n'}
             手動で連携する場合は、画面に表示されている6桁のコードを入力してください。
           </p>
 
           {success ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <p style={{ fontSize: 18, fontWeight: 700, color: COLORS.dark, marginBottom: 8 }}>
+              <p className="term-prompt-arrow font-display" style={{ fontSize: 18, fontWeight: 700, color: COLORS.dark, marginBottom: 8 }}>
                 連携が完了しました
               </p>
-              <p style={{ fontSize: 14, color: COLORS.dark }}>
+              <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark }}>
                 TV画面が自動的にログインします
               </p>
             </div>
           ) : (
             <>
+              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: '#8E8E93', marginBottom: 6 }}>
+                PAIRING CODE
+              </label>
               <input
+                className="tech-num"
                 value={code}
                 onChange={e => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                 placeholder="123456"
@@ -125,7 +133,7 @@ function PairPageInner() {
               />
 
               {error && (
-                <p style={{ fontSize: 14, color: COLORS.red, marginBottom: 16, textAlign: 'center' }}>
+                <p className="term-prompt" style={{ fontSize: 14, color: COLORS.red, marginBottom: 16, textAlign: 'center' }}>
                   {error}
                 </p>
               )}

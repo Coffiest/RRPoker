@@ -247,7 +247,7 @@ export default function TransactionsClient() {
           <div className="tx-slide-2" style={{ background: '#fff', borderRadius: 22, padding: '28px 24px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '5px 14px', marginBottom: 24 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#D4910A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>入店QRコード</span>
+              <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#D4910A' }}>入店QRコード</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
@@ -341,7 +341,7 @@ export default function TransactionsClient() {
 
           {/* Amount display */}
           <div style={{ padding: '24px 20px 16px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center' }}>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#8E8E93', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <p style={{ fontSize: 12, fontWeight: 500, color: '#8E8E93', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.16em' }}>
               {mode === 'deposit' ? 'あずける金額' : 'ひきだす金額'}
             </p>
             <p style={{ fontSize: 48, fontWeight: 800, color: amount ? '#1C1C1E' : '#C7C7CC', letterSpacing: '-1px', lineHeight: 1.1 }}>

@@ -114,7 +114,7 @@ function GraphShelf({
         <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
           <p className="text-[13px] font-semibold text-gray-900">{page.label}</p>
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-center text-[12px] text-gray-400">この期間のデータがありません</p>
+            <p className="term-comment text-center text-[12px] text-gray-400">この期間のデータがありません</p>
           </div>
         </div>
       )
@@ -1922,6 +1922,8 @@ const medalClass = (rank: number) => {
                 {/* ── Front ── */}
                 <div className="bank-card-face bank-card-front">
                   <div className="bank-card-shine" />
+                  {/* ドットマトリクス。基板・計器のテクスチャを与える */}
+                  <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.22, pointerEvents:'none' }} />
                   <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
 
                     {/* Top row */}
@@ -1934,7 +1936,7 @@ const medalClass = (rank: number) => {
                           }
                         </div>
                         <div>
-                          <p style={{ fontSize:9, fontWeight:700, color:'rgba(255,255,255,0.36)', letterSpacing:'0.22em', textTransform:'uppercase', marginBottom:3 }}>Bankroll</p>
+                          <p className="tech-label tech-label-bracket" style={{ fontSize:9, color:'rgba(255,255,255,0.36)', marginBottom:3 }}>Bankroll</p>
                           <p style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.78)', lineHeight:1 }}>{currentStore.name}</p>
                         </div>
                       </div>
@@ -1946,10 +1948,10 @@ const medalClass = (rank: number) => {
 
                     {/* Balance hero */}
                     <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
-                      <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:9 }}>
+                      <p className="tech-label" style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:9 }}>
                         {showBB && blindBb ? 'BB 表示' : 'Chip Balance'}
                       </p>
-                      <p style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', fontVariantNumeric:'tabular-nums', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
+                      <p className="tech-num" style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
                         <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
                       </p>
                       {displayNetGain !== 0 && (
@@ -1965,9 +1967,9 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
                       <div>
                         {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                          <p style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
+                          <p className="tech-num" style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
                         )}
-                        <p style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3, letterSpacing:'0.12em', textTransform:'uppercase' }}>Tap to switch BB</p>
+                        <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3 }}>Tap to switch BB</p>
                       </div>
                       <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                         {[0,1,2].map(i => <div key={i} style={{ width:5, height:5, borderRadius:'50%', background:'rgba(255,255,255,0.13)' }} />)}
@@ -1986,7 +1988,7 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:13 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:7 }}>
                         <FiClock style={{ color:'rgba(255,255,255,0.42)', fontSize:13 }} />
-                        <span style={{ fontSize:11, fontWeight:700, color:'rgba(255,255,255,0.52)', letterSpacing:'0.22em', textTransform:'uppercase' }}>History</span>
+                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.52)' }}>History</span>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(false)}
                         style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 13px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.58)', cursor:'pointer' }}>
@@ -1998,7 +2000,7 @@ const medalClass = (rank: number) => {
                     <div className="bank-card-history" style={{ flex:1 }}>
                       {sortedTransactionItems.length === 0 ? (
                         <div style={{ textAlign:'center', paddingTop:32 }}>
-                          <p style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
+                          <p className="term-comment" style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
                         </div>
                       ) : sortedTransactionItems.map(item => {
                         const amtStr = getHistoryAmount(item)
@@ -2008,9 +2010,9 @@ const medalClass = (rank: number) => {
                           <div key={item.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:13, background:'rgba(255,255,255,0.042)', border:'1px solid rgba(255,255,255,0.07)', marginBottom:7 }}>
                             <div style={{ minWidth:0, flex:1 }}>
                               <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</p>
-                              <p style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
+                              <p className="tech-num" style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
                             </div>
-                            <p style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', fontVariantNumeric:'tabular-nums', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
+                            <p className="tech-num" style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
                           </div>
                         )
                       })}
@@ -2233,7 +2235,7 @@ const medalClass = (rank: number) => {
                   const loading = rankingTab === 'all' ? rankingLoading : monthlyRankingLoading
                   const list = rankingTab === 'all' ? ranking : monthlyRanking
                   if (loading) return <p className="text-center text-[13px] text-gray-400 py-4">ロード中…</p>
-                  if (list.length === 0) return <p className="text-center text-[13px] text-gray-400 py-4">データがありません</p>
+                  if (list.length === 0) return <p className="term-comment text-center text-[13px] text-gray-400 py-4">データがありません</p>
                   return list.slice(0, 5).map((player, index) => (
                     <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-2.5 hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-3">
@@ -2282,7 +2284,7 @@ const medalClass = (rank: number) => {
                   })}
                 </div>
               ) : (
-                <p className="text-[13px] text-gray-400 text-center py-4">入店したことのある店舗がありません</p>
+                <p className="term-comment text-[13px] text-gray-400 text-center py-4">入店したことのある店舗がありません</p>
               )}
             </div>
 
@@ -2358,7 +2360,7 @@ const medalClass = (rank: number) => {
                 <div style={{ padding: '12px 12px 16px', minHeight: 100 }}>
                   {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0 12px' }}>
-                      <p style={{ fontSize: 13, color: '#AEAEB2', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
+                      <p className="term-comment" style={{ fontSize: 13, color: '#AEAEB2', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -2817,7 +2819,7 @@ const medalClass = (rank: number) => {
             </div>
             {playersPreviewStore && <p className="mb-4 text-[12px] text-gray-400">{playersPreviewStore.name}</p>}
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {playersPreviewLoading ? <p className="text-center text-[13px] text-gray-400 py-8">読み込み中…</p>
+              {playersPreviewLoading ? <p className="term-comment text-center text-[13px] text-gray-400 py-8">読み込み中…</p>
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-gray-400 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
                 <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>

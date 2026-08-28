@@ -234,6 +234,8 @@ export default function PlayerBottomNav() {
                   <span style={{
                     fontSize: L.labelSize,
                     fontWeight: isActive ? 700 : 400,
+                    // main のテック基調刷新に合わせた字送り。
+                    letterSpacing: '0.06em',
                     maxWidth: '100%',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',

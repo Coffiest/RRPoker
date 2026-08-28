@@ -40,6 +40,8 @@
   "exclude": [
     "node_modules",
     "fire-tv",
-    "ios-app"
+    "ios-app",
+    "functions",
+    "meta-poker"
   ]
 }

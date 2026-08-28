@@ -32,17 +32,17 @@ export default function ForgotPasswordPage() {
 
 
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="tech-grid min-h-screen bg-white px-5">
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
-          <h1 className="text-[28px] font-semibold leading-tight text-gray-900">
+          <h1 className="font-display text-[28px] font-semibold leading-tight text-gray-900">
             RRPoker
           </h1>
-          <p className="mt-2 text-[14px] text-gray-500">パスワード再設定</p>
+          <p className="term-comment mt-2 text-[14px] text-gray-500">パスワード再設定</p>
         </div>
 
-        <div className="mt-7 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">メールアドレス</label>
+        <div className="tech-corners mt-7 rounded-[24px] border border-gray-200 p-4">
+          <label className="tech-label tech-label-bracket block text-gray-500">メールアドレス</label>
           <input
             type="email"
             placeholder="name@example.com"
@@ -61,9 +61,9 @@ export default function ForgotPasswordPage() {
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </button>
 
-          {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
+          {error && <p className="term-prompt mt-3 text-center text-[13px] text-red-500">{error}</p>}
           {success && (
-            <p className="mt-3 text-center text-[13px] text-green-600">
+            <p className="term-prompt-arrow mt-3 text-center text-[13px] text-green-600">
               パスワード再設定メールを送信しました。メールをご確認ください。
             </p>
           )}

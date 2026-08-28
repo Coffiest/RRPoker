@@ -402,7 +402,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
           ) : error ? (
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
@@ -488,7 +488,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           return (
                             <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '9px 12px', marginBottom: 10 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 9, fontWeight: 700, color: '#D4910A', letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0 }}>Bankroll</span>
+                                <span style={{ fontSize: 9, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0 }}>Bankroll</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>

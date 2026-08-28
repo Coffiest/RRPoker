@@ -383,9 +383,11 @@ export default function LoginPage() {
 
         /* ── Section label ── */
         .section-hd {
-          font-size:11px; font-weight:700; letter-spacing:.06em;
+          font-family:var(--stack-mono);
+          font-size:11px; font-weight:700; letter-spacing:.16em;
           text-transform:uppercase; color:var(--label2);
         }
+        .section-hd::before{ content:'//'; opacity:.4; margin-right:.55em; }
 
         button { -webkit-tap-highlight-color:transparent; }
       `}</style>
@@ -394,6 +396,8 @@ export default function LoginPage() {
           AMBIENT BACKGROUND ORBS
       ════════════════════════════════════ */}
       <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
+        {/* 方眼の下地 */}
+        <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.6 }}/>
         <div style={{ position:'absolute', top:`calc(8% + ${orb1y}px)`, right:`calc(5% + ${orb1x}px)`, width:280, height:280, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.11) 0%,transparent 70%)', transition:'transform .1s linear' }}/>
         <div style={{ position:'absolute', bottom:`calc(15% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:220, height:220, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.07) 0%,transparent 70%)' }}/>
         <div style={{ position:'absolute', top:`calc(45% + ${orb3y}px)`, left:`calc(40% + ${orb3x}px)`, width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.06) 0%,transparent 70%)' }}/>
@@ -418,7 +422,7 @@ export default function LoginPage() {
             style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'pointer', padding:0 }}
           >
             <img src="/logo.png" alt="RRPoker" style={{ height:60, width:60 }}/>
-            <span style={{ fontSize:18, fontWeight:700, color:'#1C1C1E', letterSpacing:'-0.2px' }}>RRPOKER</span>
+            <span className="font-display" style={{ fontSize:18, fontWeight:700, color:'#1C1C1E', letterSpacing:'-0.2px' }}>RRPOKER</span>
           </button>
 
           {/* 右 */}
@@ -470,10 +474,10 @@ export default function LoginPage() {
           </div>
 
           <div className="appear d0">
-            <h1 style={{ fontSize:30, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:6 }}>
+            <h1 className="font-display" style={{ fontSize:30, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:6 }}>
               <span className="shimmer-text">RRPoker</span>
             </h1>
-            <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.6 }}>
+            <p className="term-comment" style={{ fontSize:13, color:'var(--label2)', lineHeight:1.6 }}>
               Redefine Poker. As a Sport. For the World.
             </p>
           </div>
@@ -490,7 +494,7 @@ export default function LoginPage() {
 
             {/* タイトル */}
             <div style={{ marginBottom:20 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Login</p>
+              <p className="term-prompt tech-caret font-display" style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Login</p>
               
             </div>
 
@@ -533,7 +537,7 @@ export default function LoginPage() {
 
             {/* メール */}
             <div style={{ marginBottom:10 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>
                 Email
               </label>
               <div className={`field-wrap${emailFocus?' focused':''}${error&&!email?' has-error':''}`}>
@@ -558,7 +562,7 @@ export default function LoginPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:6 }}>
-              <label style={{ display:'block', fontSize:11, fontWeight:700, color:'var(--label2)', letterSpacing:'0.03em', marginBottom:6, textTransform:'uppercase' }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>
                 Password
               </label>
               <div className={`field-wrap${pwFocus?' focused':''}${error&&!password?' has-error':''}`}>
@@ -648,7 +652,7 @@ export default function LoginPage() {
             <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
+                <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
                 <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 7px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
               <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:14, fontWeight:500 }}>○○ ポーカークラブ</p>
