@@ -163,6 +163,13 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
               ...(tooltipPos ?? {}),
             }}
           >
+            {/* 現在位置を数値でも示す。ドットだけだと残り手数が読み取れない */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <span className="tech-label tech-label-bracket" style={{ color: '#C7C7CC' }}>
+                STEP {currentStep + 1} / {steps.length}
+              </span>
+            </div>
+
             {/* Step dots */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 16 }}>
               {steps.map((_, i) => (
@@ -178,7 +185,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Title */}
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 7, lineHeight: 1.3 }}>
+            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 7, lineHeight: 1.3 }}>
               {step.title}
             </p>
 

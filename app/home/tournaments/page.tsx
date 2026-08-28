@@ -414,7 +414,7 @@ export default function TournamentHistoryPage() {
               <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                 <FiAward className="text-gray-300" size={36} />
               </div>
-              <p className="text-[16px] font-semibold text-gray-900 mb-1">トーナメント履歴がありません</p>
+              <p className="term-comment text-[16px] font-semibold text-gray-900 mb-1">トーナメント履歴がありません</p>
               <p className="text-[14px] text-gray-500">トーナメントに参加すると履歴が表示されます</p>
             </div>
           )}

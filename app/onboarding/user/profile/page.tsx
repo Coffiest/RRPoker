@@ -398,7 +398,7 @@ export default function UserProfileOnboardingPage() {
 
         {/* Header */}
         <div className="mt-6 text-center animate-slideUp-d1">
-          <h1 className="text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
+          <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
           <p className="mt-1.5 text-[14px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-gray-400 leading-relaxed">
             本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。

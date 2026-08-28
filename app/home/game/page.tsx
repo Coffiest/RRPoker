@@ -359,7 +359,7 @@ export default function GameLobbyPage() {
         {/* ── Hero ── */}
         <div className="g0" style={{ background: 'linear-gradient(135deg,rgba(21,128,61,0.15),rgba(15,23,42,0))', border: '1px solid rgba(21,128,61,0.2)', borderRadius: 20, padding: '18px 18px', marginBottom: 24 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: '#4ade80', letterSpacing: '0.16em', textTransform: 'uppercase', margin: '0 0 5px' }}>No Limit Hold'em</p>
-          <h1 style={{ fontSize: 21, fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.4px' }}>仮想マネー制ポーカー</h1>
+          <h1 className="font-display" style={{ fontSize: 21, fontWeight: 900, margin: '0 0 6px', letterSpacing: '-0.4px' }}>仮想マネー制ポーカー</h1>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', margin: 0 }}>自動マッチングで即座に対戦開始。スタッツは全て記録されます。</p>
         </div>
 

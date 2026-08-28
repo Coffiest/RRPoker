@@ -305,7 +305,7 @@ export default function FriendsPage() {
                 )}
               </div>
 
-              <h2 className="text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
+              <h2 className="font-display text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
               <p className="text-center text-[13px] text-gray-500 mt-1">{selectedPlayer.playerId}</p>
               <p className="text-center text-[14px] font-semibold text-gray-700 mt-3">{selectedPlayer.rating.toLocaleString()} RR</p>
 
@@ -347,7 +347,7 @@ export default function FriendsPage() {
         {/* Friend Requests */}
         {friendRequests.length > 0 && (
           <div className="mt-6">
-            <h3 className="text-[16px] font-semibold text-gray-900 mb-3">フォローリクエスト</h3>
+            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-gray-900 mb-3">フォローリクエスト</h3>
             <div className="space-y-2">
               {friendRequests.map(request => (
                 <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3">

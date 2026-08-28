@@ -252,7 +252,7 @@ export default function AdminPage() {
 
             <div className="space-y-2">
               {codes.length === 0 && !loadingCodes && (
-                <p className="text-center text-gray-500 py-8 text-sm">コードがありません</p>
+                <p className="term-comment text-center text-gray-500 py-8 text-sm">コードがありません</p>
               )}
               {codes.map(c => (
                 <div key={c.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3">
@@ -304,10 +304,10 @@ export default function AdminPage() {
 
             <div className="space-y-2">
               {loadingStores && (
-                <p className="text-center text-gray-500 py-8 text-sm">読み込み中...</p>
+                <p className="term-comment text-center text-gray-500 py-8 text-sm">読み込み中...</p>
               )}
               {!loadingStores && filteredStores.length === 0 && (
-                <p className="text-center text-gray-500 py-8 text-sm">ストアが見つかりません</p>
+                <p className="term-comment text-center text-gray-500 py-8 text-sm">ストアが見つかりません</p>
               )}
               {filteredStores.map(s => (
                 <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 gap-3">

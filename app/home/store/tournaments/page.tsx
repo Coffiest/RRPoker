@@ -476,7 +476,7 @@ export default function TournamentsPage() {
           {/* Title — flex:1 + minWidth:0 ensures it never pushes buttons off screen */}
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <p className="section-hd" style={{ marginBottom: 2 }}>Store</p>
-            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0, color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tournaments</h1>
+            <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0, color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tournaments</h1>
           </div>
           {/* Buttons — flex-shrink:0 ensures they always fully appear */}
           <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
@@ -964,7 +964,7 @@ export default function TournamentsPage() {
                     <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FiZap size={22} style={{ color: 'var(--label2)' }}/>
                     </div>
-                    <p style={{ fontSize: 14, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>プリセットがまだありません</p>
+                    <p className="term-comment" style={{ fontSize: 14, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>プリセットがまだありません</p>
                     <p style={{ fontSize: 12, color: 'var(--label2)', margin: 0 }}>下のボタンから作成してください</p>
                   </div>
                 ) : (

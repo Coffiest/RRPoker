@@ -416,7 +416,7 @@ export default function HomeHeader({
 							{/* リスト */}
 							<div className="max-h-[55vh] overflow-y-auto">
 								{storeNoticeItems.length === 0 && userNotifications.length === 0 ? (
-									<p className="text-center text-[13px] text-gray-400 py-8">お知らせはありません</p>
+									<p className="term-comment text-center text-[13px] text-gray-400 py-8">お知らせはありません</p>
 								) : (
 									<>
 										{storeNoticeItems.map(n => {

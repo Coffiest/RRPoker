@@ -406,7 +406,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             <div className="shrink-0 px-5 pt-2 pb-3">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[17px] font-bold" style={{ color:CLR.ink }}>ハンド記録</h2>
+                  <h2 className="font-display term-prompt-arrow text-[17px] font-bold" style={{ color:CLR.ink }}>ハンド記録</h2>
                 </div>
                 <button type="button"
                   onClick={() => { if (!htSaving){setIsOpen(false);reset()} }}
@@ -789,7 +789,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 ) : history.length===0 ? (
                   <div className="flex flex-col items-center py-16 text-center">
                     <span className="text-[44px] mb-3"></span>
-                    <p className="text-[15px] font-bold mb-1" style={{color:CLR.ink}}>まだ記録がありません</p>
+                    <p className="term-comment text-[15px] font-bold mb-1" style={{color:CLR.ink}}>まだ記録がありません</p>
                     <p className="text-[12px] mb-5" style={{color:CLR.gray3}}>記録タブからハンドを作成できます</p>
                     <button type="button" onClick={() => setView("record")}
                       className="h-10 px-6 rounded-full text-[13px] font-bold active:scale-95"
@@ -1057,7 +1057,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 {/* Header */}
                 <div className="shrink-0 px-5 pt-4 pb-3 flex items-center justify-between" style={{borderBottom:`1px solid ${CLR.border}`}}>
                   <div>
-                    <p className="text-[15px] font-bold" style={{color:CLR.ink}}>{viewingHand.title||"ハンドレビュー"}</p>
+                    <p className="font-display text-[15px] font-bold" style={{color:CLR.ink}}>{viewingHand.title||"ハンドレビュー"}</p>
                     <p className="text-[11px]" style={{color:CLR.gray2}}>
                       {viewingHand.heroPosition} · {rPositions.length}人
                     </p>
@@ -1242,7 +1242,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
             <div className="shrink-0 px-5 pt-2 pb-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-[17px] font-bold" style={{ color: CLR.ink }}>インマネ確率計算機</h2>
+                <h2 className="font-display term-prompt-arrow text-[17px] font-bold" style={{ color: CLR.ink }}>インマネ確率計算機</h2>
                 <button type="button" onClick={() => setItmOpen(false)}
                   className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
                   style={{ background: "rgba(120,120,128,0.16)", color: CLR.ink }}>

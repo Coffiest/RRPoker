@@ -111,7 +111,7 @@ function GraphShelf({
         <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
           <p className="text-[13px] font-semibold text-gray-900">{page.label}</p>
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-center text-[12px] text-gray-400">この期間のデータがありません</p>
+            <p className="term-comment text-center text-[12px] text-gray-400">この期間のデータがありません</p>
           </div>
         </div>
       )
@@ -1971,7 +1971,7 @@ const medalClass = (rank: number) => {
                     <div className="bank-card-history" style={{ flex:1 }}>
                       {sortedTransactionItems.length === 0 ? (
                         <div style={{ textAlign:'center', paddingTop:32 }}>
-                          <p style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
+                          <p className="term-comment" style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
                         </div>
                       ) : sortedTransactionItems.map(item => {
                         const amtStr = getHistoryAmount(item)
@@ -2206,7 +2206,7 @@ const medalClass = (rank: number) => {
                   const loading = rankingTab === 'all' ? rankingLoading : monthlyRankingLoading
                   const list = rankingTab === 'all' ? ranking : monthlyRanking
                   if (loading) return <p className="text-center text-[13px] text-gray-400 py-4">ロード中…</p>
-                  if (list.length === 0) return <p className="text-center text-[13px] text-gray-400 py-4">データがありません</p>
+                  if (list.length === 0) return <p className="term-comment text-center text-[13px] text-gray-400 py-4">データがありません</p>
                   return list.slice(0, 5).map((player, index) => (
                     <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-2.5 hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-3">
@@ -2255,7 +2255,7 @@ const medalClass = (rank: number) => {
                   })}
                 </div>
               ) : (
-                <p className="text-[13px] text-gray-400 text-center py-4">入店したことのある店舗がありません</p>
+                <p className="term-comment text-[13px] text-gray-400 text-center py-4">入店したことのある店舗がありません</p>
               )}
             </div>
 
@@ -2331,7 +2331,7 @@ const medalClass = (rank: number) => {
                 <div style={{ padding: '12px 12px 16px', minHeight: 100 }}>
                   {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0 12px' }}>
-                      <p style={{ fontSize: 13, color: '#AEAEB2', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
+                      <p className="term-comment" style={{ fontSize: 13, color: '#AEAEB2', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -2790,7 +2790,7 @@ const medalClass = (rank: number) => {
             </div>
             {playersPreviewStore && <p className="mb-4 text-[12px] text-gray-400">{playersPreviewStore.name}</p>}
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {playersPreviewLoading ? <p className="text-center text-[13px] text-gray-400 py-8">読み込み中…</p>
+              {playersPreviewLoading ? <p className="term-comment text-center text-[13px] text-gray-400 py-8">読み込み中…</p>
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-gray-400 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
                 <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>

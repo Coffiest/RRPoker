@@ -1068,7 +1068,7 @@ export default function StorePage() {
                 >店</div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 6 }}>{store?.name ?? ""}</p>
+                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 6 }}>{store?.name ?? ""}</p>
                 <button onClick={copyCode}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 10, padding: '5px 10px', border: 'none', cursor: 'pointer', transition: 'background .2s' }}
                 >
@@ -1174,7 +1174,7 @@ export default function StorePage() {
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                 <FiClock size={22} style={{ color: 'var(--label3)' }}/>
               </div>
-              <p style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

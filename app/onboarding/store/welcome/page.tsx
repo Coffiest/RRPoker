@@ -150,7 +150,7 @@ export default function StoreWelcomePage() {
             <span style={{ fontSize:11, fontWeight:800, color:'#34C759', letterSpacing: '0.16em', textTransform:'uppercase' }}>店舗登録完了</span>
           </div>
 
-          <h1 className="sw-name-anim" style={{ fontSize:30, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
+          <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
             {name ? `${name}さん、` : ''}ようこそ！🎉
           </h1>
           <p className="sw-appear sw-d2" style={{ fontSize:14, color:'rgba(255,255,255,0.4)', lineHeight:1.85 }}>
