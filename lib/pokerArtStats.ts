@@ -36,3 +36,35 @@ export async function fetchPokerArtRating(idToken: string): Promise<PokerArtRati
     return null
   }
 }
+
+export interface PokerArtStats {
+  tournamentsPlayed: number
+  itmCount: number
+  itmRate: number
+  totalBuyIns: number
+  totalPayouts: number
+  profit: number
+  roi: number
+  nationalRank: number | null
+  totalRankedPlayers: number
+  vpipRate: number
+  pfrRate: number
+  threeBetRate: number
+}
+
+/**
+ * Poker ART の成績一式を取得する。
+ * 取得できないときは null を返し、呼び出し側は「まだ記録が無い」として扱えばよい。
+ */
+export async function fetchPokerArtStats(idToken: string): Promise<PokerArtStats | null> {
+  try {
+    const res = await fetch(`${SERVER_ORIGIN}/api/lobby/stats`, {
+      headers: { authorization: `Bearer ${idToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    return (await res.json()) as PokerArtStats
+  } catch {
+    return null
+  }
+}
