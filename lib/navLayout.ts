@@ -23,24 +23,27 @@ export const SCALE_MIN = 0.72;
 export const EDGE_PADDING = 8;
 /** タブ1本が必要とする最小幅(scale=1のとき)。アイコン+短いラベルが収まる幅。 */
 const MIN_TAB_WIDTH = 52;
-/** メインピルとツールボタンの間隔(scale=1のとき)。 */
-const BASE_GAP = 4;
-/** ツールボタンは正方形なので、幅はピル高さと同じ。 */
+/** ピルの高さ(scale=1のとき)。 */
 const BASE_NAV_HEIGHT = 56;
+/** 中央のプレイボタンの直径(scale=1のとき)。ピルより大きく、上へせり出す。 */
+const BASE_PLAY_SIZE = 68;
+/** プレイボタンをピルの上端からどれだけ持ち上げるか(scale=1のとき)。 */
+const BASE_PLAY_LIFT = 14;
 
 export interface NavLayout {
   /** 実際に採用した拡大率。 */
   scale: number;
-  /** ピルの高さ(=ツールボタンの一辺)。 */
+  /** ピルの高さ。 */
   navH: number;
-  /** 中央の強調ボタンの直径。 */
-  circleSize: number;
+  /** 中央のプレイボタンの直径。 */
+  playSize: number;
+  /** プレイボタンをピルの中心からどれだけ上へずらすか。 */
+  playLift: number;
   /** 選択中タブの背後に出る円の直径。 */
   indicatorSize: number;
   iconSize: number;
   labelSize: number;
   itemGap: number;
-  navGap: number;
   padTop: number;
   padBottom: number;
   /** メインピルが使える幅。 */
@@ -52,7 +55,8 @@ export interface NavLayout {
 /**
  * 画面幅とタブ本数から、はみ出さない寸法一式を返す。
  *
- * `tabCount` にはツールボタンを含めない(あれはピルの外にある別要素)。
+ * ピルの外に置く要素はもう無いので、横幅はピルが全部使う。
+ * 中央のプレイボタンはピルの上へせり出すため、その分の余白(padTop)も返す。
  */
 export function computeNavLayout(viewportWidth: number, tabCount: number): NavLayout {
   const tabs = Math.max(1, Math.floor(tabCount));
@@ -63,30 +67,34 @@ export function computeNavLayout(viewportWidth: number, tabCount: number): NavLa
   // 幅から素直に決まるスケール。
   const scaleFromWidth = available / DESIGN_WIDTH;
 
-  // タブ本数から許されるスケール。ピルの外にあるツールボタン(正方形)と隙間を先に引き、
-  // 残りをタブ本数で割った幅が、1本あたりの最小幅を下回らないようにする。
-  // scale が大きいほどツールボタンも隙間も最小タブ幅も大きくなるので、scale について解く。
-  //   available >= scale * (tabs * MIN_TAB_WIDTH + BASE_NAV_HEIGHT + BASE_GAP)
-  const perScaleCost = tabs * MIN_TAB_WIDTH + BASE_NAV_HEIGHT + BASE_GAP;
+  // タブ本数から許されるスケール。1本あたりの幅が最小幅を下回らないようにする。
+  // scale が大きいほど最小タブ幅も大きくなるので、scale について解く。
+  //   available >= scale * tabs * MIN_TAB_WIDTH
+  const perScaleCost = tabs * MIN_TAB_WIDTH;
   const scaleFromTabs = available / perScaleCost;
 
   const scale = Math.min(Math.max(Math.min(scaleFromWidth, scaleFromTabs), SCALE_MIN), SCALE_MAX);
 
   const navH = Math.round(BASE_NAV_HEIGHT * scale);
-  const navGap = Math.max(3, Math.round(BASE_GAP * scale));
-  // ツールボタンは navH の正方形。メインピルはその残り全部。
-  const pillWidth = Math.max(0, available - navH - navGap);
+  const playSize = Math.round(BASE_PLAY_SIZE * scale);
+  const playLift = Math.round(BASE_PLAY_LIFT * scale);
+  // ピルの外に置く要素は無くなったので、横幅はピルが全部使う。
+  const pillWidth = available;
+
+  // プレイボタンはピルの中心から playLift だけ上へ出る。上端が画面外へ出ないよう、
+  // せり出した分をそのまま上の余白にする。
+  const playOverhang = Math.max(0, Math.round(playSize / 2 + playLift - navH / 2));
 
   return {
     scale,
     navH,
-    circleSize: Math.round(42 * scale),
+    playSize,
+    playLift,
     indicatorSize: Math.round(34 * scale),
     iconSize: Math.round(20 * scale),
     labelSize: Math.max(8, Math.round(9 * scale)),
     itemGap: Math.max(2, Math.round(3 * scale)),
-    navGap,
-    padTop: Math.round(6 * scale),
+    padTop: Math.round(6 * scale) + playOverhang,
     padBottom: Math.round(10 * scale),
     pillWidth,
     tabWidth: pillWidth / tabs,
@@ -101,4 +109,15 @@ export function indicatorCenterRatio(index: number, tabCount: number): number {
   const tabs = Math.max(1, Math.floor(tabCount));
   const i = Math.min(Math.max(0, Math.floor(index)), tabs - 1);
   return (i + 0.5) / tabs;
+}
+
+/**
+ * フッターが実際に占める高さ(CSSの式)。
+ *
+ * 埋め込み(iframe)の下端をフッターに合わせるために使う。固定値で持つと、
+ * 寸法を変えたときに必ずどちらかがズレる(下が隠れるか、隙間が空く)ので、
+ * 同じ計算から導く。ホームインジケーターぶんの安全域も足す。
+ */
+export function navInsetCss(layout: NavLayout): string {
+  return `calc(${layout.padTop + layout.navH}px + max(${layout.padBottom}px, env(safe-area-inset-bottom)))`;
 }

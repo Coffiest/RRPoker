@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { auth } from '@/lib/firebase'
+import { computeNavLayout, navInsetCss } from '@/lib/navLayout'
+import { PLAYER_NAV_TAB_COUNT } from '@/components/PlayerBottomNav'
 
 /**
  * Poker ART を RRPoker の中に埋め込んで表示する。
@@ -27,13 +29,22 @@ const TOKEN_MESSAGE = 'pokerart:token'
 export interface PokerArtEmbedProps {
   /** Poker ART 側のパス(例: '/', '/geo')。`embed=1` は自動で付ける。 */
   path: string
-  /** フッターの高さぶんだけ下に余白を空ける。 */
-  bottomInset?: number
 }
 
-export default function PokerArtEmbed({ path, bottomInset = 96 }: PokerArtEmbedProps) {
+export default function PokerArtEmbed({ path }: PokerArtEmbedProps) {
   const frameRef = useRef<HTMLIFrameElement>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'signedOut'>('loading')
+
+  // 下端はフッターに合わせる。固定値で持つとフッターの寸法を変えたときに必ずズレるので、
+  // フッターと同じ計算から導く。
+  const [viewportWidth, setViewportWidth] = useState(390)
+  useEffect(() => {
+    const measure = () => setViewportWidth(window.innerWidth)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+  const bottomInset = navInsetCss(computeNavLayout(viewportWidth, PLAYER_NAV_TAB_COUNT))
 
   const src = (() => {
     const url = new URL(path, POKER_ART_ORIGIN)

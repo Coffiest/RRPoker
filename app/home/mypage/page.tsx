@@ -18,6 +18,8 @@ import {
   FiShare2,
   FiChevronRight,
   FiCamera,
+  FiTrendingUp,
+  FiEdit3,
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
@@ -627,6 +629,33 @@ export default function MyPage() {
         {/* ── Poker ART(オンライン)の成績 ──
              ライブ(店舗)の成績とは別枠にして、どちらの数字か一目で分かるようにする。 */}
         <PokerArtStatsCard />
+
+        {/* ── ツール ──
+             以前はフッターのツールボタンから開いていた。狭い画面で右端からはみ出すため
+             ボタンごと外し、行き先をここへ移した(どちらもライブポーカー用の道具で、
+             ハンド記録の本体 HandHistoryModal はこの画面に既に載っている)。 */}
+        <div className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('rrpoker:tool:itm'))}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', borderBottom: '1px solid #F2F2F7', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <FiTrendingUp size={15} style={{ color: '#fff' }} />
+            </div>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>インマネ確率予測</span>
+            <FiChevronRight size={16} style={{ color: '#C7C7CC' }} />
+          </button>
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('rrpoker:tool:hand-record'))}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <FiEdit3 size={15} style={{ color: '#fff' }} />
+            </div>
+            <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>ハンド記録</span>
+            <FiChevronRight size={16} style={{ color: '#C7C7CC' }} />
+          </button>
+        </div>
 
         {/* ── 設定リスト ── */}
         <div data-tutorial="mypage-settings" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>

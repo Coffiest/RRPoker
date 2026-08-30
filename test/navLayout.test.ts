@@ -27,10 +27,17 @@ describe("はみ出さないこと", () => {
         const l = computeNavLayout(width, tabs);
         const available = width - EDGE_PADDING * 2;
 
-        // ピル + 隙間 + ツールボタン(正方形=navH) が使える幅を超えない。
-        expect(l.pillWidth + l.navGap + l.navH).toBeLessThanOrEqual(available + 0.5);
+        // ピルが使える幅を超えない(ピルの外に置く要素はもう無い)。
+        expect(l.pillWidth).toBeLessThanOrEqual(available + 0.5);
         // ピルは負の幅にならない。
         expect(l.pillWidth).toBeGreaterThanOrEqual(0);
+
+        // 中央のプレイボタンは1タブ分の枠に収まる(隣のラベルに被らない)。
+        expect(l.playSize).toBeLessThanOrEqual(l.tabWidth * 1.6);
+
+        // せり上がった分は必ず上の余白で受ける。ここが足りないと画面外で切れる。
+        const overhang = l.playSize / 2 + l.playLift - l.navH / 2;
+        expect(l.padTop).toBeGreaterThanOrEqual(Math.max(0, overhang) - 0.5);
       });
     }
   }
@@ -106,5 +113,37 @@ describe("インジケーターの位置", () => {
   it("clamps an out of range index instead of pointing off the pill", () => {
     expect(indicatorCenterRatio(-1, 5)).toBe(0.1);
     expect(indicatorCenterRatio(99, 5)).toBe(0.9);
+  });
+});
+
+/**
+ * 中央のプレイボタン。
+ *
+ * フッターで唯一せり上がる要素なので、上へ出た分を余白で受け損ねると画面外で切れる。
+ * また、ピルより明確に大きくないと「ここが入口」という意味が伝わらない。
+ */
+describe("中央のプレイボタン", () => {
+  it("is clearly larger than the bar it sits on", () => {
+    for (const width of WIDTHS) {
+      const l = computeNavLayout(width, 5);
+      expect(l.playSize).toBeGreaterThan(l.navH);
+    }
+  });
+
+  it("always rises above the bar", () => {
+    for (const width of WIDTHS) {
+      const l = computeNavLayout(width, 5);
+      expect(l.playLift).toBeGreaterThan(0);
+    }
+  });
+
+  it("never produces NaN for nonsense viewports", () => {
+    for (const width of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      const l = computeNavLayout(width, 5);
+      expect(Number.isFinite(l.playSize)).toBe(true);
+      expect(Number.isFinite(l.playLift)).toBe(true);
+      expect(Number.isFinite(l.padTop)).toBe(true);
+      expect(l.padTop).toBeGreaterThanOrEqual(0);
+    }
   });
 });

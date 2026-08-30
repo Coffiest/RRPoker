@@ -1,13 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
-import { auth, db } from '@/lib/firebase'
-import { doc, onSnapshot } from 'firebase/firestore'
 import { FiHome, FiUser, FiDatabase, FiClock } from 'react-icons/fi'
-import { MdStyle } from 'react-icons/md'
-import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
 import { computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
 
@@ -15,9 +10,14 @@ import { computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
  * プレイヤー用のフッターメニュー。
  *
  * ライブポーカー(RRPoker本体)とオンライン(Poker ART)の両方の入口をここに集約する。
- * 中央の「プレイ」は Poker ART の卓へ入る導線で、以前のQRボタンと同じ強調にしている。
- * 中央を明け渡した入店QRは右の「ツール」へ移した。従来どおり1タップで出せる
- * (ホーム画面の入店導線もそのまま残っている)。
+ * 中央の「PLAY」は Poker ART の卓に着く導線で、フッターで唯一せり上がった立体的な
+ * ボタンにしている。ここが「押せばポーカーが始まる場所」だと、文字を読まなくても
+ * 分かるようにするため。
+ *
+ * ピルの外に置く要素は無い。以前あったツールボタンは、狭い画面で右端からはみ出すうえ、
+ * 中身(入店QR / インマネ確率予測 / ハンド記録)はいずれも別の場所から開ける:
+ *  - 入店QR … ホーム画面のヘッダーにあるQRボタン(従来どおり)
+ *  - インマネ確率予測 / ハンド記録 … マイページの「ツール」
  *
  * 寸法は lib/navLayout.ts の純粋な計算に委ねる。画面幅とタブ本数の両方から
  * 「入る大きさ」を逆算するので、タブを増やしても狭い画面でも収まる。
@@ -37,21 +37,16 @@ interface TabDef {
 const TABS: TabDef[] = [
   { key: 'home',     label: 'ホーム',     href: '/home',              match: ['/home'], icon: FiHome },
   { key: 'database', label: 'データベース', href: '/home/art/database', match: ['/home/art/database'], icon: FiDatabase },
-  { key: 'play',     label: 'プレイ',     href: '/home/art/table',    match: ['/home/art/table'], icon: MdStyle },
+  { key: 'play',     label: 'プレイ',     href: '/home/art/table',    match: ['/home/art/table'], icon: FiHome },
   { key: 'history',  label: 'ヒストリー',  href: '/home/art/hands',    match: ['/home/art/hands', '/home/history'], icon: FiClock },
   { key: 'mypage',   label: 'マイページ',  href: '/home/mypage',       match: ['/home/mypage', '/home/transactions', '/home/tickets', '/home/withdraw'], icon: FiUser },
 ]
 
-/** 中央で強調するタブ(以前のQRボタンと同じ見せ方)。 */
+/** 中央でせり上げるタブ。 */
 const CENTER_INDEX = TABS.findIndex((t) => t.key === 'play')
 
-/** ツールの中身。`event` を持つものはグローバルイベントを飛ばし、
- *  `action: 'qr'` は入店QRを開く。 */
-const TOOLS_ITEMS = [
-  { key: 'qr',          label: '入店QRを表示',     action: 'qr' as const },
-  { key: 'itm',         label: 'インマネ確率予測', event: 'rrpoker:tool:itm' },
-  { key: 'hand-record', label: 'ハンド記録',       event: 'rrpoker:tool:hand-record' },
-] as const
+/** タブの本数。埋め込みの下端をフッターに合わせるときに使う。 */
+export const PLAYER_NAV_TAB_COUNT = TABS.length
 
 const GLASS: React.CSSProperties = {
   borderRadius: 9999,
@@ -75,17 +70,39 @@ export function activeTabFor(pathname: string): TabKey {
   return best?.key ?? 'home'
 }
 
+/**
+ * 扇状に開いた2枚のトランプ。「ここを押すとポーカーが始まる」を一目で伝えるための絵。
+ * 絵文字は使わず、線だけで描いたSVGにしている(塗りは中の白のみ)。
+ */
+function PlayCardsGlyph({ size }: { size: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* 後ろのカード。傾けて重ね、「1枚ではなく手札」だと分かるようにする。 */}
+      <rect x="3.4" y="6.2" width="8.6" height="12.4" rx="2" transform="rotate(-18 7.7 12.4)" />
+      {/* 手前のカード */}
+      <rect x="11" y="4.8" width="10" height="14.4" rx="2.2" />
+      {/* 手前のカードのスペード。小さく描くと潰れるので、面いっぱいに1つだけ置く。 */}
+      <path d="M16 8.9c-1.5 1.4-2.5 2.3-2.5 3.4a1.6 1.6 0 0 0 2.5 1.3 1.6 1.6 0 0 0 2.5-1.3c0-1.1-1-2-2.5-3.4Z" />
+    </svg>
+  )
+}
+
 export default function PlayerBottomNav() {
   const router   = useRouter()
   const pathname = usePathname()
   const activeKey  = activeTabFor(pathname)
   const activeIndex = Math.max(0, TABS.findIndex((t) => t.key === activeKey))
-
-  const [userId,   setUserId]   = useState<string | null>(null)
-  const [userName, setUserName] = useState('')
-  const [userIcon, setUserIcon] = useState<string | undefined>(undefined)
-  const [isQROpen,  setIsQROpen]  = useState(false)
-  const [toolsOpen, setToolsOpen] = useState(false)
+  const isPlaying = activeKey === 'play'
 
   // 画面幅から寸法を決める。初期値は設計幅にしておき、マウント後に実寸で置き換える。
   const [viewportWidth, setViewportWidth] = useState(390)
@@ -108,41 +125,24 @@ export default function PlayerBottomNav() {
     }
   }, [])
 
-  useEffect(() => {
-    let unsubSnap: (() => void) | null = null
-    const unsubAuth = auth.onAuthStateChanged(user => {
-      unsubSnap?.()
-      if (!user) { setUserId(null); return }
-      setUserId(user.uid)
-      unsubSnap = onSnapshot(doc(db, 'users', user.uid), snap => {
-        const d = snap.data()
-        setUserName(d?.name ?? '')
-        setUserIcon(d?.iconUrl)
-      }, () => {})
-    })
-    return () => { unsubAuth(); unsubSnap?.() }
-  }, [])
-
-  const handleToolItem = (item: (typeof TOOLS_ITEMS)[number]) => {
-    setToolsOpen(false)
-    if ('action' in item && item.action === 'qr') { setIsQROpen(true); return }
-    if ('event' in item) window.dispatchEvent(new CustomEvent(item.event))
-  }
-
   const go = (href: string) => { hapticTap(); router.push(href) }
+
+  const playIcon = Math.round(L.playSize * 0.38)
+  const playLabel = Math.max(8, Math.round(L.playSize * 0.145))
 
   return (
     <>
       <style>{`
-        @keyframes toolsItemIn {
-          from { opacity:0; transform:translateY(16px) scale(0.88); }
-          to   { opacity:1; transform:translateY(0) scale(1); }
+        /* 卓が待っていることを伝える呼吸。動きを減らす設定の端末では止める。 */
+        @keyframes navPlayHalo {
+          0%, 100% { transform: scale(1);    opacity: 0.55; }
+          50%      { transform: scale(1.18); opacity: 0;    }
         }
+        @media (prefers-reduced-motion: reduce) {
+          .nav-play-halo { animation: none !important; opacity: 0.35 !important; }
+        }
+        .nav-play-btn:active .nav-play-face { transform: scale(0.94); }
       `}</style>
-
-      {toolsOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 79 }} onClick={() => setToolsOpen(false)} />
-      )}
 
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80,
@@ -150,7 +150,8 @@ export default function PlayerBottomNav() {
         paddingBottom: `max(${L.padBottom}px, env(safe-area-inset-bottom))`,
         paddingLeft: 8, paddingRight: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: L.navGap }}>
+        {/* ピルは行の幅いっぱい。せり上がるプレイボタンだけがこの箱の外(上)へ出る。 */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
 
           {/* ── メインピル ── */}
           <div style={{
@@ -182,38 +183,14 @@ export default function PlayerBottomNav() {
             }} />
 
             {TABS.map((tab, i) => {
+              // 中央の枠は場所だけ空けておく。実体はピルの外(下のプレイボタン)に置く。
+              // ピルは overflow:hidden なので、中に入れるとせり上がった分が切れてしまう。
+              if (i === CENTER_INDEX) {
+                return <div key={tab.key} aria-hidden="true" style={{ flex: 1, minWidth: 0 }} />
+              }
+
               const isActive = i === activeIndex
               const IconComponent = tab.icon
-
-              // 中央のタブは以前のQRボタンと同じ強調(金色の円)にする。
-              if (i === CENTER_INDEX) {
-                return (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => go(tab.href)}
-                    aria-label={tab.label}
-                    data-tutorial="nav-play"
-                    style={{
-                      flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-                    }}
-                  >
-                    <div style={{
-                      width: L.circleSize, height: L.circleSize, borderRadius: '50%',
-                      background: 'linear-gradient(135deg,#F2A900,#D4910A)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      flexShrink: 0,
-                      boxShadow: isActive
-                        ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
-                        : '0 4px 14px rgba(242,169,0,0.45)',
-                      transition: 'box-shadow 0.35s ease',
-                    }}>
-                      <IconComponent size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
-                    </div>
-                  </button>
-                )
-              }
 
               return (
                 <button
@@ -247,62 +224,72 @@ export default function PlayerBottomNav() {
             })}
           </div>
 
-          {/* ── Tools ピル(正方形、メインピルと高さ一致) ── */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            {toolsOpen && (
-              <div style={{
-                position: 'absolute', bottom: '100%', right: 0,
-                paddingBottom: Math.round(8 * L.scale),
-                display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-                gap: Math.round(8 * L.scale),
-              }}>
-                {TOOLS_ITEMS.map((item, i) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => handleToolItem(item)}
-                    style={{
-                      ...GLASS,
-                      height: Math.round(42 * L.scale),
-                      minWidth: Math.min(Math.round(140 * L.scale), Math.max(120, viewportWidth - 32)),
-                      padding: `0 ${Math.round(16 * L.scale)}px`,
-                      border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      animation: `toolsItemIn 0.32s cubic-bezier(0.34,1.56,0.64,1) both`,
-                      animationDelay: `${i * 0.06}s`,
-                    }}
-                  >
-                    <span style={{ fontSize: Math.max(10, Math.round(12 * L.scale)), fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => { hapticTap(); setToolsOpen(v => !v) }}
-              aria-label="ツール"
+          {/* ── 中央のプレイボタン ──
+               フッターで唯一せり上がっていて、唯一色がついている。ここだけが
+               「入口」だと分かるようにするための扱い。 */}
+          <button
+            type="button"
+            className="nav-play-btn"
+            onClick={() => go(TABS[CENTER_INDEX].href)}
+            aria-label="プレイ ─ 卓に着く"
+            aria-current={isPlaying ? 'page' : undefined}
+            data-tutorial="nav-play"
+            style={{
+              position: 'absolute',
+              left: `${indicatorCenterRatio(CENTER_INDEX, TABS.length) * 100}%`,
+              top: '50%',
+              transform: `translate(-50%, -50%) translateY(-${L.playLift}px)`,
+              width: L.playSize,
+              height: L.playSize,
+              padding: 0,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            {/* 外へ広がる光の輪。卓が開いていることを静かに知らせる。 */}
+            <span
+              className="nav-play-halo"
+              aria-hidden="true"
               style={{
-                ...GLASS,
-                width: L.navH, height: L.navH,
-                border: 'none', cursor: 'pointer',
+                position: 'absolute', inset: 0, borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(242,169,0,0.55) 0%, rgba(242,169,0,0) 70%)',
+                animation: 'navPlayHalo 2.6s ease-out infinite',
+                pointerEvents: 'none',
+              }}
+            />
+            {/* 本体 */}
+            <span
+              className="nav-play-face"
+              style={{
+                position: 'relative',
+                width: '100%', height: '100%', borderRadius: '50%',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: 1, padding: 0,
+                gap: Math.max(1, Math.round(L.playSize * 0.03)),
+                color: '#fff',
+                background: 'linear-gradient(160deg,#FFC44D 0%,#F2A900 46%,#C97F05 100%)',
+                border: '2px solid rgba(255,255,255,0.9)',
+                boxShadow: isPlaying
+                  ? '0 10px 26px rgba(242,169,0,0.62), 0 2px 6px rgba(0,0,0,0.22), inset 0 2px 0 rgba(255,255,255,0.55)'
+                  : '0 8px 20px rgba(242,169,0,0.46), 0 2px 6px rgba(0,0,0,0.20), inset 0 2px 0 rgba(255,255,255,0.45)',
+                transition: 'transform 0.14s ease, box-shadow 0.35s ease',
               }}
             >
-              <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: 300, color: '#3C3C43', lineHeight: 1 }}>
-                {toolsOpen ? '×' : '+'}
-              </span>
-              <span style={{ fontSize: Math.max(7, Math.round(8 * L.scale)), color: '#3C3C43', lineHeight: 1 }}>ツール</span>
-            </button>
-          </div>
+              <PlayCardsGlyph size={playIcon} />
+              <span style={{
+                fontSize: playLabel,
+                fontWeight: 800,
+                letterSpacing: '0.18em',
+                // 字送りぶん右に寄るので、その半分だけ戻して光学的に中央へ置く。
+                textIndent: '0.18em',
+                lineHeight: 1,
+                textShadow: '0 1px 2px rgba(0,0,0,0.22)',
+              }}>PLAY</span>
+            </span>
+          </button>
         </div>
       </nav>
-
-      {isQROpen && userId && typeof document !== 'undefined' && createPortal(
-        <PlayerQRModal uid={userId} name={userName} iconUrl={userIcon} onClose={() => setIsQROpen(false)} />,
-        document.body
-      )}
     </>
   )
 }
