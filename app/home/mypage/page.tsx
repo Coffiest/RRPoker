@@ -187,7 +187,7 @@ async function generateProfileCard(opts: {
   const statsItems = [
     { label: '参加数', value: String(opts.plays) },
     { label: 'ITM率', value: opts.plays > 0 ? `${Math.round(opts.itmRate)}%` : '-' },
-    { label: 'ROI', value: opts.plays > 0 ? `${opts.roi >= 0 ? '+' : ''}${Math.round(opts.roi)}%` : '-' },
+    { label: '回収率', value: opts.plays > 0 ? `${opts.roi >= 0 ? '+' : ''}${Math.round(opts.roi)}%` : '-' },
   ]
   statsItems.forEach((s, i) => {
     const sx = W / 6 + i * (W / 3)

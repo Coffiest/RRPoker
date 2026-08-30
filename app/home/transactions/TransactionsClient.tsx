@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import {
   collection,
   doc,
@@ -310,7 +311,7 @@ export default function TransactionsClient() {
           >
             <FiArrowLeft size={18} />
           </button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E' }}>入出金</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E' }}>チップの預入・引出</h1>
           <div style={{ width: 36 }} />
         </div>
 
@@ -342,7 +343,7 @@ export default function TransactionsClient() {
           {/* Amount display */}
           <div style={{ padding: '24px 20px 16px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center' }}>
             <p style={{ fontSize: 12, fontWeight: 500, color: '#8E8E93', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.16em' }}>
-              {mode === 'deposit' ? 'あずける金額' : 'ひきだす金額'}
+              {mode === 'deposit' ? 'あずけるチップ数' : 'ひきだすチップ数'}
             </p>
             <p style={{ fontSize: 48, fontWeight: 800, color: amount ? '#1C1C1E' : '#C7C7CC', letterSpacing: '-1px', lineHeight: 1.1 }}>
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
@@ -398,6 +399,7 @@ export default function TransactionsClient() {
             >
               {mode === 'deposit' ? 'あずける（申請）' : 'ひきだす（申請）'}
             </button>
+            <ChipDisclaimer className="tx-slide-2" />
           </div>
         </div>
       </div>

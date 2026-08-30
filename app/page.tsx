@@ -21,7 +21,7 @@ const FEATURES = [
   {
     emoji: '📊',
     title: 'RR Rating',
-    desc: 'ROI・インマネ率からトーナメントの実力を偏差値で可視化。',
+    desc: '回収率・インマネ率からトーナメントの実力を偏差値で可視化。',
     accent: '#34C759',
     bg: 'rgba(52,199,89,0.08)',
   },
@@ -35,7 +35,7 @@ const FEATURES = [
   {
     emoji: '📋',
     title: 'トーナメント履歴',
-    desc: '参加トナメを自動記録。コスト・プライズ・収支をいつでも確認。',
+    desc: '参加トナメを自動記録。エントリー数・獲得チップ・チップ増減をいつでも確認。',
     accent: '#FF3B30',
     bg: 'rgba(255,59,48,0.07)',
   },
@@ -494,11 +494,11 @@ export default function TopPage() {
                 <p style={{ fontSize:11, fontWeight:700, color:'white' }}>全国 12位</p>
               </div>
             </div>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:5, position:'relative', zIndex:1 }}>ROI: 122.4% · インマネ率: 34.2%</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:5, position:'relative', zIndex:1 }}>回収率: 122.4% · インマネ率: 34.2%</p>
           </div>
           <div style={{ padding:'14px 16px' }}>
             <p style={{ fontSize:12, color:'var(--label2)', lineHeight:1.65 }}>
-              ROIとインマネ率から計算されるトーナメントの実力指数。参加した回数が増えるほど精度が上がります。
+              回収率とインマネ率から計算されるトーナメントの実力指数。参加した回数が増えるほど精度が上がります。
             </p>
             <p style={{ fontSize:10, color:'var(--gold-dk)', fontWeight:600, marginTop:6, marginBottom:4 }}>※ これはイメージです</p>
           </div>

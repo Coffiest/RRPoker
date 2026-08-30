@@ -126,7 +126,7 @@ async function generateTournamentCard(opts: {
       valueColor: isITM ? '#F2A900' : '#FFFFFF',
     },
     {
-      label: 'ROI',
+      label: '回収率',
       value: opts.buyin > 0 ? `${opts.roi >= 0 ? '+' : ''}${opts.roi.toFixed(1)}%` : '-',
       color: opts.roi > 0 ? 'rgba(52,199,89,0.12)' : opts.roi < 0 ? 'rgba(255,59,48,0.12)' : 'rgba(255,255,255,0.06)',
       valueColor: opts.roi > 0 ? '#34C759' : opts.roi < 0 ? '#FF3B30' : '#FFFFFF',
@@ -376,7 +376,7 @@ export default function TournamentHistoryPage() {
                   <div className={`rounded-xl p-3 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#FFFBF5] border border-[#F2A900]/20" : "bg-gray-50"}`}>
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <div className={`h-1.5 w-1.5 rounded-full ${rank !== "-" ? "bg-[#F2A900]" : "bg-gray-400"}`}></div>
-                      <p className="text-[11px] font-semibold text-gray-600">Prize</p>
+                      <p className="text-[11px] font-semibold text-gray-600">獲得チップ</p>
                     </div>
                     {rank !== "-" ? (
                       <p className="text-[16px] font-bold text-[#D4910A]">{prize.toLocaleString()}</p>
@@ -386,7 +386,7 @@ export default function TournamentHistoryPage() {
                   </div>
 
                   <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-[11px] font-semibold text-gray-600 mb-1.5">ROI</p>
+                    <p className="text-[11px] font-semibold text-gray-600 mb-1.5">回収率</p>
                     <p className={`text-[16px] font-bold ${reward > cost ? "text-green-600" : reward < cost ? "text-red-600" : "text-gray-600"}`}>
                       {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
                     </p>
@@ -479,11 +479,11 @@ export default function TournamentHistoryPage() {
               {/* Result stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>Prize</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>獲得チップ</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : '#C7C7CC' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
                 <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px' }}>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>ROI</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>回収率</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : '#8E8E93' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
                   </p>

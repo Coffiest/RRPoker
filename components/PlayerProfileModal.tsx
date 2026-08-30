@@ -184,7 +184,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                 {[
                   { label: '参加回数', value: stats.plays > 0 ? `${stats.plays}回` : '—' },
                   { label: 'インマネ率', value: itmRate ? `${itmRate}%` : '—' },
-                  { label: 'ROI', value: roi ? `${roi}%` : '—' },
+                  { label: '回収率', value: roi ? `${roi}%` : '—' },
                 ].map(({ label, value }) => (
                   <div key={label} style={{
                     background: '#F2F2F7', borderRadius: 16,

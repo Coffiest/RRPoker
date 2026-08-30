@@ -72,7 +72,7 @@ export default function PokerArtStatsCard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
             <Tile label="参加数" value={`${stats.tournamentsPlayed}回`} />
             <Tile label="インマネ率" value={`${Math.round(stats.itmRate * 100)}%`} />
-            <Tile label="ROI" value={`${stats.roi >= 0 ? '+' : ''}${Math.round(stats.roi * 100)}%`} />
+            <Tile label="回収率" value={`${stats.roi >= 0 ? '+' : ''}${Math.round(stats.roi * 100)}%`} />
           </div>
           {rating?.nationalRank != null && (
             <button

@@ -1200,7 +1200,7 @@ export default function StorePage() {
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p style={{ fontSize: 8, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.04em', marginBottom: 4 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label)' }}>¥</span>
+                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Fee:</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                                 {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                               </span>

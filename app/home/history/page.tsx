@@ -156,7 +156,7 @@ export default function HistoryPage() {
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="font-display term-prompt-arrow text-[22px] font-semibold text-gray-900">入出金履歴</h1>
+          <h1 className="font-display term-prompt-arrow text-[22px] font-semibold text-gray-900">チップ移動履歴</h1>
         </div>
 
         <div className="mt-6 space-y-3">
