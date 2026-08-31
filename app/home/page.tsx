@@ -7,9 +7,6 @@ import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiLogOut, FiArrowL
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
-import RatingHero from "@/components/RatingHero"
-import RatingSwiper from "@/components/RatingSwiper"
-import { fetchPokerArtRating, type PokerArtRating } from "@/lib/pokerArtStats"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
@@ -277,27 +274,6 @@ export default function HomePage() {
   const [splashDone, setSplashDone] = useState(false)
 
   useEffect(() => {
-
-    return auth.onAuthStateChanged(async (user) => {
-
-      if (!user) { setArtRating(null); return }
-
-      try {
-
-        setArtRating(await fetchPokerArtRating(await user.getIdToken()))
-
-      } catch {
-
-        // 通信断。カードは「未プレイ」のまま。
-
-      }
-
-    })
-
-  }, [])
-
-
-  useEffect(() => {
     if (sessionStorage.getItem('rrpoker_splash_shown')) setSplashDone(true)
   }, [])
   const [userId, setUserId] = useState<string | null>(null)
@@ -343,9 +319,6 @@ export default function HomePage() {
   const [playersPreviewLoading, setPlayersPreviewLoading] = useState(false)
   const [rrRanking, setRrRanking] = useState<RRPlayer[]>([])
   const [rrMyEntry, setRrMyEntry] = useState<RRPlayer | null>(null)
-  // Poker ART(オンライン)側のトナメ偏差値。RRPokerのFirebase IDトークンをそのまま送る。
-  // 取得できなくてもホームの他の情報は妨げない(カードは「未プレイ」表示になる)。
-  const [artRating, setArtRating] = useState<PokerArtRating | null>(null)
   const [rrRatingInfoOpen, setRrRatingInfoOpen] = useState(false)
   const [rrRatingValue, setRrRatingValue] = useState(1000)
   const [rrCardFlipped, setRrCardFlipped] = useState(false)
@@ -1704,38 +1677,36 @@ const medalClass = (rank: number) => {
               </button>
             </div>
 
-            {/* ライブ と Poker ART の偏差値を横スワイプで見る。
-                計算式は同一(ROIに経験ベイズ収縮 → 平均50・標準偏差10のTスコア)で、
-                違うのは母集団だけ。ライブ=店舗のトーナメント、Poker ART=オンライン。 */}
-            <RatingSwiper>
-              {[
-                <RatingHero
-                  key="live"
-                  title="トナメ偏差値"
-                  plays={tournamentStats.plays}
-                  rating={animRrRating ?? displayRrRating}
-                  delta={showStatsDelta && statsDelta ? statsDelta.rrRating : null}
-                  rank={rrMyEntry ? rrMyEntry.rank : null}
-                  emptyLabel="集計中"
-                  emptyNote={t('tourneyStat.pendingNote')}
-                  onInfo={(rect) => {
-                    if (rrRatingInfoOpen) { setRrRatingInfoOpen(false); setRrRatingInfoPos(null); return }
-                    setRrRatingInfoPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
-                    setRrRatingInfoOpen(true)
-                  }}
-                />,
-                <RatingHero
-                  key="art"
-                  title="トナメ偏差値（Poker ART）"
-                  plays={artRating?.tournamentsPlayed ?? 0}
-                  rating={artRating?.rrRating ?? 50}
-                  rank={artRating?.nationalRank ?? null}
-                  emptyLabel="未プレイ"
-                  emptyNote="オンラインのトーナメントに参加すると、ここに偏差値が出ます。"
-                  emptyAction={{ label: 'プレイする', onClick: () => router.push('/home/art/table') }}
-                />,
-              ]}
-            </RatingSwiper>
+            {/* ラベル */}
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.7)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+
+            {/* メイン数値 */}
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
+              {tournamentStats.plays === 0 ? (
+                <div>
+                  <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                  <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.55)', marginTop: 6, lineHeight: 1.5, maxWidth: 220 }}>
+                    {t('tourneyStat.pendingNote')}
+                  </p>
+                </div>
+              ) : (
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                  <p className="tech-num" style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                    {(animRrRating ?? displayRrRating).toFixed(2)}
+                  </p>
+                  {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
+                    <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                      {statsDelta.rrRating >= 0 ? '+' : ''}{statsDelta.rrRating.toFixed(2)}
+                    </span>
+                  )}
+                  {rrMyEntry && (
+                    <div style={{ marginBottom: 6, background: 'rgba(0,0,0,0.18)', borderRadius: 99, padding: '4px 10px' }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>全国{rrMyEntry.rank}位</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* スタッツグリッド */}

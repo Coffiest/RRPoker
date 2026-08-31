@@ -21,7 +21,6 @@ import {
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
-import PokerArtStatsCard from "@/components/PokerArtStatsCard"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
 import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
@@ -623,10 +622,6 @@ export default function MyPage() {
             {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 6 }}>※一度設定すると変更できません</p>}
           </div>
         </div>
-
-        {/* ── Poker ART(オンライン)の成績 ──
-             ライブ(店舗)の成績とは別枠にして、どちらの数字か一目で分かるようにする。 */}
-        <PokerArtStatsCard />
 
         {/* ── 設定リスト ── */}
         <div data-tutorial="mypage-settings" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
