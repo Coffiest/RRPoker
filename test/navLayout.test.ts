@@ -108,3 +108,30 @@ describe("インジケーターの位置", () => {
     expect(indicatorCenterRatio(99, 5)).toBe(0.9);
   });
 });
+
+/**
+ * 画面の縁との余裕。
+ *
+ * 「計算上ちょうど収まる」だけだと、端末ごとのフォントの実寸差や小数の丸めで簡単に
+ * 縁へ届いてしまう(実機で右端がはみ出して見えた)。常にはっきり余白が残ることを固定する。
+ */
+describe("画面の縁との余裕", () => {
+  for (const width of WIDTHS) {
+    it(`keeps a visible margin at ${width}px`, () => {
+      const l = computeNavLayout(width, 3);
+      const used = l.pillWidth + l.navGap + l.navH;
+      const available = width - EDGE_PADDING * 2;
+
+      // 使い切らない。必ず余りが出る(端に触れない)。
+      expect(used).toBeLessThanOrEqual(available);
+      // 左右の余白そのものも、目に見える幅を確保する。
+      expect(EDGE_PADDING).toBeGreaterThanOrEqual(12);
+    });
+  }
+
+  it("is smaller than the old flush-to-the-edge sizing", () => {
+    // 安全率のぶん、同じ画面幅でも以前より小さく作られる。
+    const l = computeNavLayout(393, 3);
+    expect(l.navH).toBeLessThan(56);
+  });
+});

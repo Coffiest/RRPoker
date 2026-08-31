@@ -9,7 +9,7 @@ import { FiHome, FiUser } from 'react-icons/fi'
 import { MdQrCode2 } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
-import { computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
+import { EDGE_PADDING, computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
 
 /**
  * プレイヤー用のフッターメニュー。
@@ -156,11 +156,25 @@ export default function PlayerBottomNav() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 79 }} onClick={() => setToolsOpen(false)} />
       )}
 
+      {/*
+        画面の下端に貼り付けたまま動かさない。
+
+        `transform: translateZ(0)` を置いているのは見た目のためではない。iOS Safari は
+        `backdrop-filter` を持つ要素(下のピル)を内側に抱えた position:fixed を、スクロール中に
+        正しく貼り付けたまま描けないことがある。自前の合成レイヤーへ切り出しておくと、
+        スクロールしてもフッターだけが取り残されたり浮いたりしなくなる。
+
+        左右の余白は EDGE_PADDING に加えてノッチぶん(safe-area)も足す。横向きや
+        パンチホールのある端末で縁に食い込ませないため。
+      */}
       <nav style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80,
+        transform: 'translateZ(0)',
+        willChange: 'transform',
         paddingTop: L.padTop,
         paddingBottom: `max(${L.padBottom}px, env(safe-area-inset-bottom))`,
-        paddingLeft: 8, paddingRight: 8,
+        paddingLeft: `calc(${EDGE_PADDING}px + env(safe-area-inset-left))`,
+        paddingRight: `calc(${EDGE_PADDING}px + env(safe-area-inset-right))`,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: L.navGap }}>
 
