@@ -129,9 +129,45 @@ describe("画面の縁との余裕", () => {
     });
   }
 
-  it("is smaller than the old flush-to-the-edge sizing", () => {
-    // 安全率のぶん、同じ画面幅でも以前より小さく作られる。
+  it("uses only the width it needs, leaving the rest unused", () => {
+    // 画面幅いっぱいには広げない。項目が3つだと間延びして、フッターだけが
+    // 横に長く見えるため。余った横幅は使わずに残す(行ごと中央へ寄せる)。
     const l = computeNavLayout(393, 3);
-    expect(l.navH).toBeLessThan(56);
+    const available = 393 - EDGE_PADDING * 2;
+    expect(l.totalWidth).toBeLessThan(available);
+    // 余りは目に見える量であること(ぴったりでは「使い切っている」のと変わらない)。
+    expect(available - l.totalWidth).toBeGreaterThan(20);
+  });
+
+  it("gets bigger, not smaller, now that the width is not wasted", () => {
+    // 使わずに済んだ横幅は高さへ回す。フッターは以前(56)より大きくなる。
+    const l = computeNavLayout(393, 3);
+    expect(l.navH).toBeGreaterThan(56);
+    expect(l.iconSize).toBeGreaterThanOrEqual(20);
+  });
+});
+
+/**
+ * フッターの幅。
+ *
+ * 「ホーム / QR / マイページ の間が間延びして、フッターだけ横に長い」という指摘の再発防止。
+ * 中身が要るぶんだけ取り、余りは必ず残す(残りは中央寄せの余白になる)。
+ */
+describe("フッターの幅", () => {
+  for (const width of WIDTHS) {
+    it(`never stretches to fill at ${width}px`, () => {
+      const l = computeNavLayout(width, 3);
+      const available = width - EDGE_PADDING * 2;
+      expect(l.totalWidth).toBeLessThanOrEqual(available);
+      // ピルの幅はタブ幅の合計とちょうど一致する(余白で水増ししない)。
+      expect(l.pillWidth).toBeLessThanOrEqual(Math.round(l.tabWidth) * 3 + 1);
+    });
+  }
+
+  it("stops growing on wide screens instead of spanning them", () => {
+    // 大画面では上限で止まり、画面幅に比例して伸び続けない。
+    const phone = computeNavLayout(430, 3);
+    const desktop = computeNavLayout(1440, 3);
+    expect(desktop.totalWidth).toBe(phone.totalWidth);
   });
 });

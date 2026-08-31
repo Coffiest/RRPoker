@@ -257,8 +257,10 @@ export default function HomeHeader({
 	const effectiveMenuItems =
 		menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)
 
+	// ヘッダーは白のまま。方眼は背景(TechBackdrop)が受け持つ。
+	// ここにも方眼を敷くと紙面がうるさくなり、白いヘッダーとの境目も消える。
 	return (
-		<header className="tech-grid sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md">
 		<style>{`html { overflow-x: hidden; }`}</style>
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
