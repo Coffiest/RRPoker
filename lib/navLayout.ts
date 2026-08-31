@@ -16,11 +16,19 @@
 /** 設計の基準幅(iPhone標準)。この幅で scale=1 になる。 */
 export const DESIGN_WIDTH = 390;
 /** これ以上は大きくしない。大画面で不格好に巨大化するのを防ぐ。 */
-export const SCALE_MAX = 1.35;
+export const SCALE_MAX = 1.2;
 /** これ以下には小さくしない。極小画面でも読める下限。 */
 export const SCALE_MIN = 0.72;
-/** 画面の左右端の余白。 */
-export const EDGE_PADDING = 8;
+/** 画面の左右端の余白。端ぎりぎりに置かず、はっきり内側に収める。 */
+export const EDGE_PADDING = 14;
+/**
+ * 逆算した大きさにさらに掛ける安全率。
+ *
+ * 「計算上ちょうど収まる」だけだと、端末ごとのフォントの実寸差・小数の丸め・
+ * ノッチまわりの余白で簡単に縁へ届いてしまう。最初から少し小さく作って、
+ * 常に余白が残るようにする。
+ */
+export const SAFETY_FACTOR = 0.94;
 /** タブ1本が必要とする最小幅(scale=1のとき)。アイコン+短いラベルが収まる幅。 */
 const MIN_TAB_WIDTH = 52;
 /** メインピルとツールボタンの間隔(scale=1のとき)。 */
@@ -70,7 +78,9 @@ export function computeNavLayout(viewportWidth: number, tabCount: number): NavLa
   const perScaleCost = tabs * MIN_TAB_WIDTH + BASE_NAV_HEIGHT + BASE_GAP;
   const scaleFromTabs = available / perScaleCost;
 
-  const scale = Math.min(Math.max(Math.min(scaleFromWidth, scaleFromTabs), SCALE_MIN), SCALE_MAX);
+  // 収まる上限まで使い切らず、安全率のぶん小さく作る。
+  const fitted = Math.min(scaleFromWidth, scaleFromTabs) * SAFETY_FACTOR;
+  const scale = Math.min(Math.max(fitted, SCALE_MIN), SCALE_MAX);
 
   const navH = Math.round(BASE_NAV_HEIGHT * scale);
   const navGap = Math.max(3, Math.round(BASE_GAP * scale));
