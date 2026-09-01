@@ -14,6 +14,8 @@ import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import TechBackdrop from "@/components/TechBackdrop"
+import { RevealSentinel, useRevealOnScroll } from "@/components/RevealOnScroll"
+import { ConsoleLine, ConsolePanel } from "@/components/ConsolePanel"
 import { loadGeoConsent, saveGeoConsent, type GeoConsent } from "@/lib/geoConsent"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
@@ -1653,33 +1655,46 @@ const medalClass = (rank: number) => {
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
-          <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '18px 22px 22px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+          {/* 計器盤。金一色の面をやめ、黒地に金の数値だけを光らせる。
+              いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
+          <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(160deg,#141416 0%,#0C0C0E 100%)', padding: '14px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+            {/* 基板のドットと、上端を走る細い金の線 */}
+            <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.20, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent)', opacity: 0.75, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -50, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.16) 0%,transparent 70%)', pointerEvents: 'none' }} />
+
+            {/* 端末のタイトル行 */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'relative', zIndex: 1 }}>
+              <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)', letterSpacing: '0.20em' }}>RATING / TOURNAMENT</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span className="tech-status-dot" />
+                <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.30)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
+              </span>
+            </div>
 
             {/* アイデンティティ行 + ? */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 9, overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.22)'}`, background: 'rgba(255,255,255,0.08)' }}>
                     {profile.iconUrl
                       ? <img src={profile.iconUrl} alt={profile.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={14} style={{ color: 'rgba(255,255,255,0.85)' }} /></div>
                     }
                   </div>
                   {currentStoreId && (
-                    <div className="pulse-dot" style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%', background: '#34C759', border: '1.5px solid #C97D00' }} />
+                    <div className="pulse-dot" style={{ position: 'absolute', bottom: -1, right: -1, width: 9, height: 9, borderRadius: '50%', background: '#34C759', border: '1.5px solid #0C0C0E' }} />
                   )}
                 </div>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.1px' }}>{profile.name || ''}</p>
+                  <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 13.5, fontWeight: 600, color: 'rgba(255,255,255,0.92)', lineHeight: 1.2, letterSpacing: '0.02em' }}>{profile.name || ''}</p>
                   {currentStoreId && currentStore ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34C759', flexShrink: 0 }} />
-                      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.88)', fontWeight: 500 }}>{currentStore.name} に入店中</p>
+                      <p className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.50)', marginTop: 1 }}>現在どこにも入店していません</p>
+                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.30)', marginTop: 2 }}>not checked in</p>
                   )}
                 </div>
               </div>
@@ -1696,27 +1711,31 @@ const medalClass = (rank: number) => {
                     setRrRatingInfoOpen(true)
                   }
                 }}
-                style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
               >
-                <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
+                <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.55)' }} />
               </button>
             </div>
 
             {/* ラベル */}
-            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.7)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.48)', marginBottom: 6, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
 
             {/* メイン数値 */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
               {tournamentStats.plays === 0 ? (
                 <div>
-                  <p style={{ fontSize: 40, fontWeight: 800, color: 'rgba(255,255,255,0.75)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
-                  <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.55)', marginTop: 6, lineHeight: 1.5, maxWidth: 220 }}>
+                  <p className="tech-num tech-caret" style={{ fontSize: 34, fontWeight: 800, color: 'rgba(255,255,255,0.55)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                  <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 8, lineHeight: 1.6, maxWidth: 240 }}>
                     {t('tourneyStat.pendingNote')}
                   </p>
                 </div>
               ) : (
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-                  <p className="tech-num" style={{ fontSize: 52, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '-1px' }}>
+                  <p className="tech-num" style={{
+                    fontSize: 54, fontWeight: 800, lineHeight: 1, letterSpacing: '-1px',
+                    color: '#FFC44D',
+                    textShadow: '0 0 26px rgba(242,169,0,0.45)',
+                  }}>
                     {(animRrRating ?? displayRrRating).toFixed(2)}
                   </p>
                   {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
@@ -1725,8 +1744,10 @@ const medalClass = (rank: number) => {
                     </span>
                   )}
                   {rrMyEntry && (
-                    <div style={{ marginBottom: 6, background: 'rgba(0,0,0,0.18)', borderRadius: 99, padding: '4px 10px' }}>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>全国{rrMyEntry.rank}位</p>
+                    <div style={{ marginBottom: 7, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 10px' }}>
+                      <p className="tech-num" style={{ fontSize: 11.5, fontWeight: 700, color: 'rgba(255,255,255,0.72)' }}>
+                        <span className="tech-label" style={{ fontSize: 9, opacity: 0.6, marginRight: 4 }}>RANK</span>{rrMyEntry.rank}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1930,50 +1951,59 @@ const medalClass = (rank: number) => {
                   <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.22, pointerEvents:'none' }} />
                   <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
 
-                    {/* Top row */}
-                    <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:36, height:36, borderRadius:10, overflow:'hidden', background:'linear-gradient(135deg,#F2A900 0%,#B87000 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 3px 10px rgba(242,169,0,0.5),0 1px 0 rgba(255,255,255,0.18) inset', flexShrink:0 }}>
-                          {currentStore.iconUrl
-                            ? <img src={currentStore.iconUrl} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                            : <FiHome size={18} style={{ color:'rgba(255,255,255,0.9)' }} />
-                          }
-                        </div>
-                        <div>
-                          <p className="tech-label tech-label-bracket" style={{ fontSize:9, color:'rgba(255,255,255,0.36)', marginBottom:3 }}>Bankroll</p>
-                          <p style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.78)', lineHeight:1 }}>{currentStore.name}</p>
-                        </div>
+                    {/* 端末のタイトルバー。カードの「券面」をやめ、出力を読む面にする。 */}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
+                        <svg width="38" height="8" viewBox="0 0 38 8" aria-hidden="true" style={{ flexShrink:0 }}>
+                          <circle cx="4" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
+                          <circle cx="17" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
+                          <circle cx="30" cy="4" r="4" fill="#F2A900" />
+                        </svg>
+                        <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.34)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                          BANKROLL.SH
+                        </p>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(true)}
-                        style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:22, background:'rgba(0,0,0,0.32)', border:'1px solid rgba(255,255,255,0.13)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.62)', cursor:'pointer', flexShrink:0 }}>
-                        <FiClock style={{ fontSize:11 }} /><span>履歴</span>
+                        style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer', flexShrink:0 }}>
+                        <FiClock style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }} />
+                        <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.55)' }}>LOG</span>
                       </button>
                     </div>
 
+                    {/* 打ち込んだ命令。どの店の残高を出しているのかをそのまま見せる。 */}
+                    <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.40)', marginTop:12, display:'flex', gap:7, minWidth:0 }}>
+                      <span style={{ opacity:0.55, flexShrink:0 }}>$</span>
+                      <span style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>balance --store {currentStore.name}</span>
+                    </p>
+
                     {/* Balance hero */}
-                    <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
-                      <p className="tech-label" style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:9 }}>
-                        {showBB && blindBb ? 'BB 表示' : 'Chip Balance'}
+                    <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'flex-start', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
+                      <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.34)', display:'flex', gap:7, marginBottom:6 }}>
+                        <span style={{ opacity:0.55 }}>&gt;</span>
+                        <span>{showBB && blindBb ? 'bb' : 'chips'}</span>
                       </p>
-                      <p className="tech-num" style={{ fontSize:48, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-2px', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
+                      {/* 面の中でここだけが明るい。金は数値にだけ使う。 */}
+                      <p className="tech-num" style={{ fontSize:46, fontWeight:800, color:'#FFC44D', lineHeight:1, letterSpacing:'-1.5px', textShadow:'0 0 30px rgba(242,169,0,0.40)' }}>
                         <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
                       </p>
                       {displayNetGain !== 0 && (
-                        <div style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:11, padding:'5px 15px', borderRadius:22, background:displayNetGain > 0 ? 'rgba(52,199,89,0.16)' : 'rgba(255,59,48,0.16)', border:`1px solid ${displayNetGain > 0 ? 'rgba(52,199,89,0.32)' : 'rgba(255,59,48,0.32)'}` }}>
-                          <span style={{ fontSize:14, fontWeight:700, color:displayNetGain > 0 ? '#34C759' : '#FF6060', fontVariantNumeric:'tabular-nums' }}>
-                            <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
-                          </span>
-                        </div>
+                        <p className="tech-num" style={{ marginTop:10, fontSize:13, fontWeight:700, color:displayNetGain > 0 ? '#34C759' : '#FF6060', display:'flex', alignItems:'center', gap:7 }}>
+                          <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.30)' }}>NET</span>
+                          <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
+                        </p>
                       )}
                     </div>
 
                     {/* Bottom row */}
                     <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
-                      <div>
+                      <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
                         {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                          <p className="tech-num" style={{ fontSize:10, color:'rgba(255,255,255,0.26)', letterSpacing:'0.06em' }}>Rate {currentStore.ringBlindSb} / {currentStore.ringBlindBb}</p>
+                          <span className="tech-num" style={{ fontSize:10, color:'rgba(255,255,255,0.30)', letterSpacing:'0.06em' }}>
+                            <span className="tech-label" style={{ fontSize:8.5, opacity:0.6, marginRight:4 }}>RATE</span>
+                            {currentStore.ringBlindSb}/{currentStore.ringBlindBb}
+                          </span>
                         )}
-                        <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.16)', marginTop:3 }}>Tap to switch BB</p>
+                        <span className="term-comment" style={{ fontFamily:'var(--stack-mono)', fontSize:9, color:'rgba(255,255,255,0.20)' }}>tap to switch bb</span>
                       </div>
                       <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                         {[0,1,2].map(i => <div key={i} style={{ width:5, height:5, borderRadius:'50%', background:'rgba(255,255,255,0.13)' }} />)}
@@ -2590,14 +2620,40 @@ const medalClass = (rank: number) => {
       )}
 
       {isCheckinCompleteModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center modal-overlay">
-          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-bounceIn shadow-2xl">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#F2A900,#D4910A)' }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center modal-overlay px-5">
+          {/* 承認が下りるまでの一連の処理を、そのまま端末の記録として見せる。
+              「押した → 何かが起きた → 通った」の順が目で追えるよう、上から流す。 */}
+          <ConsolePanel title="checkin.sh" className="animate-bounceIn" style={{ width: '100%', maxWidth: 360 }}>
+            <div style={{ padding: '16px 18px 18px' }}>
+              <ConsoleLine kind="cmd" delay={0.02}>checkin --store {currentStore?.name ?? 'store'}</ConsoleLine>
+              <ConsoleLine kind="out" delay={0.16}>requesting approval...</ConsoleLine>
+              <ConsoleLine kind="out" delay={0.30}>approved by store</ConsoleLine>
+
+              <div className="tech-rule" style={{ margin: '12px 0 14px', borderColor: 'rgba(255,255,255,0.12)' }} />
+
+              <div
+                className="tech-reveal"
+                style={{ display: 'flex', alignItems: 'center', gap: 12, ['--tech-reveal-delay' as string]: '0.44s' } as React.CSSProperties}
+              >
+                <div style={{
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                  background: 'linear-gradient(135deg,#F2A900,#D4910A)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 16px rgba(242,169,0,0.45)',
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
+                    入店しました
+                  </p>
+                  <p className="tech-label" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.38)', marginTop: 3 }}>EXIT CODE 0</p>
+                </div>
+              </div>
             </div>
-            <p className="text-[18px] font-bold text-gray-900 mb-1">入店しました！</p>
-            <p className="text-[13px] text-gray-500">入店が承認されました</p>
-          </div>
+          </ConsolePanel>
         </div>
       )}
 
@@ -2931,20 +2987,11 @@ const medalClass = (rank: number) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
           <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-6 max-h-[80vh] overflow-y-auto shadow-2xl animate-slideUp">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[16px] font-semibold text-gray-900">純増ランキング（上位50）</h2>
+              <h2 className="text-[16px] font-semibold text-gray-900">純増ランキング</h2>
               <button type="button" onClick={() => setIsDetailedRankingModalOpen(false)} className="text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
             </div>
-            <div className="space-y-2">
-              {ranking.slice(0, 50).map((player, index) => (
-                <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 text-[12px] text-gray-400 font-semibold text-right">{index + 1}位</span>
-                    <span className="text-[13px] text-gray-800 font-medium">{player.name || "プレイヤー"}</span>
-                  </div>
-                  <span className={`text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatSignedChipValue(player.netGain)}</span>
-                </div>
-              ))}
-            </div>
+            {/* 一気に全行を組み立てず、スクロールした分だけ足していく。 */}
+            <DetailedRankingList ranking={ranking} onSelect={setProfileUid} formatAmount={formatSignedChipValue} />
           </div>
         </div>
       )}
@@ -3307,3 +3354,40 @@ const CHECKIN_TUTORIAL_STEPS: TutorialStep[] = [
   },
 ]
 
+/**
+ * 純増ランキングの一覧。行そのものは従来と同じ見た目で、描く件数だけを
+ * スクロールに合わせて増やす。開いた瞬間に全行を組み立てないぶん、
+ * 人数が増えても開く速さが変わらない。
+ */
+function DetailedRankingList({
+  ranking,
+  onSelect,
+  formatAmount,
+}: {
+  ranking: NetGainPlayer[]
+  onSelect: (uid: string) => void
+  /** 表示単位(pt / BB)の切り替えは画面側の状態なので、整形はそのまま受け取る。 */
+  formatAmount: (value: number) => string
+}) {
+  const { visible, hasMore, sentinelRef } = useRevealOnScroll(ranking, 20)
+
+  return (
+    <div className="space-y-2">
+      {visible.map((player, index) => (
+        <div
+          key={player.id}
+          onClick={() => onSelect(player.id)}
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors"
+          style={{ cursor: 'pointer' }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="tech-num w-8 text-[12px] text-gray-400 font-semibold text-right">{index + 1}</span>
+            <span className="text-[13px] text-gray-800 font-medium">{player.name || "プレイヤー"}</span>
+          </div>
+          <span className={`tech-num text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatAmount(player.netGain)}</span>
+        </div>
+      ))}
+      {hasMore && <RevealSentinel innerRef={sentinelRef} />}
+    </div>
+  )
+}

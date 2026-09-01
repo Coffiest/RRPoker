@@ -9,35 +9,54 @@ export type NetGainPlayer = {
   rank: number
 }
 
+/**
+ * 1人ずつ順番に問い合わせると、利用者が増えるほど直線的に遅くなる。
+ * かといって全員分を同時に投げると、端末の同時接続数を食い潰して他の読み込みまで
+ * 巻き添えにする。まとめて投げる本数を決めて、その単位で流す。
+ */
+const BALANCE_FETCH_CONCURRENCY = 16
+
+/** 配列を size ごとの塊に切る。 */
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size))
+  return out
+}
+
 export async function getNetGainRankingFromUsers(storeId: string): Promise<NetGainPlayer[]> {
   const usersSnap = await getDocs(collection(db, "users"))
 
   const players: NetGainPlayer[] = []
 
-  for (const userDoc of usersSnap.docs) {
-    const userData = userDoc.data()
+  // 以前は for ループの中で1件ずつ await していたため、利用者100人なら100往復を
+  // 直列に待っていた。塊ごとに並べて投げる(結果と順位付けは今までと同じ)。
+  for (const group of chunk(usersSnap.docs, BALANCE_FETCH_CONCURRENCY)) {
+    const results = await Promise.all(group.map(async userDoc => {
+      const userData = userDoc.data()
+      try {
+        const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
+        const balanceSnap = await getDoc(balanceRef)
 
-    try {
-      const balanceRef = doc(db, "users", userDoc.id, "storeBalances", storeId)
-      const balanceSnap = await getDoc(balanceRef)
+        if (!balanceSnap.exists()) return null
 
-      if (!balanceSnap.exists()) continue
+        const balanceData = balanceSnap.data()
+        const netGain = typeof balanceData?.netGain === "number" ? balanceData.netGain : 0
 
-      const balanceData = balanceSnap.data()
-      const netGain = typeof balanceData?.netGain === "number" ? balanceData.netGain : 0
+        if (netGain === 0) return null
 
-      if (netGain === 0) continue
-
-      players.push({
-        id: userDoc.id,
-        name: userData?.name,
-        iconUrl: userData?.iconUrl,
-        netGain,
-        rank: 0,
-      })
-    } catch {
-      // skip users whose balance doc is inaccessible
-    }
+        return {
+          id: userDoc.id,
+          name: userData?.name,
+          iconUrl: userData?.iconUrl,
+          netGain,
+          rank: 0,
+        } as NetGainPlayer
+      } catch {
+        // 読めない残高は今までどおり黙って飛ばす
+        return null
+      }
+    }))
+    for (const r of results) if (r) players.push(r)
   }
 
   players.sort((a, b) => b.netGain - a.netGain)
