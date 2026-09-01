@@ -126,7 +126,7 @@ async function generateTournamentCard(opts: {
       valueColor: isITM ? '#F2A900' : '#FFFFFF',
     },
     {
-      label: '回収率',
+      label: 'ROI',
       value: opts.buyin > 0 ? `${opts.roi >= 0 ? '+' : ''}${opts.roi.toFixed(1)}%` : '-',
       color: opts.roi > 0 ? 'rgba(52,199,89,0.12)' : opts.roi < 0 ? 'rgba(255,59,48,0.12)' : 'rgba(255,255,255,0.06)',
       valueColor: opts.roi > 0 ? '#34C759' : opts.roi < 0 ? '#FF3B30' : '#FFFFFF',
@@ -386,7 +386,7 @@ export default function TournamentHistoryPage() {
                   </div>
 
                   <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-[11px] font-semibold text-gray-600 mb-1.5">回収率</p>
+                    <p className="text-[11px] font-semibold text-gray-600 mb-1.5">ROI</p>
                     <p className={`text-[16px] font-bold ${reward > cost ? "text-green-600" : reward < cost ? "text-red-600" : "text-gray-600"}`}>
                       {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
                     </p>
@@ -483,7 +483,7 @@ export default function TournamentHistoryPage() {
                   <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : '#C7C7CC' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
                 <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px' }}>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>回収率</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>ROI</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : '#8E8E93' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
                   </p>

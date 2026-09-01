@@ -7,7 +7,7 @@ import { FiHelpCircle } from 'react-icons/fi'
  *
  * ライブ(店舗のトーナメント)と Poker ART(オンライン)で全く同じ意匠にするため、
  * 両方がこの1つのコンポーネントを使う。違うのは母集団だけで、計算式は同一
- * (回収率に経験ベイズ収縮 → 平均50・標準偏差10のTスコア)。
+ * (ROIに経験ベイズ収縮 → 平均50・標準偏差10のTスコア)。
  */
 
 export interface RatingHeroProps {

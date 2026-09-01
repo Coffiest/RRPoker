@@ -1706,7 +1706,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* ライブ と Poker ART の偏差値を横スワイプで見る。
-                計算式は同一(回収率に経験ベイズ収縮 → 平均50・標準偏差10のTスコア)で、
+                計算式は同一(ROIに経験ベイズ収縮 → 平均50・標準偏差10のTスコア)で、
                 違うのは母集団だけ。ライブ=店舗のトーナメント、Poker ART=オンライン。 */}
             <RatingSwiper>
               {[
@@ -1761,7 +1761,7 @@ const medalClass = (rank: number) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
               {[
                 { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
-                { label: '回収率', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
+                { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
               ].map((s, i) => (
                 <div key={i} style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative' }}>
                   <p style={{ fontSize: 9, fontWeight: 600, color: 'rgba(212,145,10,0.6)', marginBottom: 3, letterSpacing: '0.04em' }}>{s.label}</p>
@@ -2531,7 +2531,7 @@ const medalClass = (rank: number) => {
             onClick={e => e.stopPropagation()}
           >
             <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>トナメ偏差値とは？</p>
-            回収率とインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
+            ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
             {tournamentStats.plays === 0 && (
               <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#92610A' }}>
                 「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・獲得チップ）が確定すると、ここに数値が表示されます。
@@ -3224,7 +3224,7 @@ const HOME_TUTORIAL_STEPS: TutorialStep[] = [
   {
     target: 'stats-grid',
     title: '成績サマリー',
-    body: '参加数・インマネ率・回収率など、あなたのトーナメント成績を詳しく確認できます。',
+    body: '参加数・インマネ率・ROIなど、あなたのトーナメント成績を詳しく確認できます。',
     spotlightPadding: 8,
   },
   {

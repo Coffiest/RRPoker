@@ -23,7 +23,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'RR Rating',
-    desc: '回収率とインマネ率からあなたの実力を偏差値で可視化。',
+    desc: 'ROIとインマネ率からあなたの実力を偏差値で可視化。',
   },
   {
     icon: (
@@ -52,7 +52,7 @@ const FEATURES = [
       </svg>
     ),
     title: 'トーナメント履歴',
-    desc: '参加したトナメを自動記録。回収率・ITMを統計で確認。',
+    desc: '参加したトナメを自動記録。ROI・ITMを統計で確認。',
   },
 ]
 
