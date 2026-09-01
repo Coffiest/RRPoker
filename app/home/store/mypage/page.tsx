@@ -9,6 +9,7 @@ import { resizeImageToDataUrl } from "@/lib/image"
 import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe, FiCreditCard } from "react-icons/fi"
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
+import TechBackdrop from "@/components/TechBackdrop"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { isSubscriptionActive, subscriptionPlanLabel } from "@/lib/subscription-client"
 
@@ -399,7 +400,10 @@ export default function StoreMyPage() {
   }
 
   return (
-    <main className="store-mypage min-h-screen bg-[#FFFBF5] pb-32">
+    <>
+    {/* 下地(方眼 + 金のにじみ)。プレイヤー側・店舗の他画面と同じものを敷く。 */}
+    <TechBackdrop base="#FFFBF5" />
+    <main className="store-mypage min-h-screen pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
       <style>{`
         @keyframes slideUp {
           from {
@@ -411,14 +415,40 @@ export default function StoreMyPage() {
             transform: translateY(0);
           }
         }
+        /* 立ち上がり。上から順に点いていくように見せる。 */
         .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
+          animation: techReveal 0.5s cubic-bezier(.22,1,.36,1) both;
+          animation-delay: var(--tech-reveal-delay, 0s);
         }
+        /* 紙のカードではなく計器の板に。上端の金の線が読み込み位置を示す。 */
         .profile-card {
-          background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-          box-shadow: 
-            0 2px 8px rgba(242, 169, 0, 0.06),
-            0 8px 24px rgba(0, 0, 0, 0.04);
+          position: relative;
+          background: #fff;
+          border: 1px solid rgba(60,60,67,0.10);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+          overflow: hidden;
+        }
+        .profile-card::before {
+          content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
+          opacity: .55; pointer-events: none;
+        }
+        /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
+        .con-title {
+          position: relative; display: inline-flex; align-items: center; gap: 8px;
+          font-family: var(--stack-mono); letter-spacing: 0.06em;
+          padding-bottom: 8px;
+        }
+        .con-title::before { content: "//"; color: #F2A900; opacity: .75; font-size: 0.6em; }
+        .con-title::after {
+          content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px;
+          background: linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
+          transform-origin: left center;
+          animation: techDraw .7s cubic-bezier(.22,1,.36,1) both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-slideUp { animation: none; }
+          .con-title::after { animation: none; }
         }
         .glass-card {
           background: rgba(255, 255, 255, 0.7);
@@ -434,12 +464,17 @@ export default function StoreMyPage() {
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
       <div className="mx-auto max-w-sm px-5">
-        <div className="pt-[28px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">店舗設定</h1>
+        {/* 端末の見出し。稼働ドットで「開いている」ことを示す。 */}
+        <div className="pt-[28px] flex items-center justify-between">
+          <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="tech-status-dot" />
+            <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)' }}>STORE</span>
+          </span>
         </div>
 
         {/* Profile Card */}
-        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp">
+        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
           {/* Icon Section */}
           <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
             <div className="relative shrink-0">
@@ -1052,5 +1087,6 @@ export default function StoreMyPage() {
       {/* Bottom Navigation */}
       <StoreBottomNav />
     </main>
+    </>
   )
 }
