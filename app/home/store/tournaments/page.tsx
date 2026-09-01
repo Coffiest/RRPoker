@@ -13,6 +13,7 @@ import {
   FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
   FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
 } from "react-icons/fi"
+import TechBackdrop from "@/components/TechBackdrop"
 import { createPortal } from "react-dom"
 
 // ── Level types (shared with TimerClient) ──────────────────────────────────
@@ -430,7 +431,10 @@ export default function TournamentsPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <main style={{ minHeight: '100dvh', paddingBottom: 112, background: '#F2F2F7', color: 'var(--label)' }}>
+    <>
+    {/* 下地(方眼 + 金のにじみ)。プレイヤー側・店舗ホームと同じものを敷く。 */}
+    <TechBackdrop base="#F2F2F7" />
+    <main style={{ minHeight: '100dvh', paddingBottom: 112, background: 'transparent', position: 'relative', zIndex: 1, color: 'var(--label)' }}>
       <style>{`
         :root {
           --label:  #1C1C1E;
@@ -445,15 +449,53 @@ export default function TournamentsPage() {
         @keyframes lpulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
         @keyframes levelIn{ from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
         @keyframes cIn    { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-        .su0 { animation: suUp 0.28s ease-out both; }
-        .su1 { animation: suUp 0.28s 0.06s ease-out both; }
-        .su2 { animation: suUp 0.28s 0.12s ease-out both; }
-        .ios-card { background:#fff; border-radius:20px; box-shadow:0 1px 4px rgba(0,0,0,0.05),0 4px 14px rgba(0,0,0,0.04); overflow:hidden; }
-        .section-hd { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--label2); margin-bottom:10px; }
+        /* 立ち上がり。上から順に点いていくように見せる。 */
+        .su0 { animation: techReveal 0.45s cubic-bezier(.22,1,.36,1) both; }
+        .su1 { animation: techReveal 0.45s 0.07s cubic-bezier(.22,1,.36,1) both; }
+        .su2 { animation: techReveal 0.45s 0.14s cubic-bezier(.22,1,.36,1) both; }
+        /* 紙のカードではなく計器の板に見せる。上端の金の線が読み込み位置を示す。 */
+        .ios-card {
+          position:relative; background:#fff; border-radius:18px;
+          border:1px solid rgba(60,60,67,0.10);
+          box-shadow:0 2px 12px rgba(0,0,0,0.05); overflow:hidden;
+        }
+        .ios-card::before {
+          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          background:linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
+          opacity:0.55; pointer-events:none;
+        }
+        /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
+        .section-hd {
+          position:relative; font-family:var(--stack-mono);
+          font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.18em;
+          color:rgba(60,60,67,0.55); padding:0 0 7px; margin-bottom:12px;
+          display:flex; align-items:center; gap:8px;
+        }
+        .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }
+        .section-hd::after {
+          content:""; position:absolute; left:0; bottom:0; width:100%; height:1px;
+          background:linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
+          transform-origin:left center;
+          animation:techDraw .7s cubic-bezier(.22,1,.36,1) both;
+        }
         .live-dot { animation: lpulse 1.5s ease-in-out infinite; }
+        /* 開催中の行には走査線を降らせて、動いていることを示す。 */
+        .itm-row { position:relative; overflow:hidden; }
+        .itm-row::after {
+          content:""; position:absolute; inset:0; pointer-events:none;
+          background:linear-gradient(to bottom,transparent 0%,rgba(242,169,0,0.06) 48%,rgba(242,169,0,0.11) 50%,rgba(242,169,0,0.06) 52%,transparent 100%);
+          transform:translateY(-100%);
+          animation:techScan 3.4s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .su0, .su1, .su2 { animation:none; }
+          .section-hd::after { animation:none; }
+          .itm-row::after { animation:none; opacity:.3; }
+        }
         .itap { transition:opacity 0.15s,transform 0.15s; cursor:pointer; -webkit-tap-highlight-color:transparent; }
         .itap:active { opacity:0.65; transform:scale(0.97); }
         .divider { height:1px; background:var(--sep); }
+        .con-mono { font-family:var(--stack-mono); font-variant-numeric:tabular-nums slashed-zero; }
         .no-spin::-webkit-inner-spin-button,
         .no-spin::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
         .no-spin { -moz-appearance:textfield; }
@@ -1328,5 +1370,6 @@ export default function TournamentsPage() {
 
       <StoreBottomNav />
     </main>
+    </>
   )
 }
