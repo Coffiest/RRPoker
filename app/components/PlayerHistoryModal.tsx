@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { collection, query, where, onSnapshot, orderBy, getDocs, writeBatch, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { FiX, FiArrowUp, FiArrowDown, FiTrash2, FiAlertTriangle } from "react-icons/fi"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 
 type Transaction = {
   id: string
@@ -139,6 +140,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(28,28,30,1)', margin: 0 }}>チップ履歴</p>
             <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.5)', margin: '2px 0 0' }}>{history.length}件</p>
+            <ChipDisclaimer className="mt-1" />
           </div>
           <button
             onClick={onClose}

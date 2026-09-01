@@ -17,6 +17,7 @@ import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { isSubscriptionActive } from "@/lib/subscription-client"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
@@ -2257,6 +2258,8 @@ export default function StorePage() {
                   <ToggleSwitch checked={manualNetGain} onChange={setManualNetGain} />
                 </div>
               </div>
+
+              <ChipDisclaimer className="px-1 pb-4" />
             </div>
           </div>
         </div>

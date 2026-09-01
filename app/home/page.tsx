@@ -1040,7 +1040,7 @@ export default function HomePage() {
   }, [tournamentItems])
 
   const getHistoryLabel = (type: string, comment?: string) => {
-    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "預入（購入）", deposit_approved_pure_increase: "預入（純増）", withdraw_approved: "引き出し", withdraw_request: "引き出し申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "獲得チップ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
+    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "チップ預入（購入）", deposit_approved_pure_increase: "チップ預入（純増）", withdraw_approved: "チップ引出", withdraw_request: "チップ引出申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "獲得チップ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
     const label = map[type] ?? "不明"
     if (comment && (type === "manual_adjustment" || type === "manual_adjustment_net_gain")) return `${label}：${comment}`
     return label
