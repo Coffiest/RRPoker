@@ -390,3 +390,55 @@ body {
     box-shadow: 0 0 0 rgba(244, 215, 124, 0);
   }
 }
+
+/* --------------------------------------------------------------------------
+   立ち上がりの動き
+   端末に電源が入って、上から順に読み込まれていくような出方。
+   1つずつ順番に出すことで「処理が進んでいる」感じを出す。
+   -------------------------------------------------------------------------- */
+
+/* 下からせり上がりながら現れる。--tech-reveal-delay で順番をずらす */
+.tech-reveal {
+  animation: techReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 罫線が左から引かれる。見出しの下に敷いて「描画中」を示す */
+.tech-draw {
+  transform-origin: left center;
+  animation: techDraw 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* 数値が読み込まれた瞬間の軽い明滅。値が入れ替わったことを目で追えるようにする */
+.tech-flash {
+  animation: techFlash 0.7s ease-out both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techFlash {
+  0%   { opacity: 0.35; }
+  40%  { opacity: 1; }
+  55%  { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-reveal,
+  .tech-draw,
+  .tech-flash {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

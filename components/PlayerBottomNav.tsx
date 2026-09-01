@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { FiHome, FiUser } from 'react-icons/fi'
-import { MdQrCode2 } from 'react-icons/md'
+import { MdQrCode2, MdDialpad } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
 import { EDGE_PADDING, computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
@@ -66,6 +66,8 @@ export default function PlayerBottomNav() {
   const [userId,   setUserId]   = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   const [userIcon, setUserIcon] = useState<string | undefined>(undefined)
+  // 入店中の店舗。中央のボタンの行き先がこれで変わる。
+  const [currentStoreId, setCurrentStoreId] = useState<string | null>(null)
   const [isQROpen,  setIsQROpen]  = useState(false)
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -94,16 +96,19 @@ export default function PlayerBottomNav() {
     let unsubSnap: (() => void) | null = null
     const unsubAuth = auth.onAuthStateChanged(user => {
       unsubSnap?.()
-      if (!user) { setUserId(null); return }
+      if (!user) { setUserId(null); setCurrentStoreId(null); return }
       setUserId(user.uid)
       unsubSnap = onSnapshot(doc(db, 'users', user.uid), snap => {
         const d = snap.data()
         setUserName(d?.name ?? '')
         setUserIcon(d?.iconUrl)
+        setCurrentStoreId(d?.currentStoreId ?? null)
       }, () => {})
     })
     return () => { unsubAuth(); unsubSnap?.() }
   }, [])
+
+  const checkedIn = currentStoreId !== null
 
   const go = (href: string) => { hapticTap(); router.push(href) }
 
@@ -120,7 +125,7 @@ export default function PlayerBottomNav() {
         type="button"
         onClick={() => go(href)}
         style={{
-          flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
+          width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: L.itemGap,
           padding: 0, overflow: 'hidden',
           color: isActive ? '#F2A900' : '#3C3C43',
@@ -176,13 +181,15 @@ export default function PlayerBottomNav() {
         paddingLeft: `calc(${EDGE_PADDING}px + env(safe-area-inset-left))`,
         paddingRight: `calc(${EDGE_PADDING}px + env(safe-area-inset-right))`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: L.navGap }}>
+        {/* 中身が要るぶんだけの幅で、行ごと中央へ寄せる。画面幅いっぱいに広げると
+            項目が3つしかないぶん間延びし、フッターだけが横に長く見えるため。 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: L.navGap }}>
 
           {/* ── メインピル ── */}
           <div style={{
             ...GLASS,
-            flex: 1,
-            minWidth: 0,
+            width: L.pillWidth,
+            flexShrink: 0,
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
@@ -209,14 +216,21 @@ export default function PlayerBottomNav() {
 
             {sideTab('home', 'ホーム', '/home', FiHome)}
 
-            {/* 中央: 入店QR */}
+            {/* 中央。
+                 入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
+                 入店前にテンキーを出しても行き先の店舗が無く、入店後にQRを出しても
+                 もう用が無いので、そのときに要るほうだけを置く。 */}
             <button
               type="button"
-              onClick={() => { hapticTap(); setIsQROpen(true) }}
-              aria-label="入店QRを表示"
+              onClick={() => {
+                hapticTap()
+                if (checkedIn) router.push('/home/transactions?mode=withdraw')
+                else setIsQROpen(true)
+              }}
+              aria-label={checkedIn ? 'チップを引き出す' : '入店QRを表示'}
               data-tutorial="nav-qr"
               style={{
-                flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
+                width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
               }}
             >
@@ -230,7 +244,9 @@ export default function PlayerBottomNav() {
                   : '0 4px 14px rgba(242,169,0,0.45)',
                 transition: 'box-shadow 0.35s ease',
               }}>
-                <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
+                {checkedIn
+                  ? <MdDialpad size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
+                  : <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
               </div>
             </button>
 

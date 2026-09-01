@@ -20,6 +20,7 @@ import {
   FiCamera,
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
+import TechBackdrop from "@/components/TechBackdrop"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
@@ -441,7 +442,10 @@ export default function MyPage() {
 
   return (
     <>
-    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 120 }}>
+    <>
+    {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+    <TechBackdrop base="#F2F2F7" />
+    <main style={{ minHeight: '100dvh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(12px); }
@@ -452,7 +456,9 @@ export default function MyPage() {
           to   { transform: translateY(0); opacity: 1; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .mp-animate { animation: slideUp .3s ease-out; }
+        /* カードは上から順に立ち上げる。--tech-reveal-delay で1枚ずつずらす。 */
+        .mp-animate { animation: techReveal .5s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--tech-reveal-delay, 0s); }
+        @media (prefers-reduced-motion: reduce) { .mp-animate { animation: none; } }
         .mp-sheet   { animation: sheetUp .38s cubic-bezier(.22,1,.36,1) both; }
         .mp-card { background: #fff; border-radius: 20px; overflow: hidden; }
         .mp-row { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -481,7 +487,7 @@ export default function MyPage() {
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
 
         {/* ── プロフィールカード ── */}
-        <div data-tutorial="mypage-profile" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+        <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
 
           {/* ヘッダーバンド */}
           <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -624,7 +630,7 @@ export default function MyPage() {
         </div>
 
         {/* ── 設定リスト ── */}
-        <div data-tutorial="mypage-settings" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <div data-tutorial="mypage-settings" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.10s' } as React.CSSProperties}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -667,7 +673,7 @@ export default function MyPage() {
         </div>
 
         {/* ── アカウント操作 ── */}
-        <div className="mp-card" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <div className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.16s' } as React.CSSProperties}>
           <button type="button" onClick={logout}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -780,6 +786,7 @@ export default function MyPage() {
         />
       )}
     </main>
+    </>
     <HandHistoryModal userId={uid} creatorName={profile?.name ?? ""} />
     </>
   )

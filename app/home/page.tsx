@@ -13,6 +13,8 @@ import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
+import TechBackdrop from "@/components/TechBackdrop"
+import { loadGeoConsent, saveGeoConsent, type GeoConsent } from "@/lib/geoConsent"
 import PullToRefresh from "@/app/components/PullToRefresh"
 import dynamic from "next/dynamic"
 const PlayerQRModal = dynamic(() => import("@/app/components/PlayerQRModal"), { ssr: false })
@@ -365,28 +367,44 @@ export default function HomePage() {
   // ── QR modal
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
 
-  // ── 位置情報の利用同意（一度同意すれば以後は聞かない）
+  // ── 位置情報の利用同意（一度答えたら二度と聞かない）
+  //
+  // 答えはアカウントに保存する。端末の localStorage だけに持たせていたころは、
+  // iOS が保存領域を消すたびに同意が失われ、ログインし直すたびに同じ確認が出ていた。
   const [showGeoConsentModal, setShowGeoConsentModal] = useState(false)
+  const [geoConsent, setGeoConsent] = useState<GeoConsent | null>(null)
   const [geoReloadKey, setGeoReloadKey] = useState(0)
+  // 店舗一覧の取得は同意を依存に持たない(持たせると同意のたびに取り直しになる)。
+  // 最新の答えだけを参照したいので ref で持つ。
+  const geoConsentRef = useRef<GeoConsent | null>(null)
+  useEffect(() => { geoConsentRef.current = geoConsent }, [geoConsent])
 
   useEffect(() => {
     if (!userId) return
     if (typeof window === "undefined" || !navigator.geolocation) return
-    try {
-      const consent = window.localStorage.getItem("rrpoker_geo_consent")
+    let cancelled = false
+    void loadGeoConsent(userId).then(consent => {
+      if (cancelled) return
+      setGeoConsent(consent)
+      // 答えが無いときだけ聞く。
       if (!consent) setShowGeoConsentModal(true)
-    } catch {}
+    })
+    return () => { cancelled = true }
   }, [userId])
 
-  const handleGeoAllow = () => {
-    try { window.localStorage.setItem("rrpoker_geo_consent", "granted") } catch {}
+  const answerGeoConsent = (value: GeoConsent) => {
+    setGeoConsent(value)
     setShowGeoConsentModal(false)
+    if (userId) void saveGeoConsent(userId, value)
+  }
+
+  const handleGeoAllow = () => {
+    answerGeoConsent("granted")
     setGeoReloadKey(k => k + 1)
   }
 
   const handleGeoDecline = () => {
-    try { window.localStorage.setItem("rrpoker_geo_consent", "declined") } catch {}
-    setShowGeoConsentModal(false)
+    answerGeoConsent("declined")
   }
 
   // ── RR Rating tooltip (fixed position to escape overflow:hidden)
@@ -798,8 +816,8 @@ export default function HomePage() {
         let userLat: number | null = null
         let userLng: number | null = null
         try {
-          const geoConsent = window.localStorage.getItem("rrpoker_geo_consent")
-          if (geoConsent === "granted" && navigator.geolocation) {
+          // 端末の控えではなくアカウントから読んだ答えを使う(控えは消えることがある)。
+          if (geoConsentRef.current === "granted" && navigator.geolocation) {
             const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
               navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
             })
@@ -1326,7 +1344,10 @@ const medalClass = (rank: number) => {
   )
 
   return (
-    <main className="min-h-screen pb-32" style={{ background: "#FFFBF5" }}>
+    <>
+    {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+    <TechBackdrop base="#FFFBF5" />
+    <main className="min-h-screen pb-32" style={{ background: "transparent", position: "relative", zIndex: 1 }}>
       <style>{`
         /* ── アニメーション ── */
         @keyframes slideUp {
@@ -3169,6 +3190,7 @@ const medalClass = (rank: number) => {
         />
       )}
     </main>
+    </>
   )
 }
 
