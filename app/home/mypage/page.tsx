@@ -490,33 +490,35 @@ export default function MyPage() {
         <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
 
           {/* ヘッダーバンド */}
-          {/* ホームの計器盤と同じ黒地。金は数値にだけ使う。 */}
-          <div style={{ background: 'linear-gradient(160deg,#141416 0%,#0C0C0E 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.20, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent)', opacity: 0.75, pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', top: -50, right: -40, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.16) 0%,transparent 70%)', pointerEvents: 'none' }} />
+          {/* 面の色は元のテーマ(金)のまま。ホームの偏差値カードと同じ扱いで、
+              方眼と基板のドットを薄く重ねるだけにする。 */}
+          <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
+            <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -28, left: -18, width: 130, height: 130, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -30, right: 60, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
             {/* Share button */}
             <button type="button" onClick={shareProfileCard} disabled={sharingProfile}
-              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', zIndex: 1 }}>
+              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
               {sharingProfile
                 ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
                 : <FiShare2 size={13} style={{ color: '#fff' }} />
               }
-              <span className="tech-label" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.62)' }}>SHARE</span>
+              <span className="tech-label" style={{ fontSize: 9.5, color: '#fff' }}>SHARE</span>
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.45)', letterSpacing: '0.14em', marginBottom: 3 }}>トナメ偏差値</p>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 3 }}>トナメ偏差値</p>
               <p className="tech-num" style={{
                 fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
-                color: tourStats.plays === 0 ? 'rgba(255,255,255,0.50)' : '#FFC44D',
-                textShadow: tourStats.plays === 0 ? 'none' : '0 0 26px rgba(242,169,0,0.45)',
+                color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',
+                textShadow: '0 2px 12px rgba(0,0,0,0.14)',
               }}>
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
               {tourStats.plays === 0 && (
-                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9, color: 'rgba(255,255,255,0.32)', marginTop: 4, maxWidth: 170, lineHeight: 1.5 }}>
+                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9, color: 'rgba(255,255,255,0.58)', marginTop: 4, maxWidth: 170, lineHeight: 1.5 }}>
                   pending results
                 </p>
               )}
