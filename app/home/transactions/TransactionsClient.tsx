@@ -6,6 +6,7 @@ import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
+import TechBackdrop from "@/components/TechBackdrop"
 import {
   collection,
   doc,
@@ -42,19 +43,33 @@ const CSS = `
   .tx-slide-2 { animation: slideUp 0.32s 0.06s cubic-bezier(0.22,1,0.36,1) both; }
   .tx-slide-3 { animation: slideUp 0.32s 0.12s cubic-bezier(0.22,1,0.36,1) both; }
   .tx-sheet { animation: sheetUp 0.36s cubic-bezier(0.32,0.72,0,1) both; }
+  /* キーは等幅・桁揃えの数字で打つ。打鍵したキーだけ金色に沈む。 */
   .tx-key {
     background: #fff;
     border: none;
     border-radius: 14px;
     height: 58px;
+    font-family: var(--stack-mono);
+    font-variant-numeric: tabular-nums slashed-zero;
     font-size: 22px;
     font-weight: 600;
     color: #111;
     box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 0 0 0.5px rgba(0,0,0,0.06);
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: transform 0.1s, box-shadow 0.1s, background 0.12s, color 0.12s;
     cursor: pointer;
+    /* 立ち上がりで1つずつ点いていく。--tech-reveal-delay を各キーに与える。 */
+    animation: techReveal 0.34s cubic-bezier(0.22,1,0.36,1) both;
+    animation-delay: var(--tech-reveal-delay, 0s);
   }
-  .tx-key:active { transform: scale(0.93); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .tx-key:active {
+    transform: scale(0.93);
+    background: linear-gradient(135deg,#F2A900,#D4910A);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 0 0 3px rgba(242,169,0,0.18);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tx-key { animation: none; }
+  }
   .glass-nav {
     background: rgba(255,255,255,0.72);
     backdrop-filter: blur(20px);
@@ -215,11 +230,15 @@ export default function TransactionsClient() {
   // Loading state
   if (storeId === undefined) {
     return (
-      <main style={{ minHeight: '100svh', background: '#F2F2F7' }}>
+      <>
+      {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+      <TechBackdrop base="#F2F2F7" />
+      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <PlayerBottomNav />
       </main>
+      </>
     )
   }
 
@@ -227,7 +246,10 @@ export default function TransactionsClient() {
   if (storeId === null) {
     const qrValue = uid ? `rrpoker:checkin:${uid}` : ""
     return (
-      <main style={{ minHeight: '100svh', background: '#F2F2F7', paddingBottom: 100 }}>
+      <>
+      {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+      <TechBackdrop base="#F2F2F7" />
+      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 100 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 20px' }}>
@@ -292,11 +314,15 @@ export default function TransactionsClient() {
         </div>
         <PlayerBottomNav />
       </main>
+      </>
     )
   }
 
   return (
-    <main style={{ minHeight: '100svh', background: '#F2F2F7', paddingBottom: 100 }}>
+    <>
+      {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+      <TechBackdrop base="#F2F2F7" />
+      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 100 }}>
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
@@ -311,7 +337,7 @@ export default function TransactionsClient() {
           >
             <FiArrowLeft size={18} />
           </button>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E' }}>チップの預入・引出</h1>
+          <h1 className="term-prompt-arrow" style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', letterSpacing: '0.04em' }}>チップの預入・引出</h1>
           <div style={{ width: 36 }} />
         </div>
 
@@ -337,21 +363,27 @@ export default function TransactionsClient() {
           ))}
         </div>
 
-        {/* Main Card */}
-        <div className="tx-slide-3" style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        {/* Main Card。四隅のトンボと方眼で「計器の面」に見せる。 */}
+        <div className="tx-slide-3 tech-corners" style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
 
           {/* Amount display */}
-          <div style={{ padding: '24px 20px 16px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center' }}>
-            <p style={{ fontSize: 12, fontWeight: 500, color: '#8E8E93', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.16em' }}>
+          <div className="tech-dots" style={{ padding: '26px 20px 18px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center', backgroundPosition: 'center' }}>
+            <p className="tech-label tech-label-bracket" style={{ color: '#8E8E93', marginBottom: 10 }}>
               {mode === 'deposit' ? 'あずけるチップ数' : 'ひきだすチップ数'}
             </p>
-            <p style={{ fontSize: 48, fontWeight: 800, color: amount ? '#1C1C1E' : '#C7C7CC', letterSpacing: '-1px', lineHeight: 1.1 }}>
+            {/* 入力した桁がそのまま並ぶので、等幅・桁揃えの数字で出す。
+                打ち込んでいる最中だと分かるよう、末尾にカーソルを置く。 */}
+            <p
+              key={formattedAmount}
+              className={`tech-num${amount ? ' tech-caret tech-flash' : ''}`}
+              style={{ fontSize: 46, fontWeight: 800, color: amount ? '#1C1C1E' : '#C7C7CC', letterSpacing: '-0.5px', lineHeight: 1.1 }}
+            >
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8 }}>
-              <span style={{ fontSize: 13, color: '#8E8E93' }}>残高</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#3C3C43' }}>{fmtChip(balance)}</span>
-              {useBb && <span style={{ fontSize: 12, color: '#AEAEB2' }}>({formatBbValue(balance)}BB)</span>}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+              <span className="tech-label" style={{ color: '#AEAEB2' }}>BALANCE</span>
+              <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#3C3C43' }}>{fmtChip(balance)}</span>
+              {useBb && <span className="tech-num" style={{ fontSize: 12, color: '#AEAEB2' }}>({formatBbValue(balance)}BB)</span>}
             </div>
           </div>
 
@@ -361,8 +393,25 @@ export default function TransactionsClient() {
               {KEYPAD_ROWS.flat().map((key, i) => {
                 if (!key) return <div key={i} />
                 return (
-                  <button key={i} type="button" onClick={() => appendDigit(key)} className="tx-key">
-                    {key === 'backspace' ? '⌫' : key}
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => appendDigit(key)}
+                    className="tx-key"
+                    aria-label={key === 'backspace' ? '1文字消す' : key}
+                    style={{ ['--tech-reveal-delay' as string]: `${i * 0.022}s` } as React.CSSProperties}
+                  >
+                    {key === 'backspace'
+                      ? (
+                        // 絵文字や記号ではなく線で描いたSVG(バックスペース)。
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+                             style={{ display: 'block', margin: '0 auto' }}>
+                          <path d="M20 5H9.5L3.5 12l6 7H20a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z" />
+                          <path d="M16 9.5 12 14M12 9.5l4 4.5" />
+                        </svg>
+                      )
+                      : key}
                   </button>
                 )
               })}
@@ -372,7 +421,7 @@ export default function TransactionsClient() {
               onClick={clearAmount}
               style={{ marginTop: 10, width: '100%', height: 44, borderRadius: 12, background: '#F2F2F7', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
             >
-              クリア
+              <span className="tech-label">CLEAR</span>
             </button>
           </div>
 
@@ -454,5 +503,6 @@ export default function TransactionsClient() {
         </>
       )}
     </main>
+    </>
   )
 }

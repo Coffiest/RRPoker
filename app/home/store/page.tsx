@@ -15,6 +15,7 @@ import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { isSubscriptionActive } from "@/lib/subscription-client"
+import TechBackdrop from "@/components/TechBackdrop"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
@@ -876,7 +877,10 @@ export default function StorePage() {
   const notifCount = depositRequests.length + withdrawRequests.length + pendingPlayers.length
 
   return (
-    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: '#F2F2F7' }}>
+    <>
+    {/* 下地(方眼 + 金のにじみ)。プレイヤー側と同じものを敷く。 */}
+    <TechBackdrop base="#F2F2F7" />
+    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A;
@@ -903,7 +907,9 @@ export default function StorePage() {
           100%{ transform:scale(1); opacity:1; }
         }
 
-        .su  { opacity:0; animation:slideUp .4s cubic-bezier(.22,1,.36,1) forwards; }
+        /* 立ち上がり。上から順に点いていくように見せる。 */
+        .su  { opacity:0; animation:techReveal .5s cubic-bezier(.22,1,.36,1) forwards; }
+        @media (prefers-reduced-motion: reduce) { .su { opacity:1; animation:none; } }
         .d0  { animation-delay:.03s; }
         .d1  { animation-delay:.09s; }
         .d2  { animation-delay:.15s; }
@@ -911,15 +917,36 @@ export default function StorePage() {
         .d4  { animation-delay:.27s; }
         .d5  { animation-delay:.33s; }
 
+        /* 紙のカードではなく計器の板に見せる。上端の金の線が読み込み位置を示す。 */
         .ios-card {
-          background:#fff; border-radius:20px;
-          box-shadow:0 2px 10px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+          position:relative;
+          background:#fff; border-radius:18px;
+          border:1px solid rgba(60,60,67,0.10);
+          box-shadow:0 2px 12px rgba(0,0,0,0.05);
+          overflow:hidden;
         }
+        .ios-card::before {
+          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          background:linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
+          opacity:0.55; pointer-events:none;
+        }
+        /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
         .section-hd {
-          font-size:11px; font-weight:700; letter-spacing:.06em;
-          text-transform:uppercase; color:var(--label2);
-          padding:0 2px; margin-bottom:10px;
+          position:relative;
+          font-family:var(--stack-mono);
+          font-size:10.5px; font-weight:700; letter-spacing:.18em;
+          text-transform:uppercase; color:rgba(60,60,67,0.55);
+          padding:0 0 7px; margin-bottom:12px;
+          display:flex; align-items:center; gap:8px;
         }
+        .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }
+        .section-hd::after {
+          content:""; position:absolute; left:0; bottom:0; width:100%; height:1px;
+          background:linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
+          transform-origin:left center;
+          animation:techDraw .7s cubic-bezier(.22,1,.36,1) both;
+        }
+        @media (prefers-reduced-motion: reduce) { .section-hd::after { animation:none; } }
 
         /* Gold accent line */
         .gold-line {
@@ -931,16 +958,19 @@ export default function StorePage() {
 
         /* Stat chip */
         .stat-chip {
-          background:#F2F2F7; border-radius:14px; padding:10px 8px; text-align:center;
+          background:#F2F2F7; border-radius:12px; padding:10px 8px; text-align:center;
+          font-family:var(--stack-mono); font-variant-numeric:tabular-nums slashed-zero;
         }
 
         /* Action btn */
         .action-btn {
-          height:44px; border-radius:12px; border:none; cursor:pointer;
-          font-size:13px; font-weight:700; display:flex; align-items:center;
-          justify-content:center; gap:6px; transition:transform .12s ease, opacity .12s ease;
+          height:46px; border-radius:12px; border:none; cursor:pointer;
+          font-family:var(--stack-mono);
+          font-size:12.5px; font-weight:700; letter-spacing:.10em; text-transform:uppercase;
+          display:flex; align-items:center; justify-content:center; gap:7px;
+          transition:transform .12s ease, opacity .12s ease, filter .12s ease;
         }
-        .action-btn:active { transform:scale(0.96); opacity:.85; }
+        .action-btn:active { transform:scale(0.965); opacity:.9; filter:brightness(.95); }
 
         /* Gold btn */
         .btn-gold {
@@ -1069,11 +1099,18 @@ export default function StorePage() {
                 >店</div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 6 }}>{store?.name ?? ""}</p>
+                {/* 稼働中であることを示す脈打つ点と、等幅の店舗名。 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                  <span className="tech-status-dot" />
+                  <span className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)' }}>STORE ONLINE</span>
+                </div>
+                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</p>
                 <button onClick={copyCode}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 10, padding: '5px 10px', border: 'none', cursor: 'pointer', transition: 'background .2s' }}
+                  className="con-btn"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 9, padding: '5px 10px', border: '1px solid rgba(60,60,67,0.10)', cursor: 'pointer', transition: 'background .2s' }}
                 >
-                  <span style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', fontFamily: 'monospace', letterSpacing: '0.05em' }}>{store?.code ?? ""}</span>
+                  <span className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)' }}>CODE</span>
+                  <span className="con-mono" style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
                   {copiedCode ? <FiCheck size={12} style={{ color: '#28A745' }}/> : <FiCopy size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
               </div>
@@ -1164,8 +1201,9 @@ export default function StorePage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
             <p className="section-hd" style={{ marginBottom: 0 }}>Today's Tournaments</p>
             {activeTournaments.length > 0 && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.1)', borderRadius: 99, padding: '3px 8px' }}>
-                {activeTournaments.length} Active
+              <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 9px' }}>
+                <span className="tech-status-dot" style={{ background: '#34C759' }} />
+                {activeTournaments.length} ACTIVE
               </span>
             )}
           </div>
@@ -1181,14 +1219,17 @@ export default function StorePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {activeTournaments.map(t => {
                 return (
-                  <div key={t.id} className="ios-card su" style={{ overflow: 'hidden' }}>
+                  <div key={t.id} className="ios-card su con-live-panel" style={{ overflow: 'hidden' }}>
                     <div className="gold-line"/>
-                    <div style={{ padding: '16px 16px 14px' }}>
+                    <div style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
 
-                      {/* ヘッダー */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                        <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.2px' }}>{t.name}</p>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#34C759' }} className="pulse"/>
+                      {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
+                        <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <span className="tech-label" style={{ fontSize: 8.5, color: '#34C759' }}>LIVE</span>
+                          <span className="tech-status-dot" style={{ background: '#34C759' }} />
+                        </span>
                       </div>
 
                       {/* Fee / Stack info */}
@@ -1199,7 +1240,7 @@ export default function StorePage() {
                           { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
                         ].map(item => (
                           <div key={item.label} style={{ textAlign: 'center' }}>
-                            <p style={{ fontSize: 8, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.04em', marginBottom: 4 }}>{item.label}</p>
+                            <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'var(--label3)', marginBottom: 4 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
                               <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Fee:</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
@@ -2325,5 +2366,6 @@ export default function StorePage() {
         </div>
       )}
     </main>
+    </>
   )
 }

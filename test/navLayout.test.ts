@@ -108,3 +108,66 @@ describe("インジケーターの位置", () => {
     expect(indicatorCenterRatio(99, 5)).toBe(0.9);
   });
 });
+
+/**
+ * 画面の縁との余裕。
+ *
+ * 「計算上ちょうど収まる」だけだと、端末ごとのフォントの実寸差や小数の丸めで簡単に
+ * 縁へ届いてしまう(実機で右端がはみ出して見えた)。常にはっきり余白が残ることを固定する。
+ */
+describe("画面の縁との余裕", () => {
+  for (const width of WIDTHS) {
+    it(`keeps a visible margin at ${width}px`, () => {
+      const l = computeNavLayout(width, 3);
+      const used = l.pillWidth + l.navGap + l.navH;
+      const available = width - EDGE_PADDING * 2;
+
+      // 使い切らない。必ず余りが出る(端に触れない)。
+      expect(used).toBeLessThanOrEqual(available);
+      // 左右の余白そのものも、目に見える幅を確保する。
+      expect(EDGE_PADDING).toBeGreaterThanOrEqual(12);
+    });
+  }
+
+  it("uses only the width it needs, leaving the rest unused", () => {
+    // 画面幅いっぱいには広げない。項目が3つだと間延びして、フッターだけが
+    // 横に長く見えるため。余った横幅は使わずに残す(行ごと中央へ寄せる)。
+    const l = computeNavLayout(393, 3);
+    const available = 393 - EDGE_PADDING * 2;
+    expect(l.totalWidth).toBeLessThan(available);
+    // 余りは目に見える量であること(ぴったりでは「使い切っている」のと変わらない)。
+    expect(available - l.totalWidth).toBeGreaterThan(20);
+  });
+
+  it("gets bigger, not smaller, now that the width is not wasted", () => {
+    // 使わずに済んだ横幅は高さへ回す。フッターは以前(56)より大きくなる。
+    const l = computeNavLayout(393, 3);
+    expect(l.navH).toBeGreaterThan(56);
+    expect(l.iconSize).toBeGreaterThanOrEqual(20);
+  });
+});
+
+/**
+ * フッターの幅。
+ *
+ * 「ホーム / QR / マイページ の間が間延びして、フッターだけ横に長い」という指摘の再発防止。
+ * 中身が要るぶんだけ取り、余りは必ず残す(残りは中央寄せの余白になる)。
+ */
+describe("フッターの幅", () => {
+  for (const width of WIDTHS) {
+    it(`never stretches to fill at ${width}px`, () => {
+      const l = computeNavLayout(width, 3);
+      const available = width - EDGE_PADDING * 2;
+      expect(l.totalWidth).toBeLessThanOrEqual(available);
+      // ピルの幅はタブ幅の合計とちょうど一致する(余白で水増ししない)。
+      expect(l.pillWidth).toBeLessThanOrEqual(Math.round(l.tabWidth) * 3 + 1);
+    });
+  }
+
+  it("stops growing on wide screens instead of spanning them", () => {
+    // 大画面では上限で止まり、画面幅に比例して伸び続けない。
+    const phone = computeNavLayout(430, 3);
+    const desktop = computeNavLayout(1440, 3);
+    expect(desktop.totalWidth).toBe(phone.totalWidth);
+  });
+});

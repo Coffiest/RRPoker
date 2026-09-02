@@ -20,8 +20,8 @@ import {
   FiCamera,
 } from "react-icons/fi"
 import HomeHeader from "@/components/HomeHeader"
+import TechBackdrop from "@/components/TechBackdrop"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
-import PokerArtStatsCard from "@/components/PokerArtStatsCard"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
 import TutorialOverlay, { type TutorialStep } from "@/components/TutorialOverlay"
@@ -442,7 +442,10 @@ export default function MyPage() {
 
   return (
     <>
-    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 120 }}>
+    <>
+    {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
+    <TechBackdrop base="#F2F2F7" />
+    <main style={{ minHeight: '100dvh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(12px); }
@@ -453,7 +456,9 @@ export default function MyPage() {
           to   { transform: translateY(0); opacity: 1; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .mp-animate { animation: slideUp .3s ease-out; }
+        /* カードは上から順に立ち上げる。--tech-reveal-delay で1枚ずつずらす。 */
+        .mp-animate { animation: techReveal .5s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--tech-reveal-delay, 0s); }
+        @media (prefers-reduced-motion: reduce) { .mp-animate { animation: none; } }
         .mp-sheet   { animation: sheetUp .38s cubic-bezier(.22,1,.36,1) both; }
         .mp-card { background: #fff; border-radius: 20px; overflow: hidden; }
         .mp-row { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,0.06); }
@@ -482,31 +487,39 @@ export default function MyPage() {
       <div style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
 
         {/* ── プロフィールカード ── */}
-        <div data-tutorial="mypage-profile" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+        <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
 
           {/* ヘッダーバンド */}
+          {/* 面の色は元のテーマ(金)のまま。ホームの偏差値カードと同じ扱いで、
+              方眼と基板のドットを薄く重ねるだけにする。 */}
           <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
+            <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: -28, left: -18, width: 130, height: 130, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: -30, right: 60, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
             {/* Share button */}
             <button type="button" onClick={shareProfileCard} disabled={sharingProfile}
-              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.22)', borderRadius: 10, padding: '7px 12px', border: 'none', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
+              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
               {sharingProfile
                 ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
                 : <FiShare2 size={13} style={{ color: '#fff' }} />
               }
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>シェア</span>
+              <span className="tech-label" style={{ fontSize: 9.5, color: '#fff' }}>SHARE</span>
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 2 }}>トナメ偏差値</p>
-              <p style={{ fontSize: tourStats.plays === 0 ? 28 : 46, fontWeight: 800, color: tourStats.plays === 0 ? 'rgba(255,255,255,0.6)' : '#fff', lineHeight: 1, letterSpacing: '-1.5px', textShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 3 }}>トナメ偏差値</p>
+              <p className="tech-num" style={{
+                fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
+                color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',
+                textShadow: '0 2px 12px rgba(0,0,0,0.14)',
+              }}>
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
               {tourStats.plays === 0 && (
-                <p style={{ fontSize: 9, color: 'rgba(255,255,255,0.55)', marginTop: 3, maxWidth: 150, lineHeight: 1.4 }}>
-                  大会結果確定後に表示
+                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9, color: 'rgba(255,255,255,0.58)', marginTop: 4, maxWidth: 170, lineHeight: 1.5 }}>
+                  pending results
                 </p>
               )}
             </div>
@@ -597,8 +610,8 @@ export default function MyPage() {
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F2F2F7', borderRadius: 10, padding: '7px 12px' }}>
                   <span style={{ fontSize: 14 }}>{item.icon}</span>
                   <div>
-                    <p style={{ fontSize: 9, color: '#C7C7CC', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 1 }}>{item.label}</p>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : '#C7C7CC' }}>{item.value || '未設定'}</p>
+                    <p className="tech-label" style={{ fontSize: 9, color: '#C7C7CC', marginBottom: 2 }}>{item.label}</p>
+                    <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : '#C7C7CC' }}>{item.value || '未設定'}</p>
                   </div>
                 </div>
               ))}
@@ -618,18 +631,14 @@ export default function MyPage() {
                 </button>
               </div>
             ) : (
-              <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>{profile.birthday}</p>
+              <p className="tech-num" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E' }}>{profile.birthday}</p>
             )}
             {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 6 }}>※一度設定すると変更できません</p>}
           </div>
         </div>
 
-        {/* ── Poker ART(オンライン)の成績 ──
-             ライブ(店舗)の成績とは別枠にして、どちらの数字か一目で分かるようにする。 */}
-        <PokerArtStatsCard />
-
         {/* ── 設定リスト ── */}
-        <div data-tutorial="mypage-settings" className="mp-card mp-animate" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <div data-tutorial="mypage-settings" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.10s' } as React.CSSProperties}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -672,7 +681,7 @@ export default function MyPage() {
         </div>
 
         {/* ── アカウント操作 ── */}
-        <div className="mp-card" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+        <div className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.16s' } as React.CSSProperties}>
           <button type="button" onClick={logout}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -785,6 +794,7 @@ export default function MyPage() {
         />
       )}
     </main>
+    </>
     <HandHistoryModal userId={uid} creatorName={profile?.name ?? ""} />
     </>
   )

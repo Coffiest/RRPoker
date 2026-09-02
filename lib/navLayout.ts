@@ -16,13 +16,28 @@
 /** 設計の基準幅(iPhone標準)。この幅で scale=1 になる。 */
 export const DESIGN_WIDTH = 390;
 /** これ以上は大きくしない。大画面で不格好に巨大化するのを防ぐ。 */
-export const SCALE_MAX = 1.35;
+export const SCALE_MAX = 1.15;
 /** これ以下には小さくしない。極小画面でも読める下限。 */
 export const SCALE_MIN = 0.72;
-/** 画面の左右端の余白。 */
-export const EDGE_PADDING = 8;
-/** タブ1本が必要とする最小幅(scale=1のとき)。アイコン+短いラベルが収まる幅。 */
-const MIN_TAB_WIDTH = 52;
+/** 画面の左右端の余白。端ぎりぎりに置かず、はっきり内側に収める。 */
+export const EDGE_PADDING = 14;
+/**
+ * 逆算した大きさにさらに掛ける安全率。
+ *
+ * 「計算上ちょうど収まる」だけだと、端末ごとのフォントの実寸差・小数の丸め・
+ * ノッチまわりの余白で簡単に縁へ届いてしまう。最初から少し小さく作って、
+ * 常に余白が残るようにする。
+ */
+export const SAFETY_FACTOR = 0.94;
+/**
+ * タブ1本の幅(scale=1のとき)。
+ *
+ * 以前はピルを画面幅いっぱいに広げて中身を等分していたため、項目が3つしかないと
+ * 項目の間が間延びして、そのぶんフッター全体だけが横に長くなっていた。
+ * 幅は「中身が必要とするぶん」だけ取り、余った横幅は使わずに中央へ寄せる。
+ * 使わなかったぶんは高さ(scale)に回るので、フッター自体は大きく・短くなる。
+ */
+const BASE_TAB_WIDTH = 74;
 /** メインピルとツールボタンの間隔(scale=1のとき)。 */
 const BASE_GAP = 4;
 /** ツールボタンは正方形なので、幅はピル高さと同じ。 */
@@ -43,10 +58,12 @@ export interface NavLayout {
   navGap: number;
   padTop: number;
   padBottom: number;
-  /** メインピルが使える幅。 */
+  /** メインピルの幅(中身が必要とするぶんだけ)。 */
   pillWidth: number;
   /** タブ1本あたりの幅。 */
   tabWidth: number;
+  /** ピル + 隙間 + ツールボタン の合計幅。行を中央へ寄せるために使う。 */
+  totalWidth: number;
 }
 
 /**
@@ -60,22 +77,20 @@ export function computeNavLayout(viewportWidth: number, tabCount: number): NavLa
   const width = Number.isFinite(viewportWidth) && viewportWidth > 0 ? viewportWidth : DESIGN_WIDTH;
   const available = Math.max(0, width - EDGE_PADDING * 2);
 
-  // 幅から素直に決まるスケール。
-  const scaleFromWidth = available / DESIGN_WIDTH;
+  // フッター1式(ピル + 隙間 + ツールボタン)が scale=1 のときに必要とする幅。
+  // これが available に収まる最大の scale を求める。
+  //   available >= scale * (tabs * BASE_TAB_WIDTH + BASE_GAP + BASE_NAV_HEIGHT)
+  const perScaleCost = tabs * BASE_TAB_WIDTH + BASE_GAP + BASE_NAV_HEIGHT;
 
-  // タブ本数から許されるスケール。ピルの外にあるツールボタン(正方形)と隙間を先に引き、
-  // 残りをタブ本数で割った幅が、1本あたりの最小幅を下回らないようにする。
-  // scale が大きいほどツールボタンも隙間も最小タブ幅も大きくなるので、scale について解く。
-  //   available >= scale * (tabs * MIN_TAB_WIDTH + BASE_NAV_HEIGHT + BASE_GAP)
-  const perScaleCost = tabs * MIN_TAB_WIDTH + BASE_NAV_HEIGHT + BASE_GAP;
-  const scaleFromTabs = available / perScaleCost;
-
-  const scale = Math.min(Math.max(Math.min(scaleFromWidth, scaleFromTabs), SCALE_MIN), SCALE_MAX);
+  // 収まる上限まで使い切らず、安全率のぶん小さく作る。
+  const fitted = (available / perScaleCost) * SAFETY_FACTOR;
+  const scale = Math.min(Math.max(fitted, SCALE_MIN), SCALE_MAX);
 
   const navH = Math.round(BASE_NAV_HEIGHT * scale);
   const navGap = Math.max(3, Math.round(BASE_GAP * scale));
-  // ツールボタンは navH の正方形。メインピルはその残り全部。
-  const pillWidth = Math.max(0, available - navH - navGap);
+  // 中身が必要とするぶんだけ。余った横幅は使わない(行ごと中央へ寄せる)。
+  const tabWidth = Math.round(BASE_TAB_WIDTH * scale);
+  const pillWidth = Math.min(available - navH - navGap, tabWidth * tabs);
 
   return {
     scale,
@@ -90,6 +105,7 @@ export function computeNavLayout(viewportWidth: number, tabCount: number): NavLa
     padBottom: Math.round(10 * scale),
     pillWidth,
     tabWidth: pillWidth / tabs,
+    totalWidth: pillWidth + navGap + navH,
   };
 }
 

@@ -390,3 +390,155 @@ body {
     box-shadow: 0 0 0 rgba(244, 215, 124, 0);
   }
 }
+
+/* --------------------------------------------------------------------------
+   立ち上がりの動き
+   端末に電源が入って、上から順に読み込まれていくような出方。
+   1つずつ順番に出すことで「処理が進んでいる」感じを出す。
+   -------------------------------------------------------------------------- */
+
+/* 下からせり上がりながら現れる。--tech-reveal-delay で順番をずらす */
+.tech-reveal {
+  animation: techReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techReveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 罫線が左から引かれる。見出しの下に敷いて「描画中」を示す */
+.tech-draw {
+  transform-origin: left center;
+  animation: techDraw 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* 数値が読み込まれた瞬間の軽い明滅。値が入れ替わったことを目で追えるようにする */
+.tech-flash {
+  animation: techFlash 0.7s ease-out both;
+  animation-delay: var(--tech-reveal-delay, 0s);
+}
+
+@keyframes techFlash {
+  0%   { opacity: 0.35; }
+  40%  { opacity: 1; }
+  55%  { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tech-reveal,
+  .tech-draw,
+  .tech-flash {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   店舗側のコンソール意匠
+   3画面(ホーム / トーナメント / マイページ)で同じ見え方にするため、
+   各画面で書かずにここへまとめる。タイマー画面には一切適用しない。
+   -------------------------------------------------------------------------- */
+
+/* 見出し。`//` を頭に付け、下に金の罫が左から引かれる */
+.con-hd {
+  position: relative;
+  font-family: var(--stack-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(60, 60, 67, 0.55);
+  padding: 0 0 7px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.con-hd::before {
+  content: "//";
+  color: var(--tech-gold, #F2A900);
+  opacity: 0.75;
+}
+.con-hd::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(242, 169, 0, 0.55), rgba(242, 169, 0, 0.06));
+  transform-origin: left center;
+  animation: techDraw 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--tech-reveal-delay, 0.05s);
+}
+
+/* 面。紙のカードではなく、計器の板に見せる */
+.con-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(60, 60, 67, 0.10);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+/* 上端の細い金の線。読み込み位置を示す指標のように見せる */
+.con-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* 稼働中の面。ゆっくり走査線が降りる */
+.con-live-panel { position: relative; overflow: hidden; }
+.con-live-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(242, 169, 0, 0.055) 48%,
+    rgba(242, 169, 0, 0.10) 50%,
+    rgba(242, 169, 0, 0.055) 52%,
+    transparent 100%
+  );
+  transform: translateY(-100%);
+  animation: techScan 3.4s linear infinite;
+}
+
+/* 押せる場所。等幅・字間広め、押すと沈む */
+.con-btn {
+  font-family: var(--stack-mono);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.con-btn:active { transform: scale(0.965); filter: brightness(0.95); }
+
+/* 数値・コードは等幅で桁を揃える */
+.con-mono {
+  font-family: var(--stack-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .con-hd::after { animation: none; }
+  .con-live-panel::after { animation: none; opacity: 0.35; }
+}

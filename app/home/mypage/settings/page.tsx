@@ -7,6 +7,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
 import HomeHeader from "@/components/HomeHeader"
 import { useLanguage, type Language } from "@/lib/i18n"
+import { loadGeoConsent, saveGeoConsent } from "@/lib/geoConsent"
 
 export default function UserSettingsPage() {
   const router = useRouter()
@@ -21,16 +22,20 @@ export default function UserSettingsPage() {
   const ICON_QUALITY = 0.7
   const MAX_DATA_URL_LENGTH = 900000
 
+  // 同意の正本はアカウント側。ホーム画面の確認と必ず同じ答えを見るようにする
+  // (別々に持つと、ここでオンにしてもホームがまた聞いてくる、という食い違いが起きる)。
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem("rrpoker_geo_consent")
-      if (stored === "granted" || stored === "declined") setGeoConsent(stored)
-    } catch {}
+    const uid = auth.currentUser?.uid
+    if (!uid) return
+    let cancelled = false
+    void loadGeoConsent(uid).then(v => { if (!cancelled) setGeoConsent(v) })
+    return () => { cancelled = true }
   }, [])
 
   const updateGeoConsent = (value: "granted" | "declined") => {
-    try { window.localStorage.setItem("rrpoker_geo_consent", value) } catch {}
     setGeoConsent(value)
+    const uid = auth.currentUser?.uid
+    if (uid) void saveGeoConsent(uid, value)
   }
 
   useEffect(() => {
