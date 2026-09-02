@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         </Link>
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">プライバシーポリシー</h1>
-        <p className="text-xs text-gray-400 mb-8">最終更新日: 2026年6月21日</p>
+        <p className="text-xs text-gray-400 mb-8">最終更新日: 2026年8月31日</p>
 
         <div className="space-y-8 text-sm leading-7 text-gray-700">
           <section>
@@ -51,7 +51,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-base font-bold text-gray-900 mb-2">2. 利用目的</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-2">2. チップについて</h2>
+            <p>
+              当サービス内で表示・記録される「チップ」「バイイン」「キャッシュアウト」「プライズ」等の数値は、店舗内でのゲーム進行・成績を記録するための、店舗が独自に発行するポイントです。現金・預金その他の金銭的価値を有するものではなく、換金・払い戻し・第三者への譲渡はできません。当サービスは、現金・仮想通貨その他の対価をベットする賭博行為を提供するものではありません。
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-base font-bold text-gray-900 mb-2">3. 利用目的</h2>
             <ul className="list-disc pl-5 space-y-1">
               <li>本人確認およびログイン認証（Firebase Authentication）</li>
               <li>サービスの提供・運営・改善</li>
@@ -62,14 +69,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-base font-bold text-gray-900 mb-2">3. 位置情報の取り扱い</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-2">4. 位置情報の取り扱い</h2>
             <p>
               ホーム画面で近くの店舗を見つけやすくするため、端末の位置情報取得の許可を求めることがあります。取得した位置情報はその場で店舗との距離計算にのみ使用し、サーバーに保存することはありません。許可はいつでも設定画面から変更できます。位置情報を許可しない場合でも、通常どおりアプリをご利用いただけます。
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-bold text-gray-900 mb-2">4. 第三者への提供・委託先</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-2">5. 第三者への提供・委託先</h2>
             <p>
               当サービスは、以下の外部サービスを利用してデータを処理しています。各サービスのプライバシーポリシーが適用されます。
             </p>
@@ -82,14 +89,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-base font-bold text-gray-900 mb-2">5. データの保管・削除</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-2">6. データの保管・削除</h2>
             <p>
               利用者は、アカウント設定からアカウントおよび関連データの削除を申請できます。法令上保存が必要な情報を除き、合理的な期間内に削除します。
             </p>
           </section>
 
           <section>
-            <h2 className="text-base font-bold text-gray-900 mb-2">6. お問い合わせ</h2>
+            <h2 className="text-base font-bold text-gray-900 mb-2">7. お問い合わせ</h2>
             <p>
               本ポリシーに関するお問い合わせは、運営者の連絡先までご連絡ください。
               {/* TODO: 事業者名・連絡先メールアドレスを記載してください */}

@@ -6,6 +6,7 @@ import { collection, getDocs, getDoc, query, where, doc, updateDoc, increment, s
 import { useRouter } from "next/navigation"
 import HomeHeader from "@/components/HomeHeader"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 
 export default function WithdrawalsClient({ storeId }: { storeId: string }) {
   const router = useRouter()
@@ -77,7 +78,8 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
         menuItems={getCommonMenuItems(router, "store")}
       />
       <div className="mx-auto max-w-sm mt-6">
-        <h2 className="text-[16px] font-semibold text-gray-900 mb-4">出金申請一覧</h2>
+        <h2 className="text-[16px] font-semibold text-gray-900 mb-1">チップ引出申請一覧</h2>
+        <ChipDisclaimer className="mb-4" />
         {withdrawals.length === 0 ? (
           <p className="text-[13px] text-gray-500">申請はありません</p>
         ) : (

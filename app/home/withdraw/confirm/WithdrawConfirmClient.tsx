@@ -13,6 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import HomeHeader from "@/components/HomeHeader"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import { FiHome, FiCreditCard, FiUser } from "react-icons/fi"
 
 export default function WithdrawConfirmClient() {
@@ -112,10 +113,10 @@ export default function WithdrawConfirmClient() {
               type="button"
               onClick={() => router.push("/home/transactions")}
               className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-              aria-label="入出金"
+              aria-label="チップ移動"
             >
               <FiCreditCard className="text-[22px]" />
-              <span className="mt-1 text-[10px] font-semibold">入出金</span>
+              <span className="mt-1 text-[10px] font-semibold">チップ移動</span>
             </button>
             <button
               type="button"
@@ -155,6 +156,7 @@ export default function WithdrawConfirmClient() {
         >
           確認してもらった
         </button>
+        <ChipDisclaimer className="mt-4 text-center" />
       </div>
       <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
         <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
@@ -170,11 +172,11 @@ export default function WithdrawConfirmClient() {
             type="button"
             onClick={() => router.push("/home/transactions")}
             className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-            aria-label="入出金"
+            aria-label="チップ移動"
           >
           
             <FiCreditCard className="text-[22px]" />
-            <span className="mt-1 text-[10px] font-semibold">入出金</span>
+            <span className="mt-1 text-[10px] font-semibold">チップ移動</span>
           </button>
           <button
             type="button"

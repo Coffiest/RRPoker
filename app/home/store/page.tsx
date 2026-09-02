@@ -18,6 +18,7 @@ import { isSubscriptionActive } from "@/lib/subscription-client"
 import TechBackdrop from "@/components/TechBackdrop"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
@@ -1241,7 +1242,7 @@ export default function StorePage() {
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'var(--label3)', marginBottom: 4 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label)' }}>¥</span>
+                              <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Fee:</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                                 {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                               </span>
@@ -2298,6 +2299,8 @@ export default function StorePage() {
                   <ToggleSwitch checked={manualNetGain} onChange={setManualNetGain} />
                 </div>
               </div>
+
+              <ChipDisclaimer className="px-1 pb-4" />
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import { useRouter } from "next/navigation"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
@@ -1032,7 +1033,7 @@ export default function HomePage() {
   }, [tournamentItems])
 
   const getHistoryLabel = (type: string, comment?: string) => {
-    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "預入（購入）", deposit_approved_pure_increase: "預入（純増）", withdraw_approved: "引き出し", withdraw_request: "引き出し申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "プライズ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
+    const map: Record<string, string> = { manual_adjustment: "手動調整（チップ）", manual_adjustment_net_gain: "手動調整（純増）", deposit_approved_purchase: "チップ預入（購入）", deposit_approved_pure_increase: "チップ預入（純増）", withdraw_approved: "チップ引出", withdraw_request: "チップ引出申請", store_buyin: "バイイン (リングゲーム)", store_cashout: "キャッシュアウト (リングゲーム)", store_chip_purchase: "チップ購入", store_tournament_entry: "エントリー (トーナメント)", store_tournament_reentry: "リエントリー (トーナメント)", store_tournament_addon: "アドオン(トーナメント)", tournament_payout: "獲得チップ(トーナメント)", other: comment ?? "その他", other_net_gain: comment ?? "その他（純増）" }
     const label = map[type] ?? "不明"
     if (comment && (type === "manual_adjustment" || type === "manual_adjustment_net_gain")) return `${label}：${comment}`
     return label
@@ -2062,19 +2063,21 @@ const medalClass = (rank: number) => {
               </div>
             </div>
 
-            {/* チップ増減グラフ（Apple Music風シェルフUI：総収支/トナメ/リングを横スクロール） */}
+            {/* チップ増減グラフ（Apple Music風シェルフUI：総増減/トナメ/リングを横スクロール） */}
             {chipGraphData.length >= 2 && (
               <GraphShelf
-                sectionTitle="収支グラフ"
+                sectionTitle="チップ増減グラフ"
                 periodTab={chipGraphTab}
                 onPeriodChange={setChipGraphTab}
                 pages={[
-                  { key: "all", label: "総収支", points: chipGraphData },
-                  { key: "tournament", label: "トナメ収支", points: tournamentGraphData },
-                  { key: "ring", label: "リング収支", points: ringGraphData },
+                  { key: "all", label: "総増減", points: chipGraphData },
+                  { key: "tournament", label: "トナメ増減", points: tournamentGraphData },
+                  { key: "ring", label: "リング増減", points: ringGraphData },
                 ]}
               />
             )}
+
+            <ChipDisclaimer className="px-1 pb-2" />
 
             {/* ランキング */}
             <div data-tutorial="store-ranking" className="section-card home-boot" style={{ ['--tech-reveal-delay' as string]: '0.12s' } as React.CSSProperties}>
@@ -2508,7 +2511,7 @@ const medalClass = (rank: number) => {
                 {([
                   { label: 'コスト', value: `${d.cost.toFixed(1)} pt`, color: '#1C1C1E' },
                   { label: 'リワード', value: `${d.reward.toFixed(1)} pt`, color: '#1C1C1E' },
-                  { label: '収支', value: d.pnl > 0 ? `+${d.pnl.toLocaleString()}` : d.pnl.toLocaleString(), color: pnlColor },
+                  { label: '増減', value: d.pnl > 0 ? `+${d.pnl.toLocaleString()}` : d.pnl.toLocaleString(), color: pnlColor },
                 ] as const).map((s, si) => (
                   <div key={si} style={{ background: '#fff', padding: '8px 6px', textAlign: 'center' }}>
                     <p style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)', marginBottom: 2 }}>{s.label}</p>
@@ -2525,7 +2528,7 @@ const medalClass = (rank: number) => {
                 </div>
                 {d.rank !== '-' && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
-                    <span>Prize</span><span>{d.prize.toLocaleString()}</span>
+                    <span>獲得チップ</span><span>{d.prize.toLocaleString()}</span>
                   </div>
                 )}
                 {d.rrRating !== null && (
@@ -2576,7 +2579,7 @@ const medalClass = (rank: number) => {
             ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
             {tournamentStats.plays === 0 && (
               <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#92610A' }}>
-                「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・賞金）が確定すると、ここに数値が表示されます。
+                「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・獲得チップ）が確定すると、ここに数値が表示されます。
               </p>
             )}
           </div>
@@ -2837,7 +2840,7 @@ const medalClass = (rank: number) => {
                   )}
                   {modalNetGain !== null && (
                     <div className="flex-1 rounded-2xl p-3" style={{ background: '#F2F2F7' }}>
-                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">累計収支</p>
+                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">累計チップ増減</p>
                       <p
                         className="text-[16px] font-bold"
                         style={{
@@ -2852,18 +2855,18 @@ const medalClass = (rank: number) => {
                 </div>
               )}
 
-              {/* 収支グラフ（Apple Music風シェルフUI：総収支/トナメ/リングを横スクロール） */}
+              {/* チップ増減グラフ（Apple Music風シェルフUI：総増減/トナメ/リングを横スクロール） */}
               {modalHasAnyGraphData && (
                 <div className="mb-5">
                   <GraphShelf
-                    sectionTitle="収支グラフ"
+                    sectionTitle="チップ増減グラフ"
                     periodTab={modalChipGraphTab}
                     onPeriodChange={setModalChipGraphTab}
                     edgeInset={24}
                     pages={[
-                      { key: "all", label: "総収支", points: modalChipGraphData },
-                      { key: "tournament", label: "トナメ収支", points: modalTournamentGraphData },
-                      { key: "ring", label: "リング収支", points: modalRingGraphData },
+                      { key: "all", label: "総増減", points: modalChipGraphData },
+                      { key: "tournament", label: "トナメ増減", points: modalTournamentGraphData },
+                      { key: "ring", label: "リング増減", points: modalRingGraphData },
                     ]}
                   />
                 </div>
@@ -3074,7 +3077,7 @@ const medalClass = (rank: number) => {
                       )}
                       {entry.entryFee != null && (
                         <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
-                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">エントリー金額</p>
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">エントリーチップ</p>
                           <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
                         </div>
                       )}
@@ -3086,7 +3089,7 @@ const medalClass = (rank: number) => {
                       )}
                       {entry.reentryFee != null && (
                         <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
-                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">リエントリー金額</p>
+                          <p className="text-[9px] text-gray-400 font-medium uppercase tracking-wide">リエントリーチップ</p>
                           <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
                         </div>
                       )}
@@ -3330,15 +3333,15 @@ const CHECKIN_TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     target: 'balance-card',
-    title: 'チップ残高・収支',
-    body: '現在の店舗のチップ残高と純増収支を確認できます。タップすると取引履歴が見られます。',
+    title: 'チップ残高・増減',
+    body: '現在の店舗のチップ残高と純増減を確認できます。タップすると取引履歴が見られます。',
     spotlightPadding: 0,
     spotlightRadius: 20,
   },
   {
     target: 'chip-graph',
-    title: '収支グラフ',
-    body: 'チップ純増の推移を折れ線グラフで振り返れます。スワイプでトナメ収支グラフにも切り替えられます。',
+    title: 'チップ増減グラフ',
+    body: 'チップ純増の推移を折れ線グラフで振り返れます。スワイプでトナメチップ増減グラフにも切り替えられます。',
     spotlightPadding: 0,
     spotlightRadius: 20,
   },

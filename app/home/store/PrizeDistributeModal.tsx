@@ -12,6 +12,7 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 
 
 type Props = {
@@ -680,6 +681,7 @@ for (const p of players) {
 
         {/* フッター: Pay Out ボタン */}
         <div style={{ padding: '12px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
+          <ChipDisclaimer className="pb-2" />
           <button
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}

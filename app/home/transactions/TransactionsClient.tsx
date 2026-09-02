@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
+import ChipDisclaimer from "@/components/ChipDisclaimer"
 import TechBackdrop from "@/components/TechBackdrop"
 import {
   collection,
@@ -336,7 +337,7 @@ export default function TransactionsClient() {
           >
             <FiArrowLeft size={18} />
           </button>
-          <h1 className="term-prompt-arrow" style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', letterSpacing: '0.04em' }}>入出金</h1>
+          <h1 className="term-prompt-arrow" style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', letterSpacing: '0.04em' }}>チップの預入・引出</h1>
           <div style={{ width: 36 }} />
         </div>
 
@@ -368,7 +369,7 @@ export default function TransactionsClient() {
           {/* Amount display */}
           <div className="tech-dots" style={{ padding: '26px 20px 18px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center', backgroundPosition: 'center' }}>
             <p className="tech-label tech-label-bracket" style={{ color: '#8E8E93', marginBottom: 10 }}>
-              {mode === 'deposit' ? 'DEPOSIT' : 'WITHDRAW'}
+              {mode === 'deposit' ? 'あずけるチップ数' : 'ひきだすチップ数'}
             </p>
             {/* 入力した桁がそのまま並ぶので、等幅・桁揃えの数字で出す。
                 打ち込んでいる最中だと分かるよう、末尾にカーソルを置く。 */}
@@ -447,6 +448,7 @@ export default function TransactionsClient() {
             >
               {mode === 'deposit' ? 'あずける（申請）' : 'ひきだす（申請）'}
             </button>
+            <ChipDisclaimer className="tx-slide-2" />
           </div>
         </div>
       </div>
