@@ -7,15 +7,33 @@ export type ClientSubFields = {
   provider?: string | null
 }
 
-// Admin-granted free periods have no external billing system pushing
-// cancellation events, so "active" is only true while currentPeriodEnd is
-// still in the future — checked live on every read instead of relying on a
-// stored status flip.
+/**
+ * 契約が「いま」有効かどうか。
+ *
+ * 以前は admin_free のときだけ終了日を見て、それ以外(Stripe / アプリ内課金)は
+ * status が "active" でありさえすれば true を返していた。「外部の課金基盤が
+ * 解約イベントを送ってくるはず」という前提だったが、そのイベントが届かなかったり
+ * 取りこぼされたりすると status が "active" のまま残り、終了日を何ヶ月過ぎても
+ * 使い続けられてしまう(実際に発生した)。
+ *
+ * 終了日は毎回そこにある確かな値なので、発行元にかかわらず必ず見る。
+ * status と終了日の両方を満たしたときだけ有効とする。
+ *
+ * 終了日が無い / 0 のときだけは status に委ねる。アプリ内課金では期限を持たない
+ * 権利で終了日が送られてこないことがあり、そこで一律に無効化すると正当な契約者を
+ * 締め出してしまうため。ただし手動無料化は必ず期限とセットで発行するので、
+ * 期限が無いものは不正とみなして通さない(従来どおり)。
+ */
 export function isSubscriptionActive(sub: ClientSubFields | null | undefined): boolean {
   if (!sub || sub.status !== "active") return false
-  if (sub.provider === "admin_free") {
-    return !!sub.currentPeriodEnd && sub.currentPeriodEnd * 1000 > Date.now()
+
+  const endsAtSec = sub.currentPeriodEnd
+  if (typeof endsAtSec === "number" && endsAtSec > 0) {
+    return endsAtSec * 1000 > Date.now()
   }
+
+  if (sub.provider === "admin_free") return false
+
   return true
 }
 

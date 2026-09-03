@@ -149,9 +149,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   useEffect(() => { levelStartedRemainingRef.current = levelStartedRemaining }, [levelStartedRemaining])
   // Used by onSnapshot to detect when levelStartedAt actually changes (vs. other field updates)
   const lastSeenLsAtMsRef = useRef<number | null | undefined>(undefined)
-  const levelAdvancedRef = useRef(false)
   const lastSoundSecRef = useRef(-1)
-  useEffect(() => { levelAdvancedRef.current = false; lastSoundSecRef.current = -1 }, [currentLevelIndex])
+  useEffect(() => { lastSoundSecRef.current = -1 }, [currentLevelIndex])
+  // 表示中のレベル。レベルが上がった瞬間に音を鳴らすため、直前の値を覚えておく。
+  // undefined = まだ一度も観測していない(画面を開いた直後)。
+  const prevLiveLevelIndexRef = useRef<number | undefined>(undefined)
   const [editingCommentIdx, setEditingCommentIdx] = useState<number | null>(null)
 
   // ── Start / pause sound ──────────────────────────────────────────────────
@@ -382,6 +384,20 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   )
   const level = levelsToUse[liveLevelIndex] ?? null
   const nextLevel = liveLevelIndex < levelsToUse.length - 1 ? levelsToUse[liveLevelIndex + 1] : level
+
+  // ── レベルアップ音 ────────────────────────────────────────────────────────
+  // レベル送りをサーバー主導に変えたときに、この音だけが落ちていた。
+  //
+  // 見るのは Firestore の currentLevelIndex ではなく、いま画面に出ている
+  // liveLevelIndex のほう。Firestore の値はサーバーの巡回(毎分)で遅れて追いつくため、
+  // そちらを見ると音が最大1分ずれる。表示が切り替わった瞬間に鳴らす。
+  useEffect(() => {
+    const prev = prevLiveLevelIndexRef.current
+    prevLiveLevelIndexRef.current = liveLevelIndex
+    // 画面を開いた直後は「上がった」ではないので鳴らさない(開始/停止音と同じ考え方)。
+    if (prev === undefined) return
+    if (liveLevelIndex > prev) void playSound("levelup")
+  }, [liveLevelIndex])
   const minutes = Math.floor(displaySeconds / 60)
   const seconds = displaySeconds % 60
   const totalLevelSeconds = typeof level?.duration === "number" ? level.duration * 60 : 1

@@ -16,6 +16,7 @@ import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { isSubscriptionActive } from "@/lib/subscription-client"
 import TechBackdrop from "@/components/TechBackdrop"
+import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
@@ -1300,6 +1301,16 @@ export default function StorePage() {
                         </button>
                       </div>
 
+                      {/* プレイヤーの端末から確定したリエントリー / アドオン。
+                          その場で取り消せるようにしておく(承認に技術的な鍵が無いため)。 */}
+                      <TournamentPurchaseLog
+                        tournamentId={t.id}
+                        storeId={storeId!}
+                        canRevoke={t.status === "active"}
+                        unitLabel={store?.chipUnitLabel && store.chipUnitLabel !== "単位なし" ? store.chipUnitLabel : ""}
+                        unitBefore={store?.chipUnitBefore !== false}
+                      />
+
                       {/* Timer controls */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
                         <button className="timer-btn" onClick={() => prevLevel(t.id)}
@@ -2153,7 +2164,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.8.5</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.9.0</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>

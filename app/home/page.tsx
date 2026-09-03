@@ -15,6 +15,8 @@ import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
 import TechBackdrop from "@/components/TechBackdrop"
+import PlayerLiveTournaments from "@/components/PlayerLiveTournaments"
+import StoreLiveTournamentsPreview from "@/components/StoreLiveTournamentsPreview"
 import { RevealSentinel, useRevealOnScroll } from "@/components/RevealOnScroll"
 import { ConsoleLine, ConsolePanel } from "@/components/ConsolePanel"
 import { loadGeoConsent, saveGeoConsent, type GeoConsent } from "@/lib/geoConsent"
@@ -1895,6 +1897,22 @@ const medalClass = (rank: number) => {
           </div>
         </div>
 
+        {/* ── 現在進行中のトナメ ──
+             自分が参加している大会だけを、読み取り専用のタイマー付きで出す。
+             リエントリー / アドオンはここから確定できる。 */}
+        {currentStoreId && currentStore && userId && (
+          <PlayerLiveTournaments
+            storeId={currentStoreId}
+            balanceGroupId={currentStore.balanceGroupId ?? currentStoreId}
+            userId={userId}
+            playerName={profile.name ?? ""}
+            playerIconUrl={profile.iconUrl}
+            balance={balance}
+            unitLabel={unitLabel}
+            unitBefore={currentStore.chipUnitBefore !== false}
+          />
+        )}
+
         {/* ════ 入店中 ════ */}
         {currentStoreId && currentStore ? (
           <>
@@ -2471,7 +2489,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.8.5</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.9.0</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2871,6 +2889,10 @@ const medalClass = (rank: number) => {
                   />
                 </div>
               )}
+
+              {/* 実施中のトナメ。入る前に「いま何が動いているか」を見て決められるよう、
+                  参加の有無にかかわらずその店の進行中の大会をすべて出す。 */}
+              <StoreLiveTournamentsPreview storeId={selectedStore.id} />
 
               {/* アクションボタン */}
               <div className="space-y-2.5">
