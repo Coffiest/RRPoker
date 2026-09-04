@@ -277,11 +277,33 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
 
       for (const player of localPlayers) {
         const entryRef = doc(db, "stores", storeId, "tournaments", tournamentId, "entries", player.id)
-        const entryData = { name: player.name ?? "", isTemp: player.isTemp ?? false, entryCount: player.entryCount ?? 0, reentryCount: player.reentryCount ?? 0, addonCount: player.addonCount ?? 0 }
-        ops.push(b => b.set(entryRef, entryData))
-        totalEntry   += player.entryCount   ?? 0
-        totalReentry += player.reentryCount ?? 0
-        totalAddon   += player.addonCount   ?? 0
+        const before = originalPlayers.find(p => p.id === player.id)
+
+        // 数量は絶対値ではなく「この画面を開いてからの差」を足し込む。
+        //
+        // 以前は画面が持っている値をそのまま書いていたため、モーダルを開いたまま
+        // プレイヤーが自分の端末からリエントリーすると、保存した瞬間にその1回が
+        // 消えていた(画面は古い値を持っているため)。increment なら両者の変更が
+        // 打ち消し合わずに足し合わさる。
+        const dEntry   = (player.entryCount   ?? 0) - (before?.entryCount   ?? 0)
+        const dReentry = (player.reentryCount ?? 0) - (before?.reentryCount ?? 0)
+        const dAddon   = (player.addonCount   ?? 0) - (before?.addonCount   ?? 0)
+
+        const entryData: Record<string, any> = { name: player.name ?? "", isTemp: player.isTemp ?? false }
+        if (dEntry   !== 0) entryData.entryCount   = increment(dEntry)
+        if (dReentry !== 0) entryData.reentryCount = increment(dReentry)
+        if (dAddon   !== 0) entryData.addonCount   = increment(dAddon)
+        // 新しく作る行には、増分ではなく初期値が要る。
+        if (!before) {
+          entryData.entryCount   = player.entryCount   ?? 0
+          entryData.reentryCount = player.reentryCount ?? 0
+          entryData.addonCount   = player.addonCount   ?? 0
+        }
+        ops.push(b => b.set(entryRef, entryData, { merge: true }))
+
+        totalEntry   += dEntry
+        totalReentry += dReentry
+        totalAddon   += dAddon
 
         if (player.isTemp) continue
         const extra = playerExtras[player.id]
@@ -333,7 +355,12 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       }
 
       // tournament update goes in the last chunk
-      ops.push(b => b.update(tournamentRef, { totalEntry, totalReentry, totalAddon, bustCount: localBust }))
+      // 合計も同じ理由で増分。bustCount だけは店員が直接その数を指定する値なので絶対値のまま。
+      const totalUpdate: Record<string, any> = { bustCount: localBust }
+      if (totalEntry   !== 0) totalUpdate.totalEntry   = increment(totalEntry)
+      if (totalReentry !== 0) totalUpdate.totalReentry = increment(totalReentry)
+      if (totalAddon   !== 0) totalUpdate.totalAddon   = increment(totalAddon)
+      ops.push(b => b.update(tournamentRef, totalUpdate))
 
       // commit in chunks of CHUNK ops
       for (let i = 0; i < ops.length; i += CHUNK) {

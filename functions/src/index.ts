@@ -3,7 +3,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore"
 
 import { onDocumentWritten } from "firebase-functions/v2/firestore"
 import { onSchedule } from "firebase-functions/v2/scheduler"
-import { onCall } from "firebase-functions/v2/https"
+import { onCall, HttpsError } from "firebase-functions/v2/https"
 import { setGlobalOptions } from "firebase-functions/v2"
 
 initializeApp()
@@ -539,5 +539,237 @@ export const recoverStuckTournamentTimers = onSchedule(
         })
       }
     }
+  }
+)
+/* ═══════════════════════════════════════════════════════════════════════════
+ * リエントリー / アドオンの確定と取消
+ *
+ * これまでこの会計は、店舗の Players 画面が Firestore を直接書くことでしか
+ * 起きなかった。プレイヤーの端末からも確定できるようにするにあたり、処理を
+ * まるごとサーバーへ移す。クライアントから直接書かせない理由は2つある。
+ *
+ *   1. ルールで表現できない。1回の確定では大会文書の集計値と transactions を
+ *      書く必要があるが、これらはどちらも店舗オーナーにしか許していない
+ *      (firestore.rules)。プレイヤーに開けば、自分の残高を増やす・大会の
+ *      集計を書き換える、が同時に可能になる。
+ *   2. 金額を自己申告にできてしまう。参加費は大会文書にあるので、それを
+ *      読むのはサーバーの仕事にする。
+ *
+ * 誰の操作かは request.auth.uid だけで決める。data の playerId は受け取らない。
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+type PurchaseKind = "reentry" | "addon"
+
+/** 履歴に残す種別。店舗側の履歴表示がこの文字列で分岐している。 */
+const TX_TYPE: Record<PurchaseKind, string> = {
+  reentry: "store_tournament_reentry",
+  addon: "store_tournament_addon",
+}
+/** entries の、種別ごとのフィールド名。 */
+const COUNT_FIELD: Record<PurchaseKind, string> = {
+  reentry: "reentryCount",
+  addon: "addonCount",
+}
+/** 大会文書の集計フィールド名。 */
+const TOTAL_FIELD: Record<PurchaseKind, string> = {
+  reentry: "totalReentry",
+  addon: "totalAddon",
+}
+/** 参加費のフィールド名。金額はクライアントから受け取らず、必ずここから読む。 */
+const FEE_FIELD: Record<PurchaseKind, string> = {
+  reentry: "reentryFee",
+  addon: "addonFee",
+}
+
+/** 残高の置き場。系列店で共有するため、storeId とは別物になりうる。 */
+const resolveBalanceGroupId = async (storeId: string): Promise<string> => {
+  const storeSnap = await db.collection("stores").doc(storeId).get()
+  const grouped = storeSnap.data()?.balanceGroupId
+  return typeof grouped === "string" && grouped.length > 0 ? grouped : storeId
+}
+
+/**
+ * 🔵 Apply Tournament Purchase (Callable)
+ *
+ * 1回の確定で動くものは4つ。どれか1つでも欠けると帳尻が合わなくなるので、
+ * すべて1つのトランザクションで行う:
+ *   1. entries/{uid} の reentryCount / addonCount
+ *   2. 大会文書の totalReentry / totalAddon
+ *   3. storeBalances/{balanceGroupId} の balance と netGain
+ *   4. transactions に1件(これが「取り消せる単位」になる)
+ *
+ * 加減はすべて increment。絶対値を書かないので、店員が Players 画面を開いた
+ * ままプレイヤーが操作しても、互いの変更が打ち消し合わない。
+ */
+export const applyTournamentPurchase = onCall(
+  { region: "asia-northeast1" },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Unauthenticated")
+    // 誰の操作かはトークンだけで決める。他人名義での確定はここで塞がる。
+    const playerId = request.auth.uid
+
+    const { storeId, tournamentId, kind } = request.data as {
+      storeId?: string
+      tournamentId?: string
+      kind?: PurchaseKind
+    }
+    if (!storeId || !tournamentId) {
+      throw new HttpsError("invalid-argument", "Missing storeId or tournamentId")
+    }
+    if (kind !== "reentry" && kind !== "addon") {
+      throw new HttpsError("invalid-argument", "Invalid kind")
+    }
+
+    const balanceGroupId = await resolveBalanceGroupId(storeId)
+
+    // 履歴に出す名前。プレイヤー自身のプロフィールから引く。
+    const userSnap = await db.collection("users").doc(playerId).get()
+    const playerName = (userSnap.data()?.name as string | undefined) ?? null
+
+    const tournamentRef = db
+      .collection("stores").doc(storeId)
+      .collection("tournaments").doc(tournamentId)
+    const entryRef = tournamentRef.collection("entries").doc(playerId)
+    const balanceRef = db
+      .collection("users").doc(playerId)
+      .collection("storeBalances").doc(balanceGroupId)
+    const txRef = db.collection("transactions").doc()
+
+    const fee = await db.runTransaction(async (tx) => {
+      const [tournamentSnap, balanceSnap] = await Promise.all([
+        tx.get(tournamentRef),
+        tx.get(balanceRef),
+      ])
+
+      const tournament = tournamentSnap.data()
+      if (!tournament) throw new HttpsError("not-found", "not_found")
+
+      // 終わった大会に後から積めないようにする。
+      if (tournament.status !== "active") {
+        throw new HttpsError("failed-precondition", "not_active")
+      }
+
+      const amount = Number(tournament[FEE_FIELD[kind]] ?? 0)
+      // 参加費が設定されていない種別は、そもそも買えない(アドオン無しの大会など)。
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new HttpsError("failed-precondition", "no_fee")
+      }
+
+      const balance = Number(balanceSnap.data()?.balance ?? 0)
+      // 画面側でもボタンを無効化しているが、すり抜けたときの最後の砦。
+      if (balance < amount) {
+        throw new HttpsError("failed-precondition", "insufficient")
+      }
+
+      // entries はまだ1件も無いことがある(仮参加など)。作りにいく。
+      tx.set(
+        entryRef,
+        { name: playerName ?? "", [COUNT_FIELD[kind]]: FieldValue.increment(1) },
+        { merge: true },
+      )
+      tx.update(tournamentRef, { [TOTAL_FIELD[kind]]: FieldValue.increment(1) })
+      tx.set(
+        balanceRef,
+        { balance: FieldValue.increment(-amount), netGain: FieldValue.increment(-amount) },
+        { merge: true },
+      )
+      tx.set(txRef, {
+        storeId,
+        playerId,
+        playerName,
+        amount,
+        direction: "subtract",
+        type: TX_TYPE[kind],
+        tournamentId,
+        // 取消のときに同じ残高へ戻すため、どこから引いたかを残す。
+        balanceGroupId,
+        // プレイヤー自身の端末から確定したものだと後から分かるようにする。
+        // 見た目や集計には使わない(店員が入れたものと同じ1件として扱う)。
+        source: "player",
+        createdAt: FieldValue.serverTimestamp(),
+      })
+
+      return amount
+    })
+
+    return { transactionId: txRef.id, fee }
+  }
+)
+
+/**
+ * 🔵 Revert Tournament Purchase (Callable)
+ *
+ * 反対仕訳をもう1件足すのではなく、元の1件に revokedAt を立てたうえで
+ * 数量と残高を逆向きに戻す。履歴に「リエントリー」と「その取消」が2行並ぶより、
+ * 1行が取消済みとして残るほうが、店員が現状を読み違えないため。
+ *
+ * 押せるのは店舗オーナーだけ。プレイヤーが自分で取り消せると、
+ * チップを払わずにリエントリーだけ残す、という抜け道ができる。
+ */
+export const revertTournamentPurchase = onCall(
+  { region: "asia-northeast1" },
+  async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Unauthenticated")
+    const uid = request.auth.uid
+
+    const { transactionId } = request.data as { transactionId?: string }
+    if (!transactionId) throw new HttpsError("invalid-argument", "Missing transactionId")
+
+    const txRef = db.collection("transactions").doc(transactionId)
+    const txSnap = await txRef.get()
+    const data = txSnap.data()
+    if (!data) throw new HttpsError("not-found", "not_found")
+
+    const storeId = data.storeId as string | undefined
+    if (!storeId) throw new HttpsError("failed-precondition", "wrong_type")
+
+    const storeSnap = await db.collection("stores").doc(storeId).get()
+    if (storeSnap.data()?.ownerUid !== uid) {
+      throw new HttpsError("permission-denied", "Unauthorized")
+    }
+
+    const kind: PurchaseKind | null =
+      data.type === TX_TYPE.reentry ? "reentry"
+      : data.type === TX_TYPE.addon ? "addon"
+      : null
+    if (!kind) throw new HttpsError("failed-precondition", "wrong_type")
+
+    // 残高の置き場は、引いたときと同じ場所でなければならない。この仕組みより前に
+    // 店員が入れた履歴には記録が無いので、そのときは店舗文書から引き直す。
+    const recorded = data.balanceGroupId
+    const balanceGroupId =
+      typeof recorded === "string" && recorded.length > 0
+        ? recorded
+        : ((storeSnap.data()?.balanceGroupId as string | undefined) || storeId)
+
+    const { tournamentId, playerId } = data as { tournamentId: string; playerId: string }
+    const fee = Number(data.amount ?? 0)
+
+    const tournamentRef = db
+      .collection("stores").doc(storeId)
+      .collection("tournaments").doc(tournamentId)
+    const entryRef = tournamentRef.collection("entries").doc(playerId)
+    const balanceRef = db
+      .collection("users").doc(playerId)
+      .collection("storeBalances").doc(balanceGroupId)
+
+    await db.runTransaction(async (tx) => {
+      // 二重取消でチップが二重に戻らないよう、トランザクションの中で見直す。
+      const fresh = await tx.get(txRef)
+      if (fresh.data()?.revokedAt) {
+        throw new HttpsError("already-exists", "already_revoked")
+      }
+
+      tx.set(entryRef, { [COUNT_FIELD[kind]]: FieldValue.increment(-1) }, { merge: true })
+      tx.update(tournamentRef, { [TOTAL_FIELD[kind]]: FieldValue.increment(-1) })
+      tx.set(
+        balanceRef,
+        { balance: FieldValue.increment(fee), netGain: FieldValue.increment(fee) },
+        { merge: true },
+      )
+      tx.update(txRef, { revokedAt: FieldValue.serverTimestamp() })
+    })
+
+    return { ok: true }
   }
 )
