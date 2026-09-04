@@ -2489,7 +2489,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.9.0</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.9.1</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2790,7 +2790,9 @@ const medalClass = (rank: number) => {
       )}
 
       {selectedStore && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center modal-overlay" onClick={() => setSelectedStore(null)}>
+        // フッターナビは zIndex:80。z-50 のままだとナビがシートの上に載って、
+        // 一番下のボタンを覆ってしまう。他のボトムシートに揃えて 100 にする。
+        <div className="fixed inset-0 z-[100] flex items-end justify-center modal-overlay" onClick={() => setSelectedStore(null)}>
           <div
             className="w-full max-w-sm bg-white shadow-2xl animate-slideUp flex flex-col"
             style={{ borderRadius: '28px 28px 0 0', maxHeight: '88vh' }}
@@ -2808,8 +2810,9 @@ const medalClass = (rank: number) => {
               <h2 className="text-[17px] font-semibold text-gray-900">店舗詳細</h2>
             </div>
 
-            {/* スクロール可能なボディ（下部にナビバー分のパディングを確保） */}
-            <div className="overflow-y-auto flex-1 px-6" style={{ paddingBottom: 'calc(80px + max(0px, env(safe-area-inset-bottom)))' }}>
+            {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、
+                ここでナビバー分を空ける必要はもう無い。 */}
+            <div className="overflow-y-auto flex-1 px-6" style={{ paddingBottom: 16 }}>
               {favoriteMessage && <p className="mb-3 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
 
               {/* 店舗情報 */}
@@ -2894,7 +2897,19 @@ const medalClass = (rank: number) => {
                   参加の有無にかかわらずその店の進行中の大会をすべて出す。 */}
               <StoreLiveTournamentsPreview storeId={selectedStore.id} />
 
-              {/* アクションボタン */}
+            </div>
+
+            {/* アクションボタン。スクロール領域の外に置いて、シートを開いた時点から
+                常に押せる位置に固定する。グラフや進行中のトナメが増えると、中に
+                入れたままでは一番下までスクロールしないと押せなくなるため。 */}
+            <div
+              className="flex-shrink-0 px-6 pt-3"
+              style={{
+                paddingBottom: 'calc(12px + max(0px, env(safe-area-inset-bottom)))',
+                background: '#fff',
+                borderTop: '1px solid rgba(60,60,67,0.08)',
+              }}
+            >
               <div className="space-y-2.5">
                 <button type="button" onClick={() => joinStore(selectedStore.id)} className="h-12 w-full rounded-2xl gold-btn text-[15px] font-semibold text-gray-900">入店する</button>
                 <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
