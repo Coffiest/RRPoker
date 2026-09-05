@@ -390,7 +390,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
         <>
           {/* Backdrop */}
           <div className="fixed inset-0 z-[200]"
-            style={{ background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)" }}
+            style={{ background:"rgba(0,0,0,0.28)", backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)" }}
             onClick={() => { if (!htSaving){setIsOpen(false);reset()} }} />
 
           {/* Sheet */}
@@ -634,7 +634,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
                 {/* Action panel */}
                 {htSeat!==null && !permFolded.has(htSeat) && !currFolded.has(htSeat) && (
-                  <div className="mx-4 mb-3 rounded-3xl p-4" style={{background:CLR.white,border:`1px solid ${CLR.border}`,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+                  <div className="mx-4 mb-3 rounded-3xl p-4" style={{background:'rgba(255,255,255,0.68)',backdropFilter:'blur(26px) saturate(190%)',WebkitBackdropFilter:'blur(26px) saturate(190%)',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)'}}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[15px] font-bold" style={{color:CLR.ink}}>{htSeat}</span>
@@ -808,7 +808,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         ...(h.board?.river ? [h.board.river] : []),
                       ]
                       return (
-                        <div key={h.id} className="rounded-3xl overflow-hidden" style={{background:CLR.white,border:`1px solid ${CLR.border}`,boxShadow:"0 1px 6px rgba(0,0,0,0.04)"}}>
+                        <div key={h.id} className="rounded-3xl overflow-hidden" style={{background:'rgba(255,255,255,0.68)',backdropFilter:'blur(26px) saturate(190%)',WebkitBackdropFilter:'blur(26px) saturate(190%)',boxShadow:'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)'}}>
                           {/* Header row — tap to expand */}
                           <button type="button"
                             onClick={() => setExpandedHandId(isExp ? null : h.id)}
@@ -910,7 +910,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             {showTitlePopup && (
               <div className="absolute inset-0 z-10 flex items-end justify-center"
                 style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)",borderRadius:"28px 28px 0 0"}}>
-                <div className="w-full p-5 rounded-t-3xl" style={{background:CLR.white}}>
+                <div className="w-full p-5" style={{background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', borderRadius: '34px 34px 0 0'}}><div className="a-grabber" style={{ marginTop: -8, marginBottom: 14 }} />
                   <p className="text-[16px] font-bold mb-1" style={{color:CLR.ink}}>タイトルをつける</p>
                   <p className="text-[12px] mb-4" style={{color:CLR.gray2}}>後から履歴で探しやすくなります</p>
                   <input value={htTitle} onChange={e=>setHtTitle(e.target.value)}
@@ -942,7 +942,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             {delConfirmId && (
               <div className="absolute inset-0 z-10 flex items-end justify-center"
                 style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(4px)",borderRadius:"28px 28px 0 0"}}>
-                <div className="w-full p-5 rounded-t-3xl" style={{background:CLR.white}}>
+                <div className="w-full p-5" style={{background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', borderRadius: '34px 34px 0 0'}}><div className="a-grabber" style={{ marginTop: -8, marginBottom: 14 }} />
                   <p className="text-[16px] font-bold mb-1" style={{color:CLR.ink}}>ハンドを削除しますか？</p>
                   <p className="text-[12px] mb-5" style={{color:CLR.gray2}}>この操作は取り消せません。</p>
                   <div className="flex gap-2">
@@ -966,10 +966,10 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
           {htPick!==null && (
             <>
               <div className="fixed inset-0 z-[209]"
-                style={{background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)"}}
+                style={{background:"rgba(0,0,0,0.28)",backdropFilter:"blur(3px)",WebkitBackdropFilter:"blur(3px)"}}
                 onClick={() => setHtPick(null)} />
               <div className="fixed bottom-1/2 left-1/2 z-[210] -translate-x-1/2 translate-y-1/2 rounded-3xl flex flex-col w-[88%] max-w-sm max-h-[70vh]"
-                style={{background:CLR.white,boxShadow:"0 8px 40px rgba(0,0,0,0.25)"}}>
+                style={{background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)'}}>
                 <div className="flex items-center justify-between px-5 pt-4 pb-3 shrink-0" style={{borderBottom:`1px solid ${CLR.border}`}}>
                   <p className="text-[14px] font-bold" style={{color:CLR.ink}}>カードを選択</p>
                   <button type="button" onClick={() => setHtPick(null)}

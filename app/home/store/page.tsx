@@ -87,16 +87,23 @@ function ActionTile({ label, icon, direction, onClick, disabled }: ActionTilePro
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6,
-        height: 78, borderRadius: 16, border: "1px solid var(--sep)", background: "#fff",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7,
+        height: 84, borderRadius: 22, border: "none",
+        // ガラスの面。枠線ではなく、上端の光と内側の縁で輪郭を出す
+        background: "rgba(255,255,255,0.62)",
+        backdropFilter: "blur(22px) saturate(190%)",
+        WebkitBackdropFilter: "blur(22px) saturate(190%)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.45), 0 2px 10px rgba(0,0,0,0.05)",
         cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.4 : 1, padding: 0,
-        WebkitTapHighlightColor: "transparent", transition: "background 0.15s ease, transform 0.12s ease",
+        WebkitTapHighlightColor: "transparent",
+        // 離してからではなく、押した瞬間に沈む
+        transition: "background 100ms ease-out, transform 100ms ease-out",
       }}
-      onPointerDown={e => { if (!disabled) { e.currentTarget.style.background = "var(--fill)"; e.currentTarget.style.transform = "scale(0.96)" } }}
-      onPointerUp={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "scale(1)" }}
-      onPointerLeave={e => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.transform = "scale(1)" }}
+      onPointerDown={e => { if (!disabled) { e.currentTarget.style.background = "rgba(255,255,255,0.82)"; e.currentTarget.style.transform = "scale(0.955)" } }}
+      onPointerUp={e => { e.currentTarget.style.background = "rgba(255,255,255,0.62)"; e.currentTarget.style.transform = "scale(1)" }}
+      onPointerLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.62)"; e.currentTarget.style.transform = "scale(1)" }}
     >
-      <div style={{ width: 34, height: 34, borderRadius: 11, background: tintBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 36, height: 36, borderRadius: 999, background: tintBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {icon}
       </div>
       <span style={{ fontSize: 12, fontWeight: 700, color: "var(--label)" }}>{label}</span>
@@ -112,18 +119,8 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      style={{
-        width: 51, height: 31, borderRadius: 31, border: "none", flexShrink: 0, padding: 0, cursor: "pointer",
-        background: checked ? "#34C759" : "rgba(120,120,128,0.16)", position: "relative",
-        transition: "background-color 0.2s ease", WebkitTapHighlightColor: "transparent",
-      }}
-    >
-      <span style={{
-        position: "absolute", top: 2, left: checked ? 22 : 2, width: 27, height: 27, borderRadius: "50%",
-        background: "#fff", boxShadow: "0 3px 8px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.08)",
-        transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
-      }}/>
-    </button>
+      className="a-switch"
+    />
   )
 }
 
@@ -1108,7 +1105,7 @@ export default function StorePage() {
                 <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</p>
                 <button onClick={copyCode}
                   className="con-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: copiedCode ? 'rgba(52,199,89,0.1)' : 'var(--fill)', borderRadius: 9, padding: '5px 10px', border: '1px solid rgba(60,60,67,0.10)', cursor: 'pointer', transition: 'background .2s' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '6px 12px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
                   <span className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)' }}>CODE</span>
                   <span className="con-mono" style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
@@ -1119,7 +1116,7 @@ export default function StorePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <button
                   onClick={() => setIsScannerOpen(true)}
-                  style={{ width: 42, height: 42, borderRadius: 13, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 3px 10px rgba(242,169,0,0.35)', flexShrink: 0, transition: 'transform .12s ease, opacity .12s ease' }}
+                  style={{ width: 44, height: 44, borderRadius: 999, background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)', flexShrink: 0, transition: 'transform 100ms ease-out, filter 100ms ease-out' }}
                   onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.93)')}
                   onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
                   onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.93)' }}
@@ -1168,7 +1165,7 @@ export default function StorePage() {
           {showStorePicker && (
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
-              <div style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, background: 'white', borderRadius: 20, padding: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', minWidth: 220 }}>
+              <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {ownedStores.map(s => (
@@ -1759,7 +1756,7 @@ export default function StorePage() {
                               {adjContextMenuIdx[t.id] === idx && (
                                 <>
                                   <div className="fixed inset-0 z-[199]" onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: null }))} />
-                                  <div className="absolute right-9 top-1 z-[200] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-w-[168px]">
+                                  <div className="a-dialog absolute right-9 top-1 z-[200] overflow-hidden min-w-[168px]" style={{ transformOrigin: 'top right' }}>
                                     <button type="button" onClick={() => insertAdjLevelBefore(t.id, idx)}
                                       className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                                     >この前にレベルを追加</button>
@@ -2164,7 +2161,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.9.1</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.10.0</p>
         <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>

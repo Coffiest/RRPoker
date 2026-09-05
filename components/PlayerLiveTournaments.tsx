@@ -134,7 +134,7 @@ function LiveTournamentRow({
         onClick={() => { if (!short) { hapticTap(); setConfirming(kind) } }}
         disabled={short}
         style={{
-          flex: 1, height: 46, borderRadius: 12, border: 'none',
+          flex: 1, height: 50, borderRadius: 999, border: 'none',
           background: short ? '#F2F2F7' : 'linear-gradient(135deg,#F2A900,#D4910A)',
           color: short ? 'rgba(60,60,67,0.4)' : '#fff',
           fontSize: 12.5, fontWeight: 800,

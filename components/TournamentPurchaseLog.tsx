@@ -109,7 +109,7 @@ export default function TournamentPurchaseLog({
             key={row.id}
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 11px', borderRadius: 10,
+              padding: '11px 13px', borderRadius: 16,
               background: row.revoked ? 'transparent' : '#F2F2F7',
               border: row.revoked ? '1px dashed rgba(60,60,67,0.18)' : '1px solid transparent',
               opacity: row.revoked ? 0.5 : 1,
@@ -145,8 +145,8 @@ export default function TournamentPurchaseLog({
                 disabled={busyId === row.id}
                 className="con-btn"
                 style={{
-                  flexShrink: 0, height: 30, padding: '0 11px', borderRadius: 8,
-                  background: 'rgba(255,59,48,0.09)', border: '1px solid rgba(255,59,48,0.2)',
+                  flexShrink: 0, height: 32, padding: '0 14px', borderRadius: 999,
+                  background: 'rgba(255,59,48,0.11)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,59,48,0.16)',
                   color: '#FF3B30', fontSize: 10, fontWeight: 700, cursor: 'pointer',
                   opacity: busyId === row.id ? 0.5 : 1,
                 }}

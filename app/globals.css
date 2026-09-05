@@ -485,10 +485,15 @@ body {
 /* 面。紙のカードではなく、計器の板に見せる */
 .con-panel {
   position: relative;
+  /* 白い板ではなくガラス。枠線をやめ、上端の光と内側の縁で輪郭を出す */
   background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(60, 60, 67, 0.10);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 26px;
+  border: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    0 14px 38px rgba(0, 0, 0, 0.07);
   overflow: hidden;
 }
 /* 上端の細い金の線。読み込み位置を示す指標のように見せる */
@@ -530,6 +535,8 @@ body {
   text-transform: uppercase;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
+/* 離してからではなく、押した瞬間に沈む */
+.con-btn { transition: transform var(--a-press), box-shadow var(--a-press), filter var(--a-press); }
 .con-btn:active { transform: scale(0.965); filter: brightness(0.95); }
 
 /* 数値・コードは等幅で桁を揃える */
@@ -541,4 +548,448 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .con-hd::after { animation: none; }
   .con-live-panel::after { animation: none; opacity: 0.35; }
+}
+
+
+/* ==========================================================================
+   Apple 意匠レイヤー
+   .claude/skills/apple-design/SKILL.md に沿って、形・素材・奥行き・動き・字間を
+   ここで一元化する。各画面はこのクラスを当てるだけにして、同じ操作が
+   同じ見え方・同じ手応えになるようにする。
+
+   変えないもの: テーマ色(#F2A900)と書体(--stack-mono / --stack-display)。
+   変えるもの:   輪郭(角丸→カプセル)、素材(白い板→ガラス)、
+                 階層(枠線→影と透過)、動き(一定時間→スプリング)、
+                 字間(一律→寸法ごと)。
+   ========================================================================== */
+
+:root {
+  /* スプリング。SKILL.md の damping/response をベジェに写したもの。
+     ジェスチャー駆動でない箇所は、この曲線で十分近い挙動になる。 */
+  --a-spring: cubic-bezier(0.32, 0.72, 0, 1);           /* damping 1.0 相当 */
+  --a-spring-bounce: cubic-bezier(0.34, 1.46, 0.44, 1); /* damping 0.8 相当 */
+  --a-press: 100ms ease-out;                            /* 押下の即応 */
+
+  /* 輪郭。押せるものはカプセル、面は大きく丸める。 */
+  --a-capsule: 999px;
+  --a-r-sm: 14px;
+  --a-r-md: 20px;
+  --a-r-lg: 26px;
+  --a-r-xl: 34px;
+
+  /* 色。金はテーマのまま。灰は iOS のラベル階層に合わせる。 */
+  --a-gold: #F2A900;
+  --a-gold-deep: #B57F00;
+  --a-surface: #fff;
+  --a-surface-2: #F2F2F7;
+  --a-sep: rgba(60, 60, 67, 0.09);
+  --a-label: #1C1C1E;
+  --a-label-2: rgba(60, 60, 67, 0.60);
+  --a-label-3: rgba(60, 60, 67, 0.30);
+
+  /* 影。面が大きいほど厚く見せる。 */
+  --a-shadow-sm: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.05);
+  --a-shadow-md: 0 2px 6px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.08);
+  --a-shadow-lg: 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16);
+}
+
+/* --------------------------------------------------------------------------
+   1. ガラス
+   面を白い紙ではなく、下が透ける板として扱う。上端に光を溜め、内側に
+   薄い縁を引く。これが Apple の面の骨格で、輪郭の変化と並んでいちばん
+   見た目を変える。
+   -------------------------------------------------------------------------- */
+.a-glass {
+  position: relative;
+  background: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),      /* 上端に当たる光 */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),    /* 内側の縁 */
+    var(--a-shadow-sm);
+}
+/* 大きい面は厚く。ぼかしを強め、影を深くする。 */
+.a-glass-thick {
+  background: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    var(--a-shadow-md);
+}
+
+/* --------------------------------------------------------------------------
+   2. ボタン
+   輪郭をカプセルにする。角丸の四角から輪郭ごと変わるので、画面のどこを見ても
+   作り直したと分かる。階層は4つ: 塗り / ガラス / 淡色 / 文字だけ。
+   共通して、離してからではなく押した瞬間に沈む。
+   -------------------------------------------------------------------------- */
+.a-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 22px;
+  border: none;
+  border-radius: var(--a-capsule);
+  font-family: var(--stack-mono);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--a-press), filter var(--a-press),
+              box-shadow 240ms var(--a-spring), background-color 240ms var(--a-spring);
+}
+.a-btn:active { transform: scale(0.965); }
+.a-btn:disabled { opacity: 0.34; cursor: not-allowed; transform: none; filter: saturate(0.5) }
+
+/* 塗り。テーマの金。上端の光でカプセルに丸みを出す。 */
+.a-btn-filled {
+  background: linear-gradient(180deg, #FFC53D 0%, #F2A900 46%, #DE9A00 100%);
+  color: #1C1C1E;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    inset 0 -1px 0 rgba(120, 80, 0, 0.18),
+    0 6px 18px rgba(242, 169, 0, 0.30);
+}
+.a-btn-filled:active {
+  filter: brightness(0.94);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(242,169,0,0.24);
+}
+
+/* ガラス。並列の選択肢に使う。下の内容が透けるので、面の上に置ける。 */
+.a-btn-glass {
+  background: #fff;
+  color: var(--a-label);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 2px 10px rgba(0, 0, 0, 0.06);
+}
+.a-btn-glass:active { background: rgba(255, 255, 255, 0.78) }
+
+/* 淡色。金を薄く敷く。主でも副でもない、その場の操作に使う。 */
+.a-btn-tinted {
+  background: rgba(242, 169, 0, 0.14);
+  color: var(--a-gold-deep);
+  box-shadow: inset 0 0 0 1px rgba(242, 169, 0, 0.16);
+}
+.a-btn-tinted:active { background: rgba(242, 169, 0, 0.24) }
+
+/* 文字だけ。退く側に使う。 */
+.a-btn-bare {
+  background: transparent;
+  color: var(--a-label-2);
+  box-shadow: none;
+  font-weight: 600;
+}
+.a-btn-bare:active { background: rgba(60, 60, 67, 0.07) }
+
+/* 取り消せない操作。赤は iOS の systemRed。 */
+.a-btn-danger {
+  background: rgba(255, 59, 48, 0.11);
+  color: #D70015;
+  box-shadow: inset 0 0 0 1px rgba(255, 59, 48, 0.14);
+}
+.a-btn-danger:active { background: rgba(255, 59, 48, 0.20) }
+
+.a-btn-block { display: flex; width: 100% }
+.a-btn-sm { min-height: 38px; padding: 0 16px; font-size: 13px }
+/* 丸。閉じる・戻るなど、字を持たない操作。 */
+.a-btn-icon { min-height: 40px; width: 40px; padding: 0 }
+
+/* --------------------------------------------------------------------------
+   3. スイッチ
+   つまみは押している間だけ横に伸び、離すと縮んで収まる。
+   板の上の絵ではなく、掴んでいる物に見せる。
+   -------------------------------------------------------------------------- */
+.a-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 51px;
+  height: 31px;
+  border-radius: var(--a-capsule);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(120, 120, 128, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 280ms var(--a-spring);
+}
+.a-switch[aria-checked="true"] { background: #34C759 }
+.a-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: var(--a-capsule);
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16);
+  transition: transform 340ms var(--a-spring), width 170ms var(--a-spring);
+}
+.a-switch[aria-checked="true"]::after { transform: translateX(20px) }
+.a-switch:active::after { width: 33px }
+.a-switch[aria-checked="true"]:active::after { transform: translateX(14px) }
+
+/* --------------------------------------------------------------------------
+   4. 面と行
+   枠線で仕切るのをやめる。外周は大きく丸め、中の行の間にだけ細い罫を引く。
+   見出しは面の外に、小さく開いた字で置く(iOS のグループ表)。
+   -------------------------------------------------------------------------- */
+.a-card {
+  background: var(--a-surface);
+  border-radius: var(--a-r-lg);
+  box-shadow: var(--a-shadow-sm);
+}
+.a-card-raised { box-shadow: var(--a-shadow-md) }
+
+.a-list {
+  background: var(--a-surface);
+  border-radius: var(--a-r-lg);
+  box-shadow: var(--a-shadow-sm);
+  overflow: hidden;
+}
+.a-list > * + * { border-top: 1px solid var(--a-sep) }
+.a-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 18px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  color: var(--a-label);
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--a-press);
+}
+button.a-row { cursor: pointer }
+button.a-row:active { background: rgba(60, 60, 67, 0.07) }
+
+/* 面の外に置く見出し。 */
+.a-section-hd {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--a-label-3);
+  padding: 0 6px 8px;
+}
+
+/* --------------------------------------------------------------------------
+   5. シート / ダイアログ
+   中央の箱をやめ、下から出る面にする。掴んで下げられることを、上端の
+   つまみだけで示す。ガラスなので、下の画面が透けたまま動く。
+   -------------------------------------------------------------------------- */
+.a-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  animation: aScrimIn 280ms var(--a-spring) both;
+}
+@keyframes aScrimIn { from { opacity: 0 } to { opacity: 1 } }
+
+.a-sheet {
+  /* 下に何が来るか選べないので、薄すぎると後ろの文字と重なって読めなくなる。
+     ぼかしで素材感は残したまま、字が読める濃さまで上げる。 */
+  background: #fff;
+  border-radius: var(--a-r-xl) var(--a-r-xl) 0 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    var(--a-shadow-lg);
+  animation: aSheetIn 440ms var(--a-spring) both;
+}
+/* 素材として立ち上がる。ぼかしと拡大を同時に動かし、単なる不透明度の
+   変化に見えないようにする。 */
+@keyframes aSheetIn {
+  from { transform: translateY(22px) scale(0.98); opacity: 0; filter: blur(8px) }
+  to   { transform: none;                         opacity: 1; filter: blur(0) }
+}
+
+.a-dialog {
+  background: #fff;
+  border-radius: var(--a-r-xl);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), var(--a-shadow-lg);
+  animation: aDialogIn 360ms var(--a-spring-bounce) both;
+}
+@keyframes aDialogIn {
+  from { transform: scale(0.9); opacity: 0 }
+  to   { transform: scale(1);   opacity: 1 }
+}
+
+.a-grabber {
+  width: 36px;
+  height: 5px;
+  border-radius: var(--a-capsule);
+  background: rgba(60, 60, 67, 0.20);
+  margin: 9px auto 0;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   6. スクロールの端
+   1px の罫で切らず、内容が薄れて潜り込むように見せる。
+   -------------------------------------------------------------------------- */
+.a-edge-bottom { position: relative }
+.a-edge-bottom::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 26px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(to top, rgba(255,255,255,0.92), transparent);
+}
+
+/* --------------------------------------------------------------------------
+   7. 字間と行間
+   一つの letter-spacing を全サイズに使わない。大きい字は詰め、小さい字は開く。
+   書体は変えない。寸法に合わせて字間と行間だけを変える。
+   -------------------------------------------------------------------------- */
+.a-display { font-size: 40px; line-height: 1.02; letter-spacing: -0.035em; font-weight: 700 }
+.a-title-lg{ font-size: 27px; line-height: 1.10; letter-spacing: -0.026em; font-weight: 700 }
+.a-title   { font-size: 21px; line-height: 1.18; letter-spacing: -0.018em; font-weight: 700 }
+.a-heading { font-size: 17px; line-height: 1.28; letter-spacing: -0.010em; font-weight: 700 }
+.a-body    { font-size: 15px; line-height: 1.47; letter-spacing: 0 }
+.a-caption { font-size: 12px; line-height: 1.38; letter-spacing: 0.014em; color: var(--a-label-2) }
+.a-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--a-label-3);
+}
+
+/* --------------------------------------------------------------------------
+   8. 配慮
+   動きを減らす設定では、動きを消すのではなく穏やかな等価物に置き換える。
+   透明度・コントラストの設定にも独立して応じる。
+   -------------------------------------------------------------------------- */
+@keyframes aFadeOnly { from { opacity: 0 } to { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) {
+  .a-btn, .a-switch, .a-switch::after, .a-row { transition-duration: 1ms }
+  .a-btn:active { transform: none }
+  .a-sheet, .a-dialog, .a-scrim { animation: aFadeOnly 180ms ease both }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .a-glass, .a-glass-thick, .a-btn-glass, .a-sheet, .a-dialog {
+    background: #fff;
+    backdrop-filter: none;
+  }
+  .a-scrim { backdrop-filter: none }
+}
+@media (prefers-contrast: more) {
+  .a-card, .a-list { box-shadow: inset 0 0 0 1px rgba(60,60,67,0.32) }
+  .a-btn-tinted { background: rgba(242,169,0,0.24); color: #7A5600 }
+  .a-btn-glass, .a-glass, .a-glass-thick, .a-sheet, .a-dialog {
+    background: #fff; backdrop-filter: none;  }
+}
+
+/* --------------------------------------------------------------------------
+   9. 地
+   真っ白の上ではガラスが成立しない(透ける先が無い)。iOS のグループ背景に
+   あたる淡い灰を敷き、上端にだけテーマの金をごく薄く落として奥行きを作る。
+   新しい色は足していない。使っているのは #F2A900 と灰だけ。
+   -------------------------------------------------------------------------- */
+.a-app-bg {
+  position: relative;
+  min-height: 100%;
+  background:
+    radial-gradient(120% 52% at 50% -8%, rgba(242, 169, 0, 0.10) 0%, transparent 62%),
+    linear-gradient(180deg, #F6F5F2 0%, #F2F2F7 46%, #EFEFF4 100%);
+  background-attachment: fixed;
+}
+
+
+/* --------------------------------------------------------------------------
+   10. 既存クラスの置き換え
+   もともと各ページの <style> に書かれていたもの。同じ名前のまま中身だけ
+   Apple の形に入れ替え、置き場所をここへ移した。呼び出し側は変えなくてよく、
+   プレイヤー側と店舗側で必ず同じ見た目になる。
+   -------------------------------------------------------------------------- */
+
+/* 面。白い紙ではなくガラス。下の色が透け、上端に光が溜まる。枠線は引かない */
+.section-card {
+  position: relative;
+  background: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    0 14px 38px rgba(0, 0, 0, 0.07);
+  border-radius: 30px;
+  padding: 20px;
+}
+
+/* 主の操作。カプセルにして、押した瞬間に沈む */
+.gold-btn {
+  border-radius: var(--a-capsule);
+  background: linear-gradient(180deg, #FFC53D 0%, #F2A900 46%, #DE9A00 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    inset 0 -1px 0 rgba(120, 80, 0, 0.18),
+    0 6px 18px rgba(242, 169, 0, 0.30);
+  transition: transform var(--a-press), box-shadow 240ms var(--a-spring), filter var(--a-press);
+}
+.gold-btn:active {
+  transform: scale(0.965);
+  filter: brightness(0.94);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(242,169,0,0.24);
+}
+
+/* 副の操作。金の枠線ではなく、透過と光の縁で並列を示す */
+.outline-gold-btn {
+  border-radius: var(--a-capsule);
+  background: #fff;
+  border: none;
+  color: var(--a-label);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 2px 10px rgba(0, 0, 0, 0.06);
+  transition: transform var(--a-press), background-color 240ms var(--a-spring);
+}
+.outline-gold-btn:hover { background: rgba(255, 255, 255, 0.72) }
+.outline-gold-btn:active { transform: scale(0.965); background: rgba(255, 255, 255, 0.8) }
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-btn, .outline-gold-btn { transition-duration: 1ms }
+  .gold-btn:active, .outline-gold-btn:active { transform: none }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .section-card, .outline-gold-btn { background: #fff; backdrop-filter: none }
+}
+
+/* --------------------------------------------------------------------------
+   11. ガラスを使えるときだけガラスにする
+
+   backdrop-filter に対応していない環境で半透明のまま出すと、後ろの文字が
+   そのまま透けて重なり、読めなくなる。既定は不透明にしておき、ぼかしが
+   使えるときだけ半透明へ切り替える。
+
+   なお、ここで -webkit-backdrop-filter を自分で書いてはいけない。書くと
+   Lightning CSS が標準の backdrop-filter を落として -webkit- だけを残し、
+   その別名を持たない最近の Chrome ではぼかしが一切効かなくなる。
+   必要な接頭辞はビルダーに任せる。
+   -------------------------------------------------------------------------- */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .a-glass         { background: rgba(255, 255, 255, 0.62); backdrop-filter: blur(24px) saturate(190%) }
+  .a-glass-thick   { background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(40px) saturate(200%) }
+  .a-btn-glass     { background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
+  .a-sheet         { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(40px) saturate(200%) }
+  .a-dialog        { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(40px) saturate(200%) }
+  .a-scrim         { backdrop-filter: blur(3px) }
+  .section-card    { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(28px) saturate(190%) }
+  .outline-gold-btn{ background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
+  .con-panel       { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(26px) saturate(190%) }
 }

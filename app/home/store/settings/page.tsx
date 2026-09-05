@@ -60,28 +60,13 @@ const CLR = {
 }
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  return (
-    <button
-      role="switch"
-      aria-checked={on}
-      onClick={onToggle}
-      className="relative shrink-0 w-[46px] h-[27px] rounded-full transition-all duration-200"
-      style={{ background: on ? "#34C759" : CLR.border }}
-    >
-      <span
-        className="absolute top-[3px] left-[3px] w-[21px] h-[21px] bg-white rounded-full shadow-sm transition-all duration-200"
-        style={{ transform: on ? "translateX(19px)" : "translateX(0)" }}
-      />
-    </button>
-  )
+  // 見た目と手応えは globals.css の .a-switch が持つ。押している間だけ
+  // つまみが横に伸び、離すと縮んで収まる。
+  return <button type="button" role="switch" aria-checked={on} onClick={onToggle} className="a-switch" />
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-3xl p-5" style={{ background: CLR.white, border: `1px solid ${CLR.border}` }}>
-      {children}
-    </div>
-  )
+  return <div className="section-card" style={{ padding: 20 }}>{children}</div>
 }
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -119,8 +104,7 @@ function PrimaryButton({ onClick, disabled, children }: {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full h-11 rounded-2xl text-[14px] font-bold active:scale-95 transition-all disabled:opacity-40"
-      style={{ background: CLR.gold, color: CLR.ink }}
+      className="a-btn a-btn-filled a-btn-block"
     >
       {children}
     </button>
@@ -132,8 +116,7 @@ function GhostButton({ onClick, children }: { onClick: () => void; children: Rea
     <button
       type="button"
       onClick={onClick}
-      className="w-full h-11 rounded-2xl text-[14px] font-semibold active:scale-95 transition-all"
-      style={{ background: CLR.surface, color: CLR.ink, border: `1px solid ${CLR.border}` }}
+      className="a-btn a-btn-glass a-btn-block"
     >
       {children}
     </button>
@@ -517,7 +500,7 @@ export default function StoreSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen pb-28" style={{ background: CLR.bg }}>
+    <main className="min-h-screen pb-28" style={{ background: "transparent" }}>
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -779,9 +762,9 @@ export default function StoreSettingsPage() {
 
       {/* ── チップ有効期限モーダル ── */}
       {isChipExpiryModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
-          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
+          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
             <div className="flex items-center justify-between mb-5">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
               <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
@@ -815,9 +798,9 @@ export default function StoreSettingsPage() {
 
       {/* ── レーキモーダル ── */}
       {isRakeModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
-          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
+          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
               <button type="button" onClick={() => setIsRakeModalOpen(false)}
@@ -930,8 +913,8 @@ export default function StoreSettingsPage() {
 
       {/* ── スタンプ管理モーダル ── */}
       {stampModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>
-          <div className="w-full max-w-sm rounded-t-3xl flex flex-col" style={{ background: CLR.white, maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
+        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
+          <div className="a-sheet w-full max-w-sm flex flex-col" style={{ maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
             {/* ハンドル + ヘッダー */}
             <div className="shrink-0 px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${CLR.border}` }}>
               <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
@@ -1020,11 +1003,11 @@ export default function StoreSettingsPage() {
 
       {/* ── スタンプ編集モーダル ── */}
       {editStampPlayer && (
-        <div className="fixed inset-0 z-[130] flex items-end justify-center" style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
+        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 130 }}
           onClick={() => setEditStampPlayer(null)}>
-          <div className="w-full max-w-sm rounded-t-3xl p-6" style={{ background: CLR.white, paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
             onClick={e => e.stopPropagation()}>
-            <div className="w-9 h-[3px] rounded-full mx-auto mb-5" style={{ background: CLR.border }} />
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
 
             {/* プレイヤー情報 */}
             <div className="flex items-center gap-3 mb-6">

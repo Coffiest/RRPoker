@@ -1434,12 +1434,7 @@ const medalClass = (rank: number) => {
           background: linear-gradient(145deg,#fff 0%,#fefefe 100%);
           box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
-        .section-card {
-          background: linear-gradient(145deg,#fff 0%,#fefefe 100%);
-          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
-          border-radius: 28px;
-          padding: 20px;
-        }
+        /* .section-card は globals.css へ移した(店舗側でも同じ面を使うため) */
 
         /* ── ストアバッジ ── */
         .store-badge {
@@ -1573,7 +1568,7 @@ const medalClass = (rank: number) => {
 
         /* ── モーダル ── */
         .glass-card { background:rgba(255,255,255,0.7); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-        .modal-overlay { background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+        .a-scrim { background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 
         /* ── 追加ユーティリティ ── */
         .divider-gold { height:1px; background:linear-gradient(90deg,transparent,rgba(242,169,0,0.2),transparent); }
@@ -1582,18 +1577,7 @@ const medalClass = (rank: number) => {
           border-radius:16px; padding:12px 14px;
           box-shadow:0 1px 4px rgba(242,169,0,0.06);
         }
-        .gold-btn {
-          background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
-          box-shadow:0 4px 14px rgba(242,169,0,0.28);
-          transition:transform 0.13s ease, box-shadow 0.13s ease;
-        }
-        .gold-btn:active { transform:scale(0.977); }
-        .outline-gold-btn {
-          background:#fff; border:1.5px solid rgba(242,169,0,0.5);
-          color:#D4910A; transition:all 0.13s ease;
-        }
-        .outline-gold-btn:hover { background:rgba(242,169,0,0.05); }
-        .outline-gold-btn:active { transform:scale(0.977); }
+        /* .gold-btn / .outline-gold-btn は globals.css へ移した */
         .section-label {
           font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:rgba(0,0,0,0.3);
         }
@@ -2489,7 +2473,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.9.1</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.10.0</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2606,8 +2590,8 @@ const medalClass = (rank: number) => {
 
       {/* ── 位置情報の利用同意モーダル ── */}
       {showGeoConsentModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center modal-overlay">
-          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-slideUp shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center a-scrim">
+          <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
               <FiGlobe className="text-[24px] text-[#F2A900]" />
             </div>
@@ -2618,10 +2602,10 @@ const medalClass = (rank: number) => {
             <p className="text-[12px] text-gray-400 leading-relaxed mb-5">
               {t('geo.changeInSettings')}
             </p>
-            <button onClick={handleGeoAllow} className="w-full h-11 rounded-2xl font-semibold text-[14px] mb-2" style={{ background: '#F2A900', color: '#1a1a1a' }}>
+            <button onClick={handleGeoAllow} className="a-btn a-btn-filled a-btn-block mb-2">
               {t('geo.allow')}
             </button>
-            <button onClick={handleGeoDecline} className="w-full h-11 rounded-2xl bg-gray-100 text-gray-600 font-semibold text-[14px]">
+            <button onClick={handleGeoDecline} className="a-btn a-btn-bare a-btn-block">
               {t('geo.decline')}
             </button>
           </div>
@@ -2629,8 +2613,8 @@ const medalClass = (rank: number) => {
       )}
 
       {isPendingModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center modal-overlay">
-          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-slideUp shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center a-scrim">
+          <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
               <FiClock className="text-[24px] text-[#F2A900]" />
             </div>
@@ -2638,14 +2622,14 @@ const medalClass = (rank: number) => {
             <p className="text-[13px] text-gray-500 mb-2">入店承認までしばらくお待ちください</p>
             <p className="text-[11px] text-gray-400 mb-5">この画面を閉じると入店申請は取り下げられます</p>
             <button onClick={async () => { if (!userId) return; await updateDoc(doc(db, "users", userId), { checkinStatus: "none", pendingStoreId: null }); setIsPendingModalOpen(false) }}
-              className="w-full h-11 rounded-2xl bg-gray-100 text-gray-700 font-semibold text-[14px]"
+              className="a-btn a-btn-bare a-btn-block"
             >戻る</button>
           </div>
         </div>
       )}
 
       {isCheckinCompleteModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center modal-overlay px-5">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center a-scrim px-5">
           {/* 承認が下りるまでの一連の処理を、そのまま端末の記録として見せる。
               「押した → 何かが起きた → 通った」の順が目で追えるよう、上から流す。 */}
           <ConsolePanel title="checkin.sh" className="animate-bounceIn" style={{ width: '100%', maxWidth: 360 }}>
@@ -2683,7 +2667,7 @@ const medalClass = (rank: number) => {
       )}
 
       {showStampModal && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center modal-overlay">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center a-scrim">
           <div className="w-[88%] max-w-sm stamp-card-in">
             {/* カード本体 */}
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: "linear-gradient(160deg,#FEFAF4 0%,#F5EDD8 100%)", border: "1px solid rgba(139,90,43,0.18)" }}>
@@ -2757,8 +2741,8 @@ const medalClass = (rank: number) => {
       )}
 
       {isJoinModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
+          <div className="a-dialog w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[17px] font-semibold text-gray-900">店舗を探す</h2>
               <button type="button" onClick={() => setIsJoinModalOpen(false)} className="text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
@@ -2769,7 +2753,7 @@ const medalClass = (rank: number) => {
                 placeholder="店舗コード or 店舗名"
                 className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
               />
-              <button type="button" onClick={handleSearch} className="flex h-12 w-12 items-center justify-center rounded-2xl gold-btn text-white active:scale-95">
+              <button type="button" onClick={handleSearch} className="a-btn a-btn-filled a-btn-icon" style={{ minHeight: 48, width: 48 }}>
                 <FiSearch size={17} />
               </button>
             </div>
@@ -2792,22 +2776,27 @@ const medalClass = (rank: number) => {
       {selectedStore && (
         // フッターナビは zIndex:80。z-50 のままだとナビがシートの上に載って、
         // 一番下のボタンを覆ってしまう。他のボトムシートに揃えて 100 にする。
-        <div className="fixed inset-0 z-[100] flex items-end justify-center modal-overlay" onClick={() => setSelectedStore(null)}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center a-scrim" onClick={() => setSelectedStore(null)}>
           <div
-            className="w-full max-w-sm bg-white shadow-2xl animate-slideUp flex flex-col"
-            style={{ borderRadius: '28px 28px 0 0', maxHeight: '88vh' }}
+            className="a-sheet w-full max-w-sm flex flex-col"
+            style={{ maxHeight: '88vh' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* ドラッグハンドル */}
-            <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
+            {/* つまみ。掴める場所であることの合図 */}
+            <div className="a-grabber" />
 
             {/* 固定ヘッダー */}
             <div className="relative flex min-h-[44px] items-center justify-center px-6 pt-3 pb-2 flex-shrink-0">
-              <button type="button" onClick={() => setSelectedStore(null)} className="absolute left-6 text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
+              <button type="button" onClick={() => setSelectedStore(null)}
+                className="a-btn a-btn-glass a-btn-icon absolute left-5" style={{ minHeight: 34, width: 34, color: 'var(--a-label-2)' }}
+              ><FiX size={17} /></button>
               <button type="button" onClick={() => toggleFavoriteStore(selectedStore.id)}
-                className={`absolute right-6 flex h-9 w-9 items-center justify-center rounded-full border transition-all ${favoriteStores.includes(selectedStore.id) ? "border-[#F2A900] bg-[#F2A900]/10 text-[#F2A900]" : "border-gray-200 text-gray-400 hover:border-[#F2A900] hover:text-[#F2A900]"}`}
-              ><FiStar size={16} /></button>
-              <h2 className="text-[17px] font-semibold text-gray-900">店舗詳細</h2>
+                className="a-btn a-btn-icon absolute right-5"
+                style={favoriteStores.includes(selectedStore.id)
+                  ? { minHeight: 34, width: 34, background: 'rgba(242,169,0,0.16)', color: '#B57F00', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
+                  : { minHeight: 34, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
+              ><FiStar size={15} /></button>
+              <h2 className="a-heading">店舗詳細</h2>
             </div>
 
             {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、
@@ -2906,14 +2895,14 @@ const medalClass = (rank: number) => {
               className="flex-shrink-0 px-6 pt-3"
               style={{
                 paddingBottom: 'calc(12px + max(0px, env(safe-area-inset-bottom)))',
-                background: '#fff',
-                borderTop: '1px solid rgba(60,60,67,0.08)',
+                background: 'transparent',
+                borderTop: '1px solid var(--a-sep)',
               }}
             >
               <div className="space-y-2.5">
-                <button type="button" onClick={() => joinStore(selectedStore.id)} className="h-12 w-full rounded-2xl gold-btn text-[15px] font-semibold text-gray-900">入店する</button>
+                <button type="button" onClick={() => joinStore(selectedStore.id)} className="a-btn a-btn-filled a-btn-block">入店する</button>
                 <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
-                  className="h-12 w-full rounded-2xl border-2 border-gray-200 text-[14px] font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                  className="a-btn a-btn-glass a-btn-block"
                 >現在入店中のプレイヤーを見る</button>
               </div>
             </div>
@@ -2922,8 +2911,8 @@ const medalClass = (rank: number) => {
       )}
 
       {isPlayersModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+        <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
+          <div className="a-dialog w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[17px] font-semibold text-gray-900">入店中プレイヤー</h2>
               <button type="button" onClick={() => setIsPlayersModalOpen(false)} className="text-gray-400 hover:text-gray-600"><FiX size={20} /></button>
@@ -3028,7 +3017,7 @@ const medalClass = (rank: number) => {
       )}
 
       {isDetailedRankingModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
           <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-6 max-h-[80vh] overflow-y-auto shadow-2xl animate-slideUp">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[16px] font-semibold text-gray-900">純増ランキング</h2>
@@ -3041,8 +3030,8 @@ const medalClass = (rank: number) => {
       )}
 
       {withdrawNotice && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center modal-overlay">
-          <div className="bg-white rounded-3xl p-6 w-[88%] max-w-sm text-center animate-slideUp shadow-2xl">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center a-scrim">
+          <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
             {withdrawNotice.type === "pending" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し申請中</p><p className="text-[13px] text-gray-500">この画面をスタッフに見せてください</p></>)}
             {withdrawNotice.type === "approved" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し承認</p><p className="text-[13px] text-gray-500">{withdrawNotice.amount} が引き出されました</p></>)}
             {withdrawNotice.type === "rejected" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し却下</p><p className="text-[13px] text-gray-500">引き出しが却下されました</p></>)}

@@ -421,11 +421,17 @@ export default function StoreMyPage() {
           animation-delay: var(--tech-reveal-delay, 0s);
         }
         /* 紙のカードではなく計器の板に。上端の金の線が読み込み位置を示す。 */
+        /* 面はガラス。枠線をやめ、上端の光と内側の縁で輪郭を出す */
         .profile-card {
           position: relative;
+          border-radius: 30px;
           background: #fff;
-          border: 1px solid rgba(60,60,67,0.10);
-          box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+          border: none;
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            inset 0 0 0 1px rgba(255,255,255,0.4),
+            0 2px 8px rgba(0,0,0,0.03),
+            0 14px 38px rgba(0,0,0,0.07);
           overflow: hidden;
         }
         .profile-card::before {
@@ -455,10 +461,16 @@ export default function StoreMyPage() {
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
         }
-        .modal-overlay {
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(4px);
-          -webkit-backdrop-filter: blur(4px);
+        /* 幕は globals.css の .a-scrim に統一した */
+
+        /* ぼかしが使えない環境で半透明にすると、後ろの文字が透けて読めなくなる。
+           使えるときだけガラスにする。 */
+        @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+          .profile-card {
+            background: rgba(255,255,255,0.66);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+          }
         }
       `}</style>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
@@ -474,7 +486,7 @@ export default function StoreMyPage() {
         </div>
 
         {/* Profile Card */}
-        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
+        <div className="mt-6 profile-card p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
           {/* Icon Section */}
           <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
             <div className="relative shrink-0">
@@ -539,7 +551,7 @@ export default function StoreMyPage() {
                   type="text"
                   value={draftName}
                   onChange={e => setDraftName(e.target.value)}
-                  className="h-11 w-full rounded-2xl border-2 border-[#F2A900] bg-white px-4 text-[15px] outline-none focus:ring-2 focus:ring-[#F2A900]/20"
+                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -569,7 +581,7 @@ export default function StoreMyPage() {
                 <textarea
                   value={draftDescription}
                   onChange={e => setDraftDescription(e.target.value)}
-                  className="h-24 w-full rounded-2xl border-2 border-[#F2A900] bg-white px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-[#F2A900]/20 resize-none"
+                  className="h-24 w-full px-4 py-3 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -600,7 +612,7 @@ export default function StoreMyPage() {
                   type="text"
                   value={draftPostalCode}
                   onChange={e => setDraftPostalCode(e.target.value)}
-                  className="h-11 w-full rounded-2xl border-2 border-[#F2A900] bg-white px-4 text-[15px] outline-none focus:ring-2 focus:ring-[#F2A900]/20"
+                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -628,7 +640,7 @@ export default function StoreMyPage() {
                   type="text"
                   value={draftAddressLine}
                   onChange={e => setDraftAddressLine(e.target.value)}
-                  className="h-11 w-full rounded-2xl border-2 border-[#F2A900] bg-white px-4 text-[15px] outline-none focus:ring-2 focus:ring-[#F2A900]/20"
+                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -656,7 +668,7 @@ export default function StoreMyPage() {
                   type="text"
                   value={draftAddressDetail}
                   onChange={e => setDraftAddressDetail(e.target.value)}
-                  className="h-11 w-full rounded-2xl border-2 border-[#F2A900] bg-white px-4 text-[15px] outline-none focus:ring-2 focus:ring-[#F2A900]/20"
+                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -688,7 +700,7 @@ export default function StoreMyPage() {
                   setEditingField(null)
                   setError("")
                 }}
-                className="flex-1 h-12 rounded-2xl bg-gray-100 text-[15px] font-semibold text-gray-700 hover:bg-gray-200 transition-all active:scale-98"
+                className="a-btn a-btn-glass" style={{ flex: 1 }}
               >
                 キャンセル
               </button>
@@ -696,7 +708,7 @@ export default function StoreMyPage() {
                 type="button"
                 onClick={saveProfile}
                 disabled={saving}
-                className="flex-1 h-12 rounded-2xl bg-gradient-to-br from-[#F2A900] to-[#D4910A] text-[15px] font-semibold text-white disabled:opacity-60 shadow-md hover:shadow-lg transition-all active:scale-98"
+                className="a-btn a-btn-filled" style={{ flex: 1 }}
               >
                 {saving ? "保存中..." : "保存する"}
               </button>
@@ -705,7 +717,7 @@ export default function StoreMyPage() {
         </div>
 
         {/* Blind Settings Card */}
-        <div className="mt-4 profile-card rounded-3xl p-6 animate-slideUp">
+        <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
             <FiTarget className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">ブラインド設定</p>
@@ -761,7 +773,7 @@ export default function StoreMyPage() {
         </div>
 
         {/* SNS Links Card */}
-        <div className="mt-4 profile-card rounded-3xl p-6 animate-slideUp">
+        <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
             <FiGlobe className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
@@ -831,7 +843,7 @@ export default function StoreMyPage() {
         </div>
 
         {/* Subscription Card */}
-        <div className="mt-4 profile-card rounded-3xl p-6 animate-slideUp">
+        <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
             <FiCreditCard className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
@@ -984,8 +996,8 @@ export default function StoreMyPage() {
 
         {/* Cancel Subscription Confirm Modal */}
         {showCancelConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
-            <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+          <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
+            <div className="a-dialog w-full max-w-sm p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
                   <FiAlertCircle className="text-orange-600" size={24} />
@@ -1045,8 +1057,8 @@ export default function StoreMyPage() {
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay px-4">
-            <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animate-slideUp">
+          <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
+            <div className="a-dialog w-full max-w-sm p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
                   <FiAlertCircle className="text-red-600" size={24} />

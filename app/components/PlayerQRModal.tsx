@@ -16,7 +16,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-[300] flex flex-col justify-end"
-      style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
       onClick={onClose}
     >
       <style>{`
@@ -41,9 +41,10 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
       {/* Sheet — stop click propagation so tapping inside doesn't close */}
       <div
         className="qr-sheet"
-        style={{ background: '#fff', borderRadius: '28px 28px 0 0', padding: '12px 24px 48px' }}
+        style={{ background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', borderRadius: '34px 34px 0 0', padding: '12px 24px 48px' }}
         onClick={e => e.stopPropagation()}
       >
+        <div className="a-grabber" style={{ marginTop: 0, marginBottom: 14 }} />
         {/* Handle bar */}
         <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
 
