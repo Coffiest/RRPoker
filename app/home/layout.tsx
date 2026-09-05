@@ -27,5 +27,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   }, [router])
 
   if (!ready) return null
-  return <>{children}</>
+  // 地を敷く。真っ白のままではガラスの面が透ける先を持てず、素材に見えない。
+  // タイマー画面は自前で全面に背景を敷いているので、ここの影響を受けない。
+  return <div className="a-app-bg">{children}</div>
 }
