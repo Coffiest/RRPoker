@@ -460,10 +460,32 @@ export default function MyPage() {
         .mp-animate { animation: techReveal .5s cubic-bezier(.22,1,.36,1) both; animation-delay: var(--tech-reveal-delay, 0s); }
         @media (prefers-reduced-motion: reduce) { .mp-animate { animation: none; } }
         .mp-sheet   { animation: sheetUp .38s cubic-bezier(.22,1,.36,1) both; }
-        .mp-card { background: #fff; border-radius: 20px; overflow: hidden; }
-        .mp-row { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        /* 面はガラス。下の地が透け、上端に光が溜まる */
+        .mp-card {
+          background: #fff;
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            inset 0 0 0 1px rgba(255,255,255,0.42),
+            0 2px 8px rgba(0,0,0,0.03),
+            0 14px 38px rgba(0,0,0,0.07);
+          border-radius: 26px;
+          overflow: hidden;
+        }
+        /* 行は押した瞬間に沈む(離してからではない) */
+        .mp-card button:active { background: rgba(60,60,67,0.06); }
+        .mp-row { display: flex; align-items: center; padding: 15px 18px; border-bottom: 1px solid var(--a-sep); }
         .mp-row:last-child { border-bottom: none; }
         button { -webkit-tap-highlight-color: transparent; }
+
+        /* ぼかしが使えない環境で半透明にすると、後ろの文字が透けて読めなくなる。
+           使えるときだけガラスにする。 */
+        @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+          .mp-card {
+            background: rgba(255,255,255,0.68);
+            backdrop-filter: blur(28px) saturate(190%);
+            -webkit-backdrop-filter: blur(28px) saturate(190%);
+          }
+        }
       `}</style>
 
       <HomeHeader
@@ -557,15 +579,15 @@ export default function MyPage() {
                   onChange={e => setDraftName(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") { setDraftName(profile.name ?? ""); setIsEditingName(false) } }}
                   autoFocus
-                  style={{ flex: 1, height: 44, borderRadius: 12, border: '1.5px solid #F2A900', padding: '0 14px', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#1C1C1E' }}
+                  style={{ flex: 1, height: 44, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.32)', padding: '0 16px', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#1C1C1E' }}
                   placeholder="名前を入力"
                 />
                 <button type="button" onClick={saveName} disabled={savingName}
-                  style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: savingName ? 0.6 : 1 }}>
+                  style={{ width: 44, height: 44, borderRadius: 999, background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: savingName ? 0.6 : 1, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
                   <FiCheck size={18} style={{ color: '#fff' }} />
                 </button>
                 <button type="button" onClick={() => { setDraftName(profile.name ?? ""); setIsEditingName(false) }}
-                  style={{ width: 44, height: 44, borderRadius: 12, background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(120,120,128,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   <FiX size={18} style={{ color: '#3C3C43' }} />
                 </button>
               </div>
@@ -581,7 +603,7 @@ export default function MyPage() {
 
             {/* Player ID */}
             <button type="button" onClick={copyPlayerId}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F2F2F7', borderRadius: 10, padding: '8px 12px', border: 'none', cursor: 'pointer', marginBottom: 14, width: '100%' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(120,120,128,0.10)', borderRadius: 999, padding: '10px 14px', border: 'none', cursor: 'pointer', marginBottom: 14, width: '100%' }}>
               <span style={{ fontSize: 13, fontWeight: 500, color: '#8E8E93', fontFamily: 'monospace', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
               {copySuccess
                 ? <FiCheck size={14} style={{ color: '#34C759', flexShrink: 0 }} />
@@ -626,7 +648,7 @@ export default function MyPage() {
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
                   style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
-                  style={{ height: 40, padding: '0 18px', borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0 }}>
+                  style={{ height: 42, padding: '0 20px', borderRadius: 999, background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)', border: 'none', fontSize: 13, fontWeight: 700, color: '#1C1C1E', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
                   保存
                 </button>
               </div>
@@ -663,20 +685,10 @@ export default function MyPage() {
                 setShowInStore(next)
                 await setDoc(doc(db, "users", uid), { showInStore: next }, { merge: true })
               }}
-              style={{
-                width: 51, height: 31, borderRadius: 16, border: 'none', cursor: 'pointer', flexShrink: 0,
-                background: showInStore ? '#F2A900' : '#E5E5EA',
-                transition: 'background 0.2s',
-                position: 'relative',
-              }}
-            >
-              <div style={{
-                position: 'absolute', top: 2, width: 27, height: 27, borderRadius: '50%', background: '#fff',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                transition: 'left 0.2s',
-                left: showInStore ? 22 : 2,
-              }} />
-            </button>
+              role="switch"
+              aria-checked={showInStore}
+              className="a-switch"
+            />
           </div>
         </div>
 
@@ -706,9 +718,9 @@ export default function MyPage() {
       {isEditingExtProfile && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setIsEditingExtProfile(false)}>
-          <div className="mp-sheet" style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, padding: '12px 20px 48px' }}
+          <div className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 48px' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
+            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 20 }} />
             <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 22 }}>プロフィール詳細を編集</p>
 
             {/* 地域 */}
@@ -733,7 +745,7 @@ export default function MyPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
-                    style={{ padding: '9px 18px', borderRadius: 20, border: `1.5px solid ${draftPokerHistory === opt ? '#F2A900' : 'rgba(0,0,0,0.12)'}`, background: draftPokerHistory === opt ? 'rgba(242,169,0,0.1)' : '#F2F2F7', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#D4910A' : '#3C3C43', cursor: 'pointer' }}>
+                    style={{ padding: '11px 20px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(242,169,0,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(242,169,0,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#B57F00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
                     {opt}
                   </button>
                 ))}
@@ -752,9 +764,9 @@ export default function MyPage() {
       {showDeleteConfirm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setShowDeleteConfirm(false)}>
-          <div className="mp-sheet" style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, padding: '12px 20px 40px' }}
+          <div className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 40px' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
+            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 20 }} />
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               <div style={{ width: 44, height: 44, borderRadius: 14, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <FiAlertCircle size={22} style={{ color: '#fff' }} />

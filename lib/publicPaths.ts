@@ -32,7 +32,6 @@ export const PUBLIC_PATHS = [
   '/verify-email',
   '/privacy',
   '/terms',
-  '/devpreview',
 ] as const
 
 /**

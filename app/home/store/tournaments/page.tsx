@@ -662,7 +662,7 @@ export default function TournamentsPage() {
               <div style={{ position: 'relative', marginBottom: 12 }}>
                 <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input placeholder="トーナメント名で検索…" value={historySearch} onChange={e => setHistorySearch(e.target.value)}
-                  style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px solid var(--sep)', background: '#fff', paddingLeft: 32, paddingRight: historySearch ? 32 : 12, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', paddingLeft: 34, paddingRight: historySearch ? 34 : 14, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {historySearch && (
                   <button onClick={() => setHistorySearch("")} className="itap"
@@ -824,7 +824,7 @@ export default function TournamentsPage() {
 
               {/* ── 基本情報 group ── */}
               <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>基本情報</p>
-              <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
                 {/* Name row */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
                   <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>名称</span>
@@ -859,16 +859,14 @@ export default function TournamentsPage() {
                     <p style={{ fontSize: 14, fontWeight: 500, margin: 0, color: 'var(--label)' }}>毎週繰り返す</p>
                     <p style={{ fontSize: 11, color: 'var(--label2)', margin: '1px 0 0' }}>同じ曜日に毎週自動生成</p>
                   </div>
-                  <button type="button" onClick={() => setRepeatWeekly(v => !v)} className="itap"
-                    style={{ width: 50, height: 30, borderRadius: 15, background: repeatWeekly ? 'var(--gold)' : 'rgba(120,120,128,0.22)', border: 'none', position: 'relative', transition: 'background 0.22s', flexShrink: 0 }}>
-                    <span style={{ position: 'absolute', width: 24, height: 24, borderRadius: '50%', background: '#fff', top: 3, left: repeatWeekly ? 23 : 3, transition: 'left 0.22s', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}/>
-                  </button>
+                  <button type="button" role="switch" aria-checked={repeatWeekly}
+                    onClick={() => setRepeatWeekly(v => !v)} className="a-switch" />
                 </div>
               </div>
 
               {/* ── 費用・スタック group ── */}
               <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>費用・スタック設定</p>
-              <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
                 {[
                   { label: 'エントリー', feeKey: 'entryFee', stackKey: 'entryStack' },
                   { label: 'リエントリー', feeKey: 'reentryFee', stackKey: 'reentryStack' },
@@ -946,11 +944,11 @@ export default function TournamentsPage() {
 
               {/* ── Save button ── */}
               <button onClick={handleSave} className="itap" style={{
-                width: '100%', height: 52, borderRadius: 16,
-                background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)',
-                border: 'none', color: '#fff', fontSize: 16, fontWeight: 800,
+                width: '100%', height: 54, borderRadius: 999,
+                background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                border: 'none', color: '#1C1C1E', fontSize: 16, fontWeight: 800,
                 letterSpacing: '-0.2px',
-                boxShadow: '0 4px 16px rgba(242,169,0,0.35)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
                 marginBottom: 4,
               }}>
                 {editData ? "変更を保存" : "作成する"}
@@ -1161,7 +1159,7 @@ export default function TournamentsPage() {
                         {blindContextMenuIdx === idx && (
                           <>
                             <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setBlindContextMenuIdx(null)}/>
-                            <div style={{ position: 'absolute', right: 40, top: 4, zIndex: 200, background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid var(--sep)', overflow: 'hidden', minWidth: 170 }}>
+                            <div className="a-dialog" style={{ position: 'absolute', right: 40, top: 4, zIndex: 200, overflow: 'hidden', minWidth: 170, transformOrigin: 'top right' }}>
                               {([["この前にレベルを追加", () => insertLevelBefore(idx)], ["この後にレベルを追加", () => insertLevelAfter(idx)]] as [string, () => void][]).map(([label, action]) => (
                                 <button key={label} type="button" onClick={action} className="itap"
                                   style={{ width: '100%', padding: '12px 16px', textAlign: 'left', fontSize: 13, color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
@@ -1183,11 +1181,11 @@ export default function TournamentsPage() {
                 {/* Add level/break */}
                 <div style={{ padding: '10px 16px', borderTop: '1px solid var(--sep)', flexShrink: 0, display: 'flex', gap: 8 }}>
                   <button onClick={addBlindLevel} className="itap"
-                    style={{ flex: 1, height: 40, borderRadius: 12, background: 'rgba(242,169,0,0.08)', border: '1.5px solid rgba(242,169,0,0.35)', color: 'var(--gold-dk)', fontSize: 13, fontWeight: 700 }}>
+                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(242,169,0,0.14)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.20)', color: '#B57F00', fontSize: 13, fontWeight: 700 }}>
                     ＋ レベル
                   </button>
                   <button onClick={addBlindBreak} className="itap"
-                    style={{ flex: 1, height: 40, borderRadius: 12, background: 'rgba(0,122,255,0.06)', border: '1.5px solid rgba(0,122,255,0.25)', color: '#007AFF', fontSize: 13, fontWeight: 700 }}>
+                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(0,122,255,0.10)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(0,122,255,0.18)', color: '#007AFF', fontSize: 13, fontWeight: 700 }}>
                     ＋ ブレイク
                   </button>
                 </div>
@@ -1199,16 +1197,16 @@ export default function TournamentsPage() {
               {blindModalView === "list" ? (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={openNewBlindPreset} className="itap" style={{
-                    flex: 1, height: 50, borderRadius: 14,
-                    background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)',
-                    border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
-                    boxShadow: '0 4px 14px rgba(242,169,0,0.32)',
+                    flex: 1, height: 52, borderRadius: 999,
+                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                    border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}>
                     <FiPlus size={16}/> 新規作成
                   </button>
                   <button onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="itap" style={{
-                    flex: 1, height: 50, borderRadius: 14,
+                    flex: 1, height: 52, borderRadius: 999,
                     background: 'var(--label)',
                     border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1220,15 +1218,15 @@ export default function TournamentsPage() {
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={saveBlindPreset} className="itap" style={{
-                    flex: 2, height: 50, borderRadius: 14,
-                    background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)',
-                    border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
-                    boxShadow: '0 4px 14px rgba(242,169,0,0.32)',
+                    flex: 2, height: 52, borderRadius: 999,
+                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                    border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
                   }}>
                     保存する
                   </button>
                   <button onClick={() => setBlindModalView("list")} className="itap" style={{
-                    flex: 1, height: 50, borderRadius: 14,
+                    flex: 1, height: 52, borderRadius: 999,
                     background: 'rgba(120,120,128,0.14)', border: 'none',
                     color: 'var(--label)', fontSize: 14, fontWeight: 600,
                   }}>
@@ -1271,7 +1269,7 @@ export default function TournamentsPage() {
                 <div>
                   <p className="section-hd">プリセット名</p>
                   <input value={aiPresetName} onChange={e => setAiPresetName(e.target.value)} placeholder="例: 3時間RC構成"
-                    style={{ width: '100%', height: 40, borderRadius: 11, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
+                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
                 </div>
                 <div>
                   <p className="section-hd">使用チップ</p>
@@ -1287,7 +1285,7 @@ export default function TournamentsPage() {
                 <div>
                   <p className="section-hd">スタートスタック（チップ合計）</p>
                   <input type="number" value={aiStack} onChange={e => setAiStack(e.target.value)} placeholder="例: 30000"
-                    style={{ width: '100%', height: 40, borderRadius: 11, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
+                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
                 </div>
                 <div>
                   <p className="section-hd">RC時間（スタートから何時間）</p>

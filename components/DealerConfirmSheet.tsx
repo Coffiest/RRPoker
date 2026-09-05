@@ -72,7 +72,7 @@ export default function DealerConfirmSheet({
         style={{
           transform: 'rotate(180deg)',
           width: '100%', maxWidth: 340,
-          background: '#fff', borderRadius: 22, overflow: 'hidden',
+          background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRadius: 34, overflow: 'hidden',
           boxShadow: '0 18px 50px rgba(0,0,0,0.28)',
         }}
       >
@@ -90,7 +90,7 @@ export default function DealerConfirmSheet({
           {/* 誰の操作か。卓で複数の端末を扱うときに取り違えないため。 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 14 }}>
             <div style={{
-              width: 34, height: 34, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+              width: 38, height: 38, borderRadius: 999, overflow: 'hidden', flexShrink: 0,
               background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               {playerIconUrl
@@ -128,7 +128,7 @@ export default function DealerConfirmSheet({
               disabled={busy}
               className="con-btn"
               style={{
-                flex: 1, height: 50, borderRadius: 14, background: '#F2F2F7', border: 'none',
+                flex: 1, height: 52, borderRadius: 999, background: 'rgba(120,120,128,0.12)', border: 'none',
                 fontSize: 13, fontWeight: 700, color: '#3C3C43', cursor: busy ? 'default' : 'pointer',
                 opacity: busy ? 0.5 : 1,
               }}
@@ -141,7 +141,7 @@ export default function DealerConfirmSheet({
               disabled={busy}
               className="con-btn"
               style={{
-                flex: 1, height: 50, borderRadius: 14, border: 'none',
+                flex: 1, height: 52, borderRadius: 999, border: 'none',
                 background: 'linear-gradient(135deg,#F2A900,#D4910A)',
                 fontSize: 13, fontWeight: 800, color: '#fff', cursor: busy ? 'default' : 'pointer',
                 boxShadow: '0 4px 14px rgba(242,169,0,0.38)',

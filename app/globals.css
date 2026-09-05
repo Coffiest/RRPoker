@@ -485,10 +485,15 @@ body {
 /* 面。紙のカードではなく、計器の板に見せる */
 .con-panel {
   position: relative;
+  /* 白い板ではなくガラス。枠線をやめ、上端の光と内側の縁で輪郭を出す */
   background: #fff;
-  border-radius: 18px;
-  border: 1px solid rgba(60, 60, 67, 0.10);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 26px;
+  border: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42),
+    0 2px 8px rgba(0, 0, 0, 0.03),
+    0 14px 38px rgba(0, 0, 0, 0.07);
   overflow: hidden;
 }
 /* 上端の細い金の線。読み込み位置を示す指標のように見せる */
@@ -530,6 +535,8 @@ body {
   text-transform: uppercase;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
+/* 離してからではなく、押した瞬間に沈む */
+.con-btn { transition: transform var(--a-press), box-shadow var(--a-press), filter var(--a-press); }
 .con-btn:active { transform: scale(0.965); filter: brightness(0.95); }
 
 /* 数値・コードは等幅で桁を揃える */
@@ -594,9 +601,7 @@ body {
    -------------------------------------------------------------------------- */
 .a-glass {
   position: relative;
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  background: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),      /* 上端に当たる光 */
     inset 0 0 0 1px rgba(255, 255, 255, 0.35),    /* 内側の縁 */
@@ -604,9 +609,7 @@ body {
 }
 /* 大きい面は厚く。ぼかしを強め、影を深くする。 */
 .a-glass-thick {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  background: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4),
@@ -659,9 +662,7 @@ body {
 
 /* ガラス。並列の選択肢に使う。下の内容が透けるので、面の上に置ける。 */
 .a-btn-glass {
-  background: rgba(255, 255, 255, 0.58);
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  background: #fff;
   color: var(--a-label);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
@@ -792,16 +793,14 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
   animation: aScrimIn 280ms var(--a-spring) both;
 }
 @keyframes aScrimIn { from { opacity: 0 } to { opacity: 1 } }
 
 .a-sheet {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  /* 下に何が来るか選べないので、薄すぎると後ろの文字と重なって読めなくなる。
+     ぼかしで素材感は残したまま、字が読める濃さまで上げる。 */
+  background: #fff;
   border-radius: var(--a-r-xl) var(--a-r-xl) 0 0;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
@@ -816,9 +815,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 }
 
 .a-dialog {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  background: #fff;
   border-radius: var(--a-r-xl);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), var(--a-shadow-lg);
   animation: aDialogIn 360ms var(--a-spring-bounce) both;
@@ -888,16 +885,14 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .a-glass, .a-glass-thick, .a-btn-glass, .a-sheet, .a-dialog {
     background: #fff;
     backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
-  .a-scrim { backdrop-filter: none; -webkit-backdrop-filter: none }
+  .a-scrim { backdrop-filter: none }
 }
 @media (prefers-contrast: more) {
   .a-card, .a-list { box-shadow: inset 0 0 0 1px rgba(60,60,67,0.32) }
   .a-btn-tinted { background: rgba(242,169,0,0.24); color: #7A5600 }
   .a-btn-glass, .a-glass, .a-glass-thick, .a-sheet, .a-dialog {
-    background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none;
-  }
+    background: #fff; backdrop-filter: none;  }
 }
 
 /* --------------------------------------------------------------------------
@@ -926,9 +921,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 /* 面。白い紙ではなくガラス。下の色が透け、上端に光が溜まる。枠線は引かない */
 .section-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4),
@@ -957,9 +950,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 /* 副の操作。金の枠線ではなく、透過と光の縁で並列を示す */
 .outline-gold-btn {
   border-radius: var(--a-capsule);
-  background: rgba(255, 255, 255, 0.58);
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  background: #fff;
   border: none;
   color: var(--a-label);
   box-shadow:
@@ -976,6 +967,29 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .gold-btn:active, .outline-gold-btn:active { transform: none }
 }
 @media (prefers-reduced-transparency: reduce) {
-  .section-card, .outline-gold-btn { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none }
+  .section-card, .outline-gold-btn { background: #fff; backdrop-filter: none }
 }
 
+/* --------------------------------------------------------------------------
+   11. ガラスを使えるときだけガラスにする
+
+   backdrop-filter に対応していない環境で半透明のまま出すと、後ろの文字が
+   そのまま透けて重なり、読めなくなる。既定は不透明にしておき、ぼかしが
+   使えるときだけ半透明へ切り替える。
+
+   なお、ここで -webkit-backdrop-filter を自分で書いてはいけない。書くと
+   Lightning CSS が標準の backdrop-filter を落として -webkit- だけを残し、
+   その別名を持たない最近の Chrome ではぼかしが一切効かなくなる。
+   必要な接頭辞はビルダーに任せる。
+   -------------------------------------------------------------------------- */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .a-glass         { background: rgba(255, 255, 255, 0.62); backdrop-filter: blur(24px) saturate(190%) }
+  .a-glass-thick   { background: rgba(255, 255, 255, 0.78); backdrop-filter: blur(40px) saturate(200%) }
+  .a-btn-glass     { background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
+  .a-sheet         { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(40px) saturate(200%) }
+  .a-dialog        { background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(40px) saturate(200%) }
+  .a-scrim         { backdrop-filter: blur(3px) }
+  .section-card    { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(28px) saturate(190%) }
+  .outline-gold-btn{ background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
+  .con-panel       { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(26px) saturate(190%) }
+}

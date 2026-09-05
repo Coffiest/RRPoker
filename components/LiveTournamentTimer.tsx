@@ -186,7 +186,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
   return (
     <div
       className="con-panel"
-      style={{ background: '#fff', padding: '14px 14px 12px', position: 'relative' }}
+      style={{ padding: '16px 16px 14px', position: 'relative' }}
     >
       {/* 大会名とレベル */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
