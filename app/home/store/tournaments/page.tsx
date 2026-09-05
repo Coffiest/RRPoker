@@ -151,36 +151,18 @@ export default function TournamentsPage() {
   const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
   const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
   const [bulkDuration, setBulkDuration] = useState("")
-  // ── Responsive scale constants (design bases) ─────────────────────────
+  // モーダルの幅の上限。画面がこれより狭ければ、画面いっぱいに広がる。
+  //
+  // 以前はここで transform: scale() を掛けて、決め打ちの寸法で作った面を
+  // 画面に収まるまで縮めていた。iPhone(393px)では ブラインド 0.70倍 /
+  // トーナメント 0.81倍 になり、面が画面幅より内側に収まるうえ、中の文字まで
+  // 一緒に縮んで端末の文字サイズ設定より小さくなっていた。
+  // 縮めるのではなく、幅に合わせて中身が流れるようにする。
   const BLIND_MODAL_W = 560
   const BLIND_MODAL_H = 720
   const TOURN_MODAL_W = 448
-  const TOURN_MODAL_H = 700
   const AI_MODAL_W = 390
   const AI_MODAL_H = 580
-
-  const [blindModalScale, setBlindModalScale] = useState(1)
-  const [tournModalScale, setTournModalScale] = useState(1)
-  const [aiModalScale, setAiModalScale] = useState(1)
-  const [tabBarScale, setTabBarScale] = useState(1)
-
-  useEffect(() => {
-    function computeScales() {
-      const vw = window.innerWidth
-      const vh = window.innerHeight
-      const contentW = vw - 32
-
-      setBlindModalScale(Math.min(1, vw / BLIND_MODAL_W, vh / BLIND_MODAL_H))
-      setTournModalScale(Math.min(1, (vw - 32) / TOURN_MODAL_W, (vh - 40) / TOURN_MODAL_H))
-      setAiModalScale(Math.min(1, vw / AI_MODAL_W, (vh * 0.92) / AI_MODAL_H))
-
-      const TAB_NATURAL_W = 8 * 44 + 7 * 8
-      setTabBarScale(Math.min(1, contentW / TAB_NATURAL_W))
-    }
-    computeScales()
-    window.addEventListener("resize", computeScales)
-    return () => window.removeEventListener("resize", computeScales)
-  }, [])
 
   // AI struct generator
   const [isAiOpen, setIsAiOpen] = useState(false)
@@ -626,12 +608,10 @@ export default function TournamentsPage() {
         <div className="su2">
           <p className="section-hd">週間スケジュール</p>
           {/* Tab bar */}
-          <div style={{ marginBottom: 14, overflow: 'hidden' }}>
-            <div style={{
-              display: 'flex', gap: 8,
-              transform: `scale(${tabBarScale})`, transformOrigin: 'left center',
-              width: tabBarScale < 1 ? `${100 / tabBarScale}%` : undefined,
-            }}>
+          {/* 縮小して詰め込むと、44px の丸が 39px まで小さくなり、指で外しやすくなる。
+              大きさは変えず、入りきらないときは横に送れるようにする。 */}
+          <div style={{ marginBottom: 14, overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingRight: 4 }}>
               {([...DAYS, "履歴"] as string[]).map(tab => {
                 const isAct   = activeTab === tab
                 const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
@@ -802,7 +782,6 @@ export default function TournamentsPage() {
             width: '100%', maxWidth: TOURN_MODAL_W,
             maxHeight: '92dvh', background: '#F2F2F7',
             borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column',
-            transform: `scale(${tournModalScale})`, transformOrigin: 'center bottom',
             boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
             paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
           }}>
@@ -968,7 +947,6 @@ export default function TournamentsPage() {
             borderRadius: '28px 28px 0 0',
             background: blindModalView === "edit" ? '#F2F2F7' : '#fff',
             overflow: 'hidden',
-            transform: `scale(${blindModalScale})`, transformOrigin: 'center bottom',
             boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
             paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
           }}>
@@ -1244,9 +1222,8 @@ export default function TournamentsPage() {
       {isAiOpen && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
           <div style={{
-            width: AI_MODAL_W, maxHeight: `min(${AI_MODAL_H}px, 90vh)`,
+            width: '100%', maxWidth: AI_MODAL_W, maxHeight: `min(${AI_MODAL_H}px, 90dvh)`,
             borderRadius: '20px 20px 0 0', background: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-            transform: `scale(${aiModalScale})`, transformOrigin: 'center bottom',
             boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
