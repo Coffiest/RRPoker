@@ -2473,7 +2473,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.10.1</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.10.2</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2785,18 +2785,24 @@ const medalClass = (rank: number) => {
             {/* つまみ。掴める場所であることの合図 */}
             <div className="a-grabber" />
 
-            {/* 固定ヘッダー */}
-            <div className="relative flex min-h-[44px] items-center justify-center px-6 pt-3 pb-2 flex-shrink-0">
-              <button type="button" onClick={() => setSelectedStore(null)}
-                className="a-btn a-btn-glass a-btn-icon absolute left-5" style={{ minHeight: 34, width: 34, color: 'var(--a-label-2)' }}
+            {/* 固定ヘッダー。
+                絶対配置は使わない。.a-btn は position: relative を持っており、それが
+                Tailwind の absolute(@layer utilities)より強いため、left/right が
+                「その場からのズラし」として効いてしまい、閉じるとお気に入りが
+                中央で重なる。左右に振り分けるだけなら両端揃えで足りる。
+                左右のボタンは同じ 34px なので、見出しはこれで中央に来る。 */}
+            <div className="flex min-h-[44px] items-center justify-between px-5 pt-3 pb-2 flex-shrink-0">
+              <button type="button" onClick={() => setSelectedStore(null)} aria-label="閉じる"
+                className="a-btn a-btn-glass a-btn-icon" style={{ minHeight: 34, width: 34, color: 'var(--a-label-2)' }}
               ><FiX size={17} /></button>
+              <h2 className="a-heading">店舗詳細</h2>
               <button type="button" onClick={() => toggleFavoriteStore(selectedStore.id)}
-                className="a-btn a-btn-icon absolute right-5"
+                aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)}
+                className="a-btn a-btn-icon"
                 style={favoriteStores.includes(selectedStore.id)
                   ? { minHeight: 34, width: 34, background: 'rgba(242,169,0,0.16)', color: '#B57F00', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
                   : { minHeight: 34, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
               ><FiStar size={15} /></button>
-              <h2 className="a-heading">店舗詳細</h2>
             </div>
 
             {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、

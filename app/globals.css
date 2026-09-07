@@ -623,6 +623,11 @@ body {
    共通して、離してからではなく押した瞬間に沈む。
    -------------------------------------------------------------------------- */
 .a-btn {
+  /* 注意: この position: relative は、Tailwind の `absolute` より強い。
+     globals.css はレイヤーに入っておらず、@layer utilities に入っている
+     Tailwind のユーティリティは、レイヤー外の宣言に負けるため。
+     .a-btn を絶対配置したいときは、クラスではなく style で position を指定するか、
+     そもそも絶対配置を使わずに並べる。 */
   position: relative;
   display: inline-flex;
   align-items: center;
