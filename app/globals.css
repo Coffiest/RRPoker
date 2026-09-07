@@ -998,3 +998,137 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .outline-gold-btn{ background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
   .con-panel       { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(26px) saturate(190%) }
 }
+
+/* ==========================================================================
+   12. 動きと質感
+   Apple の骨格(輪郭・素材・階層・字間)はそのまま。その上に、面が生きて
+   見えるだけの動きを足す。brik.space が並べている分類 —— キネティック・
+   タイポグラフィ / ガラス / 粒子・モーション / スクロール連動 —— を、
+   外部の生成物を持ち込まずに、この地の色と金だけで組む。
+
+   足していない色は無い。使うのは #F2A900 と灰だけ。書体も変えない。
+   動かすのは、位置・不透明度・ぼかし・字幅だけ。
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   12-1. 環境光
+   地に、ごく淡い金の光をゆっくり流す。止まった紙ではなく、空気のある場所に
+   見せるため。一周 48 秒。速いと視界の端で気が散る。
+   -------------------------------------------------------------------------- */
+.a-app-bg::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(38% 30% at 22% 18%, rgba(242, 169, 0, 0.11) 0%, transparent 70%),
+    radial-gradient(32% 26% at 78% 32%, rgba(242, 169, 0, 0.07) 0%, transparent 72%),
+    radial-gradient(44% 34% at 50% 88%, rgba(242, 169, 0, 0.05) 0%, transparent 74%);
+  animation: aAurora 48s ease-in-out infinite;
+  will-change: transform;
+}
+/* 地の直接の子は光の上に置く。光は背景であって、内容を覆わない。 */
+.a-app-bg > * { position: relative; z-index: 1 }
+
+@keyframes aAurora {
+  0%,  100% { transform: translate3d(0, 0, 0)        scale(1)    }
+  33%       { transform: translate3d(3%, -2%, 0)     scale(1.06) }
+  66%       { transform: translate3d(-2.5%, 2.5%, 0) scale(1.03) }
+}
+
+/* --------------------------------------------------------------------------
+   12-2. 押した時の光沢
+   カプセルの上を、光がひと筋だけ通る。押した瞬間に始まり、離す前に消える。
+   面が硬い板ではなく、光を返す物であることを、触った時だけ示す。
+   -------------------------------------------------------------------------- */
+.a-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 66%
+  );
+  transform: translateX(-120%);
+}
+.a-btn:active::after { animation: aSheen 460ms cubic-bezier(0.32, 0.72, 0, 1) }
+@keyframes aSheen {
+  0%   { opacity: 0;    transform: translateX(-120%) }
+  22%  { opacity: 0.85; }
+  100% { opacity: 0;    transform: translateX(120%)  }
+}
+/* 塗りの上では白の筋が強すぎる。金の面では控えめにする。 */
+.a-btn-filled::after { background: linear-gradient(100deg, transparent 34%, rgba(255,255,255,0.38) 50%, transparent 66%) }
+
+/* --------------------------------------------------------------------------
+   12-3. スクロールで現れる
+   画面に入った面が、下から静かに立ち上がる。読み込みの遅さを隠すためでは
+   なく、いま何が増えたのかを目で追えるようにするため。
+   一度出たものは戻さない(往復すると、読んでいる最中に animation が走る)。
+   -------------------------------------------------------------------------- */
+.a-rise {
+  opacity: 0;
+  transform: translateY(14px) scale(0.985);
+  transition:
+    opacity 520ms var(--a-spring),
+    transform 520ms var(--a-spring);
+  transition-delay: var(--a-rise-delay, 0ms);
+}
+.a-rise.is-in { opacity: 1; transform: none }
+
+/* --------------------------------------------------------------------------
+   12-4. 数字
+   桁の入れ替わりを見せる。金額と時計は、この画面でいちばん見られる要素で、
+   変わったこと自体が情報になる。
+   桁位置がずれないよう、字幅は tabular のまま動かさない。
+   -------------------------------------------------------------------------- */
+.a-kinetic {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: "zero" 1, "tnum" 1;
+}
+.a-kinetic-col {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+}
+.a-kinetic-col > span {
+  display: block;
+  transition: transform 460ms var(--a-spring);
+}
+/* 増えた/減ったが分かるよう、光の色を一瞬だけ乗せる */
+.a-kinetic-up   { animation: aTickUp   700ms ease-out }
+.a-kinetic-down { animation: aTickDown 700ms ease-out }
+@keyframes aTickUp   { 0% { color: #1FA14B } 100% { color: inherit } }
+@keyframes aTickDown { 0% { color: #D70015 } 100% { color: inherit } }
+
+/* --------------------------------------------------------------------------
+   12-5. 稼働しているものは呼吸する
+   進行中のタイマーだけ、面がごくゆっくり明滅する。止まっているものと、
+   動いているものを、数字を読まずに見分けられるようにする。
+   -------------------------------------------------------------------------- */
+.a-breathe { animation: aBreathe 3.6s ease-in-out infinite }
+@keyframes aBreathe {
+  0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,0,0,0.03), 0 14px 38px rgba(0,0,0,0.07) }
+  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(242,169,0,0.10), 0 14px 42px rgba(242,169,0,0.16) }
+}
+
+/* --------------------------------------------------------------------------
+   12-6. 配慮
+   動きを減らす設定では、動きを消すのではなく、静かな等価物にする。
+   出現は最終状態で置き、明滅と流れは止める。数字の色の合図だけは残す
+   (色の変化は前庭系に触らず、増減が分かる手がかりとして要る)。
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .a-app-bg::before { animation: none }
+  .a-btn:active::after { animation: none }
+  .a-breathe { animation: none }
+  .a-kinetic-col > span { transition: none }
+  .a-rise { opacity: 1; transform: none; transition: none }
+}

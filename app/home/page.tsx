@@ -16,6 +16,8 @@ import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking,
 import HandHistoryModal from "./HandHistoryModal"
 import TechBackdrop from "@/components/TechBackdrop"
 import PlayerLiveTournaments from "@/components/PlayerLiveTournaments"
+import KineticNumber from "@/components/KineticNumber"
+import { useRiseOnView } from "@/lib/useRiseOnView"
 import StoreLiveTournamentsPreview from "@/components/StoreLiveTournamentsPreview"
 import { RevealSentinel, useRevealOnScroll } from "@/components/RevealOnScroll"
 import { ConsoleLine, ConsolePanel } from "@/components/ConsolePanel"
@@ -354,6 +356,10 @@ export default function HomePage() {
 
   // ── チップ増減グラフ（入店中）
   const [chipGraphTab, setChipGraphTab] = useState<"7" | "1m" | "all">("all")
+
+  // 画面に入った面を立ち上げる。下にあるカードは、読み込み時に動かしても
+  // 見る前に動きが終わってしまうため。
+  useRiseOnView([currentStoreId])
 
   // ── 店舗詳細モーダル内グラフ（Apple Music/Spotify風の横スクロールシェルフ）
   const [modalChipGraphTab, setModalChipGraphTab] = useState<"7" | "1m" | "all">("all")
@@ -2082,7 +2088,7 @@ const medalClass = (rank: number) => {
             <ChipDisclaimer className="px-1 pb-2" />
 
             {/* ランキング */}
-            <div data-tutorial="store-ranking" className="section-card home-boot" style={{ ['--tech-reveal-delay' as string]: '0.12s' } as React.CSSProperties}>
+            <div data-tutorial="store-ranking" className="section-card a-rise">
               {/* ヘッダー */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -2339,7 +2345,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* 5日間スケジュールタブ */}
-            <div data-tutorial="schedule-section" className="section-card home-boot" style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.20s' } as React.CSSProperties}>
+            <div data-tutorial="schedule-section" className="section-card a-rise" style={{ padding: 0, overflow: 'hidden' }}>
                 {/* ── セクションヘッダー */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 14px' }}>
                   <FiCalendar color="#F2A900" size={15} />
@@ -2473,7 +2479,7 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.10.2</p>
+          <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>ver 1.11.0</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.3)' }}>製作者 : なおゆき</p>
         </footer>
@@ -2847,24 +2853,24 @@ const medalClass = (rank: number) => {
               {(modalBalance !== null || modalNetGain !== null) && (
                 <div className="flex gap-3 mb-5">
                   {modalBalance !== null && (
-                    <div className="flex-1 rounded-2xl p-3" style={{ background: '#F2F2F7' }}>
-                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">残高</p>
-                      <p className="text-[16px] font-bold text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {modalBalance.toLocaleString()}
+                    <div className="flex-1 p-3.5" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
+                      <p className="a-eyebrow mb-1.5">残高</p>
+                      <p className="a-title" style={{ color: 'var(--a-label)' }}>
+                        <KineticNumber value={modalBalance} format={v => v.toLocaleString()} />
                       </p>
                     </div>
                   )}
                   {modalNetGain !== null && (
-                    <div className="flex-1 rounded-2xl p-3" style={{ background: '#F2F2F7' }}>
-                      <p className="text-[10px] font-semibold text-gray-400 mb-1 tracking-wide uppercase">累計チップ増減</p>
+                    <div className="flex-1 p-3.5" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
+                      <p className="a-eyebrow mb-1.5">累計チップ増減</p>
                       <p
-                        className="text-[16px] font-bold"
-                        style={{
-                          fontVariantNumeric: 'tabular-nums',
-                          color: modalNetGain > 0 ? '#10b981' : modalNetGain < 0 ? '#ef4444' : '#1C1C1E',
-                        }}
+                        className="a-title"
+                        style={{ color: modalNetGain > 0 ? '#1FA14B' : modalNetGain < 0 ? '#D70015' : 'var(--a-label)' }}
                       >
-                        {modalNetGain > 0 ? '+' : ''}{modalNetGain.toLocaleString()}
+                        <KineticNumber
+                          value={modalNetGain}
+                          format={v => `${v > 0 ? '+' : ''}${v.toLocaleString()}`}
+                        />
                       </p>
                     </div>
                   )}

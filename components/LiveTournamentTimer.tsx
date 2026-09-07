@@ -1,5 +1,7 @@
 'use client'
 
+import KineticNumber from '@/components/KineticNumber'
+
 import { useEffect, useRef, useState } from 'react'
 import { collection, doc, onSnapshot, query, where, type QuerySnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -185,7 +187,9 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
 
   return (
     <div
-      className="con-panel"
+      // 進行中だけ面が呼吸する。止まっているものと動いているものを、
+      // 数字を読まずに見分けられるようにする。
+      className={`con-panel${tournament.timerRunning ? ' a-breathe' : ''}`}
       style={{ padding: '16px 16px 14px', position: 'relative' }}
     >
       {/* 大会名とレベル */}
@@ -208,7 +212,8 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
           opacity: tournament.timerRunning ? 1 : 0.45,
         }}
       >
-        {two(minutes)}:{two(seconds)}
+        <KineticNumber value={minutes * 100 + seconds} signal={false}
+          format={() => `${two(minutes)}:${two(seconds)}`} />
       </p>
       {!tournament.timerRunning && (
         <p className="tech-label" style={{ textAlign: 'center', fontSize: 9, color: 'rgba(60,60,67,0.40)', marginTop: 2 }}>
@@ -253,15 +258,18 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
       {/* 人数・平均スタック・賞金プール */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         {[
-          { label: 'PLAYERS', value: `${alivePlayers} / ${totalPlayers}` },
-          { label: 'AVERAGE', value: averageStack.toLocaleString() },
-          { label: 'PRIZE POOL', value: tournament.prizePool.toLocaleString() },
+          // 残り人数は減っていくのが普通なので、赤の合図は出さない。
+          { label: 'PLAYERS',    n: alivePlayers,           fmt: () => `${alivePlayers} / ${totalPlayers}`, signal: false },
+          { label: 'AVERAGE',    n: averageStack,           fmt: (v: number) => v.toLocaleString(), signal: true },
+          { label: 'PRIZE POOL', n: tournament.prizePool,   fmt: (v: number) => v.toLocaleString(), signal: true },
         ].map(item => (
           <div key={item.label} style={{ textAlign: 'center' }}>
             <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'rgba(60,60,67,0.45)', marginBottom: 3 }}>
               {item.label}
             </p>
-            <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{item.value}</p>
+            <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>
+              <KineticNumber value={item.n} format={item.fmt} signal={item.signal} />
+            </p>
           </div>
         ))}
       </div>
