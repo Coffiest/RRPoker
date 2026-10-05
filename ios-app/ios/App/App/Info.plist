@@ -47,5 +47,14 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>店舗チェックインやペアリングのQRコードをスキャンするためにカメラを使用します。</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.373689603402-r46jn6qm0sq4nbm1cvu1461e9r4rjjhh</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
