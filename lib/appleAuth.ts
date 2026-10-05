@@ -21,18 +21,26 @@ async function signInWithAppleNative(role: "player" | "store"): Promise<{
 }> {
   const { SignInWithApple } = await import("@capacitor-community/apple-sign-in")
 
+  // Appleには「生のnonceをSHA256でハッシュした値」を渡す必要がある(Appleの仕様)。
+  // Firebase側はidTokenの検証に「生のnonce」を必要とする。
+  // 以前はハッシュせず生のnonceをそのままAppleに渡し、かつFirebaseにnonceを
+  // 渡していなかったため、Appleの認証自体は成功してもFirebaseの資格情報検証で
+  // 失敗していた(App Reviewでの "Sign in with Apple" エラーの原因)。
+  const rawNonce = generateNonce()
+  const hashedNonce = await sha256Hex(rawNonce)
+
   const result = await SignInWithApple.authorize({
     clientId: "com.rrpoker.app",
     redirectURI: "https://rrpoker.vercel.app",
     scopes: "email name",
-    nonce: generateNonce(),
+    nonce: hashedNonce,
   })
 
   const { identityToken, givenName, familyName } = result.response
   if (!identityToken) throw new Error("No identity token from Apple")
 
   const provider = new OAuthProvider("apple.com")
-  const credential = provider.credential({ idToken: identityToken })
+  const credential = provider.credential({ idToken: identityToken, rawNonce })
   const userCred = await signInWithCredential(auth, credential)
 
   return saveUser(userCred.user, { givenName, familyName }, role)
@@ -81,4 +89,12 @@ function generateNonce(): string {
     nonce += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return nonce
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
 }
