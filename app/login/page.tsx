@@ -5,10 +5,9 @@ import { signInWithEmailAndPassword } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { useSearchParams } from "next/navigation"
-import { isEmbeddedWebView } from "@/lib/platform"
 import { signInWithApple } from "@/lib/appleAuth"
+import { signInWithGoogle } from "@/lib/googleAuth"
 import { useLanguage } from "@/lib/i18n"
 
 export default function LoginPage() {
@@ -124,28 +123,16 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setError(''); setGoogleLoading(true)
     try {
-      const provider = new GoogleAuthProvider()
-      const result = await signInWithPopup(auth, provider)
-      const user = result.user
       if (redirect === "delete") { router.replace("/home/mypage?delete=1"); return }
       const safeRedirect = redirect && redirect.startsWith("/") && redirect !== "/login" ? redirect : null
-      const snap = await getDoc(doc(db, "users", user.uid))
-      if (!snap.exists()) {
-        await setDoc(doc(db, "users", user.uid), { email: user.email, createdAt: serverTimestamp(), provider: "google", role: 'player' }, { merge: true })
-        router.replace("/onboarding/user/profile"); return
-      }
-      const data = snap.data()
-      const role = data?.role
-      if (role === "player") {
-        if (!data?.profileCompleted) { router.replace("/onboarding/user/profile"); return }
+      const result = await signInWithGoogle("player")
+      if (result.isNewUser) { router.replace("/onboarding/user/profile"); return }
+      if (result.role === "player") {
+        const snap = await getDoc(doc(db, "users", result.uid))
+        if (!snap.data()?.profileCompleted) { router.replace("/onboarding/user/profile"); return }
         router.replace(safeRedirect ?? "/home"); return
       }
-      if (role === "store") {
-        const storeId = data?.storeId
-        if (!storeId) { router.replace("/onboarding/store"); return }
-        router.replace(safeRedirect ?? "/home/store"); return
-      }
-      await setDoc(doc(db, "users", user.uid), { role: 'player' }, { merge: true })
+      if (result.role === "store") { router.replace(safeRedirect ?? "/home/store"); return }
       router.replace("/onboarding/user/profile")
     } catch (e: any) {
       if (e.code === "auth/popup-blocked") { setError(t('login.popupBlocked')); return }
@@ -500,21 +487,19 @@ export default function LoginPage() {
 
             {/* ソーシャルログイン — 丸アイコン */}
             <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
-              {!isEmbeddedWebView() && (
-                <button onClick={handleGoogleLogin} disabled={loading || googleLoading}
-                  style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
-                >
-                  {googleLoading
-                    ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
-                    : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
-                        <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
-                        <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
-                        <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
-                      </svg>
-                  }
-                </button>
-              )}
+              <button onClick={handleGoogleLogin} disabled={loading || googleLoading}
+                style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
+              >
+                {googleLoading
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
+                  : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
+                      <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
+                      <path d="M4.34 11.91A5.99 5.99 0 0 1 4 10c0-.66.11-1.3.3-1.91V5.49H1.01A9.99 9.99 0 0 0 0 10c0 1.65.4 3.21 1.01 4.51l3.33-2.6z" fill="#FBBC05"/>
+                      <path d="M10 4.04c1.47 0 2.79.51 3.83 1.51l2.87-2.87C14.97 1.1 12.7 0 10 0 6.08 0 2.67 2.02 1.01 5.49l3.29 2.6C5.14 5.81 7.37 4.04 10 4.04z" fill="#EA4335"/>
+                    </svg>
+                }
+              </button>
               <button onClick={handleAppleLogin} disabled={loading || appleLoading}
                 style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#000', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
               >

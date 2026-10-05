@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@capacitor-community/apple-sign-in": "^7.1.0",
+    "@capacitor-firebase/authentication": "^8.5.2",
     "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.4.1",
     "@capacitor/haptics": "^8.0.2",

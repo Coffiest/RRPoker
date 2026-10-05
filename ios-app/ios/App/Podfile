@@ -12,6 +12,7 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCommunityAppleSignIn', :path => '../../node_modules/@capacitor-community/apple-sign-in'
+  pod 'CapacitorFirebaseAuthentication', :path => '../../node_modules/@capacitor-firebase/authentication'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
   pod 'RevenuecatPurchasesCapacitor', :path => '../../node_modules/@revenuecat/purchases-capacitor'
@@ -19,9 +20,20 @@ end
 
 target 'App' do
   capacitor_pods
+  pod 'CapacitorFirebaseAuthentication/Google', :path => '../../node_modules/@capacitor-firebase/authentication'
   # Add your Pods here
 end
 
 post_install do |installer|
   assertDeploymentTarget(installer)
+
+  # Firebase/GoogleSignIn ship as resource bundles that otherwise trip
+  # Xcode's "requires code signing" check under recent Xcode versions.
+  installer.target_installation_results.pod_target_installation_results.each do |pod_name, target_installation_result|
+    target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+      resource_bundle_target.build_configurations.each do |config|
+        config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+      end
+    end
+  end
 end
