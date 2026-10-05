@@ -47,6 +47,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>店舗チェックインやペアリングのQRコードをスキャンするためにカメラを使用します。</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
