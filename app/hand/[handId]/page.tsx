@@ -5,9 +5,8 @@ import { useParams } from "next/navigation"
 import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { FiShare2 } from "react-icons/fi"
+import { PlayingCard } from "@/components/PlayingCard"
 
-const SUIT_SYM: Record<string, string> = { s: "♠", h: "♥", d: "♦", c: "♣" }
-const SUIT_CLR: Record<string, string> = { s: "#1D1D1F", h: "#E53E3A", d: "#2563EB", c: "#16A34A" }
 const ACT_JP: Record<string, string> = {
   fold: "fold", check: "check", call: "call", bet: "bet", raise: "raise", allin: "All-in",
 }
@@ -165,30 +164,18 @@ export default function HandPage() {
             {(flop.length > 0 || turn || river) && (
               <div className="flex items-center gap-1">
                 {flop.map((c, i) => c ? (
-                  <div key={i} className="flex flex-col items-center justify-center rounded-lg font-bold"
-                    style={{ width: 22, height: 30, background: CLR.white, border: `1px solid ${CLR.border}`, color: SUIT_CLR[c.slice(-1)], fontSize: 8 }}>
-                    <span className="text-[9px]">{c.slice(0, -1)}</span>
-                    <span className="text-[8px]">{SUIT_SYM[c.slice(-1)]}</span>
-                  </div>
+                  <PlayingCard key={i} card={c} height={30} />
                 ) : null)}
                 {turn && (
                   <>
                     <div style={{ width: 1, height: 16, background: "rgba(170,155,135,0.4)", margin: "0 2px" }} />
-                    <div className="flex flex-col items-center justify-center rounded-lg font-bold"
-                      style={{ width: 22, height: 30, background: CLR.white, border: `1px solid ${CLR.border}`, color: SUIT_CLR[turn.slice(-1)], fontSize: 8 }}>
-                      <span className="text-[9px]">{turn.slice(0, -1)}</span>
-                      <span className="text-[8px]">{SUIT_SYM[turn.slice(-1)]}</span>
-                    </div>
+                    <PlayingCard card={turn} height={30} />
                   </>
                 )}
                 {river && (
                   <>
                     <div style={{ width: 1, height: 16, background: "rgba(170,155,135,0.4)", margin: "0 2px" }} />
-                    <div className="flex flex-col items-center justify-center rounded-lg font-bold"
-                      style={{ width: 22, height: 30, background: CLR.white, border: `1px solid ${CLR.border}`, color: SUIT_CLR[river.slice(-1)], fontSize: 8 }}>
-                      <span className="text-[9px]">{river.slice(0, -1)}</span>
-                      <span className="text-[8px]">{SUIT_SYM[river.slice(-1)]}</span>
-                    </div>
+                    <PlayingCard card={river} height={30} />
                   </>
                 )}
               </div>
@@ -229,10 +216,7 @@ export default function HandPage() {
                     {[0, 1].map(i => {
                       const c = hCards[i]
                       return (
-                        <div key={i} className="rounded flex items-center justify-center font-bold"
-                          style={{ width: 11, height: 15, background: c ? CLR.white : "rgba(200,190,175,0.35)", fontSize: 5, color: c ? SUIT_CLR[c.slice(-1)] : undefined }}>
-                          {c ? SUIT_SYM[c.slice(-1)] : ""}
-                        </div>
+                        <PlayingCard key={i} card={c} height={15} />
                       )
                     })}
                   </div>

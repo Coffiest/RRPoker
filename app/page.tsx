@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { PlayingCard } from '@/components/PlayingCard'
 
 const FEATURES = [
   {
@@ -49,12 +50,7 @@ const TIPS = [
   '誕生日には店舗からクーポンが届くことがあります',
 ]
 
-const POKER_CARDS = [
-  { suit: '♠', num: 'A', dark: true },
-  { suit: '♥', num: 'K', dark: false },
-  { suit: '♦', num: 'Q', dark: false },
-  { suit: '♣', num: 'J', dark: true },
-]
+const POKER_CARDS = ['As', 'Kh', 'Qd', 'Jc']
 
 export default function TopPage() {
   const router = useRouter()
@@ -218,13 +214,7 @@ export default function TopPage() {
         }
         .header-cta:active{ transform:scale(0.95); opacity:.85; }
 
-        .pcard{
-          width:50px; height:70px; border-radius:10px; background:#fff;
-          border:1.5px solid rgba(0,0,0,0.07);
-          box-shadow:0 5px 16px rgba(0,0,0,0.13), 0 1px 3px rgba(0,0,0,0.06);
-          display:flex; flex-direction:column; align-items:center; justify-content:center;
-          font-weight:900; line-height:1; user-select:none;
-        }
+        .pcard{ display:flex; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.13)); }
         .pcard-0{ animation:float-a 3.2s ease-in-out infinite; }
         .pcard-1{ animation:float-b 3.8s ease-in-out .5s infinite; }
         .pcard-2{ animation:float-c 3.5s ease-in-out .9s infinite; }
@@ -351,10 +341,8 @@ export default function TopPage() {
           {/* フローティングポーカーカード */}
           <div className="d0" style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:28 }}>
             {POKER_CARDS.map((c, i) => (
-              <div key={i} className={`pcard pcard-${i}`} style={{ color: c.dark ? '#1C1C1E' : '#FF3B30' }}>
-                <span style={{ fontSize:13, lineHeight:1 }}>{c.suit}</span>
-                <span style={{ fontSize:22, fontWeight:900, letterSpacing:'-1.5px', lineHeight:1.1 }}>{c.num}</span>
-                <span style={{ fontSize:13, lineHeight:1 }}>{c.suit}</span>
+              <div key={c} className={`pcard pcard-${i}`}>
+                <PlayingCard card={c} height={70}/>
               </div>
             ))}
           </div>
