@@ -5,12 +5,11 @@ import { createPortal } from "react-dom"
 import { db } from "@/lib/firebase"
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from "firebase/firestore"
 import { FiX, FiShare2, FiTrash2, FiChevronRight } from "react-icons/fi"
+import { PlayingCard } from "@/components/PlayingCard"
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
 const HAND_SUITS = ["s","h","d","c"]
-const HAND_SUIT_SYM: Record<string,string> = { s:"♠", h:"♥", d:"♦", c:"♣" }
-const HAND_SUIT_CLR: Record<string,string> = { s:"#1D1D1F", h:"#E53E3A", d:"#2563EB", c:"#16A34A" }
 const HT_ALL_POS = ["UTG","UTG+1","UTG+2","MP","LJ","HJ","CO","BTN","SB","BB"]
 const HT_STREET_ORDER = ["preflop","flop","turn","river"] as const
 const ACT_JP: Record<string,string> = {
@@ -73,13 +72,7 @@ interface Props { userId:string|null; creatorName:string }
 
 // ── Mini card ────────────────────────────────────────────────────────────────
 function MiniCard({ card }: { card:string }) {
-  const rank = card.slice(0,-1), suit = card.slice(-1)
-  return (
-    <span className="inline-flex flex-col items-center justify-center rounded-md font-bold leading-none"
-      style={{ width:22, height:28, fontSize:8, color:HAND_SUIT_CLR[suit], background:CLR.white, border:`1px solid ${CLR.border}` }}>
-      <span className="text-[9px]">{rank}</span><span className="text-[8px]">{HAND_SUIT_SYM[suit]}</span>
-    </span>
-  )
+  return <PlayingCard card={card} height={28}/>
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -477,11 +470,8 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             <button key={i} type="button" onClick={() => setHtPick(`b|${i}`)}
                               className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95 transition-all"
                               style={{ width:24, height:32,
-                                background:c?CLR.white:"rgba(255,255,255,0.45)",
-                                border:c?`1px solid ${CLR.border}`:"1.5px dashed rgba(170,155,135,0.6)",
-                                boxShadow:c?"0 1px 4px rgba(0,0,0,0.1)":"none",
-                                color:c?HAND_SUIT_CLR[c.slice(-1)]:"rgba(155,140,115,0.7)" }}>
-                              {c?<><span className="text-[9px]">{c.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[c.slice(-1)]}</span></>:<span className="text-[8px]">?</span>}
+                                background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
+                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
                             </button>
                           )
                         })}
@@ -491,8 +481,8 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           {(() => {const c=htBoard[3]; return (
                             <button type="button" onClick={() => setHtPick("b|3")}
                               className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
-                              style={{ width:24,height:32, background:c?CLR.white:"rgba(255,255,255,0.45)", border:c?`1px solid ${CLR.border}`:"1.5px dashed rgba(170,155,135,0.6)", boxShadow:c?"0 1px 4px rgba(0,0,0,0.1)":"none", color:c?HAND_SUIT_CLR[c.slice(-1)]:"rgba(155,140,115,0.7)" }}>
-                              {c?<><span className="text-[9px]">{c.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[c.slice(-1)]}</span></>:<span className="text-[8px]">?</span>}
+                              style={{ width:24,height:32, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
+                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
                             </button>
                           )})()}
                         </>}
@@ -502,8 +492,8 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           {(() => {const c=htBoard[4]; return (
                             <button type="button" onClick={() => setHtPick("b|4")}
                               className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
-                              style={{ width:24,height:32, background:c?CLR.white:"rgba(255,255,255,0.45)", border:c?`1px solid ${CLR.border}`:"1.5px dashed rgba(170,155,135,0.6)", boxShadow:c?"0 1px 4px rgba(0,0,0,0.1)":"none", color:c?HAND_SUIT_CLR[c.slice(-1)]:"rgba(155,140,115,0.7)" }}>
-                              {c?<><span className="text-[9px]">{c.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[c.slice(-1)]}</span></>:<span className="text-[8px]">?</span>}
+                              style={{ width:24,height:32, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
+                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
                             </button>
                           )})()}
                         </>}
@@ -598,13 +588,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           }}>
                           <div className="flex gap-[2px]">
                             {[0,1].map(i => (
-                              <div key={i} className="rounded flex items-center justify-center font-bold"
-                                style={{ width:12,height:16,
-                                  background: cards[i]?CLR.white:"rgba(200,190,175,0.35)",
-                                  boxShadow: cards[i]?"0 1px 2px rgba(0,0,0,0.1)":"none",
-                                  fontSize:6, color:cards[i]?HAND_SUIT_CLR[(cards[i] as string).slice(-1)]:undefined }}>
-                                {cards[i]?HAND_SUIT_SYM[(cards[i] as string).slice(-1)]:""}
-                              </div>
+                              <PlayingCard key={i} card={cards[i]} height={16}/>
                             ))}
                           </div>
                         </div>
@@ -663,11 +647,10 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           <button key={i} type="button" onClick={() => setHtPick(`c|${htSeat}|${i}`)}
                             className="flex flex-col items-center justify-center rounded-2xl font-bold active:scale-95 transition-all"
                             style={{ width:40,height:50,
-                              background:c?CLR.white:CLR.surface,
-                              border:c?`1.5px solid ${CLR.border}`:`1.5px dashed ${CLR.border}`,
-                              boxShadow:c?"0 2px 8px rgba(0,0,0,0.08)":"none",
-                              color:c?HAND_SUIT_CLR[c.slice(-1)]:CLR.border }}>
-                            {c?<><span className="text-[13px]">{c.slice(0,-1)}</span><span className="text-[11px]">{HAND_SUIT_SYM[c.slice(-1)]}</span></>:<span className="text-[22px] leading-none">?</span>}
+                              background:c?"transparent":CLR.surface,
+                              border:c?"none":`1.5px dashed ${CLR.border}`,
+                              color:CLR.border }}>
+                            {c?<PlayingCard card={c} height={50}/>:<span className="text-[22px] leading-none">?</span>}
                           </button>
                         )
                       })}
@@ -994,15 +977,12 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                               else if (p[0]==="b"&&Number(p[1])<2) setHtPick(`b|${Number(p[1])+1}`)
                               else setHtPick(null)
                             }}
-                            className="shrink-0 flex flex-col items-center justify-center rounded-2xl font-bold active:scale-95 transition-all"
-                            style={{ width:38,height:46,
+                            className="shrink-0 flex items-center justify-center rounded-lg active:scale-95 transition-all"
+                            style={{ padding:2,
                               opacity:used?0.2:1,
-                              background:curr===card?"#FFF8E7":CLR.white,
-                              border:curr===card?`2px solid ${CLR.gold}`:`1.5px solid ${CLR.border}`,
-                              boxShadow:curr===card?"0 2px 8px rgba(242,169,0,0.2)":"0 1px 3px rgba(0,0,0,0.06)",
-                              color:used?CLR.border:HAND_SUIT_CLR[suit] }}>
-                            <span className="text-[12px]">{rank}</span>
-                            <span className="text-[10px]">{HAND_SUIT_SYM[suit]}</span>
+                              background:curr===card?"#FFF8E7":"transparent",
+                              boxShadow:curr===card?`0 0 0 2px ${CLR.gold}, 0 2px 8px rgba(242,169,0,0.2)`:"none" }}>
+                            <PlayingCard card={card} height={46}/>
                           </button>
                         )
                       })}
@@ -1077,21 +1057,12 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     {(flop.length>0||turn||river) && (
                       <div className="flex items-center gap-1">
                         {flop.map((c,i) => c ? (
-                          <div key={i} className="flex flex-col items-center justify-center rounded-lg font-bold"
-                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[c.slice(-1)],fontSize:8}}>
-                            <span className="text-[9px]">{c.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[c.slice(-1)]}</span>
-                          </div>
+                          <PlayingCard key={i} card={c} height={30}/>
                         ) : null)}
                         {turn && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
-                          <div className="flex flex-col items-center justify-center rounded-lg font-bold"
-                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[turn.slice(-1)],fontSize:8}}>
-                            <span className="text-[9px]">{turn.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[turn.slice(-1)]}</span>
-                          </div></>}
+                          <PlayingCard card={turn} height={30}/></>}
                         {river && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
-                          <div className="flex flex-col items-center justify-center rounded-lg font-bold"
-                            style={{width:22,height:30,background:CLR.white,border:`1px solid ${CLR.border}`,color:HAND_SUIT_CLR[river.slice(-1)],fontSize:8}}>
-                            <span className="text-[9px]">{river.slice(0,-1)}</span><span className="text-[8px]">{HAND_SUIT_SYM[river.slice(-1)]}</span>
-                          </div></>}
+                          <PlayingCard card={river} height={30}/></>}
                       </div>
                     )}
                   </div>
@@ -1129,10 +1100,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             {[0,1].map(i => {
                               const c = hCards[i]
                               return (
-                                <div key={i} className="rounded flex items-center justify-center font-bold"
-                                  style={{width:11,height:15,background:c?CLR.white:"rgba(200,190,175,0.35)",fontSize:5,color:c?HAND_SUIT_CLR[c.slice(-1)]:undefined}}>
-                                  {c?HAND_SUIT_SYM[c.slice(-1)]:""}
-                                </div>
+                                <PlayingCard key={i} card={c} height={15}/>
                               )
                             })}
                           </div>
