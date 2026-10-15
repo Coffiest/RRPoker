@@ -633,7 +633,7 @@ export default function MyPage() {
                   <span style={{ fontSize: 14 }}>{item.icon}</span>
                   <div>
                     <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
-                    <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : '#C7C7CC' }}>{item.value || '未設定'}</p>
+                    <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : 'var(--label3)' }}>{item.value || '未設定'}</p>
                   </div>
                 </div>
               ))}

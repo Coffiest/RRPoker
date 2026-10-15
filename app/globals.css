@@ -85,6 +85,9 @@ html, body {
   --label: #1C1C1E;
   --label2: #545458;
   --label3: #6E6E73;
+  /* 白い面の上に置く金色の文字。ブランドの金(#F2A900 / #D4910A)は白地で 2.0〜2.7:1 しか
+     出ず小さな文字が読めないため、文字にはこの深い金(4.7:1)を使う。面・枠・アイコンは従来の金のまま。 */
+  --gold-text: #9A6A00;
 }
 .text-label2 { color: var(--label2); }
 .text-label3 { color: var(--label3); }

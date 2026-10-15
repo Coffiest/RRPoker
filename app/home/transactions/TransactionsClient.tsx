@@ -286,7 +286,7 @@ export default function TransactionsClient() {
                   />
                 ) : (
                   <div style={{ width: 210, height: 210, background: '#F2F2F7', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <BsQrCodeScan size={48} color="#C7C7CC" />
+                    <BsQrCodeScan size={48} color="var(--label3)" />
                   </div>
                 )}
                 <div className="qr-scan-line" />
@@ -376,7 +376,7 @@ export default function TransactionsClient() {
             <p
               key={formattedAmount}
               className={`tech-num${amount ? ' tech-caret tech-flash' : ''}`}
-              style={{ fontSize: 46, fontWeight: 800, color: amount ? '#1C1C1E' : '#C7C7CC', letterSpacing: '-0.5px', lineHeight: 1.1 }}
+              style={{ fontSize: 46, fontWeight: 800, color: amount ? '#1C1C1E' : 'var(--label3)', letterSpacing: '-0.5px', lineHeight: 1.1 }}
             >
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
             </p>

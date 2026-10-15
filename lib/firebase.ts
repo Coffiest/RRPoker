@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import { getFunctions } from 'firebase/functions'
 
@@ -19,3 +19,11 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 export const functions = getFunctions(app, 'asia-northeast1')
+
+// 手元での動作確認用。NEXT_PUBLIC_FIREBASE_EMULATOR=1 のときだけ、本番ではなく
+// ローカルの Firebase エミュレーター(Auth: 9099 / Firestore: 8080)につなぐ。
+// 本番の環境変数には設定しないこと。
+if (process.env.NEXT_PUBLIC_FIREBASE_EMULATOR === '1') {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
+  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+}

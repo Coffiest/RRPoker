@@ -197,7 +197,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   <p style={{
                     fontSize: 14, fontWeight: 800, flexShrink: 0, marginLeft: 8,
                     fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px',
-                    color: isAdd ? '#D4910A' : 'rgba(60,60,67,0.55)',
+                    color: isAdd ? '#D4910A' : 'var(--label3)',
                   }}>
                     {isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                   </p>
