@@ -61,6 +61,12 @@ export default function LoginPage() {
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current) }
   }, [])
 
+  // ログイン中に利用停止になった人は、AuthGuard がここへ戻す(?banned=1)。
+  useEffect(() => {
+    if (searchParams.get("banned") === "1") setError(t('login.banned'))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleAdminLogin = async () => {
     if (!adminPw.trim()) return
     setAdminLoading(true)
@@ -115,7 +121,8 @@ export default function LoginPage() {
       }
       await setDoc(doc(db, "users", user.uid), { role: 'player' }, { merge: true })
       router.replace("/onboarding/user/profile")
-    } catch {
+    } catch (e: any) {
+      if (e?.code === "auth/user-disabled") { setError(t('login.banned')); return }
       setError(t('login.wrongCredentials'))
     } finally { setLoading(false) }
   }
@@ -135,6 +142,7 @@ export default function LoginPage() {
       if (result.role === "store") { router.replace(safeRedirect ?? "/home/store"); return }
       router.replace("/onboarding/user/profile")
     } catch (e: any) {
+      if (e.code === "auth/user-disabled") { setError(t('login.banned')); return }
       if (e.code === "auth/popup-blocked") { setError(t('login.popupBlocked')); return }
       if (e.code === "auth/network-request-failed") { setError(t('login.networkError')); return }
       if (e.code === "auth/operation-not-supported-in-this-environment") { setError(t('login.unsupportedBrowser')); return }
@@ -156,7 +164,8 @@ export default function LoginPage() {
       }
       if (result.role === "store") { router.replace(safeRedirect ?? "/home/store"); return }
       router.replace("/onboarding/user/profile")
-    } catch {
+    } catch (e: any) {
+      if (e?.code === "auth/user-disabled") { setError(t('login.banned')); return }
       setError(t('login.appleFailed'))
     } finally { setAppleLoading(false) }
   }

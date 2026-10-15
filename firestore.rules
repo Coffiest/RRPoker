@@ -55,7 +55,17 @@ service cloud.firestore {
 
       allow read: if isSignedIn();
 
-      allow write: if isOwner(userId) || isSignedIn();
+      // 偏差値と利用停止(BAN)の印はサーバー(管理者 API)だけが書く。
+      // 以前は誰でも書けたため、自分の偏差値を書き換えられてしまっていた。
+      allow create: if isSignedIn()
+        && !request.resource.data.keys().hasAny(['rrRating', 'banned', 'bannedAt']);
+      allow update: if isSignedIn()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rrRating', 'banned', 'bannedAt'])
+        // 利用停止中の人は、店舗側からも入店させられない
+        && !(resource.data.get('banned', false) == true
+             && (request.resource.data.get('currentStoreId', null) != null
+                 || request.resource.data.get('checkinStatus', 'none') in ['approved', 'pending']));
+      allow delete: if isSignedIn();
 
       match /storeBalances/{storeId} {
         allow read: if isOwner(userId) || isStoreMember(storeId) || isOwnerOfBalGroup(storeId);
@@ -84,9 +94,15 @@ service cloud.firestore {
       }
     }
 
+    // 偏差値の集計はサーバー(/api/rr-rating/finalize・管理者 API)だけが書く。
     match /rrLeaderboard/{userId} {
       allow read: if isSignedIn();
-      allow write: if isOwner(userId) || isSignedIn();
+      allow write: if false;
+    }
+
+    // BAN の理由など、管理者だけが見るメモ。クライアントからは読み書きしない。
+    match /adminBans/{userId} {
+      allow read, write: if false;
     }
 
     match /stores/{storeId} {

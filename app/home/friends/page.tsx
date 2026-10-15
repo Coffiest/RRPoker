@@ -115,6 +115,8 @@ export default function FriendsPage() {
       const results: Player[] = []
       querySnapshot.forEach(doc => {
         const data = doc.data()
+        // 利用停止(BAN)中の人は検索に出さない
+        if (data.banned === true) return
         results.push({
           id: doc.id,
           playerId: data.playerId,

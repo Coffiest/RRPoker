@@ -11,7 +11,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
 
 
@@ -374,68 +374,6 @@ await updateDoc(tournamentRef, {
 
             })
 
-            // ---- RR Leaderboard 更新用の値計算 ----
-
-              const buyin =
-                entryCount * entryFeeValue +
-                reentryCount * reentryFeeValue +
-                addonCount * addonFeeValue
-
-              let costValue = 0
-              let baseFee = 0
-
-              if (entryFeeValue > 0) {
-                costValue = buyin / entryFeeValue
-                baseFee = entryFeeValue
-              } else if (reentryFeeValue > 0) {
-                costValue = buyin / reentryFeeValue
-                baseFee = reentryFeeValue
-              } else {
-                costValue = buyin / addonFeeValue
-                baseFee = addonFeeValue
-              }
-
-              const rewardValue =
-                baseFee > 0 ? reward / baseFee : 0
-
-              const playsValue =
-                entryCount + reentryCount
-
-                const rrRef = doc(db, "rrLeaderboard", userId)
-
-
-        await setDoc(
-  rrRef,
-  {
-    userId: userId,
-    storeId: storeId,
-    totalCost: increment(costValue),
-    totalReward: increment(rewardValue),
-    plays: increment(playsValue)
-  },
-  { merge: true }
-)
-
-                
-                const updatedSnap = await getDoc(rrRef)
-                const updated = updatedSnap.data()
-
-                const totalCost = updated?.totalCost ?? 0
-                const totalReward = updated?.totalReward ?? 0
-                const totalPlays = updated?.plays ?? 0
-
-                let roi = 0
-
-                if (totalCost > 0) {
-                  roi = (totalReward / totalCost) * 100
-                }
-
-                await updateDoc(rrRef,{
-                  roi: roi,
-                  rrRating: 0
-                })
-
-
           }
 
 
@@ -480,87 +418,24 @@ for (const p of payouts) {
         finishedAt: serverTimestamp(),
         payouts: payouts, // 履歴
         totalPrize: totalPrize, // 閲覧用（任意だが便利）
+        rrPending: true, // RR Rating への足し込み待ち(サーバーが処理して false にする)
       })
 
-      // ===== RR Rating 再計算 =====
-
-const rrSnap = await getDocs(collection(db, "rrLeaderboard"))
-
-const players: any[] = []
-
-rrSnap.forEach(docSnap => {
-  const d = docSnap.data()
-
-  if ((d.totalCost ?? 0) > 0) {
-    const roi = d.totalCost > 0 ? d.totalReward / d.totalCost : 0
-
-    players.push({
-      userId: d.userId,
-      totalCost: d.totalCost,
-      totalReward: d.totalReward,
-      plays: d.plays ?? 0,
-      roi: roi,
-    })
-  }
-})
-
-// μ（平均ROI）
-const mu =
-  players.length > 0
-    ? players.reduce((a, b) => a + b.roi, 0) / players.length
-    : 0
-
-// adjustedROI
-const k = 20
-
-players.forEach(p => {
-  const n = p.plays
-
-  p.adjustedROI =
-    (n / (n + k)) * p.roi +
-    (k / (n + k)) * mu
-})
-
-// σ（標準偏差）
-const sigma = Math.sqrt(
-  players.reduce((sum, p) => sum + Math.pow(p.adjustedROI - mu, 2), 0) /
-    (players.length || 1)
-)
-
-// rrRating計算＆保存
-for (const p of players) {
-
-  if (p.userId.startsWith("temp_")) continue
-
-  let rr = 50
-
-  if (sigma !== 0) {
-    rr = 50 + 10 * ((p.adjustedROI - mu) / sigma)
-  }
-
-  const rounded = Number(rr.toFixed(2))
-
-  const rrRef = doc(db, "rrLeaderboard", p.userId)
-
-  await updateDoc(rrRef, {
-    roi: p.roi,
-    rrRating: rounded,
-  })
-
-  if (!p.userId.startsWith("temp_")) {
-  const userRef = doc(db, "users", p.userId)
-
-  await updateDoc(userRef, {
-    rrRating: rounded,
-  })
-
-  // トーナメント履歴にもrr偏差値を保存（吹き出し表示用）
-  const histRef = doc(db, "users", p.userId, "tournamentHistory", tournamentId)
-  await updateDoc(histRef, { rrRating: rounded }).catch(() => {})
-}
-}
-
-// ===== RR Rating 再計算 END =====
+      // ===== RR Rating 再計算(サーバー) =====
+      // 成績の足し込みと全員の偏差値の計算は、サーバーがまとめて行う。
+      // 失敗しても大会の終了自体は済んでいる。rrPending が立ったまま残るので、
+      // 同じ大会であとから呼び直せば足し込まれる。
+      try {
+        const token = await auth.currentUser?.getIdToken()
+        const res = await fetch("/api/rr-rating/finalize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+          body: JSON.stringify({ storeId, tournamentId }),
+        })
+        if (!res.ok) console.error("RR Rating の更新に失敗しました", res.status)
+      } catch (e) {
+        console.error("RR Rating の更新に失敗しました", e)
+      }
 
       onClose()
     } catch (e) {

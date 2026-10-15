@@ -617,7 +617,6 @@ export default function HomePage() {
       setProfile({ name: data?.name, iconUrl: data?.iconUrl })
       const rating = typeof data?.rrRating === "number" ? data.rrRating : 1000
       setRrRatingValue(rating)
-      if (typeof data?.rrRating !== "number") await setDoc(ref, { rrRating: 1000 }, { merge: true })
 
       // チュートリアル — 初回スナップショット時のみチェック
       if (isFirstSnapshot) {
@@ -778,7 +777,8 @@ export default function HomePage() {
       setRrRankingLoading(true)
       try {
         const snap = await getDocs(collection(db, "rrLeaderboard"))
-        const promises = snap.docs.map(async (docSnap) => {
+        // BAN されている人はランキングに出さない(偏差値もサーバーが消している)。
+        const promises = snap.docs.filter(d => d.data().banned !== true).map(async (docSnap) => {
           const data = docSnap.data()
           const userSnap = await getDoc(doc(db, "users", data.userId))
           const user = userSnap.data()
@@ -1888,8 +1888,8 @@ const medalClass = (rank: number) => {
         </div>
 
         {/* ── 現在進行中のトナメ ──
-             自分が参加している大会だけを、読み取り専用のタイマー付きで出す。
-             リエントリー / アドオンはここから確定できる。 */}
+             入店中の店で進行中の大会を、読み取り専用のタイマー付きですべて出す。
+             リエントリー / アドオンは、自分がエントリーしている大会でだけ確定できる。 */}
         {currentStoreId && currentStore && userId && (
           <PlayerLiveTournaments
             storeId={currentStoreId}
