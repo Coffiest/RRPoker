@@ -535,22 +535,23 @@ export default function RegisterPage() {
             </button>
 
             {/* ログインへ */}
-            <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-              <span style={{ fontSize:13, color:'var(--label2)' }}></span>
+            <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
+              <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >Login →</button>
-            </div>
-            {/* 店舗向け */}
-            <div style={{ marginTop:10, textAlign:'center' }}>
-              <button type="button" onClick={() => router.push('/store-register')}
-                style={{ fontSize:12, color:'rgba(60,60,67,0.45)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'7px 16px', display:'inline-flex', alignItems:'center', gap:5 }}
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                店舗の方はこちら
-              </button>
+              >Login</button>
             </div>
           </div>
+        </div>
+
+        {/* 店舗向け(カードの外に控えめに) */}
+        <div className="appear d4" style={{ marginTop:12, textAlign:'center' }}>
+          <button type="button" onClick={() => router.push('/store-register')}
+            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'4px 6px', display:'inline-flex', alignItems:'center', gap:4 }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            店舗の方はこちら
+          </button>
         </div>
 
         {/* ── iCloud注意書き（カード外） ── */}
