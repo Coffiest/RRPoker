@@ -420,8 +420,6 @@ export default function TournamentsPage() {
       <style>{`
         :root {
           --label:  #1C1C1E;
-          --label2: rgba(60,60,67,0.6);
-          --label3: rgba(60,60,67,0.3);
           --sep:    rgba(60,60,67,0.12);
           --fill:   rgba(120,120,128,0.12);
           --gold:   #F2A900;
@@ -450,7 +448,7 @@ export default function TournamentsPage() {
         .section-hd {
           position:relative; font-family:var(--stack-mono);
           font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.18em;
-          color:rgba(60,60,67,0.55); padding:0 0 7px; margin-bottom:12px;
+          color:var(--label3); padding:0 0 7px; margin-bottom:12px;
           display:flex; align-items:center; gap:8px;
         }
         .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }

@@ -429,7 +429,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
           ) : error ? (
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
@@ -437,13 +437,13 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤー統計カード */}
               <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '12px 14px', marginBottom: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div style={{ textAlign: 'center', paddingRight: 12, borderRight: '1px solid #D1D1D6' }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.05em', marginBottom: 4 }}>Players</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 4 }}>Players</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
                   </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.05em', marginBottom: 4 }}>Add-on</p>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 4 }}>Add-on</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
                   </p>
@@ -472,7 +472,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤーリスト */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {allPlayers.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: '#8E8E93', padding: '32px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
+                  <p style={{ textAlign: 'center', color: 'var(--label3)', padding: '32px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
                 ) : (
                   allPlayers.map(player => {
                     const preview = computePreview(player)
@@ -485,7 +485,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             <img src={player.iconUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                           )}
                           {!player.isTemp && !player.iconUrl && (
-                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#8E8E93', flexShrink: 0 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--label3)', flexShrink: 0 }}>
                               {(player.name ?? '?')[0]?.toUpperCase()}
                             </div>
                           )}
@@ -500,7 +500,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           )}
                           {player.isTemp && (
                             <button onClick={() => deleteTempPlayer(player.id)}
-                              style={{ background: 'none', border: 'none', color: '#8E8E93', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
+                              style={{ background: 'none', border: 'none', color: 'var(--label3)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
                           )}
                         </div>
 
@@ -521,7 +521,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                                   <>
                                     {buyStr && <span style={{ fontSize: 11, fontWeight: 600, color: '#34C759', whiteSpace: 'nowrap' }}>{buyStr}</span>}
                                     {feeStr && <span style={{ fontSize: 11, fontWeight: 600, color: preview.netFee > 0 ? '#34C759' : '#FF3B30', whiteSpace: 'nowrap' }}>{feeStr}</span>}
-                                    <span style={{ fontSize: 10, color: '#8E8E93', whiteSpace: 'nowrap' }}>→</span>
+                                    <span style={{ fontSize: 10, color: 'var(--label3)', whiteSpace: 'nowrap' }}>→</span>
                                     <span style={{ fontSize: 12, fontWeight: 700, color: preview.finalBalance < 0 ? '#FF3B30' : '#1C1C1E', whiteSpace: 'nowrap' }}>{finStr}</span>
                                   </>
                                 )}
@@ -538,12 +538,12 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             { label: 'Addon', field: 'addonCount' },
                           ].map(item => (
                             <div key={item.field} style={{ textAlign: 'center' }}>
-                              <p style={{ fontSize: 10, color: '#8E8E93', fontWeight: 600, marginBottom: 6 }}>{item.label}</p>
+                              <p style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 6 }}>{item.label}</p>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                                 <button
                                   onClick={() => handleEntryChange(player.id, item.field as any, -1)}
                                   disabled={(player[item.field] ?? 0) <= 0}
-                                  style={{ width: 28, height: 28, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: '#8E8E93', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                  style={{ width: 28, height: 28, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: 'var(--label3)', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
                                 <span style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', minWidth: '24px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
                                 <button
                                   onClick={() => handleEntryChange(player.id, item.field as any, 1)}
@@ -581,7 +581,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>所持バンクロール不足</p>
-                <p style={{ fontSize: 13, color: '#8E8E93', lineHeight: 1.5 }}>会計をしてください</p>
+                <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.5 }}>会計をしてください</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
                 <button

@@ -83,7 +83,7 @@ export default function DealerConfirmSheet({
         }} />
 
         <div style={{ padding: '18px 20px 20px' }}>
-          <p className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)', letterSpacing: '0.2em', textAlign: 'center' }}>
+          <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', letterSpacing: '0.2em', textAlign: 'center' }}>
             ディーラー確認
           </p>
 
@@ -95,7 +95,7 @@ export default function DealerConfirmSheet({
             }}>
               {playerIconUrl
                 ? <img src={playerIconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <FiUser size={16} style={{ color: '#C7C7CC' }} />}
+                : <FiUser size={16} style={{ color: 'var(--label3)' }} />}
             </div>
             <p style={{
               fontFamily: 'var(--stack-mono)', fontSize: 14, fontWeight: 700, color: '#1C1C1E',
@@ -106,7 +106,7 @@ export default function DealerConfirmSheet({
           <div className="tech-rule" style={{ margin: '16px 0' }} />
 
           {/* 名目とチップ数 */}
-          <p className="tech-label tech-label-bracket" style={{ fontSize: 10, color: 'rgba(60,60,67,0.5)', textAlign: 'center', marginBottom: 8 }}>
+          <p className="tech-label tech-label-bracket" style={{ fontSize: 10, color: 'var(--label3)', textAlign: 'center', marginBottom: 8 }}>
             {title}
           </p>
           <p className="tech-num" style={{

@@ -139,14 +139,14 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(28,28,30,1)', margin: 0 }}>チップ履歴</p>
-            <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.5)', margin: '2px 0 0' }}>{history.length}件</p>
+            <p style={{ fontSize: 11, color: 'var(--label3)', margin: '2px 0 0' }}>{history.length}件</p>
             <ChipDisclaimer className="mt-1" />
           </div>
           <button
             onClick={onClose}
             style={{ width: 32, height: 32, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
-            <FiX size={14} style={{ color: 'rgba(60,60,67,0.5)' }}/>
+            <FiX size={14} style={{ color: 'var(--label3)' }}/>
           </button>
         </div>
 
@@ -155,10 +155,10 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
           {history.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 8 }}>
               <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(120,120,128,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
-                <FiArrowUp size={20} style={{ color: 'rgba(60,60,67,0.25)' }}/>
+                <FiArrowUp size={20} style={{ color: 'var(--label3)' }}/>
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(60,60,67,0.4)', margin: 0 }}>履歴なし</p>
-              <p style={{ fontSize: 12, color: 'rgba(60,60,67,0.3)', margin: 0 }}>取引が記録されると表示されます</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label3)', margin: 0 }}>履歴なし</p>
+              <p style={{ fontSize: 12, color: 'var(--label3)', margin: 0 }}>取引が記録されると表示されます</p>
             </div>
           ) : (
             history.map((item, idx) => {
@@ -176,7 +176,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   }}>
                     {isAdd
                       ? <FiArrowUp size={15} style={{ color: '#D4910A' }}/>
-                      : <FiArrowDown size={15} style={{ color: 'rgba(60,60,67,0.4)' }}/>
+                      : <FiArrowDown size={15} style={{ color: 'var(--label3)' }}/>
                     }
                   </div>
 
@@ -185,7 +185,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(28,28,30,1)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {formatType(item.type, item.comment)}
                     </p>
-                    <p style={{ fontSize: 10, color: 'rgba(60,60,67,0.4)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <p style={{ fontSize: 10, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '1px 5px', fontWeight: 600 }}>
                         {formatSubtype(item.type)}
                       </span>
@@ -240,7 +240,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
               <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 6 }}>
                 {playerName ?? 'このプレイヤー'}の履歴を全て削除しますか？
               </p>
-              <p style={{ fontSize: 13, color: 'rgba(60,60,67,0.6)', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5, margin: 0 }}>
                 チップ履歴（{history.length}件）と所持チップ・純増値が全て0になります。<br/>この操作は取り消せません。
               </p>
               {wipeError && (

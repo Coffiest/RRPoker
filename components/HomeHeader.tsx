@@ -274,7 +274,7 @@ export default function HomeHeader({
 						{/* 稼働中であることを示す計器風のサブラベル */}
 						<span className="mt-[3px] flex items-center gap-1.5">
 							<span className="tech-status-dot" />
-							<span className="tech-label text-gray-400">{isUserVariant ? 'PLAYER' : 'STORE'}</span>
+							<span className="tech-label text-label3">{isUserVariant ? 'PLAYER' : 'STORE'}</span>
 						</span>
 					</span>
 				</button>
@@ -399,7 +399,7 @@ export default function HomeHeader({
 							{/* ヘッダー */}
 							<div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
 								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">お知らせ</p>
-								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-gray-400 font-medium">閉じる</button>
+								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-label3 font-medium">閉じる</button>
 							</div>
 
 							{/* 全て既読ボタン */}
@@ -418,7 +418,7 @@ export default function HomeHeader({
 							{/* リスト */}
 							<div className="max-h-[55vh] overflow-y-auto">
 								{storeNoticeItems.length === 0 && userNotifications.length === 0 ? (
-									<p className="term-comment text-center text-[13px] text-gray-400 py-8">お知らせはありません</p>
+									<p className="term-comment text-center text-[13px] text-label3 py-8">お知らせはありません</p>
 								) : (
 									<>
 										{storeNoticeItems.map(n => {
@@ -432,7 +432,7 @@ export default function HomeHeader({
 													<div className="flex items-center gap-2 mb-1">
 														{isUnread && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
 														<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
-														<span className="tech-num text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+														<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 													</div>
 													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 												</div>
@@ -447,7 +447,7 @@ export default function HomeHeader({
 												<div className="flex items-center gap-2 mb-1">
 													{!n.read && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
 													<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
-													<span className="tech-num text-[10px] text-gray-400">{formatDateTime(n.createdAt?.seconds)}</span>
+													<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
 												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 											</div>

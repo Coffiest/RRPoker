@@ -114,18 +114,18 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       <div style={{ flex: 1, padding: "14px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "#8E8E93" : "#D4910A", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#D4910A", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
               {isUsed ? "USED" : "COUPON"}
             </p>
             <p style={{
               fontSize: 15, fontWeight: 700,
-              color: isUsed ? "#8E8E93" : "#1C1C1E",
+              color: isUsed ? "var(--label3)" : "#1C1C1E",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {coupon.name}
             </p>
             {coupon.expiresAt && !isUsed && (
-              <p style={{ fontSize: 11, color: "#8E8E93", marginTop: 3 }}>
+              <p style={{ fontSize: 11, color: "var(--label3)", marginTop: 3 }}>
                 期限: {coupon.expiresAt.toDate().toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
               </p>
             )}
@@ -145,7 +145,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
           )}
           {isUsed && (
             <div style={{ padding: "4px 10px", borderRadius: 99, background: "#E5E5EA" }}>
-              <p style={{ fontSize: 11, color: "#8E8E93", fontWeight: 600 }}>使用済み</p>
+              <p style={{ fontSize: 11, color: "var(--label3)", fontWeight: 600 }}>使用済み</p>
             </div>
           )}
         </div>
@@ -238,19 +238,19 @@ export default function TicketsPage() {
 
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>
-          <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "#8E8E93" }}>
+          <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "var(--label3)" }}>
             スタンプカード
           </h2>
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p className="term-comment" style={{ fontSize: 13, color: "#8E8E93" }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>読み込み中…</p>
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
               <div style={{ fontSize: 36, marginBottom: 10 }}>🎫</div>
               <p style={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E", marginBottom: 4 }}>スタンプカードがありません</p>
-              <p style={{ fontSize: 12, color: "#8E8E93", lineHeight: 1.5 }}>店舗に入店するとスタンプが貯まります</p>
+              <p style={{ fontSize: 12, color: "var(--label3)", lineHeight: 1.5 }}>店舗に入店するとスタンプが貯まります</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -291,7 +291,7 @@ export default function TicketsPage() {
                           <span style={{ fontSize: 22, fontWeight: 800, color: "#1C1C1E", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
                             {card.stampCount}
                           </span>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: "#8E8E93" }}>/{STAMP_GOAL}</span>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--label3)" }}>/{STAMP_GOAL}</span>
                         </div>
                       )}
                     </div>
@@ -309,7 +309,7 @@ export default function TicketsPage() {
                         }} />
                       </div>
                       {card.lastStampAt && (
-                        <p style={{ fontSize: 11, color: "#8E8E93", whiteSpace: "nowrap", flexShrink: 0 }}>
+                        <p style={{ fontSize: 11, color: "var(--label3)", whiteSpace: "nowrap", flexShrink: 0 }}>
                           最終入店 {formatDate(card.lastStampAt)}
                         </p>
                       )}
@@ -324,7 +324,7 @@ export default function TicketsPage() {
         {/* ── クーポン ────────────────────────────────────────── */}
         {!loading && (
           <section>
-            <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "#8E8E93" }}>
+            <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "var(--label3)" }}>
               クーポン
             </h2>
 
@@ -350,7 +350,7 @@ export default function TicketsPage() {
             {couponTab === "active" ? (
               activeCoupons.length === 0 ? (
                 <div style={{ background: "#fff", borderRadius: 20, padding: "22px 20px", textAlign: "center" }}>
-                  <p style={{ fontSize: 13, color: "#8E8E93" }}>未使用のクーポンはありません</p>
+                  <p style={{ fontSize: 13, color: "var(--label3)" }}>未使用のクーポンはありません</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -367,7 +367,7 @@ export default function TicketsPage() {
             ) : (
               usedCoupons.length === 0 ? (
                 <div style={{ background: "#fff", borderRadius: 20, padding: "22px 20px", textAlign: "center" }}>
-                  <p style={{ fontSize: 13, color: "#8E8E93" }}>使用済みのクーポンはありません</p>
+                  <p style={{ fontSize: 13, color: "var(--label3)" }}>使用済みのクーポンはありません</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -406,7 +406,7 @@ export default function TicketsPage() {
             <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 6 }}>
               {selectedCoupon.name}
             </p>
-            <p className="term-comment" style={{ fontSize: 13, color: "#8E8E93", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
+            <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
               スタッフにこの画面を見せてください
             </p>
 
@@ -443,7 +443,7 @@ export default function TicketsPage() {
             </button>
             <button
               onClick={() => setSelectedCoupon(null)}
-              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 15, color: "#8E8E93", marginTop: 6, cursor: "pointer" }}
+              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 15, color: "var(--label3)", marginTop: 6, cursor: "pointer" }}
             >
               キャンセル
             </button>

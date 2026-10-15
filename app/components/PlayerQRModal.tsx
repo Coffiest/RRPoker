@@ -88,7 +88,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
           </div>
           <div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{name || 'プレイヤー'}</p>
-            <p className="term-comment" style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
+            <p className="term-comment" style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
           </div>
         </div>
       </div>

@@ -303,12 +303,12 @@ export default function TransactionsClient() {
               </div>
               <div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{userName || 'プレイヤー'}</p>
-                <p style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
+                <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
               </div>
             </div>
           </div>
 
-          <p className="tx-slide-3" style={{ fontSize: 12, color: '#8E8E93', textAlign: 'center', marginTop: 16 }}>
+          <p className="tx-slide-3" style={{ fontSize: 12, color: 'var(--label3)', textAlign: 'center', marginTop: 16 }}>
             QRコードをスキャンすることで入店できます
           </p>
         </div>
@@ -368,7 +368,7 @@ export default function TransactionsClient() {
 
           {/* Amount display */}
           <div className="tech-dots" style={{ padding: '26px 20px 18px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center', backgroundPosition: 'center' }}>
-            <p className="tech-label tech-label-bracket" style={{ color: '#8E8E93', marginBottom: 10 }}>
+            <p className="tech-label tech-label-bracket" style={{ color: 'var(--label3)', marginBottom: 10 }}>
               {mode === 'deposit' ? 'あずけるチップ数' : 'ひきだすチップ数'}
             </p>
             {/* 入力した桁がそのまま並ぶので、等幅・桁揃えの数字で出す。
@@ -381,9 +381,9 @@ export default function TransactionsClient() {
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
-              <span className="tech-label" style={{ color: '#AEAEB2' }}>BALANCE</span>
+              <span className="tech-label" style={{ color: 'var(--label3)' }}>BALANCE</span>
               <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#3C3C43' }}>{fmtChip(balance)}</span>
-              {useBb && <span className="tech-num" style={{ fontSize: 12, color: '#AEAEB2' }}>({formatBbValue(balance)}BB)</span>}
+              {useBb && <span className="tech-num" style={{ fontSize: 12, color: 'var(--label3)' }}>({formatBbValue(balance)}BB)</span>}
             </div>
           </div>
 
@@ -472,7 +472,7 @@ export default function TransactionsClient() {
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', textAlign: 'center', marginBottom: 20 }}>引き出し確認</h2>
 
             <div style={{ background: '#F9F9FB', borderRadius: 18, padding: '20px', textAlign: 'center', marginBottom: 20 }}>
-              <p style={{ fontSize: 12, color: '#8E8E93', marginBottom: 8, fontWeight: 500 }}>ディーラーに見せてください</p>
+              <p style={{ fontSize: 12, color: 'var(--label3)', marginBottom: 8, fontWeight: 500 }}>ディーラーに見せてください</p>
               <p style={{ fontSize: 52, fontWeight: 800, color: '#F2A900', letterSpacing: '-1.5px', lineHeight: 1.1 }}>
                 {fmtChip(Number(amount || 0))}
               </p>

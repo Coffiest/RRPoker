@@ -225,7 +225,7 @@ export default function UserWelcomePage() {
 
         {/* Feature list */}
         <div className="mt-6 d3">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.7px] text-gray-400 mb-3">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.7px] text-label3 mb-3">
             できること
           </p>
           <div className="profile-card rounded-3xl p-3 space-y-1">
@@ -293,10 +293,10 @@ export default function UserWelcomePage() {
             { label: 'トナメ参加', value: '0', unit: '回' },
           ].map((s, i) => (
             <div key={i} className="profile-card rounded-2xl p-3 text-center">
-              <p className="text-[10px] text-gray-400 mb-1">{s.label}</p>
+              <p className="text-[10px] text-label3 mb-1">{s.label}</p>
               <p className="text-[18px] font-bold text-gray-900">
                 {s.value}
-                <span className="text-[11px] font-medium text-gray-400 ml-0.5">{s.unit}</span>
+                <span className="text-[11px] font-medium text-label3 ml-0.5">{s.unit}</span>
               </p>
             </div>
           ))}
@@ -318,7 +318,7 @@ export default function UserWelcomePage() {
             </svg>
             はじめる
           </button>
-          <p className="mt-3 text-center text-[12px] text-gray-400">
+          <p className="mt-3 text-center text-[12px] text-label3">
             いつでもプロフィールは編集できます
           </p>
         </div>

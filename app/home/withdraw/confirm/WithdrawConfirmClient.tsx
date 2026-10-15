@@ -104,7 +104,7 @@ export default function WithdrawConfirmClient() {
             <button
               type="button"
               onClick={() => router.push("/home")}
-              className="flex flex-col items-center text-gray-400"
+              className="flex flex-col items-center text-label3"
             >
               <FiHome className="text-[18px]" />
               <span className="mt-1 text-[11px]">ホーム</span>
@@ -121,7 +121,7 @@ export default function WithdrawConfirmClient() {
             <button
               type="button"
               onClick={() => router.push("/home/mypage")}
-              className="flex flex-col items-center text-gray-400"
+              className="flex flex-col items-center text-label3"
             >
               <FiUser className="text-[18px]" />
               <span className="mt-1 text-[11px]">マイページ</span>
@@ -163,7 +163,7 @@ export default function WithdrawConfirmClient() {
           <button
             type="button"
             onClick={() => router.push("/home")}
-            className="flex flex-col items-center text-gray-400"
+            className="flex flex-col items-center text-label3"
           >
             <FiHome className="text-[18px]" />
             <span className="mt-1 text-[11px]">ホーム</span>
@@ -181,7 +181,7 @@ export default function WithdrawConfirmClient() {
           <button
             type="button"
             onClick={() => router.push("/home/mypage")}
-            className="flex flex-col items-center text-gray-400"
+            className="flex flex-col items-center text-label3"
           >
             <FiUser className="text-[18px]" />
             <span className="mt-1 text-[11px]">マイページ</span>

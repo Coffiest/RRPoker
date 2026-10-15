@@ -86,7 +86,7 @@ function PairPageInner() {
         <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
             <span className="tech-status-dot" />
-            <span className="tech-label" style={{ color: '#8E8E93' }}>DEVICE LINK</span>
+            <span className="tech-label" style={{ color: 'var(--label3)' }}>DEVICE LINK</span>
           </div>
           <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
             TVと連携
@@ -107,7 +107,7 @@ function PairPageInner() {
             </div>
           ) : (
             <>
-              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: '#8E8E93', marginBottom: 6 }}>
+              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 6 }}>
                 PAIRING CODE
               </label>
               <input

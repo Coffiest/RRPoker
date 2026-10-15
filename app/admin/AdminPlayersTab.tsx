@@ -103,7 +103,7 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
       {notice && <div className="mb-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-sm text-green-400">{notice}</div>}
 
       <div className="relative mb-3">
-        <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+        <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
@@ -126,8 +126,8 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
       </div>
 
       <div className="space-y-2">
-        {loading && players.length === 0 && <p className="text-center text-gray-500 py-8 text-sm">読み込み中...</p>}
-        {!loading && visible.length === 0 && <p className="text-center text-gray-500 py-8 text-sm">プレイヤーが見つかりません</p>}
+        {loading && players.length === 0 && <p className="text-center text-gray-400 py-8 text-sm">読み込み中...</p>}
+        {!loading && visible.length === 0 && <p className="text-center text-gray-400 py-8 text-sm">プレイヤーが見つかりません</p>}
         {visible.map(p => {
           const rank = ranks.get(p.uid)
           return (
@@ -146,17 +146,17 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
                   {p.name || "(名前未設定)"}
                   {p.banned && <span className="ml-2 text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded-full">BAN中</span>}
                 </p>
-                <p className="text-xs text-gray-500 truncate">
+                <p className="text-xs text-gray-400 truncate">
                   {p.playerId ?? "ID未設定"}{p.email ? ` ・ ${p.email}` : ""}
                 </p>
-                <p className="text-[11px] text-gray-600 truncate">
+                <p className="text-[11px] text-gray-400 truncate">
                   参加 {p.plays} 回
                   {p.createdAt ? ` ・ 登録 ${new Date(p.createdAt).toLocaleDateString("ja-JP")}` : ""}
                   {p.banned && p.banReason ? ` ・ 理由: ${p.banReason}` : ""}
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-[10px] text-gray-500">偏差値</p>
+                <p className="text-[10px] text-gray-400">偏差値</p>
                 <p className="text-sm font-bold tabular-nums">{p.rrRating !== null ? p.rrRating.toFixed(2) : "--"}</p>
               </div>
               <button

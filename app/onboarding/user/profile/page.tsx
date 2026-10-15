@@ -289,7 +289,7 @@ export default function UserProfileOnboardingPage() {
           outline: none;
           transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         }
-        .field-input::placeholder { color: #9ca3af; }
+        .field-input::placeholder { color: var(--label3); }
         .field-input:focus {
           border-color: #F2A900;
           background: #fffdf7;
@@ -400,7 +400,7 @@ export default function UserProfileOnboardingPage() {
         <div className="mt-6 text-center animate-slideUp-d1">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
           <p className="mt-1.5 text-[14px] text-gray-500">あなたの情報を入力してください</p>
-          <p className="mt-2 text-[11px] text-gray-400 leading-relaxed">
+          <p className="mt-2 text-[11px] text-label3 leading-relaxed">
             本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
@@ -446,7 +446,7 @@ export default function UserProfileOnboardingPage() {
             </div>
           </button>
 
-          <p className="text-[12px] text-gray-400">
+          <p className="text-[12px] text-label3">
             {previewUrl ? 'タップして画像を変更' : 'タップしてアイコンを設定'}
           </p>
 
@@ -546,7 +546,7 @@ export default function UserProfileOnboardingPage() {
                 style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 12px', minWidth: 0 }}
               />
               <div className="flex items-center pr-3 flex-shrink-0">
-                {idStatus === 'checking' && <span style={{ fontSize: 12, color: '#9ca3af' }}>確認中…</span>}
+                {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
                 {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}>✓ 利用可</span>}
                 {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}>✗ 使用中</span>}
               </div>
@@ -556,7 +556,7 @@ export default function UserProfileOnboardingPage() {
             {/* おすすめ + 自動取得 */}
             <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>おすすめ</span>
+                <span style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>おすすめ</span>
                 <button
                   type="button"
                   onClick={handleAutoGet}
@@ -583,7 +583,7 @@ export default function UserProfileOnboardingPage() {
               <div className="flex gap-2 flex-wrap">
                 
                 {suggestionsLoading ? (
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>候補を検索中…</span>
+                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>候補を検索中…</span>
                 ) : suggestions.length > 0 ? (
                   suggestions.map(s => (
                     <button
@@ -604,7 +604,7 @@ export default function UserProfileOnboardingPage() {
                     </button>
                   ))
                 ) : (
-                  <span style={{ fontSize: 11, color: '#9ca3af' }}>ポーカーネームを入力するとおすすめが表示されます</span>
+                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
                 )}
               </div>
             </div>
@@ -615,7 +615,7 @@ export default function UserProfileOnboardingPage() {
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
               <label className="text-[14px] font-medium text-gray-700">誕生日</label>
-              <span className="text-[11px] text-gray-400">任意</span>
+              <span className="text-[11px] text-label3">任意</span>
             </div>
             <input
               type="date"
@@ -660,7 +660,7 @@ export default function UserProfileOnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-5 mb-8 text-center text-[12px] text-gray-400 animate-slideUp-d4">
+        <p className="mt-5 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
           プロフィールはあとから編集できます
         </p>
 

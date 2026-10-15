@@ -149,7 +149,7 @@ export default function BranchStorePage() {
   return (
     <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
       <style>{`
-        :root { --gold:#F2A900; --gold-dk:#D4910A; --label:#1C1C1E; --label2:rgba(60,60,67,0.6); --label3:rgba(60,60,67,0.3); --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
+        :root { --gold:#F2A900; --gold-dk:#D4910A; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .bs-field { position:relative; display:flex; align-items:center; background:#FAFAFA; border:1.5px solid var(--sep); border-radius:14px; transition:border-color .18s,box-shadow .18s,background .18s; overflow:hidden; }
         .bs-field:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(242,169,0,0.12); background:white; }

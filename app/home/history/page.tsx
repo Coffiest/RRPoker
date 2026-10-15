@@ -116,7 +116,7 @@ export default function HistoryPage() {
       case "deposit_pending":
         return "text-orange-500"
       case "deposit_rejected":
-        return "text-gray-400"
+        return "text-label3"
       case "withdraw":
         return "text-red-500"
       case "manual_adjustment":

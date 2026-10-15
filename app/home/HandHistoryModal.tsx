@@ -501,7 +501,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     )}
 
                     <div className="rounded-full px-2.5 py-0.5" style={{ background:"rgba(29,29,31,0.12)" }}>
-                      <span className="text-[9px] font-bold tracking-wide" style={{ color:"rgba(29,29,31,0.55)" }}>
+                      <span className="text-[9px] font-bold tracking-wide" style={{ color:"var(--label2)" }}>
                         POT {pot%1===0?pot:pot.toFixed(1)} BB
                       </span>
                     </div>

@@ -165,7 +165,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
           >
             {/* 現在位置を数値でも示す。ドットだけだと残り手数が読み取れない */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <span className="tech-label tech-label-bracket" style={{ color: '#C7C7CC' }}>
+              <span className="tech-label tech-label-bracket" style={{ color: 'var(--label3)' }}>
                 STEP {currentStep + 1} / {steps.length}
               </span>
             </div>
@@ -199,7 +199,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
               <button
                 type="button"
                 onClick={onSkip}
-                style={{ fontSize: 13, color: '#8E8E93', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontFamily: 'inherit', fontWeight: 500 }}
+                style={{ fontSize: 13, color: 'var(--label3)', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontFamily: 'inherit', fontWeight: 500 }}
               >
                 スキップ
               </button>
