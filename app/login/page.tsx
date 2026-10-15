@@ -185,7 +185,7 @@ export default function LoginPage() {
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A; --gold-lt:#FFE07A;
-          --label:#1C1C1E; --label2:rgba(60,60,67,0.6); --label3:rgba(60,60,67,0.3);
+          --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
         }
@@ -687,7 +687,7 @@ export default function LoginPage() {
             onClick={e => e.stopPropagation()}
           >
             <p style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:4 }}>管理者認証</p>
-            <p style={{ fontSize:12, color:'#888', marginBottom:20 }}>パスワードを入力してください</p>
+            <p style={{ fontSize:12, color:'#888' /* contrast-ok: 暗いモーダルの上 */, marginBottom:20 }}>パスワードを入力してください</p>
             <input
               type="password"
               value={adminPw}
@@ -701,7 +701,7 @@ export default function LoginPage() {
             <div style={{ display:'flex', gap:10, marginTop:8 }}>
               <button
                 onClick={() => setAdminModalOpen(false)}
-                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888', fontSize:14, cursor:'pointer' }}
+                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:14, cursor:'pointer' }}
               >キャンセル</button>
               <button
                 onClick={handleAdminLogin}

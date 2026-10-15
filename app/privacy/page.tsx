@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
         </Link>
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">プライバシーポリシー</h1>
-        <p className="text-xs text-gray-400 mb-8">最終更新日: 2026年8月31日</p>
+        <p className="text-xs text-label3 mb-8">最終更新日: 2026年8月31日</p>
 
         <div className="space-y-8 text-sm leading-7 text-gray-700">
           <section>

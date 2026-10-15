@@ -122,11 +122,11 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
         <div style={{ overflowY: 'auto', flex: 1, padding: '20px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p className="term-comment" style={{ fontSize: 13, color: '#8E8E93' }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>読み込み中…</p>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p style={{ fontSize: 13, color: '#8E8E93' }}>プレイヤー情報を取得できませんでした</p>
+              <p style={{ fontSize: 13, color: 'var(--label3)' }}>プレイヤー情報を取得できませんでした</p>
             </div>
           ) : (
             <>
@@ -149,7 +149,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     {player.name || 'プレイヤー'}
                   </p>
                   {player.playerId && (
-                    <p style={{ fontSize: 13, color: '#8E8E93', marginTop: 4 }}>{player.playerId}</p>
+                    <p style={{ fontSize: 13, color: 'var(--label3)', marginTop: 4 }}>{player.playerId}</p>
                   )}
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     background: '#F2F2F7', borderRadius: 16,
                     padding: '14px 8px', textAlign: 'center',
                   }}>
-                    <p style={{ fontSize: 10, fontWeight: 600, color: '#8E8E93', letterSpacing: '0.03em', marginBottom: 6 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 6 }}>
                       {label}
                     </p>
                     <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
@@ -217,7 +217,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     }}>
                       <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
                       <div>
-                        <p style={{ fontSize: 10, color: '#8E8E93', fontWeight: 600, marginBottom: 3, letterSpacing: '0.03em' }}>
+                        <p style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 3, letterSpacing: '0.03em' }}>
                           {label}
                         </p>
                         <p style={{ fontSize: 14, fontWeight: 600, color: '#1C1C1E' }}>{value}</p>

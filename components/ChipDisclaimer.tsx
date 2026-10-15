@@ -10,7 +10,7 @@ export default function ChipDisclaimer({ className = '' }: { className?: string 
   return (
     <p
       className={className}
-      style={{ fontSize: 11, lineHeight: 1.6, color: '#8E8E93' }}
+      style={{ fontSize: 11, lineHeight: 1.6, color: 'var(--label3)' }}
     >
       チップは店舗内でのゲーム進行を記録するためのポイントです。現金・賞金との交換や換金はできず、金銭的な価値はありません。
     </p>

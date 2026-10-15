@@ -489,7 +489,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   </span>
                 )}
                 {level?.type === "break" && (
-                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-gray-400 flex-shrink-0">
+                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-label3 flex-shrink-0">
                     BREAK
                   </span>
                 )}
@@ -568,7 +568,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
                         : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
                             {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
-                            <span className="text-[40px] font-medium text-gray-400 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
+                            <span className="text-[40px] font-medium text-label3 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
@@ -580,7 +580,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
-                          : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
+                          : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
                         }
                       </div>
                     </>
@@ -594,7 +594,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
-                        : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
+                        : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
                       }
                     </div>
                   )}
@@ -645,7 +645,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
-                          : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
+                          : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
                         }
                       </div>
                     </>
@@ -660,7 +660,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         ? <span className="text-[72px] font-bold text-[#C8820A] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
-                        : <span className="text-[36px] font-medium text-gray-400 leading-none">None.</span>
+                        : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
                       }
                     </div>
                   )}
@@ -756,7 +756,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       />
                       {hasText && (
                         <span
-                          className="font-light text-gray-400 text-right w-full"
+                          className="font-light text-label3 text-right w-full"
                           style={{ fontSize: "18px", lineHeight: 1.2, wordBreak: "break-all" }}
                         >
                           +{data.text}
@@ -783,7 +783,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             {/* Header */}
             <div className="px-6 py-5 border-b border-gray-100">
               <h2 className="text-[16px] font-semibold text-gray-900 mb-4">ブラインドプリセット作成</h2>
-              <label className="block text-[11px] font-semibold tracking-widest uppercase text-gray-400 mb-2">プリセット名</label>
+              <label className="block text-[11px] font-semibold tracking-widest uppercase text-label3 mb-2">プリセット名</label>
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
@@ -794,7 +794,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              <label className="block text-[11px] font-semibold tracking-widest uppercase text-gray-400 mb-3">レベルリスト</label>
+              <label className="block text-[11px] font-semibold tracking-widest uppercase text-label3 mb-3">レベルリスト</label>
               <div className="space-y-2">
                 {levels.map((lv: Level, idx: number) => (
                   <div key={idx}
@@ -806,7 +806,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   >
                     <div className="flex items-center justify-between px-3 py-2.5 gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="cursor-move text-gray-300 text-[16px] select-none">≡</span>
+                        <span className="cursor-move text-label3 text-[16px] select-none">≡</span>
                         {lv.type === "level" ? (
                           <>
                             <span className="text-[11px] font-bold text-gray-500 w-12">Lv {idx + 1}</span>
@@ -817,19 +817,19 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                                 setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
                               }}
                               className={`${modalInput} w-14`} />
-                            <span className="text-gray-300 text-[13px]">/</span>
+                            <span className="text-label3 text-[13px]">/</span>
                             <input type="number" min={1} step={1} value={lv.bigBlind ?? ""} placeholder="BB"
                               onChange={e => handleBbChange(idx, Number(e.target.value))}
                               className={`${modalInput} w-14`} />
-                            <span className="text-gray-300 text-[13px]">(</span>
+                            <span className="text-label3 text-[13px]">(</span>
                             <input type="number" min={1} step={1} value={lv.ante ?? ""} placeholder="ANTE"
                               onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: Math.max(1, Math.round(Number(e.target.value))) }))}
                               className={`${modalInput} w-14`} />
-                            <span className="text-gray-300 text-[13px]">)</span>
+                            <span className="text-label3 text-[13px]">)</span>
                             <input type="number" min={1} step={1} value={lv.duration ?? ""} placeholder="分"
                               onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
                               className={`${modalInput} w-12`} />
-                            <span className="text-[11px] text-gray-400">min</span>
+                            <span className="text-[11px] text-label3">min</span>
                           </>
                         ) : (
                           <>
@@ -837,13 +837,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                             <input type="number" min={1} step={1} value={lv.duration ?? ""} placeholder="分"
                               onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
                               className={`${modalInput} w-14`} />
-                            <span className="text-[11px] text-gray-400">min</span>
+                            <span className="text-[11px] text-label3">min</span>
                           </>
                         )}
                         <button
                           type="button"
                           onClick={() => setEditingCommentIdx(editingCommentIdx === idx ? null : idx)}
-                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#C8820A]/15 text-[#C8820A] border border-[#C8820A]/30" : "bg-gray-200 text-gray-400 hover:bg-gray-300"}`}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#C8820A]/15 text-[#C8820A] border border-[#C8820A]/30" : "bg-gray-200 text-label3 hover:bg-gray-300"}`}
                         >
                           {lv.comment ? lv.comment : "＋"}
                         </button>
@@ -851,7 +851,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       <button onClick={() => removeLevel(idx)}
                         className="ml-1 h-8 w-8 flex-shrink-0 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
                       >
-                        <FiTrash2 size={14} className="text-gray-300 hover:text-red-400 transition-colors" />
+                        <FiTrash2 size={14} className="text-label3 hover:text-red-400 transition-colors" />
                       </button>
                     </div>
                     {(editingCommentIdx === idx || lv.comment) && (

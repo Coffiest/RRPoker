@@ -38,7 +38,7 @@ function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isF
     const expired = sub.currentPeriodEnd ? sub.currentPeriodEnd * 1000 <= Date.now() : false
     if (expired) {
       return (
-        <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+        <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">
           手動無料化（終了）
         </span>
       )
@@ -63,7 +63,7 @@ function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isF
   }
   if (!sub) {
     return (
-      <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">
+      <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">
         未登録
       </span>
     )
@@ -253,13 +253,13 @@ export default function AdminPage() {
 
             <div className="space-y-2">
               {codes.length === 0 && !loadingCodes && (
-                <p className="term-comment text-center text-gray-500 py-8 text-sm">コードがありません</p>
+                <p className="term-comment text-center text-gray-400 py-8 text-sm">コードがありません</p>
               )}
               {codes.map(c => (
                 <div key={c.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3">
                   <div>
                     <p className="font-mono text-sm font-medium">{c.id}</p>
-                    {c.usedBy && <p className="text-xs text-gray-500 mt-0.5">使用済: {c.usedBy}</p>}
+                    {c.usedBy && <p className="text-xs text-gray-400 mt-0.5">使用済: {c.usedBy}</p>}
                   </div>
                   <div className="flex items-center gap-3">
                     {c.active && !c.usedBy ? (
@@ -267,12 +267,12 @@ export default function AdminPage() {
                         <FiCheck size={11} /> 有効
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <FiX size={11} /> {c.usedBy ? "使用済" : "無効"}
                       </span>
                     )}
                     {c.active && !c.usedBy && (
-                      <button onClick={() => deactivateCode(c.id)} className="text-gray-500 hover:text-red-400 transition-colors">
+                      <button onClick={() => deactivateCode(c.id)} className="text-gray-400 hover:text-red-400 transition-colors">
                         <FiTrash2 size={15} />
                       </button>
                     )}
@@ -293,7 +293,7 @@ export default function AdminPage() {
             </div>
 
             <div className="relative mb-4">
-              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={storeSearch}
@@ -305,16 +305,16 @@ export default function AdminPage() {
 
             <div className="space-y-2">
               {loadingStores && (
-                <p className="term-comment text-center text-gray-500 py-8 text-sm">読み込み中...</p>
+                <p className="term-comment text-center text-gray-400 py-8 text-sm">読み込み中...</p>
               )}
               {!loadingStores && filteredStores.length === 0 && (
-                <p className="term-comment text-center text-gray-500 py-8 text-sm">ストアが見つかりません</p>
+                <p className="term-comment text-center text-gray-400 py-8 text-sm">ストアが見つかりません</p>
               )}
               {filteredStores.map(s => (
                 <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{s.name || "(名称未設定)"}</p>
-                    <p className="text-xs text-gray-500 font-mono truncate">{s.id}</p>
+                    <p className="text-xs text-gray-400 font-mono truncate">{s.id}</p>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <SubscriptionBadge sub={s.subscription} isFree={s.isFree} />

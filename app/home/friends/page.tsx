@@ -253,7 +253,7 @@ export default function FriendsPage() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && searchPlayers()}
-            className="flex-1 h-12 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-gray-300"
+            className="flex-1 h-12 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-gray-300"
           />
           <button
             type="button"

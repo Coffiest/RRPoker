@@ -138,7 +138,7 @@ function LiveTournamentRow({
         style={{
           flex: 1, height: 50, borderRadius: 999, border: 'none',
           background: short ? '#F2F2F7' : 'linear-gradient(135deg,#F2A900,#D4910A)',
-          color: short ? 'rgba(60,60,67,0.4)' : '#fff',
+          color: short ? 'var(--label3)' : '#fff',
           fontSize: 12.5, fontWeight: 800,
           cursor: short ? 'default' : 'pointer',
           boxShadow: short ? 'none' : '0 3px 12px rgba(242,169,0,0.30)',
@@ -172,7 +172,7 @@ function LiveTournamentRow({
       )}
 
       {shortOfAny && (
-        <p className="term-comment" style={{ fontSize: 11, color: 'rgba(60,60,67,0.45)', marginTop: 8, textAlign: 'center' }}>
+        <p className="term-comment" style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8, textAlign: 'center' }}>
           チップが不足している項目は選べません
         </p>
       )}

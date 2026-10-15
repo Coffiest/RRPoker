@@ -121,7 +121,7 @@ export default function UserSettingsPage() {
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <label className="text-[12px] text-gray-500">{t('settings.language')}</label>
-          <p className="mt-0.5 text-[11px] text-gray-400">{t('settings.languageNote')}</p>
+          <p className="mt-0.5 text-[11px] text-label3">{t('settings.languageNote')}</p>
           <div className="mt-3 flex gap-2">
             {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
               <button
@@ -142,7 +142,7 @@ export default function UserSettingsPage() {
 
         <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
           <label className="text-[12px] text-gray-500">位置情報の利用</label>
-          <p className="mt-0.5 text-[11px] text-gray-400">近くの店舗を距離順に表示するために使用します</p>
+          <p className="mt-0.5 text-[11px] text-label3">近くの店舗を距離順に表示するために使用します</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"

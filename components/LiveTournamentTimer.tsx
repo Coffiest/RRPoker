@@ -198,7 +198,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
           fontFamily: 'var(--stack-mono)', fontSize: 13, fontWeight: 800, color: '#1C1C1E',
           minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{tournament.name}</p>
-        <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)', flexShrink: 0 }}>
+        <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', flexShrink: 0 }}>
           {isBreak ? 'BREAK' : `LEVEL ${levelIndex + 1}`}
         </span>
       </div>
@@ -216,7 +216,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
           format={() => `${two(minutes)}:${two(seconds)}`} />
       </p>
       {!tournament.timerRunning && (
-        <p className="tech-label" style={{ textAlign: 'center', fontSize: 9, color: 'rgba(60,60,67,0.40)', marginTop: 2 }}>
+        <p className="tech-label" style={{ textAlign: 'center', fontSize: 9, color: 'var(--label3)', marginTop: 2 }}>
           PAUSED
         </p>
       )}
@@ -231,13 +231,13 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
       ) : (
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)' }}>BLIND</span>
+            <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>BLIND</span>
             <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1C1C1E' }}>
               {sb == null ? '—' : sb.toLocaleString()} / {bb == null ? '—' : bb.toLocaleString()}
             </span>
           </span>
           <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-            <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)' }}>ANTE</span>
+            <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>ANTE</span>
             <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1C1C1E' }}>
               {ante == null ? '—' : ante.toLocaleString()}
             </span>
@@ -247,8 +247,8 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
 
       {/* 次のブレイク */}
       <p style={{ textAlign: 'center', marginTop: 8, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6 }}>
-        <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)' }}>NEXT BREAK</span>
-        <span className="tech-num" style={{ fontSize: 12, fontWeight: 700, color: 'rgba(60,60,67,0.62)' }}>
+        <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>NEXT BREAK</span>
+        <span className="tech-num" style={{ fontSize: 12, fontWeight: 700, color: 'var(--label2)' }}>
           {hasNextBreak ? `${two(Math.floor(nextBreakSeconds / 60))}:${two(nextBreakSeconds % 60)}` : 'None.'}
         </span>
       </p>
@@ -264,7 +264,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
           { label: 'PRIZE POOL', n: tournament.prizePool,   fmt: (v: number) => v.toLocaleString(), signal: true },
         ].map(item => (
           <div key={item.label} style={{ textAlign: 'center' }}>
-            <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'rgba(60,60,67,0.45)', marginBottom: 3 }}>
+            <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'var(--label3)', marginBottom: 3 }}>
               {item.label}
             </p>
             <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>

@@ -214,7 +214,7 @@ export default function StoreOnboardingPage() {
       <style>{`
         :root {
           --gold: #F2A900; --gold-dk: #D4910A;
-          --label: #1C1C1E; --label2: rgba(60,60,67,0.6); --label3: rgba(60,60,67,0.3);
+          --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --red: #FF3B30;
         }
         @keyframes so-fade-up {

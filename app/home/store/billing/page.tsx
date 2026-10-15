@@ -339,7 +339,7 @@ function BillingContent() {
               placeholder="発行されたシリアルコードを入力"
               className="w-full rounded-xl px-4 py-3 text-sm text-gray-900 border border-gray-200 outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
             />
-            <p className="text-xs text-gray-400 mt-2">管理者から発行されたコードを入力してください</p>
+            <p className="text-xs text-label3 mt-2">管理者から発行されたコードを入力してください</p>
           </div>
         )}
 
@@ -363,14 +363,14 @@ function BillingContent() {
           </button>
         )}
 
-        <p className="text-xs text-gray-400 text-center mt-4">
+        <p className="text-xs text-label3 text-center mt-4">
           {isNativeIOS()
             ? "App Storeを通じて購入します。管理・キャンセルはいつでもiOSの設定から行えます。"
             : isNativeApp()
             ? "Google Playを通じて購入します。管理・キャンセルはいつでもPlayストアの設定から行えます。"
             : "Stripeの安全な決済ページに移動します。いつでもキャンセル可能です。"}
         </p>
-        <p className="text-xs text-gray-400 text-center mt-2">
+        <p className="text-xs text-label3 text-center mt-2">
           ご購入により<a href="/terms" target="_blank" rel="noopener noreferrer" className="underline">利用規約</a>と
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline">プライバシーポリシー</a>に同意したものとみなされます。
         </p>

@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
             value={email}
             onChange={e => setEmail(e.target.value)}
             disabled={isLoading}
-            className="mt-2 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px] text-gray-950 outline-none placeholder:text-gray-400 focus:border-gray-300"
+            className="mt-2 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px] text-gray-950 outline-none placeholder:text-gray-500 focus:border-gray-300"
           />
 
           <button

@@ -476,7 +476,7 @@ for (const p of payouts) {
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: '#8E8E93', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
           ) : (
             <>
               {/* Prize Pool カード */}
@@ -537,7 +537,7 @@ for (const p of payouts) {
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: '#8E8E93', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 12 }}
+                style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: 'var(--label3)', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 12 }}
               >＋ 入賞者を追加</button>
 
               {/* コメント */}
@@ -573,7 +573,7 @@ for (const p of payouts) {
             <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
               <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>プライズを配布しますか？</p>
-              <p style={{ fontSize: 13, color: '#8E8E93', lineHeight: 1.6 }}>この操作は取り消せません</p>
+              <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.6 }}>この操作は取り消せません</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
               <button

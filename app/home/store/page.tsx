@@ -882,7 +882,7 @@ export default function StorePage() {
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A;
-          --label:#1C1C1E; --label2:rgba(60,60,67,0.6); --label3:rgba(60,60,67,0.3);
+          --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
         }
@@ -933,7 +933,7 @@ export default function StorePage() {
           position:relative;
           font-family:var(--stack-mono);
           font-size:10.5px; font-weight:700; letter-spacing:.18em;
-          text-transform:uppercase; color:rgba(60,60,67,0.55);
+          text-transform:uppercase; color:var(--label3);
           padding:0 0 7px; margin-bottom:12px;
           display:flex; align-items:center; gap:8px;
         }
@@ -1507,7 +1507,7 @@ export default function StorePage() {
                   <div style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
                       {String(Math.floor((adjustSeconds[et.id] ?? 0) / 60)).padStart(2, "0")}
-                      <span style={{ color: '#8E8E93', fontWeight: 400 }}>:</span>
+                      <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
                       {String((adjustSeconds[et.id] ?? 0) % 60).padStart(2, "0")}
                     </p>
                   </div>
@@ -1636,7 +1636,7 @@ export default function StorePage() {
                     <div style={{ textAlign: 'center' }}>
                       <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
                         {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
-                        <span style={{ color: '#8E8E93', fontWeight: 400 }}>:</span>
+                        <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
                         {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
                       </p>
                     </div>
@@ -1666,7 +1666,7 @@ export default function StorePage() {
                   return (
                     <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '12px 20px' }}>
                       {adjLvs.length === 0 && (
-                        <p className="text-center text-[13px] text-gray-400 py-6">ブラインドが設定されていません</p>
+                        <p className="text-center text-[13px] text-label3 py-6">ブラインドが設定されていません</p>
                       )}
                       <div className="space-y-2">
                         {adjLvs.map((lv, idx) => {
@@ -1686,7 +1686,7 @@ export default function StorePage() {
                                 {/* Row 1: drag + label + comment + controls */}
                                 <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 gap-2">
                                   <div className="flex items-center gap-2">
-                                    <span className="cursor-move text-gray-300 text-[16px] select-none">≡</span>
+                                    <span className="cursor-move text-label3 text-[16px] select-none">≡</span>
                                     {lv.type === 'level'
                                       ? <span className="text-[11px] font-bold text-[#F2A900] min-w-[40px]">Lv {lvNum}</span>
                                       : <span className="text-[11px] font-bold text-blue-400 min-w-[40px]">Break</span>
@@ -1700,7 +1700,7 @@ export default function StorePage() {
                                     <button type="button"
                                       onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
                                       className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                                    ><FiMoreHorizontal size={15} className="text-gray-400" /></button>
+                                    ><FiMoreHorizontal size={15} className="text-label3" /></button>
                                     <button onClick={() => removeAdjLevel(t.id, idx)}
                                       className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
                                     ><FiTrash2 size={14} className="text-red-400" /></button>
@@ -1717,7 +1717,7 @@ export default function StorePage() {
                                       { label: 'min',  field: 'duration',   val: lv.duration   },
                                     ] as const).map(({ label, field, val }) => (
                                       <div key={field} className="flex flex-col gap-0.5">
-                                        <span className="text-[10px] text-gray-400 font-semibold text-center">{label}</span>
+                                        <span className="text-[10px] text-label3 font-semibold text-center">{label}</span>
                                         <input type="number" min={1} value={val ?? ''} placeholder="-"
                                           onChange={e => updateAdjBlind(t.id, idx, { [field]: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) } as Partial<AdjLevel>)}
                                           className={bInput} />

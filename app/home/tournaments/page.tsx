@@ -381,7 +381,7 @@ export default function TournamentHistoryPage() {
                     {rank !== "-" ? (
                       <p className="text-[16px] font-bold text-[#D4910A]">{prize.toLocaleString()}</p>
                     ) : (
-                      <p className="text-[14px] text-gray-400">-</p>
+                      <p className="text-[14px] text-label3">-</p>
                     )}
                   </div>
 
@@ -403,7 +403,7 @@ export default function TournamentHistoryPage() {
                     <span className="text-gray-500">Reward:</span>
                     <span className="font-semibold text-gray-700">{reward.toFixed(1)}</span>
                   </div>
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: '#C7C7CC' }}>タップで詳細 →</div>
+                  <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--label3)' }}>タップで詳細 →</div>
                 </div>
               </div>
             )
@@ -412,7 +412,7 @@ export default function TournamentHistoryPage() {
           {history.length === 0 && (
             <div className="text-center py-16 animate-fadeIn">
               <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <FiAward className="text-gray-300" size={36} />
+                <FiAward className="text-label3" size={36} />
               </div>
               <p className="term-comment text-[16px] font-semibold text-gray-900 mb-1">トーナメント履歴がありません</p>
               <p className="text-[14px] text-gray-500">トーナメントに参加すると履歴が表示されます</p>
@@ -437,7 +437,7 @@ export default function TournamentHistoryPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3, marginBottom: 4 }}>{selectedItem.tournamentName ?? ""}</p>
-                  <p style={{ fontSize: 12, color: '#8E8E93' }}>{formatDateTime(selectedItem.startedAt?.seconds)} · {selectedItem.storeName ?? ""}</p>
+                  <p style={{ fontSize: 12, color: 'var(--label3)' }}>{formatDateTime(selectedItem.startedAt?.seconds)} · {selectedItem.storeName ?? ""}</p>
                 </div>
                 {isITM && (
                   <div style={{ marginLeft: 12, width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(242,169,0,0.4)' }}>
@@ -448,7 +448,7 @@ export default function TournamentHistoryPage() {
 
               {/* Buy-in breakdown */}
               <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '14px 16px', marginBottom: 12 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 10 }}>Buy-in 内訳</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 10 }}>Buy-in 内訳</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -479,11 +479,11 @@ export default function TournamentHistoryPage() {
               {/* Result stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
                 <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>獲得チップ</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得チップ</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : '#C7C7CC' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
                 <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px' }}>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8E8E93', marginBottom: 8 }}>ROI</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>ROI</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : '#8E8E93' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
                   </p>
@@ -492,12 +492,12 @@ export default function TournamentHistoryPage() {
 
               <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '12px 16px', display: 'flex', gap: 20, marginBottom: 24 }}>
                 <div>
-                  <p style={{ fontSize: 11, color: '#8E8E93', marginBottom: 4 }}>Cost</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 4 }}>Cost</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{cost.toFixed(2)}</p>
                 </div>
                 <div style={{ width: 1, background: 'rgba(0,0,0,0.08)' }} />
                 <div>
-                  <p style={{ fontSize: 11, color: '#8E8E93', marginBottom: 4 }}>Reward</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 4 }}>Reward</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{reward.toFixed(2)}</p>
                 </div>
               </div>

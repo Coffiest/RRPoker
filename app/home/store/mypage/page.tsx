@@ -481,7 +481,7 @@ export default function StoreMyPage() {
           <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span className="tech-status-dot" />
-            <span className="tech-label" style={{ fontSize: 9, color: 'rgba(60,60,67,0.45)' }}>STORE</span>
+            <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>STORE</span>
           </span>
         </div>
 
@@ -497,7 +497,7 @@ export default function StoreMyPage() {
                   className="h-20 w-20 rounded-2xl object-cover shadow-md border-2 border-white"
                 />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-gray-400 border-2 border-white shadow-md">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
                   <FiUser size={32} />
                 </div>
               )}
@@ -563,7 +563,7 @@ export default function StoreMyPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <FiFileText size={14} className="text-gray-400" />
+                  <FiFileText size={14} className="text-label3" />
                   <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
                 </div>
                 {editingField !== "description" && (
@@ -593,7 +593,7 @@ export default function StoreMyPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <FiMapPin size={14} className="text-gray-400" />
+                  <FiMapPin size={14} className="text-label3" />
                   <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
                 </div>
                 {editingField !== "postalCode" && (
@@ -736,7 +736,7 @@ export default function StoreMyPage() {
                 placeholder="例: 5"
               />
             </div>
-            <div className="pt-6 text-gray-400">-</div>
+            <div className="pt-6 text-label3">-</div>
             <div className="flex-1">
               <label className="block text-[11px] font-medium text-gray-600 mb-2">BB</label>
               <input

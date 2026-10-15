@@ -69,12 +69,25 @@ html, body {
   --font-display: var(--stack-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── 文字色(全画面共通・ここだけが実体) ─────────────────────────────
+   このアプリは白基調の明るい画面だけで作っている。以前ここに
+   「端末がダークモードなら --foreground を #ededed にする」指定が残っていて、
+   色を指定していない文字(例: 店舗詳細シートの見出し)が白い面の上で
+   ほぼ白になり読めなかった。ダーク用の上書きは置かない(test/textContrast.test.ts が守る)。
+
+   灰色の文字は次の3段だけを使う。どれも白(#fff)と #F2F2F7 の上で
+   コントラスト比 4.5:1 以上。これより薄い灰色を文字に使わない。
+     --label  : 本文・見出し      #1C1C1E (16:1)
+     --label2 : 補足・ラベル      #545458 (7.5:1)
+     --label3 : 注記・日時・無効  #6E6E73 (5.1:1)                         */
+:root {
+  color-scheme: light;
+  --label: #1C1C1E;
+  --label2: #545458;
+  --label3: #6E6E73;
 }
+.text-label2 { color: var(--label2); }
+.text-label3 { color: var(--label3); }
 
 body {
   background: var(--background);
@@ -338,7 +351,7 @@ body {
 
 .store-mypage input::placeholder,
 .store-mypage textarea::placeholder {
-  color: #9ca3af;
+  color: var(--label3);
 }
 
 @keyframes pageSlideIn {
@@ -457,7 +470,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(60, 60, 67, 0.55);
+  color: var(--label3);
   padding: 0 0 7px;
   margin-bottom: 12px;
   display: flex;
@@ -584,8 +597,8 @@ body {
   --a-surface-2: #F2F2F7;
   --a-sep: rgba(60, 60, 67, 0.09);
   --a-label: #1C1C1E;
-  --a-label-2: rgba(60, 60, 67, 0.60);
-  --a-label-3: rgba(60, 60, 67, 0.30);
+  --a-label-2: var(--label2);
+  --a-label-3: var(--label3);
 
   /* 影。面が大きいほど厚く見せる。 */
   --a-shadow-sm: 0 1px 2px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.05);
