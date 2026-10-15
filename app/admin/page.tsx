@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { FiPlus, FiTrash2, FiRefreshCw, FiCheck, FiX, FiSearch } from "react-icons/fi"
+import AdminPlayersTab from "./AdminPlayersTab"
 
 type CircleCode = { id: string; active: boolean; usedBy: string | null; createdAt?: number }
 
@@ -84,7 +85,7 @@ function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isF
 
 export default function AdminPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<"codes" | "free">("codes")
+  const [tab, setTab] = useState<"codes" | "free" | "players">("codes")
 
   // circle codes
   const [codes, setCodes] = useState<CircleCode[]>([])
@@ -225,13 +226,13 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          {(["codes", "free"] as const).map(t => (
+          {(["codes", "free", "players"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${tab === t ? "bg-[#F2A900] text-black" : "bg-gray-800 text-gray-300"}`}
             >
-              {t === "codes" ? "サークルコード" : "ストア管理"}
+              {t === "codes" ? "サークルコード" : t === "free" ? "ストア管理" : "プレイヤー"}
             </button>
           ))}
         </div>
@@ -333,6 +334,10 @@ export default function AdminPage() {
               ))}
             </div>
           </div>
+        )}
+
+        {tab === "players" && (
+          <AdminPlayersTab api={api} onUnauthorized={() => router.replace("/login")} />
         )}
 
         {/* Grant Free Period Modal */}

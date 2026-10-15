@@ -62,6 +62,8 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
           getDocs(collection(db, 'users', uid, 'tournamentHistory')),
         ])
         const data = userSnap.data() ?? {}
+        // 利用停止(BAN)中の人のプロフィールは出さない
+        if (data.banned === true) return
         setPlayer({
           name: data.name,
           iconUrl: data.iconUrl,

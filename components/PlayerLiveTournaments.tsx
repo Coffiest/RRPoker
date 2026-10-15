@@ -15,7 +15,9 @@ import { hapticTap } from '@/lib/haptics'
  * その場で確定できるようにする。これまでは店員が Players 画面を開いて
  * 数字を打ち直すしかなく、そのたびに卓の進行が止まっていた。
  *
- * 出すのは「自分がエントリー登録されている」大会だけ。初回のエントリーは
+ * タイマーは、入店中の店で進行中の大会をすべて出す(エントリーしていなくても、
+ * いまのレベルや残り時間を見られるように)。リエントリー / アドオンのボタンは
+ * 「自分がエントリー登録されている」大会にだけ出す。初回のエントリーは
  * 従来どおり店舗側の Players 画面から行う(飛び入りの受付は人が確認する)。
  */
 
@@ -54,8 +56,7 @@ export default function PlayerLiveTournaments(props: Props) {
     // tournaments の中身ではなく「どの大会か」が変わったときだけ張り直す。
   }, [props.storeId, props.userId, tournaments.map(t => t.id).join(',')])
 
-  const mine = tournaments.filter(t => joined[t.id])
-  if (mine.length === 0) return null
+  if (tournaments.length === 0) return null
 
   return (
     <div
@@ -73,8 +74,8 @@ export default function PlayerLiveTournaments(props: Props) {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {mine.map(t => (
-          <LiveTournamentRow key={t.id} tournament={t} {...props} />
+        {tournaments.map(t => (
+          <LiveTournamentRow key={t.id} tournament={t} joined={joined[t.id] === true} {...props} />
         ))}
       </div>
     </div>
@@ -91,7 +92,8 @@ function LiveTournamentRow({
   balance,
   unitLabel,
   unitBefore,
-}: Props & { tournament: LiveTournament }) {
+  joined,
+}: Props & { tournament: LiveTournament; joined: boolean }) {
   const [confirming, setConfirming] = useState<PurchaseKind | null>(null)
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
 
@@ -151,11 +153,12 @@ function LiveTournamentRow({
     )
   }
 
-  const reentryBtn = button('reentry')
-  const addonBtn = button('addon')
-  const shortOfAny =
+  // 操作できるのは、自分がエントリーしている大会だけ。見るだけの大会にはボタンを出さない。
+  const reentryBtn = joined ? button('reentry') : null
+  const addonBtn = joined ? button('addon') : null
+  const shortOfAny = joined && (
     (tournament.reentryFee > 0 && balance < tournament.reentryFee) ||
-    (tournament.addonFee > 0 && balance < tournament.addonFee)
+    (tournament.addonFee > 0 && balance < tournament.addonFee))
 
   return (
     <div>
