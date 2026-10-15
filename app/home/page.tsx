@@ -1654,9 +1654,7 @@ const medalClass = (rank: number) => {
           {/* 計器盤。金一色の面をやめ、黒地に金の数値だけを光らせる。
               いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
           {/* 面の色は元のテーマ(金)のまま。変えたのは意匠だけ:
-              方眼と基板のドットを薄く重ね、端末のタイトル行を足している。
-              金の面の上の文字は墨色(#1C1C1E)。白は金(#F2A900)の上で 2.0:1 しか出ず、
-              大きな偏差値の数字でも基準(3:1)に届かなかった。 */}
+              方眼と基板のドットを薄く重ね、端末のタイトル行を足している。 */}
           <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '14px 20px 20px', position: 'relative', overflow: 'hidden' }}>
             {/* 金の面に、方眼と基板のドットを黒で薄く敷く(色は足さない) */}
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
@@ -1666,10 +1664,10 @@ const medalClass = (rank: number) => {
 
             {/* 端末のタイトル行 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'relative', zIndex: 1 }}>
-              <span className="tech-label" style={{ fontSize: 9, color: 'rgba(28,28,30,0.78)', letterSpacing: '0.20em' }}>RATING / TOURNAMENT</span>
+              <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.62)', letterSpacing: '0.20em' }}>RATING / TOURNAMENT</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="tech-status-dot" style={{ background: '#1C1C1E', boxShadow: '0 0 0 0 rgba(28,28,30,0.4)' }} />
-                <span className="tech-label" style={{ fontSize: 9, color: 'rgba(28,28,30,0.78)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
+                <span className="tech-status-dot" style={{ background: '#fff', boxShadow: '0 0 0 0 rgba(255,255,255,0.55)' }} />
+                <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.62)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
               </span>
             </div>
 
@@ -1680,7 +1678,7 @@ const medalClass = (rank: number) => {
                   <div style={{ width: 30, height: 30, borderRadius: 9, overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
                     {profile.iconUrl
                       ? <img src={profile.iconUrl} alt={profile.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={14} style={{ color: 'rgba(28,28,30,0.78)' }} /></div>
+                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={14} style={{ color: 'rgba(255,255,255,0.85)' }} /></div>
                     }
                   </div>
                   {currentStoreId && (
@@ -1688,14 +1686,14 @@ const medalClass = (rank: number) => {
                   )}
                 </div>
                 <div>
-                  <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 13.5, fontWeight: 600, color: '#1C1C1E', lineHeight: 1.2, letterSpacing: '0.02em' }}>{profile.name || ''}</p>
+                  <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 13.5, fontWeight: 600, color: '#fff', lineHeight: 1.2, letterSpacing: '0.02em' }}>{profile.name || ''}</p>
                   {currentStoreId && currentStore ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34C759', flexShrink: 0 }} />
-                      <p className="tech-label" style={{ fontSize: 9, color: 'rgba(28,28,30,0.78)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
+                      <p className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
-                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(28,28,30,0.78)', marginTop: 2 }}>not checked in</p>
+                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>not checked in</p>
                   )}
                 </div>
               </div>
@@ -1714,19 +1712,19 @@ const medalClass = (rank: number) => {
                 }}
                 style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.28)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
               >
-                <FiHelpCircle size={13} style={{ color: 'rgba(28,28,30,0.78)' }} />
+                <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
               </button>
             </div>
 
             {/* ラベル */}
-            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(28,28,30,0.78)', marginBottom: 6, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.72)', marginBottom: 6, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
 
             {/* メイン数値 */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
               {tournamentStats.plays === 0 ? (
                 <div>
-                  <p className="tech-num tech-caret" style={{ fontSize: 34, fontWeight: 800, color: 'rgba(28,28,30,0.78)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
-                  <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, color: 'rgba(28,28,30,0.78)', marginTop: 8, lineHeight: 1.6, maxWidth: 240 }}>
+                  <p className="tech-num tech-caret" style={{ fontSize: 34, fontWeight: 800, color: 'rgba(255,255,255,0.78)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
+                  <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, color: 'rgba(255,255,255,0.58)', marginTop: 8, lineHeight: 1.6, maxWidth: 240 }}>
                     {t('tourneyStat.pendingNote')}
                   </p>
                 </div>
@@ -1734,8 +1732,8 @@ const medalClass = (rank: number) => {
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
                   <p className="tech-num" style={{
                     fontSize: 54, fontWeight: 800, lineHeight: 1, letterSpacing: '-1px',
-                    color: '#1C1C1E',
-                    
+                    color: '#fff',
+                    textShadow: '0 2px 18px rgba(0,0,0,0.18)',
                   }}>
                     {(animRrRating ?? displayRrRating).toFixed(2)}
                   </p>
@@ -1745,8 +1743,8 @@ const medalClass = (rank: number) => {
                     </span>
                   )}
                   {rrMyEntry && (
-                    <div style={{ marginBottom: 7, background: 'rgba(255,255,255,0.32)', border: '1px solid rgba(28,28,30,0.14)', borderRadius: 8, padding: '4px 10px' }}>
-                      <p className="tech-num" style={{ fontSize: 11.5, fontWeight: 700, color: '#1C1C1E' }}>
+                    <div style={{ marginBottom: 7, background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 8, padding: '4px 10px' }}>
+                      <p className="tech-num" style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>
                         <span className="tech-label" style={{ fontSize: 9, opacity: 0.6, marginRight: 4 }}>RANK</span>{rrMyEntry.rank}
                       </p>
                     </div>
