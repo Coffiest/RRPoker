@@ -12,7 +12,7 @@ const ACT_JP: Record<string, string> = {
 }
 const CLR = {
   bg: "#FFFBF5", white: "#FFFFFF", surface: "#F5F3EF", border: "#E8E3DB",
-  gold: "#F2A900", goldDk: "#D4910A", ink: "#1D1D1F", gray2: "#6E6E73", gray3: "#AEAEB2",
+  gold: "#F2A900", goldDk: "#D4910A", ink: "#1D1D1F", gray2: "#545458", gray3: "#6E6E73",
   red: "#E53E3A",
 }
 

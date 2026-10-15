@@ -26,7 +26,7 @@ export function ConsolePanel({
   const bg = dark ? '#0E0E10' : '#FFFFFF'
   const bar = dark ? '#1A1A1E' : '#F2F2F7'
   const line = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-  const titleColor = dark ? 'rgba(255,255,255,0.42)' : 'rgba(60,60,67,0.45)'
+  const titleColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--label3)'
 
   return (
     <div

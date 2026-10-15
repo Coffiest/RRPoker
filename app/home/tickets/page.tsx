@@ -337,7 +337,7 @@ export default function TicketsPage() {
                   style={{
                     flex: 1, height: 36, borderRadius: 99, border: "none", cursor: "pointer",
                     background: couponTab === tab.key ? "#1C1C1E" : "#E5E5EA",
-                    color: couponTab === tab.key ? "#fff" : "#8E8E93",
+                    color: couponTab === tab.key ? "#fff" : "var(--label3)",
                     fontSize: 13, fontWeight: 600,
                     transition: "all 0.15s",
                   }}
@@ -433,7 +433,7 @@ export default function TicketsPage() {
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none", cursor: isChecked ? "pointer" : "default",
                 background: isChecked ? "linear-gradient(135deg,#F2A900,#D4910A)" : "#E5E5EA",
-                color: isChecked ? "#1C1C1E" : "#8E8E93",
+                color: isChecked ? "#1C1C1E" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
                 boxShadow: isChecked ? "0 4px 14px rgba(200,130,10,0.30)" : "none",
                 transition: "all 0.2s ease",

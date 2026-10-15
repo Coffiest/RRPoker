@@ -66,6 +66,19 @@ function isFaintGray(c: RGBA): boolean {
   return neutral && Math.max(r, g, b) < 235 && contrastOnWhite(c) < 4.5
 }
 
+/**
+ * 色の直前にあるプロパティ名。`color: cond ? '#aaa' : '#bbb'` の後ろ側も color と判定できるよう、
+ * 三項演算子の「:」ではなく、行頭か { , ; ( の直後に来る「名前:」を探す。
+ */
+function lastProperty(before: string): string | undefined {
+  let name: string | undefined
+  for (const m of before.matchAll(/(?:^|[{,;(])\s*([A-Za-z-]+)\s*:/g)) name = m[1]
+  return name
+}
+
+/** 文字色として使われるキー。色の定数オブジェクト(CLR.gray3 など)も含める */
+const TEXT_COLOR_KEYS = /^(color|gray\d*|label\d*|ink|muted|sub(text)?|text\d*)$/i
+
 const COLOR_LITERAL = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b|rgba?\([^)]*\)/g
 
 function findViolations(): string[] {
@@ -78,8 +91,13 @@ function findViolations(): string[] {
       for (const m of line.matchAll(COLOR_LITERAL)) {
         const c = parseColor(m[0])
         if (!c || !isFaintGray(c)) continue
-        const prop = line.slice(0, m.index).match(/([A-Za-z-]+)\s*:[^:;{}]*$/)
-        if (prop?.[1] === "color") out.push(`${at} 薄い灰色の文字 ${m[0]}(${contrastOnWhite(c).toFixed(2)}:1)`)
+        const before = line.slice(0, m.index)
+        const prop = lastProperty(before)
+        // style の color、色の定数(gray3 など)、JSX の color= 、xxxColor = ... への代入を文字色とみなす
+        const isTextColor =
+          (prop !== undefined && TEXT_COLOR_KEYS.test(prop)) ||
+          /\b[A-Za-z]*[cC]olor\s*=\s*[^;]*$/.test(before)
+        if (isTextColor) out.push(`${at} 薄い灰色の文字 ${m[0]}(${contrastOnWhite(c).toFixed(2)}:1)`)
       }
       for (const m of line.matchAll(/(?<![\w-])([a-z-]+:)?text-gray-(300|400)\b/g)) {
         if (!m[1]) out.push(`${at} ${m[0]} は白地で読めない(text-label3 を使う)`)

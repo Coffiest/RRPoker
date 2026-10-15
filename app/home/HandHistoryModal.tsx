@@ -23,8 +23,8 @@ const CLR = {
   gold:    "#F2A900",
   goldDk:  "#D4910A",
   ink:     "#1D1D1F",
-  gray2:   "#6E6E73",
-  gray3:   "#AEAEB2",
+  gray2:   "#545458",
+  gray3:   "#6E6E73",
   red:     "#E53E3A",
 }
 

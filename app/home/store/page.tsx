@@ -1621,7 +1621,7 @@ export default function StorePage() {
                           flex: 1, height: 34, borderRadius: 9, border: 'none', cursor: 'pointer',
                           fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
                           background: tab === tb ? '#fff' : 'transparent',
-                          color: tab === tb ? '#1C1C1E' : '#8E8E93',
+                          color: tab === tb ? '#1C1C1E' : 'var(--label3)',
                           boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
                         }}
                       >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>

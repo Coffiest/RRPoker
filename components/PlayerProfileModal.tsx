@@ -141,7 +141,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                 }}>
                   {player.iconUrl
                     ? <img src={player.iconUrl} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <FiUser size={34} color="#8E8E93" />
+                    : <FiUser size={34} color="var(--label3)" />
                   }
                 </div>
                 <div style={{ textAlign: 'center' }}>
