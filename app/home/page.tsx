@@ -161,7 +161,7 @@ function GraphShelf({
             {points.map((p, i) => {
               if (p.delta === null || p.sec === null) return null
               const isSelected = tooltip?.cardKey === page.key && tooltip.idx === i
-              const dotColor = p.delta > 0 ? "#10b981" : p.delta < 0 ? "#ef4444" : "#8E8E93" // contrast-ok: 文字ではなくグラフの点(図形は 3:1 以上)
+              const dotColor = p.delta > 0 ? "#10b981" : p.delta < 0 ? "#ef4444" : "#9ca3af" // contrast-ok: 文字ではなくグラフの点(元の配色・オーナー確定)
               return (
                 <g key={i} style={{ cursor: "pointer" }}
                   onClick={e => {
@@ -1787,8 +1787,8 @@ const medalClass = (rank: number) => {
                   className="tech-reveal"
                   style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.21 + i * 0.05}s` } as React.CSSProperties}
                 >
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 8.5, color: 'var(--gold-text)', marginBottom: 4, letterSpacing: '0.12em' }}>{s.label}</p>
-                  <p className="tech-num" style={{ fontSize: 16, fontWeight: 800, color: 'var(--gold-text)', lineHeight: 1 }}>{s.value}</p>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 8.5, color: 'rgba(212,145,10,0.6)', marginBottom: 4, letterSpacing: '0.12em' }}>{s.label}</p>
+                  <p className="tech-num" style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
                   {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
                     <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
                       {s.deltaFmt(s.deltaVal)}
@@ -1802,7 +1802,7 @@ const medalClass = (rank: number) => {
                 if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
                 setIsRankingModalOpen(true)
               }}
-              style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: 'var(--gold-text)', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
+              style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
             >
               <FiAward size={14} />
               <span className="tech-label" style={{ fontSize: 11, letterSpacing: '0.14em' }}>ランキングを見る</span>
@@ -1851,7 +1851,7 @@ const medalClass = (rank: number) => {
                           const cx = PL + i * STEP
                           const cy = yOf(d.pnl)
                           const isSelected = selectedTnIdx === i
-                          const dotColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#8E8E93' // contrast-ok: 文字ではなくグラフの点(図形は 3:1 以上)
+                          const dotColor = d.pnl > 0 ? '#10b981' : d.pnl < 0 ? '#ef4444' : '#9ca3af' // contrast-ok: 文字ではなくグラフの点(元の配色・オーナー確定)
                           const ts = d.item.startedAt
                           const dateStr = ts
                             ? (() => { const dt: Date = ts.toDate ? ts.toDate() : new Date(ts); return `${String(dt.getMonth() + 1).padStart(2, '0')}/${String(dt.getDate()).padStart(2, '0')}` })()
@@ -2123,7 +2123,7 @@ const medalClass = (rank: number) => {
                     style={{
                       flex: 1, height: 32, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', transition: 'all .15s',
                       background: rankingTab === tab.key ? '#fff' : 'transparent',
-                      color: rankingTab === tab.key ? 'var(--gold-text)' : 'var(--label3)',
+                      color: rankingTab === tab.key ? '#D4910A' : 'var(--label3)',
                       boxShadow: rankingTab === tab.key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
                     }}
                   >
@@ -2319,7 +2319,7 @@ const medalClass = (rank: number) => {
                 <p className="section-label">入店したことのある店舗</p>
                 <div className="flex items-center gap-2">
                   <button type="button" onClick={openJoinModal}
-                    className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-gray-900"
+                    className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white"
                   >
                     <FiSearch size={12} />店舗を検索
                   </button>
@@ -2363,9 +2363,8 @@ const medalClass = (rank: number) => {
                   {scheduleDays.map(({ ds, day, dow, isSun, isSat }) => {
                     const entries = scheduleEntries[ds] ?? []
                     const selected = calScheduleTab === ds
-                    // 金の面の上は墨色(白は金の上で 2.0:1 しか出ない)
-                    const dowColor = selected ? 'rgba(28,28,30,0.75)' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : 'var(--label3)'
-                    const numColor = selected ? '#1C1C1E' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : '#1C1C1E'
+                    const dowColor = selected ? 'rgba(255,255,255,0.8)' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : 'var(--label3)'
+                    const numColor = selected ? '#fff' : isSun ? '#8B2A2A' : isSat ? '#2A4A7A' : '#1C1C1E'
                     return (
                       <button
                         key={ds}
@@ -2384,7 +2383,7 @@ const medalClass = (rank: number) => {
                         <span style={{ fontSize: 20, fontWeight: 800, color: numColor, lineHeight: 1.1 }}>{day}</span>
                         <div style={{ height: 5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {entries.length > 0 && (
-                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? 'rgba(28,28,30,0.55)' : '#F2A900' }} />
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? 'rgba(255,255,255,0.6)' : '#F2A900' }} />
                           )}
                         </div>
                       </button>
@@ -2452,7 +2451,7 @@ const medalClass = (rank: number) => {
                                     {entry.name || 'トーナメント'}
                                   </p>
                                   {entry.repeatWeekly && (
-                                    <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--gold-text)', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
+                                    <span style={{ fontSize: 9, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
                                   )}
                                 </div>
                                 <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>{entry.storeName}</p>
@@ -2461,7 +2460,7 @@ const medalClass = (rank: number) => {
                                     <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43' }}>🕐 {formatDateTime(entry.startTime)}</span>
                                   )}
                                   {entry.entryFee != null && (
-                                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--gold-text)' }}>{fmtChip(Number(entry.entryFee))}</span>
+                                    <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
                               </div>
@@ -2561,15 +2560,15 @@ const medalClass = (rank: number) => {
                   <span>合計</span><span>{d.buyin.toLocaleString()}</span>
                 </div>
                 {d.rank !== '-' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: 'var(--gold-text)', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
                     <span>獲得チップ</span><span>{d.prize.toLocaleString()}</span>
                   </div>
                 )}
                 {d.rrRating !== null && (
                   <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6, marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--gold-text)' }}>トナメ偏差値</span>
+                    <span style={{ fontWeight: 600, color: '#D4910A' }}>トナメ偏差値</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--gold-text)' }}>{d.rrRating.toFixed(2)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#D4910A' }}>{d.rrRating.toFixed(2)}</span>
                       {d.rrDelta !== null && Math.abs(d.rrDelta) >= 0.01 && (
                         <span style={{
                           fontSize: 10, fontWeight: 700,
@@ -2832,7 +2831,7 @@ const medalClass = (rank: number) => {
                 aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)}
                 className="a-btn a-btn-icon"
                 style={favoriteStores.includes(selectedStore.id)
-                  ? { minHeight: 34, width: 34, background: 'rgba(242,169,0,0.16)', color: 'var(--gold-text)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
+                  ? { minHeight: 34, width: 34, background: 'rgba(242,169,0,0.16)', color: '#B57F00', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
                   : { minHeight: 34, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
               ><FiStar size={15} /></button>
             </div>
@@ -3012,7 +3011,7 @@ const medalClass = (rank: number) => {
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
-                    <p style={{ fontSize: 10, color: 'var(--gold-text)', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
+                    <p style={{ fontSize: 10, color: '#D4910A', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
                   </div>
                 </div>
                 <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px' }}>{displayRrRating.toFixed(2)}</p>
@@ -3041,7 +3040,7 @@ const medalClass = (rank: number) => {
                         }
                       </div>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: 'var(--gold-text)', marginLeft: 5 }}>（あなた）</span>}</p>
+                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: '#D4910A', marginLeft: 5 }}>（あなた）</span>}</p>
                         <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 1 }}>{player.rank}位</p>
                       </div>
                     </div>
