@@ -412,13 +412,17 @@ export default function HomePage() {
     if (userId) void saveGeoConsent(userId, value)
   }
 
-  const handleGeoAllow = () => {
+  // 説明のあとは、必ず端末(OS)の許可の確認へ進める。許可するかどうかは OS の確認で
+  // 本人が決める(App Review 5.1.1(iv): 説明画面に「許可する」「許可しない」を置かない)。
+  // 確認をすぐ出すため、店舗の読み直しを待たずにここで現在地を求める。結果は読み直しで使う。
+  const handleGeoContinue = () => {
     answerGeoConsent("granted")
-    setGeoReloadKey(k => k + 1)
-  }
-
-  const handleGeoDecline = () => {
-    answerGeoConsent("declined")
+    const reload = () => setGeoReloadKey(k => k + 1)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(reload, reload, { timeout: 10000 })
+    } else {
+      reload()
+    }
   }
 
   // ── RR Rating tooltip (fixed position to escape overflow:hidden)
@@ -2633,11 +2637,8 @@ const medalClass = (rank: number) => {
             <p className="text-[12px] text-label3 leading-relaxed mb-5">
               {t('geo.changeInSettings')}
             </p>
-            <button onClick={handleGeoAllow} className="a-btn a-btn-filled a-btn-block mb-2">
-              {t('geo.allow')}
-            </button>
-            <button onClick={handleGeoDecline} className="a-btn a-btn-bare a-btn-block">
-              {t('geo.decline')}
+            <button onClick={handleGeoContinue} className="a-btn a-btn-filled a-btn-block">
+              {t('geo.continue')}
             </button>
           </div>
         </div>

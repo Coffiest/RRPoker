@@ -65,8 +65,7 @@ const dict = {
 
     'geo.title': '位置情報の利用について',
     'geo.body': '近くの店舗を見つけやすくするため、現在地を一度だけ取得して距離順に並び替えに利用します。位置情報が取得できない場合でも、通常どおりご利用いただけます。位置情報を保存することはありません。',
-    'geo.allow': '位置情報を許可する',
-    'geo.decline': '許可しない',
+    'geo.continue': '続ける',
     'geo.changeInSettings': 'この設定はいつでも「設定」画面から変更できます。',
 
     'tourneyStat.pendingNote': 'トーナメントに1回参加し、店舗側で大会結果が確定すると表示されます',
@@ -130,8 +129,7 @@ const dict = {
 
     'geo.title': 'About location access',
     'geo.body': "We use your current location once to sort nearby stores by distance, to make them easier to find. The app works normally even if location isn't available, and we never store your location.",
-    'geo.allow': 'Allow location',
-    'geo.decline': "Don't allow",
+    'geo.continue': 'Continue',
     'geo.changeInSettings': 'You can change this anytime from Settings.',
 
     'tourneyStat.pendingNote': 'This appears once you’ve entered a tournament and the store finalizes the results',
