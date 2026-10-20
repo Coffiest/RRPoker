@@ -32,10 +32,16 @@ export default function UserSettingsPage() {
     return () => { cancelled = true }
   }, [])
 
+  // アプリで現在地を「使う / 使わない」の切り替え。端末(OS)の許可そのものは OS の確認で
+  // 本人が決めるので、ここに「許可する / 許可しない」とは書かない(App Review 5.1.1(iv))。
+  // 「使う」にしたら、その場で OS の確認へ進める(未回答なら確認が出る)。
   const updateGeoConsent = (value: "granted" | "declined") => {
     setGeoConsent(value)
     const uid = auth.currentUser?.uid
     if (uid) void saveGeoConsent(uid, value)
+    if (value === "granted" && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(() => {}, () => {}, { timeout: 10000 })
+    }
   }
 
   useEffect(() => {
@@ -150,7 +156,7 @@ export default function UserSettingsPage() {
               className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
               style={{ background: geoConsent === "granted" ? '#F2A900' : '#F3F4F6', color: geoConsent === "granted" ? '#1a1a1a' : '#6b7280' }}
             >
-              許可する
+              使う
             </button>
             <button
               type="button"
@@ -158,7 +164,7 @@ export default function UserSettingsPage() {
               className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
               style={{ background: geoConsent === "declined" ? '#F2A900' : '#F3F4F6', color: geoConsent === "declined" ? '#1a1a1a' : '#6b7280' }}
             >
-              許可しない
+              使わない
             </button>
           </div>
         </div>
