@@ -45,6 +45,8 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>近くの店舗を距離順に表示するために、現在地を一度だけ使用します。位置情報を保存することはありません。</string>
 	<key>NSCameraUsageDescription</key>
 	<string>店舗チェックインやペアリングのQRコードをスキャンするためにカメラを使用します。</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
