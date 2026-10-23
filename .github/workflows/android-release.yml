@@ -1,0 +1,74 @@
+name: Build Android AAB
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "android-app/**"
+      - ".github/workflows/android-release.yml"
+
+concurrency:
+  group: "android-release-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: android-app/package-lock.json
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Sync Capacitor Android plugins
+        run: npx cap sync android
+
+      - name: Decide whether this is a signed build
+        id: signing
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decode signing keystore
+        if: steps.signing.outputs.signed == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/rrpoker-upload.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/rrpoker-upload.keystore" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+
+      - name: Build release AAB
+        working-directory: android-app/android
+        run: ./gradlew bundleRelease --no-daemon
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rrpoker-release-aab
+          path: android-app/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Warn if unsigned
+        if: steps.signing.outputs.signed == 'false'
+        run: |
+          echo "::warning::ANDROID_KEYSTORE_BASE64 secret is not set, so this .aab is UNSIGNED and cannot be uploaded to Google Play. Add the signing secrets described in android-app/SIGNING.md."
