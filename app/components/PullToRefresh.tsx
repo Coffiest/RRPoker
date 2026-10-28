@@ -1,9 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { hapticTap } from '@/lib/haptics'
 
 const THRESHOLD = 72
 const MAX_PULL = 110
+
+// 引くほど重くなる(端で急に止まらない)。.claude/skills/apple-design §9
+function rubberband(dy: number): number {
+  const c = 0.55
+  return (dy * MAX_PULL * c * 2) / (MAX_PULL + c * dy)
+}
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
@@ -18,6 +25,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
   const [refreshing, setRefreshing] = useState(false)
   const startYRef = useRef<number | null>(null)
   const pullingRef = useRef(false)
+  const pullRef = useRef(0)
 
   useEffect(() => {
     if (!isStandalone()) return
@@ -31,20 +39,25 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
     const onTouchMove = (e: TouchEvent) => {
       if (!pullingRef.current || startYRef.current === null) return
       const dy = e.touches[0].clientY - startYRef.current
-      if (dy <= 0) { setPullY(0); return }
+      if (dy <= 0) { pullRef.current = 0; setPullY(0); return }
       e.preventDefault()
-      setPullY(Math.min(dy * 0.5, MAX_PULL))
+      const next = rubberband(dy)
+      // 「離せば更新」に変わった瞬間だけ震わせる。
+      if (pullRef.current < THRESHOLD && next >= THRESHOLD) hapticTap()
+      pullRef.current = next
+      setPullY(next)
     }
 
     const onTouchEnd = async () => {
       if (!pullingRef.current) return
       pullingRef.current = false
-      if (pullY >= THRESHOLD) {
+      if (pullRef.current >= THRESHOLD) {
         setRefreshing(true)
         setPullY(THRESHOLD)
         await new Promise<void>(resolve => { onRefresh(); setTimeout(resolve, 800) })
         setRefreshing(false)
       }
+      pullRef.current = 0
       setPullY(0)
       startYRef.current = null
     }
@@ -57,7 +70,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
     }
-  }, [pullY, onRefresh])
+  }, [onRefresh])
 
   if (!isStandalone() || (pullY === 0 && !refreshing)) return null
 

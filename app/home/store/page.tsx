@@ -1016,8 +1016,19 @@ export default function StorePage() {
           <div
             className="ios-card"
             style={{ overflow: 'hidden' }}
-            onTouchStart={e => { cardTouchStartX.current = e.touches[0].clientX; cardTouchStartY.current = e.touches[0].clientY }}
+            onTouchStart={e => { cardTouchStartX.current = e.touches[0].clientX; cardTouchStartY.current = e.touches[0].clientY; e.currentTarget.style.transition = 'none' }}
+            onTouchMove={e => {
+              // 横に引いた分だけカードが指について動く(引くほど重くなる)。
+              const dx = e.touches[0].clientX - cardTouchStartX.current
+              const dy = e.touches[0].clientY - cardTouchStartY.current
+              if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) return
+              const w = e.currentTarget.offsetWidth || 360
+              const x = (dx * w * 0.55) / (w + 0.55 * Math.abs(dx)) * 0.4
+              e.currentTarget.style.transform = `translateX(${x}px)`
+            }}
             onTouchEnd={e => {
+              e.currentTarget.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)'
+              e.currentTarget.style.transform = ''
               const dx = e.changedTouches[0].clientX - cardTouchStartX.current
               const dy = e.changedTouches[0].clientY - cardTouchStartY.current
               if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dx > 0) setSwitcherOpen(p => !p)

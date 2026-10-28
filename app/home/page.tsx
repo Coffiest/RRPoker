@@ -1514,7 +1514,7 @@ const medalClass = (rank: number) => {
         .bank-card-inner {
           position:relative; height:256px;
           transform-style:preserve-3d; -webkit-transform-style:preserve-3d;
-          transition:transform 0.92s cubic-bezier(0.22,1,0.36,1);
+          transition:transform 0.5s cubic-bezier(0.22,1,0.36,1);
           will-change:transform;
         }
         .bank-card.is-flipped .bank-card-inner { transform:rotateY(180deg); }
