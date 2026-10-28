@@ -512,7 +512,7 @@ export default function MyPage() {
             <button type="button" onClick={shareProfileCard} disabled={sharingProfile}
               style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
               {sharingProfile
-                ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
+                ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .8s linear infinite' }} />
                 : <Share2Icon size={13} style={{ color: '#fff' }} />
               }
               <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>シェア</span>
@@ -545,7 +545,7 @@ export default function MyPage() {
                 }
                 {savingIcon && (
                   <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin .8s linear infinite' }} />
                   </div>
                 )}
               </div>

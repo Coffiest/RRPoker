@@ -275,7 +275,7 @@ export default function BranchStorePage() {
 
         <button type="button" disabled={loading} onClick={saveProfile} className="bs-btn">
           {loading ? (
-            <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/>
+            <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .8s linear infinite' }}/>
           ) : (
             <>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>

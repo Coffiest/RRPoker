@@ -155,7 +155,7 @@ export default function UserWelcomePage() {
           transition: transform 0.13s ease, box-shadow 0.13s ease;
           animation: pulse-ring 2s ease-out 1.2s 3;
         }
-        .btn-primary:active { transform:scale(0.977); opacity:0.88; }
+        .btn-primary:active { transform:scale(0.97); opacity:0.88; }
 
         .feature-item {
           transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;

@@ -335,7 +335,7 @@ export default function LoginPage() {
           white-space:nowrap; display:flex; align-items:center; gap:8px;
           transition:transform .12s, opacity .12s;
         }
-        .header-cta:active { transform:scale(0.95); opacity:.85; }
+        .header-cta:active { transform:scale(0.97); opacity:.85; }
 
         /* ── Error ── */
         .error-box {
@@ -349,13 +349,13 @@ export default function LoginPage() {
           width:20px; height:20px; border-radius:50%;
           border:2.5px solid rgba(26,26,26,0.18);
           border-top-color:#1a1a1a;
-          animation:spin .65s linear infinite;
+          animation:spin .8s linear infinite;
         }
         .spinner-white {
           width:20px; height:20px; border-radius:50%;
           border:2.5px solid rgba(255,255,255,0.25);
           border-top-color:white;
-          animation:spin .65s linear infinite;
+          animation:spin .8s linear infinite;
         }
 
         /* ── Success check ── */
@@ -499,7 +499,7 @@ export default function LoginPage() {
                 style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
               >
                 {googleLoading
-                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .8s linear infinite' }}/>
                   : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                       <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
                       <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
@@ -512,7 +512,7 @@ export default function LoginPage() {
                 style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#000', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
               >
                 {appleLoading
-                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .65s linear infinite' }}/>
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .8s linear infinite' }}/>
                   : <svg width="16" height="20" viewBox="0 0 16 20" fill="white">
                       <path d="M13.15 10.44c-.02-2.05 1.67-3.04 1.75-3.09-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.47.74-3.11.74-.64 0-1.62-.72-2.67-.7-1.37.02-2.64.8-3.34 2.02C1.27 10.26 2.3 14.5 3.84 16.87c.77 1.16 1.68 2.44 2.88 2.4 1.16-.05 1.59-.74 2.99-.74 1.4 0 1.79.74 3.01.71 1.24-.02 2.03-1.17 2.79-2.33.88-1.33 1.24-2.63 1.26-2.7-.03-.01-2.4-.92-2.62-3.77z"/>
                       <path d="M11.06 4.66c.63-.78 1.06-1.86.94-2.95-.91.04-2.02.62-2.67 1.38-.58.67-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.69-1.24z"/>

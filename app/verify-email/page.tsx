@@ -163,7 +163,7 @@ export default function VerifyEmailPage() {
         .spinner {
           width:18px; height:18px; border-radius:50%;
           border:2.5px solid rgba(26,26,26,0.18); border-top-color:#1a1a1a;
-          animation:spin .65s linear infinite;
+          animation:spin .8s linear infinite;
         }
         .check-path { stroke-dasharray:30; stroke-dashoffset:30; animation:check-draw .3s ease-out .05s forwards; }
         .msg-box { animation:msg-in .3s ease-out; }

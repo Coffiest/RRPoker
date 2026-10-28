@@ -138,7 +138,7 @@ export default function HandPage() {
             </p>
           </div>
           <button onClick={share}
-            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-95 transition"
+            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-[0.97] transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})` }}>
             <Share2Icon size={14} />
             {copied ? "コピー完了" : "シェア"}
@@ -240,21 +240,21 @@ export default function HandPage() {
         {/* Replay controls */}
         <div className="flex items-center justify-center gap-4 mb-4">
           <button onClick={() => { setReplayStep(0); setReplayPlaying(false) }}
-            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 13 }}>⟪</button>
           <button onClick={() => setReplayStep(s => Math.max(0, s - 1))}
-            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronLeftIcon size={20} /></button>
           <button onClick={() => setReplayPlaying(p => !p)}
-            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, fontSize: 16, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
             {replayPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" />}
           </button>
           <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))}
-            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronRightIcon size={20} /></button>
           <button onClick={() => { setReplayStep(totalSteps); setReplayPlaying(false) }}
-            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+            className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 13 }}>⟫</button>
           <span className="text-[11px] ml-2" style={{ color: CLR.gray3 }}>{replayStep}/{totalSteps}</span>
         </div>
@@ -306,7 +306,7 @@ export default function HandPage() {
           <p className="text-[13px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
           <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/home"
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-[0.97] transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
             RRPOKERを使ってみる <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} />
           </a>

@@ -98,7 +98,7 @@ function ActionTile({ label, icon, direction, onClick, disabled }: ActionTilePro
         // 離してからではなく、押した瞬間に沈む
         transition: "background 100ms ease-out, transform 100ms ease-out",
       }}
-      onPointerDown={e => { if (!disabled) { e.currentTarget.style.background = "rgba(255,255,255,0.82)"; e.currentTarget.style.transform = "scale(0.955)" } }}
+      onPointerDown={e => { if (!disabled) { e.currentTarget.style.background = "rgba(255,255,255,0.82)"; e.currentTarget.style.transform = "scale(0.97)" } }}
       onPointerUp={e => { e.currentTarget.style.background = "rgba(255,255,255,0.62)"; e.currentTarget.style.transform = "scale(1)" }}
       onPointerLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.62)"; e.currentTarget.style.transform = "scale(1)" }}
     >
@@ -818,7 +818,7 @@ export default function StorePage() {
 
   if (role === null) return (
     <div style={{ minHeight: '100dvh', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .7s linear infinite' }}/>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .8s linear infinite' }}/>
     </div>
   )
   if (role !== "store") return null
@@ -939,7 +939,7 @@ export default function StorePage() {
           display:flex; align-items:center; justify-content:center;
           border:none; cursor:pointer; transition:transform .12s ease;
         }
-        .timer-btn:active { transform:scale(0.9); }
+        .timer-btn:active { transform:scale(0.97); }
 
         /* Player row */
         .player-row {
@@ -966,7 +966,7 @@ export default function StorePage() {
           font-size:14px; font-weight:600; transition:transform .1s ease-out;
           display:flex; align-items:center; justify-content:center;
         }
-        .req-action:active { transform:scale(0.95); }
+        .req-action:active { transform:scale(0.97); }
 
         /* Pending player */
         .pending-row {
@@ -985,7 +985,7 @@ export default function StorePage() {
           height:44px; border-radius:12px; border:none; cursor:pointer;
           font-size:13px; font-weight:700; transition:transform .12s, opacity .12s;
         }
-        .adj-btn:active { transform:scale(0.96); opacity:.85; }
+        .adj-btn:active { transform:scale(0.97); opacity:.85; }
         .adj-btn-dark { background:#1C1C1E; color:#fff; }
         .adj-btn-gold { background:#F2A900; color:#1a1a1a; box-shadow:0 2px 8px rgba(242,169,0,0.25); }
         .adj-btn-add  { background:linear-gradient(135deg,#007AFF,#0066DD); color:#fff; }
@@ -1079,9 +1079,9 @@ export default function StorePage() {
                 <button
                   onClick={() => setIsScannerOpen(true)}
                   style={{ width: 44, height: 44, borderRadius: 999, background: '#F2A900', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)', flexShrink: 0, transition: 'transform 100ms ease-out, filter 100ms ease-out' }}
-                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.93)')}
+                  onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.97)')}
                   onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-                  onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.93)' }}
+                  onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.97)' }}
                   onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)' }}
                   title="QRスキャンで入店"
                   aria-label="プレイヤーのQRを読み取って入店させる"
@@ -1128,7 +1128,7 @@ export default function StorePage() {
           {showStorePicker && (
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
-              <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left' }}>
+              <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left', animation: 'aDialogIn 280ms cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {ownedStores.map(s => (

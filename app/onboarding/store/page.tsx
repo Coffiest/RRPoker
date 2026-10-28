@@ -281,7 +281,7 @@ export default function StoreOnboardingPage() {
         .so-spinner {
           width: 20px; height: 20px; border: 2.5px solid rgba(0,0,0,0.15);
           border-top-color: #1a1a1a; border-radius: 50%;
-          animation: spin .7s linear infinite;
+          animation: spin .8s linear infinite;
         }
       `}</style>
 

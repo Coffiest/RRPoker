@@ -390,7 +390,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 </div>
                 <button type="button"
                   onClick={() => { if (!htSaving){setIsOpen(false);reset()} }}
-                  className="flex items-center justify-center w-11 h-11 rounded-full active:scale-95"
+                  className="flex items-center justify-center w-11 h-11 rounded-full active:scale-[0.97]"
                   style={{ background:CLR.surface, color:CLR.gray2 }}>
                   <XIcon size={15} />
                 </button>
@@ -419,17 +419,17 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     {/* Player count */}
                     <div className="flex items-center rounded-2xl overflow-hidden" style={{ border:`1px solid ${CLR.border}`, background:CLR.white }}>
                       <button type="button" onClick={() => setHtCount(c=>Math.max(2,c-1))}
-                        className="w-11 h-11 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
+                        className="w-11 h-11 flex items-center justify-center text-[18px] active:scale-[0.97] transition-transform"
                         style={{ color:CLR.gray2 }}>−</button>
                       <span className="text-[12px] font-bold px-2 min-w-[36px] text-center" style={{ color:CLR.ink }}>{htCount}人</span>
                       <button type="button" onClick={() => setHtCount(c=>Math.min(10,c+1))}
-                        className="w-11 h-11 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
+                        className="w-11 h-11 flex items-center justify-center text-[18px] active:scale-[0.97] transition-transform"
                         style={{ color:CLR.gray2 }}>+</button>
                     </div>
 
                     {/* Ante toggle */}
                     <button type="button" onClick={() => setHtAnte(v=>!v)}
-                      className="flex items-center gap-2 h-11 px-4 rounded-full text-[11px] font-semibold transition active:scale-95"
+                      className="flex items-center gap-2 h-11 px-4 rounded-full text-[11px] font-semibold transition active:scale-[0.97]"
                       style={{ background:htAnte?'#FFF8E7':CLR.white, color:htAnte?CLR.goldDk:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
                       <div style={{ width:26,height:15,borderRadius:99,background:htAnte?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0 }}>
                         <div style={{ position:'absolute',width:11,height:11,borderRadius:'50%',background:'#fff',top:2,left:htAnte?13:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
@@ -455,7 +455,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           const c=htBoard[i]
                           return (
                             <button key={i} type="button" onClick={() => setHtPick(`b|${i}`)}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95 transition"
+                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-[0.97] transition"
                               style={{ width:44, height:44,
                                 background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
                               {c?<PlayingCard card={c} height={32}/>:<span className="text-[11px]">?</span>}
@@ -467,7 +467,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           <div className="w-px h-4 mx-0.5" style={{ background:"rgba(170,155,135,0.4)" }} />
                           {(() => {const c=htBoard[3]; return (
                             <button type="button" onClick={() => setHtPick("b|3")}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
+                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-[0.97]"
                               style={{ width:44,height:44, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
                               {c?<PlayingCard card={c} height={32}/>:<span className="text-[11px]">?</span>}
                             </button>
@@ -478,7 +478,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           <div className="w-px h-4 mx-0.5" style={{ background:"rgba(170,155,135,0.4)" }} />
                           {(() => {const c=htBoard[4]; return (
                             <button type="button" onClick={() => setHtPick("b|4")}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
+                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-[0.97]"
                               style={{ width:44,height:44, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
                               {c?<PlayingCard card={c} height={32}/>:<span className="text-[11px]">?</span>}
                             </button>
@@ -541,7 +541,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     return (
                       <button key={pos} type="button"
                         onClick={() => tapSeat(pos)}
-                        className="absolute flex flex-col items-center active:scale-95 transition"
+                        className="absolute flex flex-col items-center active:scale-[0.97] transition"
                         style={{ left:x-22, top:y-28, width:44, opacity:isCurr?0.25:1 }}>
 
                         {/* Turn pulse ring */}
@@ -611,7 +611,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         <span className="text-[15px] font-bold" style={{color:CLR.ink}}>{htSeat}</span>
                         {/* Hero toggle */}
                         <button type="button" onClick={() => setHtHero(htSeat===htHero?null:htSeat)}
-                          className="flex items-center gap-2 active:scale-95 transition"
+                          className="flex items-center gap-2 active:scale-[0.97] transition"
                           style={{background:'none',border:'none',cursor:'pointer',padding:0}}>
                           <div style={{width:32,height:18,borderRadius:99,background:htSeat===htHero?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0}}>
                             <div style={{position:'absolute',width:14,height:14,borderRadius:'50%',background:'#fff',top:2,left:htSeat===htHero?16:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}} />
@@ -620,7 +620,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         </button>
                       </div>
                       <button type="button" onClick={() => {setHtSeat(null);setHtActType("");setHtActAmt("")}}
-                        className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                        className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                         style={{background:CLR.surface,color:CLR.gray2}}>
                         <XIcon size={13}/>
                       </button>
@@ -632,7 +632,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         const c=htCards[htSeat]?.[i]??null
                         return (
                           <button key={i} type="button" onClick={() => setHtPick(`c|${htSeat}|${i}`)}
-                            className="flex flex-col items-center justify-center rounded-2xl font-bold active:scale-95 transition"
+                            className="flex flex-col items-center justify-center rounded-2xl font-bold active:scale-[0.97] transition"
                             style={{ width:40,height:50,
                               background:c?"transparent":CLR.surface,
                               border:c?"none":`1.5px dashed ${CLR.border}`,
@@ -643,7 +643,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       })}
                       {(htCards[htSeat]?.[0]||htCards[htSeat]?.[1]) && (
                         <button type="button" onClick={() => setHtCards(prev=>{const n={...prev};delete n[htSeat!];return n})}
-                          className="self-center text-[11px] font-medium ml-2 active:scale-95"
+                          className="self-center text-[11px] font-medium ml-2 active:scale-[0.97]"
                           style={{color:CLR.red}}>クリア</button>
                       )}
                     </div>
@@ -657,7 +657,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         return (
                           <button key={act} type="button"
                             onClick={() => isInstant ? confirm(act) : setHtActType(isSel ? "" : act)}
-                            className="flex-1 min-w-[70px] h-11 rounded-2xl text-[11px] font-bold active:scale-95 transition"
+                            className="flex-1 min-w-[70px] h-11 rounded-2xl text-[11px] font-bold active:scale-[0.97] transition"
                             style={{
                               background: isSel ? (isFold?"#FFF0F0":CLR.gold) : CLR.surface,
                               color:      isSel ? (isFold?CLR.red:CLR.ink)     : CLR.gray2,
@@ -680,7 +680,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
                     {(htActType==="bet"||htActType==="raise"||htActType==="allin") && (
                       <button type="button" onClick={() => confirm()}
-                        className="w-full h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition"
+                        className="w-full h-11 rounded-2xl text-[13px] font-bold active:scale-[0.97] transition"
                         style={{background:htActType==="allin"?CLR.red:CLR.ink,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
                         確定
                       </button>
@@ -701,7 +701,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       />
                     ) : (
                       <button type="button" onClick={() => setShowNoteInput(htSeat)}
-                        className="flex items-center gap-2 mt-2 active:scale-95 transition-transform"
+                        className="flex items-center gap-2 mt-2 active:scale-[0.97] transition-transform"
                         style={{background:'none',border:'none',cursor:'pointer',padding:0,color:htNotes[htSeat]?CLR.goldDk:CLR.gray3,fontSize:11,fontFamily:'inherit'}}>
                         <PencilIcon size={16} /> {htNotes[htSeat] ? 'メモを編集' : 'メモを追加'}
                       </button>
@@ -714,7 +714,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   {htStreet !== "preflop" && !htSavedId && (
                     <button type="button"
                       onClick={() => goStreet({flop:"preflop",turn:"flop",river:"turn"}[htStreet] as any)}
-                      className="h-12 px-4 rounded-2xl text-[15px] font-semibold active:scale-95 transition"
+                      className="h-12 px-4 rounded-2xl text-[15px] font-semibold active:scale-[0.97] transition"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}><ChevronLeftIcon size={20} /></button>
                   )}
                   {htSavedId ? (
@@ -723,19 +723,19 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         <p className="text-[13px] font-bold" style={{color:"#15803D"}}><CheckIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 保存しました！</p>
                       </div>
                       <button type="button" onClick={() => share(htSavedId!,htTitle)}
-                        className="w-full h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 active:scale-95"
+                        className="w-full h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 active:scale-[0.97]"
                         style={{background:CLR.gold,color:CLR.ink}}>
                         <Share2Icon size={14}/> シェアする
                       </button>
                       <button type="button" onClick={() => {setIsOpen(false);reset()}}
-                        className="w-full h-11 rounded-2xl text-[13px] font-medium active:scale-95"
+                        className="w-full h-11 rounded-2xl text-[13px] font-medium active:scale-[0.97]"
                         style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}>
                         閉じる
                       </button>
                     </div>
                   ) : (
                     <button type="button" disabled={htSaving} onClick={handleSaveClick}
-                      className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition"
+                      className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-[0.97] disabled:opacity-50 transition"
                       style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
                       {htSaving ? '保存中...' : <><CheckIcon size={20} /> 保存する</>}
                     </button>
@@ -762,7 +762,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <p className="term-comment text-[15px] font-bold mb-2" style={{color:CLR.ink}}>まだ記録がありません</p>
                     <p className="text-[12px] mb-6" style={{color:CLR.gray3}}>記録タブからハンドを作成できます</p>
                     <button type="button" onClick={() => setView("record")}
-                      className="h-11 px-6 rounded-full text-[13px] font-bold active:scale-95"
+                      className="h-11 px-6 rounded-full text-[13px] font-bold active:scale-[0.97]"
                       style={{background:CLR.gold,color:CLR.ink}}>記録を始める</button>
                   </div>
                 ) : (
@@ -850,18 +850,18 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                               {/* Actions */}
                               <div className="flex items-center gap-2 px-4 pb-4">
                                 <button type="button" onClick={() => share(h.id,h.title)}
-                                  className="flex items-center gap-2 h-11 px-2 rounded-full text-[11px] font-bold active:scale-95"
+                                  className="flex items-center gap-2 h-11 px-2 rounded-full text-[11px] font-bold active:scale-[0.97]"
                                   style={{background:CLR.gold,color:CLR.ink}}>
                                   <Share2Icon size={10}/> シェア
                                 </button>
                                 <button type="button"
                                   onClick={() => { setViewingHand(h); setReplayStep(0); setReplayPlaying(false) }}
-                                  className="flex items-center gap-0.5 h-11 px-2 rounded-full text-[11px] font-semibold active:scale-95"
+                                  className="flex items-center gap-0.5 h-11 px-2 rounded-full text-[11px] font-semibold active:scale-[0.97]"
                                   style={{background:CLR.surface,color:CLR.gray2,border:`1px solid ${CLR.border}`}}>
                                   詳細 <ChevronRightIcon size={10}/>
                                 </button>
                                 <button type="button" onClick={() => setDelConfirmId(h.id)}
-                                  className="ml-auto w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                                  className="ml-auto w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                                   style={{background:CLR.surface,color:CLR.gray3,border:`1px solid ${CLR.border}`}}>
                                   <Trash2Icon size={11}/>
                                 </button>
@@ -893,13 +893,13 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   <div className="flex gap-2">
                     <button type="button"
                       onClick={() => { setShowTitlePopup(false); save() }}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-medium active:scale-95"
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-medium active:scale-[0.97]"
                       style={{background:CLR.surface,color:CLR.gray2,border:`1px solid ${CLR.border}`}}>
                       スキップ
                     </button>
                     <button type="button"
                       onClick={() => { setShowTitlePopup(false); save() }}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95"
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-[0.97]"
                       style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
                       保存
                     </button>
@@ -917,12 +917,12 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   <p className="text-[12px] mb-6" style={{color:CLR.gray2}}>この操作は取り消せません。</p>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => setDelConfirmId(null)}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-semibold active:scale-95"
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-semibold active:scale-[0.97]"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}>
                       キャンセル
                     </button>
                     <button type="button" onClick={() => delHand(delConfirmId)}
-                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold text-white active:scale-95"
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-bold text-white active:scale-[0.97]"
                       style={{background:CLR.red}}>
                       削除
                     </button>
@@ -979,7 +979,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     </p>
                   </div>
                   <button type="button" onClick={() => setViewingHand(null)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:CLR.surface,color:CLR.gray2}}><XIcon size={15}/></button>
                 </div>
 
@@ -1061,21 +1061,21 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 {/* Replay controls */}
                 <div className="shrink-0 flex items-center justify-center gap-4 px-4 py-2">
                   <button type="button" onClick={() => { setReplayStep(0); setReplayPlaying(false) }}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:13}}>⟪</button>
                   <button type="button" onClick={() => setReplayStep(s => Math.max(0,s-1))}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}><ChevronLeftIcon size={20} /></button>
                   <button type="button" onClick={() => setReplayPlaying(p => !p)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
                     {replayPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" />}
                   </button>
                   <button type="button" onClick={() => setReplayStep(s => Math.min(s+1,totalSteps))}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}><ChevronRightIcon size={20} /></button>
                   <button type="button" onClick={() => { setReplayStep(totalSteps); setReplayPlaying(false) }}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:13}}>⟫</button>
                   <span className="text-[11px] ml-2" style={{color:CLR.gray3}}>{replayStep}/{totalSteps}</span>
                 </div>
@@ -1138,7 +1138,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
               <div className="flex items-center justify-between">
                 <h2 className="font-display term-prompt-arrow text-[17px] font-bold" style={{ color: CLR.ink }}>インマネ確率計算機</h2>
                 <button type="button" onClick={() => setItmOpen(false)}
-                  className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
+                  className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
                   style={{ background: "rgba(120,120,128,0.16)", color: CLR.ink }}>
                   <XIcon size={15} />
                 </button>

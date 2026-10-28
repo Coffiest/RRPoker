@@ -61,7 +61,7 @@ const CSS = `
     animation-delay: var(--tech-reveal-delay, 0s);
   }
   .tx-key:active {
-    transform: scale(0.93);
+    transform: scale(0.97);
     background: #F2A900;
     color: #fff;
     box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 0 0 3px rgba(242,169,0,0.18);

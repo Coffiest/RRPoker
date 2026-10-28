@@ -275,7 +275,7 @@ export default function TournamentHistoryPage() {
         {/* Header */}
         <div className="flex items-center justify-between pt-6 mb-6">
           <button onClick={() => router.back()}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition active:scale-95 shadow-sm">
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition active:scale-[0.97] shadow-sm">
             <ArrowLeftIcon size={20} />
           </button>
           <h1 className="text-[20px] font-semibold text-gray-900">トーナメント履歴</h1>
@@ -505,7 +505,7 @@ export default function TournamentHistoryPage() {
               <button type="button" onClick={() => shareTournamentCard(selectedItem)} disabled={sharingCard}
                 style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
                 {sharingCard
-                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .7s linear infinite' }} />
+                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .8s linear infinite' }} />
                   : <Share2Icon size={17} />
                 }
                 {sharingCard ? '生成中...' : 'この結果をシェア'}

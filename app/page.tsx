@@ -203,7 +203,7 @@ export default function TopPage() {
           transition:transform .13s ease, opacity .13s ease;
           border:none; cursor:pointer;
         }
-        .cta-primary:active{ transform:scale(0.96); opacity:.88; }
+        .cta-primary:active{ transform:scale(0.97); opacity:.88; }
 
         .header-cta{
           background:#F2A900;
@@ -213,7 +213,7 @@ export default function TopPage() {
           white-space:nowrap; transition:transform .12s, opacity .12s;
           display:flex; align-items:center; gap:8px;
         }
-        .header-cta:active{ transform:scale(0.95); opacity:.85; }
+        .header-cta:active{ transform:scale(0.97); opacity:.85; }
 
         .pcard{ display:flex; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.13)); }
         .pcard-0{ animation:float-a 3.2s ease-in-out infinite; }

@@ -2795,20 +2795,20 @@ const medalClass = (rank: number) => {
                 <div className="flex items-center gap-4 mb-6">
                   {selectedStore.snsInstagram && (
                     <a href={selectedStore.snsInstagram} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-95 transition-transform"
+                      className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-[0.97] transition-transform"
                       style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }}>
                       <InstagramIcon size={18} />
                     </a>
                   )}
                   {selectedStore.snsX && (
                     <a href={selectedStore.snsX} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white shadow-sm active:scale-[0.97] transition-transform">
                       <TwitterIcon size={17} />
                     </a>
                   )}
                   {selectedStore.snsWeb && (
                     <a href={selectedStore.snsWeb} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white shadow-sm active:scale-[0.97] transition-transform">
                       <GlobeIcon size={17} />
                     </a>
                   )}
@@ -3223,19 +3223,19 @@ const medalClass = (rank: number) => {
                       <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
                         {entry.storeSnsInstagram && (
                           <a href={entry.storeSnsInstagram} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm active:scale-95 transition-transform">
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm active:scale-[0.97] transition-transform">
                             <InstagramIcon size={17} />
                           </a>
                         )}
                         {entry.storeSnsX && (
                           <a href={entry.storeSnsX} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-900 text-white shadow-sm active:scale-95 transition-transform">
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-900 text-white shadow-sm active:scale-[0.97] transition-transform">
                             <TwitterIcon size={16} />
                           </a>
                         )}
                         {entry.storeSnsWeb && (
                           <a href={entry.storeSnsWeb} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white shadow-sm active:scale-95 transition-transform">
+                            className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-500 text-white shadow-sm active:scale-[0.97] transition-transform">
                             <GlobeIcon size={16} />
                           </a>
                         )}

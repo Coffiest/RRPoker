@@ -101,7 +101,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
             width: 18, height: 18, borderRadius: '50%',
             border: '2.5px solid rgba(255,255,255,0.3)',
             borderTopColor: '#fff',
-            animation: 'spin 0.7s linear infinite',
+            animation: 'spin .8s linear infinite',
           }} />
         ) : (
           <svg

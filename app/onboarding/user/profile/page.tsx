@@ -323,7 +323,7 @@ export default function UserProfileOnboardingPage() {
           font-weight: 600;
           color: #1a1a1a;
         }
-        .btn-primary:active { transform: scale(0.977); opacity: 0.88; }
+        .btn-primary:active { transform: scale(0.97); opacity: 0.88; }
         .btn-primary:disabled { opacity: 0.45; pointer-events: none; }
         .icon-ring {
           position: relative;
