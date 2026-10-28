@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CheckIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, CheckIcon, MinusIcon, PlusIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import {
   collection,
@@ -419,7 +419,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
             onClick={onClose}
             style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
           ><XIcon size={20} /></button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Players</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>参加者</span>
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -438,13 +438,13 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤー統計カード */}
               <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '16px 16px', marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ textAlign: 'center', paddingRight: 16, borderRight: '1px solid #D1D1D6' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>Players</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>参加者</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
                   </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>Add-on</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>アドオン</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
                   </p>
@@ -453,13 +453,13 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
 
               {/* Bust コントロール */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '16px 16px', background: '#F2F2F7', borderRadius: 14 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>BUST</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>敗退</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
-                    style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', fontSize: 18, color: '#D4910A', opacity: localBust <= 0 ? 0.4 : 1 }}>−</button>
+                    style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', color: 'var(--label)', opacity: localBust <= 0 ? 0.3 : 1 }} aria-label="敗退を1人減らす"><MinusIcon size={20} /></button>
                   <span style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', minWidth: '36px', textAlign: 'center' }}>{localBust}</span>
                   <button onClick={() => handleTournamentBustChange(1)}
-                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18, fontWeight: 700, color: '#D4910A' }}>＋</button>
+                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)' }} aria-label="敗退を1人増やす"><PlusIcon size={20} /></button>
                 </div>
               </div>
 
@@ -467,7 +467,8 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="プレイヤー検索"
-                style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+                aria-label="プレイヤー検索"
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
               />
 
               {/* プレイヤーリスト */}
@@ -516,7 +517,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           return (
                             <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0 }}>Bankroll</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0 }}>残高</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>
@@ -531,27 +532,35 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           )
                         })()}
 
-                        {/* Entry / Reentry / Addon */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                        {/* エントリー / リエントリー / アドオン。3つを横に並べると画面からはみ出すので、
+                            行ごとに「項目名 ─ 増減」を置く(iOS のステッパー)。 */}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
                           {[
-                            { label: 'Entry', field: 'entryCount' },
-                            { label: 'Reentry', field: 'reentryCount' },
-                            { label: 'Addon', field: 'addonCount' },
-                          ].map(item => (
-                            <div key={item.field} style={{ textAlign: 'center' }}>
-                              <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 600, marginBottom: 8 }}>{item.label}</p>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                                <button
-                                  onClick={() => handleEntryChange(player.id, item.field as any, -1)}
-                                  disabled={(player[item.field] ?? 0) <= 0}
-                                  style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: 'var(--label3)', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                <span style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', minWidth: '24px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
-                                <button
-                                  onClick={() => handleEntryChange(player.id, item.field as any, 1)}
-                                  style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', color: '#D4910A', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>＋</button>
+                            { label: 'エントリー', field: 'entryCount' },
+                            { label: 'リエントリー', field: 'reentryCount' },
+                            { label: 'アドオン', field: 'addonCount' },
+                          ].map((item, i) => {
+                            const n = player[item.field] ?? 0
+                            return (
+                              <div key={item.field} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, borderTop: i ? '1px solid rgba(60,60,67,0.12)' : 'none' }}>
+                                <span style={{ flex: 1, fontSize: 15, color: 'var(--label)' }}>{item.label}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
+                                  <button type="button" aria-label={`${item.label}を1つ減らす`}
+                                    onClick={() => handleEntryChange(player.id, item.field as any, -1)}
+                                    disabled={n <= 0}
+                                    style={{ width: 48, height: 44, border: 'none', background: 'transparent', color: 'var(--label)', cursor: n > 0 ? 'pointer' : 'default', opacity: n <= 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <MinusIcon size={20} />
+                                  </button>
+                                  <span aria-live="polite" style={{ minWidth: 32, textAlign: 'center', fontSize: 17, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{n}</span>
+                                  <button type="button" aria-label={`${item.label}を1つ増やす`}
+                                    onClick={() => handleEntryChange(player.id, item.field as any, 1)}
+                                    style={{ width: 48, height: 44, border: 'none', background: 'transparent', color: 'var(--label)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <PlusIcon size={20} />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          })}
                         </div>
                       </div>
                     )
@@ -564,10 +573,11 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 <input
                   value={newTempName} onChange={e => setNewTempName(e.target.value)}
                   placeholder="仮プレイヤー名"
-                  style={{ height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                  aria-label="仮プレイヤー名"
+                  style={{ minWidth: 0, height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                 />
                 <button onClick={addTempPlayer}
-                  style={{ height: 44, borderRadius: 12, background: '#F2A900', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>＋ Add</button>
+                  style={{ height: 44, borderRadius: 12, background: '#F2A900', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><PlusIcon size={20} /> 追加</button>
               </div>
             </>
           )}

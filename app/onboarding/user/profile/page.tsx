@@ -424,7 +424,7 @@ export default function UserProfileOnboardingPage() {
                   <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                   <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
-                <span className="text-[11px] font-semibold text-[#F2A900] tracking-wide">TAP</span>
+                <span className="text-[11px] font-semibold text-[#F2A900] tracking-wide">タップして変更</span>
               </div>
             )}
 
@@ -548,8 +548,8 @@ export default function UserProfileOnboardingPage() {
               />
               <div className="flex items-center pr-4 flex-shrink-0">
                 {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
-                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
-                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
+                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#1E7B34' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
+                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#D70015' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
               </div>
             </div>
             {idError && <p className="mt-2 text-[12px] text-red-400">{idError}</p>}

@@ -1041,14 +1041,15 @@ export default function StorePage() {
                 {/* 店舗名を押すと系列店の切り替え(以前はスワイプ・長押しでしか出せず、見つけられなかった) */}
                 <button type="button" onClick={() => setShowStorePicker(true)} aria-haspopup="menu" aria-label="店舗を切り替える"
                   style={{ display: 'flex', alignItems: 'center', gap: 4, maxWidth: '100%', minHeight: 44, padding: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label)', marginBottom: 4 }}>
-                  <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</span>
+                  <span style={{ fontSize: 17, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{store?.name ?? ""}</span>
                   <ChevronDownIcon size={20} style={{ color: 'var(--label2)', flexShrink: 0 }} />
                 </button>
                 <button onClick={copyCode}
                   className="con-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
+                  aria-label={copiedCode ? "コピーしました" : "店舗コードをコピー"}
+                  style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>店舗コード</span>
+                  <span style={{ fontSize: 13, color: 'var(--label2)', whiteSpace: 'nowrap' }}>コード</span>
                   <span className="con-mono" style={{ fontSize: 15, fontWeight: 700, color: copiedCode ? '#1E7B34' : 'var(--label)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
                   {copiedCode ? <CheckIcon size={12} style={{ color: '#28A745' }}/> : <CopyIcon size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
@@ -1230,7 +1231,7 @@ export default function StorePage() {
                           <ClockIcon size={16}/> タイマー
                         </button>
                         <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
-                          <PenLineIcon size={16}/> 時間・ブラインド
+                          <PenLineIcon size={16}/> 調整
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
                           <UsersIcon size={16}/> 参加者
@@ -2011,7 +2012,7 @@ export default function StorePage() {
 
               {/* Ring Game */}
               <div style={{ marginBottom: 16 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>Ring Game</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>リングゲーム</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Buy-in" direction="subtract" icon={<SendIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('buyin')} />
                   <ActionTile label="Cash Out" direction="add" icon={<InboxIcon size={15} style={{ color: '#34C759' }}/>} onClick={() => runStoreAdjustment('cashout')} />
@@ -2021,7 +2022,7 @@ export default function StorePage() {
 
               {/* Tournament */}
               <div style={{ marginBottom: 16 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>Tournament</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>トーナメント</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Entry" direction="subtract" icon={<PlayIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tE')} />
                   <ActionTile label="Re-entry" direction="subtract" icon={<RefreshCwIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tR')} />

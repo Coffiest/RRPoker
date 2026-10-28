@@ -1262,3 +1262,5 @@ body {
 :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), textarea) {
   min-height: 44px;
 }
+/* スイッチは iOS と同じ 51×31 の見た目。押せる範囲は行全体で確保する。 */
+.a-switch { width: 51px; height: 31px; min-height: 31px; min-width: 51px; }

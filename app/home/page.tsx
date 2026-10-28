@@ -1666,7 +1666,7 @@ const medalClass = (rank: number) => {
 
             {/* 端末のタイトル行 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-              <span className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)', letterSpacing: '0.20em' }}>RATING / TOURNAMENT</span>
+              <span className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)', letterSpacing: '0.20em' }}>トナメ偏差値</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className="tech-status-dot" style={{ background: '#fff', boxShadow: '0 0 0 0 rgba(255,255,255,0.55)' }} />
                 <span className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
@@ -1747,7 +1747,7 @@ const medalClass = (rank: number) => {
                   {rrMyEntry && (
                     <div style={{ marginBottom: 8, background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 8, padding: '8px 8px' }}>
                       <p className="tech-num" style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>
-                        <span className="tech-label" style={{ fontSize: 11, opacity: 0.6, marginRight: 8 }}>RANK</span>{rrMyEntry.rank}
+                        <span className="tech-label" style={{ fontSize: 11, opacity: 0.6, marginRight: 8 }}>順位</span>{rrMyEntry.rank}
                       </p>
                     </div>
                   )}
@@ -1816,7 +1816,7 @@ const medalClass = (rank: number) => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <AwardIcon size={14} style={{ color: '#F2A900' }} />
-                  <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>TOURNAMENT HISTORY</p>
+                  <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>トーナメント履歴</p>
                 </div>
                 <button type="button" onClick={() => router.push("/home/tournaments")} style={{ fontSize: 12, fontWeight: 600, color: '#F2A900', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>もっと見る</button>
               </div>
@@ -2015,7 +2015,7 @@ const medalClass = (rank: number) => {
                       <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
                         {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
                           <span className="tech-num" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.06em' }}>
-                            <span className="tech-label" style={{ fontSize:11, opacity:0.6, marginRight:8 }}>RATE</span>
+                            <span className="tech-label" style={{ fontSize:11, opacity:0.6, marginRight:8 }}>レート</span>
                             {currentStore.ringBlindSb}/{currentStore.ringBlindBb}
                           </span>
                         )}
@@ -2036,7 +2036,7 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <ClockIcon style={{ color:'rgba(255,255,255,0.72)', fontSize:13 }} />
-                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>History</span>
+                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>履歴</span>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(false)}
                         style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', cursor:'pointer' }}>
@@ -2287,7 +2287,7 @@ const medalClass = (rank: number) => {
                   if (loading) return (
                     <div style={{ padding: '16px 0 24px' }}>
                       <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 8 }}>
-                        LOADING
+                        読み込み中
                       </p>
                       <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
                     </div>
@@ -2350,7 +2350,7 @@ const medalClass = (rank: number) => {
                 {/* ── セクションヘッダー */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 16px' }}>
                   <CalendarIcon color="#F2A900" size={15} />
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>Events</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>予定</p>
                 </div>
 
                 {/* ── 日付タブ（スクロール可） */}
@@ -2551,9 +2551,9 @@ const medalClass = (rank: number) => {
                 ))}
               </div>
               <div style={{ padding: '8px 16px 16px', fontSize: 11, color: 'var(--label3)' }}>
-                {d.ec > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.ef} × {d.ec}</span></div>}
-                {d.rc > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Re-entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.rf} × {d.rc}</span></div>}
-                {d.ac > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Add-on</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.af} × {d.ac}</span></div>}
+                {d.ec > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>エントリー</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.ef} × {d.ec}</span></div>}
+                {d.rc > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>リエントリー</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.rf} × {d.rc}</span></div>}
+                {d.ac > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>アドオン</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.af} × {d.ac}</span></div>}
                 <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 8, marginTop: 2, display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#1C1C1E' }}>
                   <span>合計</span><span>{d.buyin.toLocaleString()}</span>
                 </div>
@@ -2698,7 +2698,7 @@ const medalClass = (rank: number) => {
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: "linear-gradient(160deg,#FEFAF4 0%,#F5EDD8 100%)", border: "1px solid rgba(139,90,43,0.18)" }}>
               {/* ヘッダーバー */}
               <div className="px-6 py-4 text-center" style={{ background: "linear-gradient(90deg,#7B1818,#B22222)" }}>
-                <p className="text-white font-bold text-[12px] tracking-[0.2em] uppercase">Stamp Card</p>
+                <p className="text-white font-bold text-[12px] tracking-[0.2em] uppercase">スタンプカード</p>
                 {currentStore?.name && <p className="text-white/65 text-[11px] mt-0.5">{currentStore.name}</p>}
               </div>
 
@@ -3019,7 +3019,7 @@ const medalClass = (rank: number) => {
             <div style={{ overflowY: 'auto', flex: 1, padding: '8px 16px 40px' }}>
               {rrRankingLoading ? (
                 <div style={{ padding: '32px 0' }}>
-                  <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 16 }}>LOADING</p>
+                  <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 16 }}>読み込み中</p>
                   <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
                 </div>
               ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
@@ -3208,11 +3208,11 @@ const medalClass = (rank: number) => {
                           )}
                           <div className="grid grid-cols-2 gap-2">
                             <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
-                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">Players</p>
+                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">参加者</p>
                               <p className="text-[16px] font-bold text-gray-900 timer-num">{alivePlayers}/{totalEntry + totalReentry}</p>
                             </div>
                             <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
-                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">Avg Stack</p>
+                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">平均スタック</p>
                               <p className="text-[16px] font-bold text-gray-900 timer-num">{avgStack.toLocaleString()}</p>
                             </div>
                           </div>
@@ -3245,7 +3245,7 @@ const medalClass = (rank: number) => {
                           {calDetailPreset?.tournamentId === key && calDetailPreset.levels && (
                             <div className="mt-2 rounded-2xl bg-white border border-gray-100 divide-y divide-gray-50 overflow-hidden">
                               <div className="grid grid-cols-3 px-4 py-2 text-[11px] font-bold text-label3 uppercase tracking-wide">
-                                <span>Level</span><span>Blinds</span><span className="text-right">Time</span>
+                                <span>レベル</span><span>ブラインド</span><span className="text-right">時間</span>
                               </div>
                               {(calDetailPreset.levels as any[]).map((lv: any, li: number) => (
                                 <div key={li} className="px-4 py-2 flex items-center gap-4 text-[11px]">

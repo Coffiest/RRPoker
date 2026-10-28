@@ -476,7 +476,7 @@ export default function StoreMyPage() {
           <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span className="tech-status-dot" />
-            <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>STORE</span>
+            <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>店舗</span>
           </span>
         </div>
 

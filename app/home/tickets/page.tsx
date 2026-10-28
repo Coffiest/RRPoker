@@ -337,7 +337,7 @@ export default function TicketsPage() {
                   style={{
                     flex: 1, height: 44, borderRadius: 99, border: "none", cursor: "pointer",
                     background: couponTab === tab.key ? "#1C1C1E" : "#E5E5EA",
-                    color: couponTab === tab.key ? "#fff" : "var(--label3)",
+                    color: couponTab === tab.key ? "#fff" : "var(--label2)",
                     fontSize: 13, fontWeight: 600,
                     transition: "all 0.15s",
                   }}

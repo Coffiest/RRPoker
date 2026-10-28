@@ -69,7 +69,7 @@ export default function PlayerLiveTournaments(props: Props) {
         </p>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
-          <span className="tech-label" style={{ fontSize: 11, color: '#34C759' }}>LIVE</span>
+          <span className="tech-label" style={{ fontSize: 11, color: '#34C759' }}>開催中</span>
         </span>
       </div>
 

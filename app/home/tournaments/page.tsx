@@ -277,7 +277,7 @@ export default function TournamentHistoryPage() {
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition-all active:scale-95 shadow-sm">
             <ArrowLeftIcon size={20} />
           </button>
-          <h1 className="text-[20px] font-semibold text-gray-900">Tournament History</h1>
+          <h1 className="text-[20px] font-semibold text-gray-900">トーナメント履歴</h1>
           <div className="w-10" />
         </div>
 
@@ -344,24 +344,24 @@ export default function TournamentHistoryPage() {
                   <div className="col-span-2 rounded-xl bg-gray-50 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#F2A900]"></div>
-                      <p className="text-[11px] font-semibold text-gray-600">Buy-in</p>
+                      <p className="text-[11px] font-semibold text-gray-600">参加費の内訳</p>
                     </div>
                     <div className="space-y-2 text-[12px] text-gray-600">
                       {entryCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Entry:</span>
+                          <span>エントリー:</span>
                           <span className="font-medium">{entryFee} × {entryCount}回</span>
                         </p>
                       )}
                       {reentryCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Re-entry:</span>
+                          <span>リエントリー:</span>
                           <span className="font-medium">{reentryFee} × {reentryCount}回</span>
                         </p>
                       )}
                       {addonCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Add-on:</span>
+                          <span>アドオン:</span>
                           <span className="font-medium">{addonFee} × {addonCount}回</span>
                         </p>
                       )}
@@ -395,12 +395,12 @@ export default function TournamentHistoryPage() {
 
                 <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-[11px]">
-                    <span className="text-gray-500">Cost:</span>
+                    <span className="text-gray-500">支払い:</span>
                     <span className="font-semibold text-gray-700">{cost.toFixed(1)}</span>
                   </div>
                   <div className="h-3 w-px bg-gray-200"></div>
                   <div className="flex items-center gap-2 text-[11px]">
-                    <span className="text-gray-500">Reward:</span>
+                    <span className="text-gray-500">獲得:</span>
                     <span className="font-semibold text-gray-700">{reward.toFixed(1)}</span>
                   </div>
                   <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--label3)' }}>タップで詳細 <ChevronRightIcon size={12} style={{ display: 'inline', verticalAlign: '-0.1em' }} /></div>
@@ -452,19 +452,19 @@ export default function TournamentHistoryPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Entry</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>エントリー</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{entryFee.toLocaleString()} × {entryCount}回</span>
                     </div>
                   )}
                   {reentryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Re-entry</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>リエントリー</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{reentryFee.toLocaleString()} × {reentryCount}回</span>
                     </div>
                   )}
                   {addonCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Add-on</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>アドオン</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{addonFee.toLocaleString()} × {addonCount}回</span>
                     </div>
                   )}
@@ -492,12 +492,12 @@ export default function TournamentHistoryPage() {
 
               <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', display: 'flex', gap: 24, marginBottom: 24 }}>
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>Cost</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>支払い</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{cost.toFixed(2)}</p>
                 </div>
                 <div style={{ width: 1, background: 'rgba(0,0,0,0.08)' }} />
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>Reward</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{reward.toFixed(2)}</p>
                 </div>
               </div>

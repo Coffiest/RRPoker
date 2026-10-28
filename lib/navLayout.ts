@@ -98,7 +98,7 @@ export function computeNavLayout(viewportWidth: number, tabCount: number): NavLa
     circleSize: Math.round(42 * scale),
     indicatorSize: Math.round(34 * scale),
     iconSize: Math.round(20 * scale),
-    labelSize: Math.max(8, Math.round(9 * scale)),
+    labelSize: Math.max(11, Math.round(11 * scale)),
     itemGap: Math.max(2, Math.round(3 * scale)),
     navGap,
     padTop: Math.round(6 * scale),

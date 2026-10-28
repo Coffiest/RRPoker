@@ -514,7 +514,7 @@ export default function MyPage() {
                 ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
                 : <Share2Icon size={13} style={{ color: '#fff' }} />
               }
-              <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>SHARE</span>
+              <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>シェア</span>
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>

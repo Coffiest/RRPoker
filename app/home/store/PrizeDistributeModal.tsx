@@ -1,5 +1,5 @@
 "use client"
-import { CheckIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
+import { CheckIcon, GiftIcon, PlusIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
 import {
@@ -467,7 +467,7 @@ for (const p of payouts) {
             onClick={onClose}
             style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
           ><XIcon size={20} /></button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Pay Out</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>賞金の分配</span>
           <button
             onClick={async () => { await saveDraft(); onClose() }}
             style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
@@ -482,7 +482,7 @@ for (const p of payouts) {
             <>
               {/* Prize Pool カード */}
               <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 8 }}>Prize Pool</p>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 8 }}>賞金総額</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
@@ -498,7 +498,8 @@ for (const p of payouts) {
                       <select
                         value={r.playerId}
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: e.target.value } : x))}
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 8px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+                        aria-label={`${r.rank}位のプレイヤー`}
+                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 8px', fontSize: 15, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
                       >
                         <option value="">プレイヤーを選択</option>
                         {participants.map(p => <option key={p.id} value={p.id}>{p.name ?? p.id}</option>)}
@@ -511,12 +512,15 @@ for (const p of payouts) {
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, amount: e.target.value } : x))}
                         placeholder="金額"
                         inputMode="numeric"
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                        aria-label={`${r.rank}位の金額`}
+                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
                       />
                       <button
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
-                        style={{ width: 44, height: 44, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : 'var(--label3)', fontSize: 20, fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >＋</button>
+                        aria-label={r.showText ? '景品・メモを閉じる' : '景品・メモを追加'}
+                        aria-pressed={r.showText}
+                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#8A5F00' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
+                      ><GiftIcon size={16} /> 景品</button>
                     </div>
                     {/* 景品テキスト */}
                     {r.showText && (
@@ -525,7 +529,7 @@ for (const p of payouts) {
                           value={r.text}
                           onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
                           placeholder="景品・メモ"
-                          style={{ width: '100%', height: 36, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                     )}
@@ -538,8 +542,8 @@ for (const p of payouts) {
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: 'var(--label3)', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 16 }}
-              >＋ 入賞者を追加</button>
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px dashed rgba(60,60,67,0.3)', background: 'transparent', color: 'var(--label2)', fontSize: 15, fontWeight: 500, cursor: 'pointer', marginBottom: 16 }}
+              ><span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><PlusIcon size={20} /> 入賞者を追加</span></button>
 
               {/* コメント */}
               <textarea
@@ -563,7 +567,7 @@ for (const p of payouts) {
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
             style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F2A900', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
-          >Pay Out</button>
+          >賞金の分配</button>
         </div>
       </div>
 
