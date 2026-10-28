@@ -429,7 +429,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
                     {/* Ante toggle */}
                     <button type="button" onClick={() => setHtAnte(v=>!v)}
-                      className="flex items-center gap-2 h-11 px-4 rounded-full text-[11px] font-semibold transition-all active:scale-95"
+                      className="flex items-center gap-2 h-11 px-4 rounded-full text-[11px] font-semibold transition active:scale-95"
                       style={{ background:htAnte?'#FFF8E7':CLR.white, color:htAnte?CLR.goldDk:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
                       <div style={{ width:26,height:15,borderRadius:99,background:htAnte?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0 }}>
                         <div style={{ position:'absolute',width:11,height:11,borderRadius:'50%',background:'#fff',top:2,left:htAnte?13:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
@@ -455,7 +455,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                           const c=htBoard[i]
                           return (
                             <button key={i} type="button" onClick={() => setHtPick(`b|${i}`)}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95 transition-all"
+                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95 transition"
                               style={{ width:44, height:44,
                                 background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
                               {c?<PlayingCard card={c} height={32}/>:<span className="text-[11px]">?</span>}
@@ -541,7 +541,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     return (
                       <button key={pos} type="button"
                         onClick={() => tapSeat(pos)}
-                        className="absolute flex flex-col items-center active:scale-95 transition-all"
+                        className="absolute flex flex-col items-center active:scale-95 transition"
                         style={{ left:x-22, top:y-28, width:44, opacity:isCurr?0.25:1 }}>
 
                         {/* Turn pulse ring */}
@@ -564,7 +564,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         )}
 
                         {/* Seat circle */}
-                        <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center transition-all"
+                        <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center transition"
                           style={{
                             background: isSel||isTurn ? "#FFF8E7" : CLR.white,
                             border: isSel||isTurn ? `2px solid ${CLR.gold}`
@@ -611,7 +611,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         <span className="text-[15px] font-bold" style={{color:CLR.ink}}>{htSeat}</span>
                         {/* Hero toggle */}
                         <button type="button" onClick={() => setHtHero(htSeat===htHero?null:htSeat)}
-                          className="flex items-center gap-2 active:scale-95 transition-all"
+                          className="flex items-center gap-2 active:scale-95 transition"
                           style={{background:'none',border:'none',cursor:'pointer',padding:0}}>
                           <div style={{width:32,height:18,borderRadius:99,background:htSeat===htHero?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0}}>
                             <div style={{position:'absolute',width:14,height:14,borderRadius:'50%',background:'#fff',top:2,left:htSeat===htHero?16:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)'}} />
@@ -632,7 +632,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         const c=htCards[htSeat]?.[i]??null
                         return (
                           <button key={i} type="button" onClick={() => setHtPick(`c|${htSeat}|${i}`)}
-                            className="flex flex-col items-center justify-center rounded-2xl font-bold active:scale-95 transition-all"
+                            className="flex flex-col items-center justify-center rounded-2xl font-bold active:scale-95 transition"
                             style={{ width:40,height:50,
                               background:c?"transparent":CLR.surface,
                               border:c?"none":`1.5px dashed ${CLR.border}`,
@@ -657,7 +657,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         return (
                           <button key={act} type="button"
                             onClick={() => isInstant ? confirm(act) : setHtActType(isSel ? "" : act)}
-                            className="flex-1 min-w-[70px] h-11 rounded-2xl text-[11px] font-bold active:scale-95 transition-all"
+                            className="flex-1 min-w-[70px] h-11 rounded-2xl text-[11px] font-bold active:scale-95 transition"
                             style={{
                               background: isSel ? (isFold?"#FFF0F0":CLR.gold) : CLR.surface,
                               color:      isSel ? (isFold?CLR.red:CLR.ink)     : CLR.gray2,
@@ -672,7 +672,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     {(htActType==="bet"||htActType==="raise"||htActType==="allin") && (
                       <input type="number" value={htActAmt} onChange={e=>setHtActAmt(e.target.value)}
                         placeholder={htActType==="allin"?"チップ数（BB）":"金額（BB）"} autoFocus
-                        className="w-full h-10 rounded-2xl px-4 text-[14px] mb-2 outline-none transition-all"
+                        className="w-full h-10 rounded-2xl px-4 text-[14px] mb-2 outline-none transition"
                         style={{background:CLR.surface,border:`1.5px solid ${CLR.border}`,color:CLR.ink}}
                         onFocus={e=>(e.target.style.borderColor=CLR.gold)}
                         onBlur={e=>(e.target.style.borderColor=CLR.border)} />
@@ -680,7 +680,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
                     {(htActType==="bet"||htActType==="raise"||htActType==="allin") && (
                       <button type="button" onClick={() => confirm()}
-                        className="w-full h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition-all"
+                        className="w-full h-11 rounded-2xl text-[13px] font-bold active:scale-95 transition"
                         style={{background:htActType==="allin"?CLR.red:CLR.ink,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}>
                         確定
                       </button>
@@ -694,7 +694,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         placeholder="このプレイヤーについてメモ..."
                         rows={2}
                         autoFocus
-                        className="w-full rounded-2xl px-4 py-2 text-[12px] outline-none resize-none mt-2 transition-all"
+                        className="w-full rounded-2xl px-4 py-2 text-[12px] outline-none resize-none mt-2 transition"
                         style={{background:CLR.surface,border:`1px solid ${CLR.border}`,color:CLR.ink}}
                         onFocus={e=>(e.target.style.borderColor=CLR.gold)}
                         onBlur={e=>(e.target.style.borderColor=CLR.border)}
@@ -714,7 +714,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   {htStreet !== "preflop" && !htSavedId && (
                     <button type="button"
                       onClick={() => goStreet({flop:"preflop",turn:"flop",river:"turn"}[htStreet] as any)}
-                      className="h-12 px-4 rounded-2xl text-[15px] font-semibold active:scale-95 transition-all"
+                      className="h-12 px-4 rounded-2xl text-[15px] font-semibold active:scale-95 transition"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}><ChevronLeftIcon size={20} /></button>
                   )}
                   {htSavedId ? (
@@ -735,7 +735,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     </div>
                   ) : (
                     <button type="button" disabled={htSaving} onClick={handleSaveClick}
-                      className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
+                      className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition"
                       style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
                       {htSaving ? '保存中...' : <><CheckIcon size={20} /> 保存する</>}
                     </button>
@@ -886,7 +886,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   <input value={htTitle} onChange={e=>setHtTitle(e.target.value)}
                     placeholder="例: BTNからの3bet対応"
                     autoFocus
-                    className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none mb-4 transition-all"
+                    className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none mb-4 transition"
                     style={{background:CLR.surface,border:`1.5px solid ${CLR.border}`,color:CLR.ink}}
                     onFocus={e=>(e.target.style.borderColor=CLR.gold)}
                     onBlur={e=>(e.target.style.borderColor=CLR.border)} />
@@ -1095,7 +1095,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             const isFuture  = globalIdx > replayStep - 1
                             const isHeroAct = a.position === viewingHand.heroPosition
                             return (
-                              <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition-all"
+                              <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition"
                                 style={{
                                   background: isCurrent ? '#FFF8E7' : CLR.white,
                                   border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
@@ -1163,7 +1163,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <p className="text-[11px] font-medium mb-2" style={{ color: CLR.gray2 }}>{label}</p>
                     <input type="number" value={value} onChange={e => setter(e.target.value)}
                       placeholder={placeholder}
-                      className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none transition-all"
+                      className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none transition"
                       style={{ background: "#F2F2F7", color: CLR.ink, border: "1.5px solid transparent" }}
                       onFocus={e => (e.target.style.borderColor = CLR.gold)}
                       onBlur={e => (e.target.style.borderColor = "transparent")} />

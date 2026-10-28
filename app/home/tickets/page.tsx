@@ -63,7 +63,7 @@ function StampGrid({ count, iconUrl }: { count: number; iconUrl?: string }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: filled ? "0 2px 6px rgba(0,0,0,0.18)" : "none",
                 flexShrink: 0, overflow: "hidden",
-                transition: "all 0.15s ease",
+                transition: "transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
               }}
             >
               {filled ? (
@@ -339,7 +339,7 @@ export default function TicketsPage() {
                     background: couponTab === tab.key ? "#1C1C1E" : "#E5E5EA",
                     color: couponTab === tab.key ? "#fff" : "var(--label2)",
                     fontSize: 13, fontWeight: 600,
-                    transition: "all 0.15s",
+                    transition: "transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s",
                   }}
                 >
                   {tab.label}
@@ -436,7 +436,7 @@ export default function TicketsPage() {
                 color: isChecked ? "#1C1C1E" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
                 boxShadow: isChecked ? "0 4px 14px rgba(200,130,10,0.30)" : "none",
-                transition: "all 0.2s ease",
+                transition: "transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
               }}
             >
               使用済みにする

@@ -353,7 +353,7 @@ export default function TransactionsClient() {
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04)' : 'none',
                 fontSize: 14, fontWeight: 600,
                 color: mode === m ? '#1C1C1E' : '#6C6C70',
-                transition: 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
+                transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), opacity 0.2s cubic-bezier(0.22,1,0.36,1), background-color 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.2s cubic-bezier(0.22,1,0.36,1), color 0.2s cubic-bezier(0.22,1,0.36,1), box-shadow 0.2s cubic-bezier(0.22,1,0.36,1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >

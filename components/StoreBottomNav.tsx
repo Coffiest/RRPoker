@@ -98,7 +98,7 @@ export default function StoreBottomNav() {
           <button
             type="button"
             onClick={() => { hapticTap(); router.push('/home/store/tournaments') }}
-            className="flex items-center justify-center active:scale-95 transition-all"
+            className="flex items-center justify-center active:scale-95 transition"
             style={{
               width: 48,
               height: 48,

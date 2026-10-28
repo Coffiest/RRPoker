@@ -454,7 +454,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   }
 
   // ── Shared input style for modal ─────────────────────────────────────────
-  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
+  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition"
 
   // ════════════════════════════════════════════════════════════════════════
   return (
@@ -561,7 +561,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               {isPresetSelected && (
                 <div className="w-full rounded-full overflow-hidden" style={{ height: "3px", background: "#F0F0F0", marginTop: "8px" }}>
                   <div
-                    className="h-full rounded-full transition-all duration-1000"
+                    className="h-full rounded-full transition-[width] duration-1000"
                     style={{ width: `${progress}%`, background: "linear-gradient(90deg,#A06500,#C8820A)" }}
                   />
                 </div>
@@ -809,7 +809,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                className="w-full rounded-2xl px-4 py-2 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
+                className="w-full rounded-2xl px-4 py-2 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition"
                 placeholder="例: 通常トーナメント"
               />
             </div>
@@ -865,7 +865,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         <button
                           type="button"
                           onClick={() => setEditingCommentIdx(editingCommentIdx === idx ? null : idx)}
-                          className={`px-2 py-2 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#C8820A]/15 text-[#C8820A] border border-[#C8820A]/30" : "bg-gray-200 text-label3 hover:bg-gray-300"}`}
+                          className={`px-2 py-2 rounded-lg text-[11px] font-medium transition ${lv.comment ? "bg-[#C8820A]/15 text-[#C8820A] border border-[#C8820A]/30" : "bg-gray-200 text-label3 hover:bg-gray-300"}`}
                         >
                           {lv.comment ? lv.comment : "＋"}
                         </button>
@@ -883,7 +883,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           placeholder="コメントを入力..."
                           value={lv.comment ?? ""}
                           onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                          className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#C8820A] focus:outline-none transition-all"
+                          className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#C8820A] focus:outline-none transition"
                           autoFocus={editingCommentIdx === idx}
                         />
                         <button
@@ -907,13 +907,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="px-6 py-6 border-t border-gray-100 space-y-4">
               <div className="flex gap-2">
                 <button onClick={addLevel}
-                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-[#C8820A] transition-all hover:bg-[#C8820A]/5"
+                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-[#C8820A] transition hover:bg-[#C8820A]/5"
                   style={{ border: "1.5px solid rgba(200,130,10,0.35)" }}
                 >
                   ＋ レベル追加
                 </button>
                 <button onClick={addBreak}
-                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-blue-500 transition-all hover:bg-blue-50"
+                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-blue-500 transition hover:bg-blue-50"
                   style={{ border: "1.5px solid rgba(59,130,246,0.3)" }}
                 >
                   ＋ ブレイク追加
@@ -921,7 +921,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               </div>
               <div className="flex gap-4">
                 <button onClick={savePreset}
-                  className="flex-1 py-4 rounded-2xl text-[14px] font-bold text-white transition-all"
+                  className="flex-1 py-4 rounded-2xl text-[14px] font-bold text-white transition"
                   style={{ background: "linear-gradient(135deg,#C8820A,#D4910A)", boxShadow: "0 4px 14px rgba(200,130,10,0.28)" }}
                 >
                   保存

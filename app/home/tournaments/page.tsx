@@ -275,7 +275,7 @@ export default function TournamentHistoryPage() {
         {/* Header */}
         <div className="flex items-center justify-between pt-6 mb-6">
           <button onClick={() => router.back()}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition-all active:scale-95 shadow-sm">
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition active:scale-95 shadow-sm">
             <ArrowLeftIcon size={20} />
           </button>
           <h1 className="text-[20px] font-semibold text-gray-900">トーナメント履歴</h1>
@@ -319,7 +319,7 @@ export default function TournamentHistoryPage() {
 
             return (
               <div key={item.id}
-                className="history-card rounded-2xl p-4 hover:shadow-lg transition-all animate-fadeIn tour-card-tap"
+                className="history-card rounded-2xl p-4 hover:shadow-lg transition animate-fadeIn tour-card-tap"
                 style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => setSelectedItem(item)}>
 

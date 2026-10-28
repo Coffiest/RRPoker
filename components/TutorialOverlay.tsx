@@ -179,7 +179,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                   height: 6,
                   borderRadius: 99,
                   background: i === currentStep ? '#F2A900' : '#E5E5EA',
-                  transition: 'all 0.25s ease',
+                  transition: 'transform 0.25s ease, opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease',
                   flexShrink: 0,
                 }} />
               ))}

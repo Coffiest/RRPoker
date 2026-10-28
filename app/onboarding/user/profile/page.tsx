@@ -493,7 +493,7 @@ export default function UserProfileOnboardingPage() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 11, fontWeight: 700,
                     color: showIdInfo ? '#D4910A' : '#6b7280',
-                    cursor: 'pointer', transition: 'all 0.15s',
+                    cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                     flexShrink: 0,
                   }}
                 >?</button>
@@ -528,7 +528,7 @@ export default function UserProfileOnboardingPage() {
 
             {/* @プレフィックス固定 + 入力フィールド */}
             <div
-              className="flex items-stretch overflow-hidden transition-all"
+              className="flex items-stretch overflow-hidden transition"
               style={{
                 height: 48, borderRadius: 16,
                 border: `1.5px solid ${idError ? '#f87171' : idStatus === 'available' ? '#34d399' : idStatus === 'unavailable' ? '#f87171' : '#e5e7eb'}`,
@@ -596,7 +596,7 @@ export default function UserProfileOnboardingPage() {
                         fontSize: 12, fontWeight: 500,
                         background: '#f3f4f6', color: '#374151',
                         border: '1px solid #e5e7eb',
-                        cursor: 'pointer', transition: 'all 0.15s',
+                        cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                       }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFBF0'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F2A900'; (e.currentTarget as HTMLButtonElement).style.color = '#D4910A' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}

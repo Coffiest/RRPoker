@@ -210,7 +210,7 @@ function GraphShelf({
         <div className="flex gap-2">
           {(["7", "1m", "all"] as const).map(tab => (
             <button key={tab} type="button" onClick={() => { onPeriodChange(tab); closeTooltip() }}
-              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition-all ${periodTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
+              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition ${periodTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
               {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
             </button>
           ))}
@@ -1480,7 +1480,7 @@ const medalClass = (rank: number) => {
           background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
           border:1px solid rgba(242,169,0,0.1); border-radius:16px; padding:16px 16px;
           box-shadow:0 1px 3px rgba(242,169,0,0.08),inset 0 1px 0 rgba(255,255,255,1);
-          transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
+          transition:transform 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1);
         }
         .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(242,169,0,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(242,169,0,0.2); }
         .rr-my-entry {
@@ -2105,7 +2105,7 @@ const medalClass = (rank: number) => {
                           return next
                         })
                       }}
-                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition-all ${rankingMultiSelectMode ? "bg-[#F2A900] text-gray-900" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
+                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition ${rankingMultiSelectMode ? "bg-[#F2A900] text-gray-900" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
                     >
                       {rankingMultiSelectMode ? "完了" : "複数月を選択"}
                     </button>
@@ -2141,7 +2141,7 @@ const medalClass = (rank: number) => {
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
                             background: selected ? '#F2A900' : '#F2F2F7',
                             boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
-                            transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                            transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                           }}
                         >
                           <span style={{ fontSize: 11, fontWeight: 700, color: selected ? 'rgba(255,255,255,0.8)' : 'var(--label3)' }}>{m.year}</span>
@@ -2190,7 +2190,7 @@ const medalClass = (rank: number) => {
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
                           background: selected ? '#F2A900' : '#F2F2F7',
                           boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
-                          transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                          transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                         }}
                       >
                         <span style={{ fontSize: 13, fontWeight: 800, color: selected ? '#fff' : '#1C1C1E' }}>{yr.label}</span>
@@ -2323,7 +2323,7 @@ const medalClass = (rank: number) => {
                           padding: '8px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
                           background: selected ? '#F2A900' : '#F2F2F7',
                           boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
-                          transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
+                          transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                         }}
                       >
                         <span style={{ fontSize: 11, fontWeight: 700, color: dowColor, letterSpacing: '0.04em' }}>{dow}</span>
@@ -2723,7 +2723,7 @@ const medalClass = (rank: number) => {
               <input type="text" value={searchQuery}
                 onChange={e => { const v = e.target.value; setSearchQuery(v); if (v.trim() && !allStores.length) void loadAllStores() }}
                 placeholder="店舗コード or 店舗名"
-                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition"
               />
               <button type="button" onClick={handleSearch} className="a-btn a-btn-filled a-btn-icon" style={{ minHeight: 48, width: 48 }}>
                 <SearchIcon size={17} />

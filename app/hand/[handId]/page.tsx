@@ -138,7 +138,7 @@ export default function HandPage() {
             </p>
           </div>
           <button onClick={share}
-            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-95 transition-all"
+            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-95 transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})` }}>
             <Share2Icon size={14} />
             {copied ? "コピー完了" : "シェア"}
@@ -274,7 +274,7 @@ export default function HandPage() {
                     const isFuture  = globalIdx > replayStep - 1
                     const isHeroAct = a.position === hand.heroPosition
                     return (
-                      <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition-all"
+                      <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition"
                         style={{
                           background: isCurrent ? "#FFF8E7" : CLR.white,
                           border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
@@ -306,7 +306,7 @@ export default function HandPage() {
           <p className="text-[13px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
           <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/home"
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
             RRPOKERを使ってみる <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} />
           </a>
