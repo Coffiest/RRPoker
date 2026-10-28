@@ -9,7 +9,7 @@ import { hapticTap } from '@/lib/haptics'
  * 設定・プロフィールなど、項目を並べる画面はこの部品で組む(見た目と押し心地をそろえるため)。
  */
 
-export function PageTitleBar({ title, onBack, backLabel = '戻る' }: { title: string; onBack?: () => void; backLabel?: string }) {
+export function PageTitleBar({ title, onBack, backLabel = 'Back' }: { title: string; onBack?: () => void; backLabel?: string }) {
   return (
     <div data-nav-back={onBack ? '' : undefined} style={{ display: 'flex', alignItems: 'center', minHeight: 44, margin: '8px 0 0' }}>
       {onBack && (

@@ -359,11 +359,11 @@ export default function RegisterPage() {
           {/* ステップインジケーター */}
           <div className="appear d1" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:16 }}>
             {[
-              { n:'1', t:'アカウント作成', active:true },
+              { n:'1', t:'ACCOUNT', active:true },
               { n:'', t:'', active:false, arrow:true },
-              { n:'2', t:'メール認証', active:false },
+              { n:'2', t:'VERIFY', active:false },
               { n:'', t:'', active:false, arrow:true },
-              { n:'3', t:'プロフィール設定', active:false },
+              { n:'3', t:'PROFILE', active:false },
             ].map((s, i) => s.arrow ? (
               <ChevronRightIcon key={i} size={12} color="var(--label3)" />
             ) : (
@@ -422,7 +422,7 @@ export default function RegisterPage() {
 
             {/* メール */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>メールアドレス</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>EMAIL</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <MailIcon size={15} />
@@ -442,7 +442,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>PASSWORD</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />
@@ -473,7 +473,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード(確認)</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>CONFIRM PASSWORD</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />

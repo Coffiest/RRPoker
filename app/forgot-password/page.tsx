@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="tech-corners mt-8 rounded-[24px] border border-gray-200 p-4">
-          <label className="tech-label tech-label-bracket block text-gray-500">メールアドレス</label>
+          <label className="tech-label tech-label-bracket block text-gray-500">EMAIL</label>
           <input
             type="email"
             placeholder="name@example.com"

@@ -515,11 +515,11 @@ export default function MyPage() {
                 ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .8s linear infinite' }} />
                 : <Share2Icon size={13} style={{ color: '#fff' }} />
               }
-              <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>シェア</span>
+              <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>SHARE</span>
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', marginBottom: 3 }}>トナメ偏差値</p>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', marginBottom: 3 }}>RR RATING</p>
               <p className="tech-num" style={{
                 fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
                 color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',

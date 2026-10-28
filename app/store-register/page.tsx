@@ -283,7 +283,7 @@ export default function StoreRegisterPage() {
 
           {/* メール */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>メールアドレス</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>EMAIL</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'var(--label2)', flexShrink: 0 }}>
                 <MailIcon size={15} />
@@ -301,7 +301,7 @@ export default function StoreRegisterPage() {
 
           {/* パスワード */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>パスワード</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>PASSWORD</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'var(--label2)', flexShrink: 0 }}>
                 <LockIcon size={15} />
@@ -327,7 +327,7 @@ export default function StoreRegisterPage() {
 
           {/* パスワード確認 */}
           <div style={{ marginBottom: 8 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>パスワード（確認）</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>CONFIRM PASSWORD</label>
             <div className={`sr-field${pwMismatch ? ' field-error' : ''}${pwMatch ? ' field-ok' : ''}`}>
               <div style={{ paddingLeft: 16, color: pwMatch ? '#34C759' : pwMismatch ? '#FF3B30' : 'var(--label3)', flexShrink: 0, transition: 'color .18s' }}>
                 <LockIcon size={15} />
