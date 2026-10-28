@@ -1,6 +1,6 @@
 'use client'
 
-import { InfoIcon } from 'lucide-react'
+import { ArrowRightIcon, CameraIcon, ChevronLeftIcon, CircleAlertIcon, InfoIcon, LoaderCircleIcon, PencilIcon, UserIcon } from 'lucide-react'
 import { CheckIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
@@ -392,9 +392,7 @@ export default function UserProfileOnboardingPage() {
             className="flex items-center gap-2 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
             aria-label="戻る"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15.75 19.5L8.25 12l7.5-7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ChevronLeftIcon size={18} />
             戻る
           </button>
         </div>
@@ -422,29 +420,21 @@ export default function UserProfileOnboardingPage() {
               <img src={previewUrl} alt="プレビュー" className="h-full w-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
-                  <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
-                </svg>
+                <UserIcon size={28} color="#F2A900" />
               </div>
             )}
 
             {/* Hover overlay (画像あり時) */}
             {previewUrl && (
               <div className="icon-overlay">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M7 7L9 5H15L17 7H20C21.1 7 22 7.9 22 9V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V9C2 7.9 2.9 7 4 7H7Z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="12" cy="13" r="3" stroke="white" strokeWidth="1.8"/>
-                </svg>
+                <CameraIcon size={22} color="white" />
                 <span className="text-[11px] font-semibold text-white">変更</span>
               </div>
             )}
 
             {/* Edit badge */}
             <div className="badge-edit">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M15.232 5.232l3.536 3.536M9 11l6.5-6.5a2 2 0 012.828 2.829L11.828 13.828 7 15l1.172-4.828z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <PencilIcon size={13} color="white" />
             </div>
           </button>
 
@@ -566,14 +556,9 @@ export default function UserProfileOnboardingPage() {
                   style={{ fontSize: 13, fontWeight: 600, color: '#D4910A', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
-                    <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/>
-                      <path fill="currentColor" opacity=".75" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
+                    <LoaderCircleIcon size={11} className="animate-spin" />
                   ) : (
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                      <path d="M20 12a8 8 0 01-8 8m8-8a8 8 0 00-8-8m8 8H4m16 0l-3-3m3 3l-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
+                    <ArrowRightIcon size={11} />
                   )}
                   自動で取得
                 </button>
@@ -625,10 +610,7 @@ export default function UserProfileOnboardingPage() {
               className="field-input"
             />
             <p className="mt-2 text-[11px] text-amber-500 flex items-center gap-2">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              <CircleAlertIcon size={12} style={{ flexShrink: 0 }} />
               誕生日は登録後に変更できません
             </p>
           </div>
@@ -649,10 +631,7 @@ export default function UserProfileOnboardingPage() {
           >
             {loading ? (
               <>
-                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
+                <LoaderCircleIcon size={20} className="h-5 w-5 animate-spin" />
                 保存中…
               </>
             ) : '次へ'}

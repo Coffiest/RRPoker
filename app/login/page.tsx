@@ -1,4 +1,5 @@
 'use client'
+import { CheckIcon, HouseIcon, LockIcon, LogInIcon, MailIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from "react"
 import { signInWithEmailAndPassword } from "firebase/auth"
@@ -535,10 +536,7 @@ export default function LoginPage() {
               </label>
               <div className={`field-wrap${emailFocus?' focused':''}${error&&!email?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                    <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
+                  <MailIcon size={16} />
                 </div>
                 <input
                   type="email" value={email}
@@ -560,10 +558,7 @@ export default function LoginPage() {
               </label>
               <div className={`field-wrap${pwFocus?' focused':''}${error&&!password?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
+                  <LockIcon size={16} />
                 </div>
                 <input
                   type={showPw ? 'text' : 'password'} value={password}
@@ -605,14 +600,10 @@ export default function LoginPage() {
               {loading ? (
                 <div className="spinner"/>
               ) : success ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="check-path"/>
-                </svg>
+                <CheckIcon size={22} color="#fff" />
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <LogInIcon size={16} color="#1a1a1a" />
                   ログイン
                 </>
               )}
@@ -633,7 +624,7 @@ export default function LoginPage() {
           <button type="button" onClick={() => router.push('/store-register')}
             style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <HouseIcon size={10} />
             {t('login.storeOwner')}
           </button>
         </div>

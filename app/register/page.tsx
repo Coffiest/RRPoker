@@ -1,5 +1,5 @@
 'use client'
-import { CheckIcon, ChevronRightIcon, TriangleAlertIcon } from 'lucide-react'
+import { CheckIcon, ChevronRightIcon, HouseIcon, LockIcon, MailIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
@@ -425,10 +425,7 @@ export default function RegisterPage() {
               <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>メールアドレス</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                    <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
+                  <MailIcon size={15} />
                 </div>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                   onFocus={() => setEmailFocus(true)} onBlur={() => setEmailFocus(false)}
@@ -448,10 +445,7 @@ export default function RegisterPage() {
               <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
+                  <LockIcon size={15} />
                 </div>
                 <input type={showPw?'text':'password'} value={password} onChange={e => setPassword(e.target.value)}
                   onFocus={() => setPwFocus(true)} onBlur={() => setPwFocus(false)}
@@ -482,10 +476,7 @@ export default function RegisterPage() {
               <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード(確認)</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
+                  <LockIcon size={15} />
                 </div>
                 <input type={showCPw?'text':'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                   onFocus={() => setCpwFocus(true)} onBlur={() => setCpwFocus(false)}
@@ -493,8 +484,8 @@ export default function RegisterPage() {
                 />
                 {/* 一致/不一致インジケーター */}
                 <div style={{ position:'absolute', right:36, top:'50%', transform:'translateY(-50%)' }}>
-                  {pwMatch && <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                  {pwMismatch && <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#FF3B30" strokeWidth="2.2" strokeLinecap="round"/></svg>}
+                  {pwMatch && <CheckIcon size={16} color="#34C759" />}
+                  {pwMismatch && <XIcon size={16} color="#FF3B30" />}
                 </div>
                 <button type="button" onClick={() => setShowCPw(v => !v)}
                   style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:cpwFocus?'var(--gold-dk)':'var(--label3)', fontSize:11, fontWeight:700, transition:'color .18s' }}
@@ -522,14 +513,10 @@ export default function RegisterPage() {
             <button className={`btn-gold${success?' success-state':''}`} onClick={handleRegister} disabled={isLoading || googleLoading}>
               {isLoading ? <div className="spinner"/>
               : success ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="check-path"/>
-                </svg>
+                <CheckIcon size={22} color="#fff" />
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  
                   アカウントを作成
                 </>
               )}
@@ -550,7 +537,7 @@ export default function RegisterPage() {
           <button type="button" onClick={() => router.push('/store-register')}
             style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <HouseIcon size={10} />
             店舗の方はこちら
           </button>
         </div>

@@ -1,5 +1,5 @@
 "use client"
-import { ArrowLeftIcon, AwardIcon, CalendarIcon, ChartNoAxesColumnIcon, ChevronLeftIcon, ChevronRightIcon, CircleHelpIcon, ClockIcon, CreditCardIcon, FileTextIcon, GlobeIcon, HouseIcon, InstagramIcon, LogOutIcon, PenIcon, ScanQrCodeIcon, SearchIcon, Share2Icon, StarIcon, StoreIcon, TwitterIcon, UserIcon, XIcon } from 'lucide-react'
+import { ArrowLeftIcon, AwardIcon, CalendarIcon, ChartNoAxesColumnIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CircleHelpIcon, ClockIcon, CreditCardIcon, FileTextIcon, GlobeIcon, HouseIcon, InstagramIcon, LogOutIcon, PenIcon, ScanQrCodeIcon, SearchIcon, Share2Icon, StarIcon, StoreIcon, TwitterIcon, UserIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -2623,9 +2623,7 @@ const medalClass = (rank: number) => {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 4px 16px rgba(242,169,0,0.45)',
                 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <CheckIcon size={20} color="white" aria-hidden="true" />
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>

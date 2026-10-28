@@ -1,4 +1,5 @@
 'use client'
+import { ActivityIcon, ArrowRightIcon, CircleAlertIcon, CreditCardIcon, HouseIcon, ListIcon, TrophyIcon, UserIcon } from 'lucide-react'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,48 +9,35 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 const FEATURES = [
   {
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        <polyline points="9,22 9,12 15,12 15,22" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
+      <HouseIcon size={22} color="#F2A900" />
     ),
     title: '店舗チェックイン',
     desc: '簡単に入店。チップ残高をリアルタイム管理。',
   },
   {
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
+      <ActivityIcon size={22} color="#F2A900" />
     ),
     title: 'RR Rating',
     desc: 'ROIとインマネ率からあなたの実力を偏差値で可視化。',
   },
   {
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8"/>
-        <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
+      <UserIcon size={22} color="#F2A900" />
     ),
     title: 'ランキング',
     desc: '純増ランキングで仲間と競い、モチベーションをキープ。',
   },
   {
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="5" width="20" height="14" rx="3" stroke="#F2A900" strokeWidth="1.8"/>
-        <path d="M2 10h20" stroke="#F2A900" strokeWidth="1.8"/>
-      </svg>
+      <CreditCardIcon size={22} color="#F2A900" />
     ),
     title: 'チップ管理',
     desc: '購入・引き出し履歴を一覧管理。BBでの表示にも対応。',
   },
   {
     icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
+      <ListIcon size={22} color="#F2A900" />
     ),
     title: 'トーナメント履歴',
     desc: '参加したトナメを自動記録。ROI・ITMを統計で確認。',
@@ -199,11 +187,7 @@ export default function UserWelcomePage() {
               boxShadow: '0 8px 28px rgba(242,169,0,0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
-            <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
-              <path d="M6 2h12v8a6 6 0 01-12 0V2z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M6 4H3a1 1 0 00-1 1v2a4 4 0 004 4M18 4h3a1 1 0 011 1v2a4 4 0 01-4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-              <path d="M12 16v4M8 20h8" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
+            <TrophyIcon size={38} color="white" />
           </div>
 
           <div className="d1">
@@ -273,10 +257,7 @@ export default function UserWelcomePage() {
               border: '1px solid rgba(242,169,0,0.2)',
             }}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" className="mt-0.5 flex-shrink-0">
-              <circle cx="12" cy="12" r="10" stroke="#F2A900" strokeWidth="2"/>
-              <path d="M12 8v4M12 16h.01" stroke="#F2A900" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <CircleAlertIcon size={15} color="#F2A900" className="mt-0.5 flex-shrink-0" />
             <p
               className={`text-[13px] text-[#7A5600] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
             >
@@ -313,9 +294,7 @@ export default function UserWelcomePage() {
             }}
             className="btn-primary flex h-[54px] w-full items-center justify-center gap-2 rounded-[20px] text-[17px] font-semibold text-white"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ArrowRightIcon size={18} color="#fff" />
             はじめる
           </button>
           <p className="mt-4 text-center text-[13px] text-label2">

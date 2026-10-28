@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { hapticTap } from '@/lib/haptics'
 
 /**
@@ -83,7 +83,7 @@ export const fieldInput: React.CSSProperties = {
   fontSize: 17, color: 'var(--label)', textAlign: 'right', fontFamily: 'inherit',
 }
 
-/** 選択肢から 1 つ選ぶ行(選ばれている行に「✓」)。 */
+/** 選択肢から 1 つ選ぶ行(選ばれている行にチェック印)。 */
 export function ChoiceRow({ label, detail, selected, onSelect }: { label: string; detail?: string; selected: boolean; onSelect: () => void }) {
   return (
     <button type="button" role="radio" aria-checked={selected} onClick={() => { if (!selected) hapticTap(); onSelect() }} className="gl-row" style={{ ...rowBase, cursor: 'pointer' }}>
@@ -92,9 +92,7 @@ export function ChoiceRow({ label, detail, selected, onSelect }: { label: string
         {detail && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{detail}</span>}
       </span>
       {selected && (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: '#B57F00', flexShrink: 0 }}>
-          <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <CheckIcon size={20} style={{ color: '#B57F00', flexShrink: 0 }} aria-hidden="true" />
       )}
     </button>
   )

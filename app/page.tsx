@@ -1,5 +1,5 @@
 'use client'
-import { ArrowRightIcon, ChartColumnIcon, ClipboardListIcon, CreditCardIcon, LightbulbIcon, MedalIcon, NotebookPenIcon, StoreIcon, TrophyIcon, ZapIcon } from 'lucide-react'
+import { ArrowRightIcon, ChartColumnIcon, ClipboardListIcon, CreditCardIcon, HouseIcon, LightbulbIcon, LogInIcon, MedalIcon, NotebookPenIcon, StoreIcon, TrophyIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -271,9 +271,7 @@ export default function TopPage() {
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
             {/* ログインボタン（ヘッダー右） */}
             <button className="header-cta" onClick={() => router.push('/login')}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <LogInIcon size={13} color="white" />
               ログイン
             </button>
 
@@ -310,7 +308,7 @@ export default function TopPage() {
           <button onClick={() => { setMenuOpen(false); router.push('/login') }}
             style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(242,169,0,0.4)', background:'rgba(242,169,0,0.06)', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#D4910A', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#D4910A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <LogInIcon size={15} color="#D4910A" />
             ログイン / 新規登録
           </button>
           {['このアプリについて', 'RR Ratingとは？', 'よくある質問'].map(label => (
@@ -546,7 +544,7 @@ export default function TopPage() {
           <button type="button" onClick={() => router.push('/store-register')}
             style={{ fontSize:12, color:'var(--label3)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'8px 16px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <HouseIcon size={11} />
             店舗の方はこちら
           </button>
         </div>

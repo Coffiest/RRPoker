@@ -1,4 +1,5 @@
 'use client'
+import { ArrowDownIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import { hapticTap } from '@/lib/haptics'
@@ -104,15 +105,10 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
             animation: 'spin .8s linear infinite',
           }} />
         ) : (
-          <svg
-            width="16" height="16" viewBox="0 0 16 16" fill="none"
-            style={{
+          <ArrowDownIcon size={16} style={{
               transform: `rotate(${progress * 180}deg) ${ready ? 'scale(1.1)' : ''}`,
               transition: 'transform 0.15s ease',
-            }}
-          >
-            <path d="M8 2v10M4 9l4 4 4-4" stroke={ready ? '#fff' : '#F2A900'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+            }} />
         )}
       </div>
     </div>

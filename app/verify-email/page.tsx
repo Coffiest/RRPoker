@@ -1,5 +1,5 @@
 "use client"
-import { AtSignIcon, FolderIcon, MailIcon, TimerIcon, TriangleAlertIcon } from 'lucide-react'
+import { ArrowLeftIcon, AtSignIcon, BadgeCheckIcon, CheckIcon, ClockIcon, FolderIcon, MailIcon, RotateCcwIcon, TimerIcon, TriangleAlertIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
@@ -208,16 +208,11 @@ export default function VerifyEmailPage() {
             <div style={{ position:'relative', display:'inline-block' }}>
               <div style={{ position:'absolute', inset:-14, borderRadius:9999, background:'radial-gradient(circle,rgba(242,169,0,0.18) 0%,transparent 70%)', filter:'blur(10px)' }}/>
               <div className="envelope-anim" style={{ position:'relative', zIndex:1, width:80, height:80, borderRadius:24, background:'#F2A900', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 28px rgba(242,169,0,0.32), 0 2px 8px rgba(0,0,0,0.1)' }}>
-                <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-                  <polyline points="22,6 12,13 2,6" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
-                </svg>
+                <MailIcon size={38} color="white" />
               </div>
               {/* バッジ */}
               <div style={{ position:'absolute', top:-4, right:-4, width:22, height:22, borderRadius:'50%', background:'#34C759', border:'2.5px solid white', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 2px 6px rgba(52,199,89,0.4)' }}>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <CheckIcon size={10} color="white" />
               </div>
             </div>
           </div>
@@ -230,10 +225,7 @@ export default function VerifyEmailPage() {
             </h1>
             {email && (
               <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(242,169,0,0.08)', border:'1px solid rgba(242,169,0,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#D4910A" strokeWidth="2" strokeLinecap="round"/>
-                  <polyline points="22,6 12,13 2,6" stroke="#D4910A" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
+                <MailIcon size={12} color="#D4910A" />
                 <span style={{ fontSize:12, fontWeight:600, color:'#D4910A', letterSpacing:'-0.1px' }}>{email}</span>
               </div>
             )}
@@ -259,9 +251,7 @@ export default function VerifyEmailPage() {
                 </div>
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <BadgeCheckIcon size={16} color="#1a1a1a" />
                   認証完了後はこちら
                 </>
               )}
@@ -275,18 +265,12 @@ export default function VerifyEmailPage() {
                 <div className="spinner"/>
               ) : cooldown > 0 ? (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="var(--label3)" strokeWidth="2"/>
-                    <polyline points="12,6 12,12 16,14" stroke="var(--label3)" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                  <ClockIcon size={14} color="var(--label3)" />
                   <span style={{ color:'var(--label3)' }}>再送まで {cooldown} 秒</span>
                 </>
               ) : (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <polyline points="1,4 1,10 7,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M3.51 15a9 9 0 102.13-9.36L1 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <RotateCcwIcon size={14} />
                   確認メールを再送
                 </>
               )}
@@ -334,9 +318,7 @@ export default function VerifyEmailPage() {
           <button type="button" onClick={() => router.replace('/login')}
             style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:99, transition:'color .15s' }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <ArrowLeftIcon size={13} />
             ログイン画面へ戻る
           </button>
         </div>

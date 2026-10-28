@@ -1,5 +1,5 @@
 'use client'
-import { ArrowLeftIcon, CircleAlertIcon, CircleArrowDownIcon, CircleArrowUpIcon, CircleCheckIcon, ScanQrCodeIcon, UserIcon } from 'lucide-react'
+import { ArrowLeftIcon, CircleAlertIcon, CircleArrowDownIcon, CircleArrowUpIcon, CircleCheckIcon, DeleteIcon, ScanQrCodeIcon, UserIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -403,12 +403,7 @@ export default function TransactionsClient() {
                     {key === 'backspace'
                       ? (
                         // 絵文字や記号ではなく線で描いたSVG(バックスペース)。
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
-                             style={{ display: 'block', margin: '0 auto' }}>
-                          <path d="M20 5H9.5L3.5 12l6 7H20a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z" />
-                          <path d="M16 9.5 12 14M12 9.5l4 4.5" />
-                        </svg>
+                        <DeleteIcon size={22} style={{ display: 'block', margin: '0 auto' }} aria-hidden="true" />
                       )
                       : key}
                   </button>

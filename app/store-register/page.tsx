@@ -1,5 +1,5 @@
 'use client'
-import { ChartColumnIcon, CheckIcon, ChevronRightIcon, TimerIcon, TriangleAlertIcon, TrophyIcon, WalletIcon } from 'lucide-react'
+import { ChartColumnIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, HouseIcon, LockIcon, MailIcon, TimerIcon, TriangleAlertIcon, TrophyIcon, WalletIcon, XIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
@@ -107,10 +107,7 @@ export default function StoreRegisterPage() {
       <div style={{ minHeight: '100dvh', background: '#0A0A14', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
         <div style={{ maxWidth: 400, width: '100%', textAlign: 'center' }}>
           <div style={{ width: 76, height: 76, borderRadius: 24, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 0 48px rgba(242,169,0,0.4)' }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              <polyline points="22,6 12,13 2,6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <MailIcon size={34} color="white" />
           </div>
           <h2 style={{ fontSize: 22, fontWeight: 800, color: 'white', marginBottom: 8 }}>確認メールを送信しました</h2>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.72)', lineHeight: 1.8, marginBottom: 24 }}>
@@ -226,7 +223,7 @@ export default function StoreRegisterPage() {
           <button type="button" onClick={() => router.back()}
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900', fontSize: 14, fontWeight: 700, padding: '8px 0' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <ChevronLeftIcon size={18} />
             戻る
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -244,10 +241,7 @@ export default function StoreRegisterPage() {
         <div className="sr-appear sr-d1" style={{ textAlign: 'center', padding: '40px 0 32px' }}>
           {/* ストアバッジ */}
           <div className="sr-badge-anim" style={{ width: 76, height: 76, borderRadius: 24, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 0 0 12px rgba(242,169,0,0.08), 0 0 48px rgba(242,169,0,0.3)' }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="#0A0A14" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="9,22 9,12 15,12 15,22" stroke="#0A0A14" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <HouseIcon size={34} color="#0A0A14" />
           </div>
 
           {/* 店舗専用ラベル */}
@@ -319,10 +313,7 @@ export default function StoreRegisterPage() {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>メールアドレス</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'rgba(255,255,255,0.72)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                  <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
+                <MailIcon size={15} />
               </div>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="store@example.com" className="sr-input" disabled={isLoading}
@@ -340,10 +331,7 @@ export default function StoreRegisterPage() {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>パスワード</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'rgba(255,255,255,0.72)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
+                <LockIcon size={15} />
               </div>
               <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                 placeholder="6文字以上" className="sr-input" disabled={isLoading}
@@ -369,17 +357,14 @@ export default function StoreRegisterPage() {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8 }}>パスワード（確認）</label>
             <div className={`sr-field${pwMismatch ? ' field-error' : ''}${pwMatch ? ' field-ok' : ''}`}>
               <div style={{ paddingLeft: 16, color: pwMatch ? '#34C759' : pwMismatch ? '#FF3B30' : 'rgba(255,255,255,0.3)', flexShrink: 0, transition: 'color .18s' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
+                <LockIcon size={15} />
               </div>
               <input type={showCPw ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••" className="sr-input" disabled={isLoading}
               />
               <div style={{ position: 'absolute', right: 40, top: '50%', transform: 'translateY(-50%)' }}>
-                {pwMatch && <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-                {pwMismatch && <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#FF3B30" strokeWidth="2.2" strokeLinecap="round" /></svg>}
+                {pwMatch && <CheckIcon size={16} color="#34C759" />}
+                {pwMismatch && <XIcon size={16} color="#FF3B30" />}
               </div>
               <button type="button" onClick={() => setShowCPw(v => !v)}
                 style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.72)', fontSize: 11, fontWeight: 700 }}
@@ -404,15 +389,10 @@ export default function StoreRegisterPage() {
           <button className={`sr-btn${success ? ' success-state' : ''}`} onClick={handleRegister} disabled={isLoading}>
             {isLoading ? <div className="sr-spinner" />
               : success ? (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <CheckIcon size={22} color="#fff" />
               ) : (
                 <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    <polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <HouseIcon size={16} />
                   店舗アカウントを作成
                 </>
               )}

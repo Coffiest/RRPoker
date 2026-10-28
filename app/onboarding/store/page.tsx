@@ -1,4 +1,5 @@
 'use client'
+import { ArrowRightIcon, CameraIcon, FileTextIcon, HouseIcon, MapPinIcon, SquarePenIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -308,10 +309,7 @@ export default function StoreOnboardingPage() {
           <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
 
           <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', position: 'relative', zIndex: 1 }}>
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <polyline points="9,22 9,12 15,12 15,22" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <HouseIcon size={30} color="white" />
           </div>
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
@@ -345,16 +343,10 @@ export default function StoreOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                <path d="M7 7L9 5H15L17 7H20C21.1046 7 22 7.89543 22 9V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V9C2 7.89543 2.89543 7 4 7H7Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 16C13.6569 16 15 14.6569 15 13C15 11.3431 13.6569 10 12 10C10.3431 10 9 11.3431 9 13C9 14.6569 10.3431 16 12 16Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <CameraIcon size={30} color="#F2A900" />
             )}
             <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <SquarePenIcon size={12} color="white" />
             </div>
           </button>
           <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8, fontWeight: 600 }}>タップしてアイコンを設定（任意）</p>
@@ -372,10 +364,7 @@ export default function StoreOnboardingPage() {
             </label>
             <div className={`so-field${missingFields.name ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <HouseIcon size={15} />
               </div>
               <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="例: RRポーカークラブ" className="so-input" />
             </div>
@@ -393,10 +382,7 @@ export default function StoreOnboardingPage() {
             </label>
             <div className={`so-field${missingFields.postalCode ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="1.8" />
-                  <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.8" />
-                </svg>
+                <MapPinIcon size={15} />
               </div>
               <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="例: 100-0001" className="so-input" />
             </div>
@@ -409,9 +395,7 @@ export default function StoreOnboardingPage() {
             </label>
             <div className={`so-field${missingFields.addressLine ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <HouseIcon size={15} />
               </div>
               <input type="text" value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="例: 東京都千代田区丸の内1丁目" className="so-input" />
             </div>
@@ -424,10 +408,7 @@ export default function StoreOnboardingPage() {
             </label>
             <div className={`so-field${missingFields.addressDetail ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M9 7h6M9 12h6M9 17h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
+                <FileTextIcon size={15} />
               </div>
               <input type="text" value={addressDetail} onChange={e => setAddressDetail(e.target.value)} placeholder="例: 1-1 OOビル 201" className="so-input" />
             </div>
@@ -489,9 +470,7 @@ export default function StoreOnboardingPage() {
               <div className="so-spinner" />
             ) : (
               <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ArrowRightIcon size={16} color="#fff" />
                 次へ進む
               </>
             )}

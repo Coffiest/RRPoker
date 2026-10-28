@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
@@ -1086,16 +1086,7 @@ export default function StorePage() {
                   title="QRスキャンで入店"
                   aria-label="プレイヤーのQRを読み取って入店させる"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M2 7V4a2 2 0 012-2h3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M17 2h3a2 2 0 012 2v3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M22 17v3a2 2 0 01-2 2h-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M7 22H4a2 2 0 01-2-2v-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <rect x="6" y="6" width="4" height="4" rx="1" fill="white"/>
-                    <rect x="14" y="6" width="4" height="4" rx="1" fill="white"/>
-                    <rect x="6" y="14" width="4" height="4" rx="1" fill="white"/>
-                    <rect x="14" y="14" width="4" height="4" rx="1" fill="white"/>
-                  </svg>
+                  <ScanIcon size={20} color="white" />
                 </button>
                 {notifCount > 0 && (
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#FF3B30', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>
@@ -2107,7 +2098,7 @@ export default function StorePage() {
           <div style={{ borderRadius: 20, padding: '16px 16px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', animation: 'slideUp .35s cubic-bezier(.22,1,.36,1)', background: qrCheckinResult.success ? 'linear-gradient(135deg,#1C1C1E,#2C2C2E)' : 'linear-gradient(135deg,#FF3B30,#CC2200)' }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: qrCheckinResult.success ? 'rgba(52,199,89,0.18)' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {qrCheckinResult.success
-                ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                ? <CheckIcon size={18} color="#34C759" />
                 : <XIcon size={16} style={{ color: 'white' }} />
               }
             </div>
