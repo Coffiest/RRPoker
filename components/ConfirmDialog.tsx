@@ -1,6 +1,7 @@
 'use client'
 
 import { createPortal } from 'react-dom'
+import { hapticAction } from '@/lib/haptics'
 
 /**
  * iOS のアラートに合わせた確認ダイアログ。取り消せない操作(削除・お金の確定など)の前だけに使う。
@@ -34,7 +35,7 @@ export default function ConfirmDialog({ request, onClose }: { request: ConfirmRe
             キャンセル
           </button>
           <button type="button" autoFocus className="confirm-btn"
-            onClick={async () => { onClose(); await run() }}
+            onClick={async () => { hapticAction(); onClose(); await run() }}
             style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, fontWeight: 600, color: destructive ? '#D70015' : '#0A6CD6', fontFamily: 'inherit', cursor: 'pointer' }}>
             {action}
           </button>

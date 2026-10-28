@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { CircleAlertIcon, CircleCheckIcon } from 'lucide-react'
+import { hapticError, hapticSuccess } from '@/lib/haptics'
 
 /**
  * 画面を止めない短い知らせ(iOS のバナーに近い)。ブラウザの alert() の代わりに使う。
@@ -14,6 +15,8 @@ const EVENT = 'rrpoker:toast'
 
 export function showToast(message: string, kind: ToastKind = 'error') {
   if (typeof window === 'undefined') return
+  // 知らせが出るのと同じ瞬間に震わせる(結果が出たことを手でも分かるように)。
+  if (kind === 'error') hapticError(); else hapticSuccess()
   window.dispatchEvent(new CustomEvent(EVENT, { detail: { message, kind } }))
 }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { hapticTap } from '@/lib/haptics'
 import { createPortal } from 'react-dom'
 
 /**
@@ -279,7 +280,7 @@ export default function AppleSheet({
     const projected = y.current + project(velocity)
     const sheetH = height.current || window.innerHeight
 
-    if (projected > sheetH * 0.42) dismiss(velocity)
+    if (projected > sheetH * 0.42) { hapticTap(); dismiss(velocity) }
     else springTo(0, { velocity, bounce: Math.abs(velocity) > 320 })
   }
 

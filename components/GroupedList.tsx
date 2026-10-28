@@ -1,6 +1,7 @@
 'use client'
 
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { hapticTap } from '@/lib/haptics'
 
 /**
  * iOS の「設定」アプリと同じ、まとまった一覧(グループ表)の部品。
@@ -85,7 +86,7 @@ export const fieldInput: React.CSSProperties = {
 /** 選択肢から 1 つ選ぶ行(選ばれている行に「✓」)。 */
 export function ChoiceRow({ label, detail, selected, onSelect }: { label: string; detail?: string; selected: boolean; onSelect: () => void }) {
   return (
-    <button type="button" role="radio" aria-checked={selected} onClick={onSelect} className="gl-row" style={{ ...rowBase, cursor: 'pointer' }}>
+    <button type="button" role="radio" aria-checked={selected} onClick={() => { if (!selected) hapticTap(); onSelect() }} className="gl-row" style={{ ...rowBase, cursor: 'pointer' }}>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block' }}>{label}</span>
         {detail && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{detail}</span>}
@@ -107,7 +108,7 @@ export function SwitchRow({ label, hint, checked, onChange }: { label: string; h
         <span style={{ display: 'block' }}>{label}</span>
         {hint && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{hint}</span>}
       </span>
-      <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => onChange(!checked)} className="a-switch" />
+      <button type="button" role="switch" aria-checked={checked} aria-label={label} onClick={() => { hapticTap(); onChange(!checked) }} className="a-switch" />
     </div>
   )
 }
