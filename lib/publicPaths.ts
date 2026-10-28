@@ -43,9 +43,17 @@ export const PUBLIC_PREFIXES = [
   '/admin',
 ] as const
 
+/**
+ * 共有リンクで開く、ログインのいらない読むだけの画面(/hand/{id})。
+ * 読み取りは firestore.rules で誰にでも許している(handHistories: read if true)。
+ * 下の階層までは開けないよう、1段だけに限る。
+ */
+const SHARED_PAGE = /^\/hand\/[^/]+$/
+
 /** その画面が Firebase のログインを求めないかどうか。 */
 export function isPublicPath(pathname: string): boolean {
   if ((PUBLIC_PATHS as readonly string[]).includes(pathname)) return true
+  if (SHARED_PAGE.test(pathname)) return true
   return (PUBLIC_PREFIXES as readonly string[]).some(
     // '/adminetc' のような別の画面を巻き込まないよう、境界まで見る。
     prefix => pathname === prefix || pathname.startsWith(prefix + '/'),

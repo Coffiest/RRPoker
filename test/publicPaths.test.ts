@@ -48,4 +48,10 @@ describe("isPublicPath", () => {
     // 気軽に足せないよう、ここで数を固定しておく。
     expect(PUBLIC_PREFIXES).toEqual(["/admin"]);
   });
+
+  it("共有されたハンドは、ログインしていなくても開ける(1段だけ)", () => {
+    expect(isPublicPath("/hand/abc123")).toBe(true);
+    expect(isPublicPath("/hand")).toBe(false);
+    expect(isPublicPath("/hand/abc/edit")).toBe(false);
+  });
 });

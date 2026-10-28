@@ -1,5 +1,5 @@
 "use client"
-import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon, Share2Icon, SpadeIcon, StarIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon, PauseIcon, PlayIcon, Share2Icon, SpadeIcon, StarIcon } from 'lucide-react'
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
@@ -241,22 +241,22 @@ export default function HandPage() {
         <div className="flex items-center justify-center gap-4 mb-4">
           <button onClick={() => { setReplayStep(0); setReplayPlaying(false) }}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 13 }}>⟪</button>
-          <button onClick={() => setReplayStep(s => Math.max(0, s - 1))}
+            aria-label="最初へ" style={{ background: CLR.surface, color: CLR.gray2 }}><ChevronsLeftIcon size={20} /></button>
+          <button onClick={() => setReplayStep(s => Math.max(0, s - 1))} aria-label="1つ戻る"
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronLeftIcon size={20} /></button>
-          <button onClick={() => setReplayPlaying(p => !p)}
+          <button onClick={() => setReplayPlaying(p => !p)} aria-label={replayPlaying ? "一時停止" : "再生"}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, fontSize: 16, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
             {replayPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" />}
           </button>
-          <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))}
+          <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))} aria-label="1つ進む"
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronRightIcon size={20} /></button>
           <button onClick={() => { setReplayStep(totalSteps); setReplayPlaying(false) }}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 13 }}>⟫</button>
-          <span className="text-[11px] ml-2" style={{ color: CLR.gray3 }}>{replayStep}/{totalSteps}</span>
+            aria-label="最後へ" style={{ background: CLR.surface, color: CLR.gray2 }}><ChevronsRightIcon size={20} /></button>
+          <span className="text-[13px] ml-2 tabular-nums" style={{ color: CLR.gray2 }}>{replayStep}/{totalSteps}</span>
         </div>
 
         {/* Action text list — all shown, current highlighted */}
@@ -266,7 +266,7 @@ export default function HandPage() {
             const stLabel = { preflop: "プリフロップ", flop: "フロップ", turn: "ターン", river: "リバー" }[st]
             return (
               <div key={st}>
-                <p className="text-[11px] font-bold mb-2" style={{ color: CLR.gray3 }}>{stLabel}</p>
+                <p className="text-[13px] font-semibold mb-2" style={{ color: CLR.gray2 }}>{stLabel}</p>
                 <div className="space-y-2">
                   {stActs.map((a, i) => {
                     const globalIdx = allActs.indexOf(a)
@@ -274,15 +274,15 @@ export default function HandPage() {
                     const isFuture  = globalIdx > replayStep - 1
                     const isHeroAct = a.position === hand.heroPosition
                     return (
-                      <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition"
+                      <div key={i} className="flex items-center gap-2 rounded-2xl px-4 transition" aria-current={isCurrent ? "step" : undefined}
                         style={{
-                          background: isCurrent ? "#FFF8E7" : CLR.white,
-                          border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
-                          opacity: isCurrent ? 1 : isFuture ? 0.28 : 0.65,
+                          minHeight: 44,
+                          background: isCurrent ? "#FFF8E7" : isFuture ? "transparent" : CLR.white,
+                          border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.border}`,
                         }}>
-                        <span className="text-[11px] font-bold shrink-0"
+                        <span className="text-[15px] font-semibold shrink-0 w-10"
                           style={{ color: isHeroAct ? CLR.goldDk : CLR.gray2 }}>{a.position}</span>
-                        <span className="text-[11px]" style={{ color:
+                        <span className="text-[15px]" style={{ color: isFuture ? CLR.gray3 :
                           a.action === "fold" ? CLR.gray3 :
                           a.action === "bet" || a.action === "raise" ? "#B45309" :
                           a.action === "allin" ? CLR.red : CLR.ink }}>
@@ -290,7 +290,7 @@ export default function HandPage() {
                         </span>
                         {isCurrent && (
                           <span className="ml-auto text-[11px] font-bold rounded-full px-2 py-px"
-                            style={{ background: CLR.gold, color: CLR.ink }}>NOW</span>
+                            style={{ background: CLR.gold, color: CLR.white }}>いま</span>
                         )}
                       </div>
                     )
@@ -303,11 +303,11 @@ export default function HandPage() {
 
         {/* RRPoker CTA */}
         <div className="mt-8 text-center pb-8" style={{ borderTop: `1px solid ${CLR.border}`, paddingTop: 24 }}>
-          <p className="text-[13px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
-          <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
-          <a href="/home"
+          <p className="text-[15px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
+          <p className="text-[13px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
+          <a href="/"
             className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-[0.97] transition"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
             RRPOKERを使ってみる <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} />
           </a>
         </div>
