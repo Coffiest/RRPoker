@@ -20,6 +20,22 @@ export default function CapacitorBoot() {
 
     StatusBar.setStyle({ style: Style.Dark }).catch(() => {})
 
+    // iPhone の「文字サイズ」設定に合わせて文字を大きくする(Dynamic Type)。
+    // -apple-system-body は設定に応じた本文の大きさ(標準 17px)を返すので、その比で全体の文字を拡大する。
+    // カードなど高さが決まった部品が崩れないよう、上限は 130% にとどめる。
+    const applyTextSize = () => {
+      const probe = document.createElement("span")
+      probe.style.font = "-apple-system-body"
+      document.body.appendChild(probe)
+      const px = parseFloat(getComputedStyle(probe).fontSize)
+      probe.remove()
+      if (!px) return
+      const pct = Math.round(Math.min(1.3, Math.max(1, px / 17)) * 100)
+      document.documentElement.style.setProperty("-webkit-text-size-adjust", `${pct}%`)
+    }
+    applyTextSize()
+    const appState = App.addListener("appStateChange", s => { if (s.isActive) applyTextSize() })
+
     const backListener = App.addListener("backButton", () => {
       if (window.history.length > 1) window.history.back()
       else App.exitApp()
@@ -40,6 +56,7 @@ export default function CapacitorBoot() {
 
     return () => {
       backListener.then(l => l.remove())
+      appState.then(l => l.remove())
       networkListener.then(l => l.remove())
       unsub()
     }
