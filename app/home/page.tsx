@@ -1362,7 +1362,7 @@ const medalClass = (rank: number) => {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#FFFBF5" />
+    <TechBackdrop base="#F2F2F7" />
     <main className="min-h-screen pb-32" style={{ background: "transparent", position: "relative", zIndex: 1 }}>
       <style>{`
         /* ── アニメーション ── */
@@ -1641,6 +1641,15 @@ const medalClass = (rank: number) => {
         .ink-spread      { animation:inkSpread  0.75s ease-out 0.08s both; }
         .stamp-card-in   { animation:stampCardIn 0.38s cubic-bezier(0.34,1.56,0.64,1) both; }
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        /* 一覧(iOS のグループ表)。行は 56px 以上、行の間にだけ細い罫。 */
+        .home-list { background: #fff; border-radius: 16px; overflow: hidden; }
+        .home-list > li + li { box-shadow: inset 0 1px 0 rgba(60,60,67,0.12); }
+        .home-list-hd { font-size: 13px; font-weight: 400; color: var(--label2); margin: 0 16px 8px; }
+        .home-row { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 56px; padding: 8px 16px; box-sizing: border-box; }
+        .home-row-btn { border: none; background: transparent; text-align: left; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 100ms ease-out; }
+        .home-row-btn:active { background: rgba(60,60,67,0.08); }
+        .home-icon-link { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--label2); border-radius: 22px; }
+        .home-icon-link:active { background: rgba(60,60,67,0.08); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
 
@@ -1687,7 +1696,7 @@ const medalClass = (rank: number) => {
                       <p className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
-                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>not checked in</p>
+                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>未入店</p>
                   )}
                 </div>
               </div>
@@ -1748,73 +1757,50 @@ const medalClass = (rank: number) => {
             </div>
           </div>
 
-          {/* スタッツグリッド */}
-          <div data-tutorial="stats-grid" style={{ padding: '16px 16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+          {/* 成績(一覧) */}
+          <div data-tutorial="stats-grid">
+            <ul className="home-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {[
-                { label: 'トナメ参加数', value: `${tournamentStats.plays}回`, deltaVal: null },
+                { label: 'トナメ参加数', value: `${tournamentStats.plays}回`, deltaVal: null as number | null, deltaFmt: undefined as undefined | ((v: number) => string) },
                 { label: 'コスト合計', value: `${tournamentStats.totalCost}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalCost : null, deltaFmt: (v: number) => Number.isInteger(v) ? `${v >= 0 ? '+' : ''}${v}` : `${v >= 0 ? '+' : ''}${v.toFixed(1)}` },
                 { label: 'リターン', value: `${tournamentStats.totalReward.toFixed(2)}pt`, deltaVal: showStatsDelta && statsDelta ? statsDelta.totalReward : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}` },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="tech-reveal"
-                  style={{ background: '#F2F2F7', borderRadius: 12, padding: '8px 8px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.06 + i * 0.05}s` } as React.CSSProperties}
-                >
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8, letterSpacing: '0.12em' }}>{s.label}</p>
-                  <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1 }}>{s.value}</p>
-                  {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                    <span className="delta-badge" style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', display: 'inline-block' }}>
-                      {s.deltaFmt(s.deltaVal)}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-              {[
                 { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
                 { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
-              ].map((s, i) => (
-                <div
-                  key={i}
-                  className="tech-reveal"
-                  style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 8px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.21 + i * 0.05}s` } as React.CSSProperties}
-                >
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'rgba(212,145,10,0.6)', marginBottom: 8, letterSpacing: '0.12em' }}>{s.label}</p>
-                  <p className="tech-num" style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
+              ].map(s => (
+                <li key={s.label} className="home-row">
+                  <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{s.label}</span>
                   {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                    <span className="delta-badge" style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    <span className="delta-badge" style={{ fontSize: 13, fontWeight: 700, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap' }}>
                       {s.deltaFmt(s.deltaVal)}
                     </span>
                   )}
-                </div>
+                  <span className="tech-num" style={{ fontSize: 17, fontWeight: 600, color: 'var(--label)' }}>{s.value}</span>
+                </li>
               ))}
-            </div>
-            <button type="button"
-              onClick={() => {
-                if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
-                setIsRankingModalOpen(true)
-              }}
-              style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit', transition: 'background .13s' }}
-            >
-              <AwardIcon size={14} />
-              <span className="tech-label" style={{ fontSize: 11, letterSpacing: '0.14em' }}>ランキングを見る</span>
-            </button>
+              <li>
+                <button type="button" className="home-row home-row-btn"
+                  onClick={() => {
+                    if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
+                    setIsRankingModalOpen(true)
+                  }}>
+                  <AwardIcon size={20} style={{ color: '#B57F00' }} />
+                  <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>トナメ偏差値ランキング</span>
+                  <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+                </button>
+              </li>
+            </ul>
 
             {/* ── Tournament History（コンパクト埋め込み） ── */}
-            <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 16, marginLeft: -16, marginRight: -16 }}>
-              {/* ヘッダー行 */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <AwardIcon size={14} style={{ color: '#F2A900' }} />
-                  <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>トーナメント履歴</p>
-                </div>
-                <button type="button" onClick={() => router.push("/home/tournaments")} style={{ fontSize: 12, fontWeight: 600, color: '#F2A900', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>もっと見る</button>
-              </div>
+            <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(60,60,67,0.12)' }}>
+              {/* ヘッダー行(押すと履歴の一覧へ) */}
+              <button type="button" className="home-row home-row-btn" onClick={() => router.push("/home/tournaments")}>
+                <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>トーナメント履歴</span>
+                <span style={{ fontSize: 17, color: 'var(--label2)' }}>すべて見る</span>
+                <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+              </button>
 
               {tnChartData.length === 0 ? (
-                <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--label3)', padding: '8px 16px 16px' }}>参加すると記録されます</p>
+                <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--label2)', padding: '8px 16px 16px', margin: 0 }}>参加すると記録されます</p>
               ) : (() => {
                 const STEP = 52, DOT_R = 7, H = 68, PT = 8, PB = 20, PL = 20, PR = 20
                 const n = tnChartData.length
@@ -1903,51 +1889,45 @@ const medalClass = (rank: number) => {
         {/* ════ 入店中 ════ */}
         {currentStoreId && currentStore ? (
           <>
-            {/* 入店中の店舗カード */}
-            <div className="flex items-center gap-4 rounded-2xl bg-white px-4 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
-              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
-                {currentStore.iconUrl
-                  ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
-                  : <div className="flex h-full w-full items-center justify-center"><HouseIcon className="text-label3" size={20} /></div>
-                }
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[#34C759]" />
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-label3">入店中</p>
-                </div>
-                <p className="mt-0.5 truncate text-[15px] font-semibold text-gray-900 tracking-[-0.2px]">{currentStore.name}</p>
-              </div>
-              {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
-                <div className="flex flex-shrink-0 items-center gap-2">
-                  {currentStore.snsInstagram && (
-                    <a href={currentStore.snsInstagram} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm transition-transform active:scale-90">
-                      <InstagramIcon size={16} />
-                    </a>
+            {/* 入店中の店舗(一覧) */}
+            <section>
+              <h2 className="home-list-hd">入店中</h2>
+              <ul className="home-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <li className="home-row" style={{ minHeight: 72 }}>
+                  <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[12px] bg-gray-100">
+                    {currentStore.iconUrl
+                      ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
+                      : <div className="flex h-full w-full items-center justify-center"><HouseIcon className="text-label3" size={20} /></div>
+                    }
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate" style={{ fontSize: 17, fontWeight: 600, color: 'var(--label)', margin: 0 }}>{currentStore.name}</p>
+                    <p style={{ fontSize: 13, color: '#1E7B34', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 3, background: '#34C759' }} />入店中
+                    </p>
+                  </div>
+                  {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
+                    <div className="flex flex-shrink-0 items-center">
+                      {currentStore.snsInstagram && (
+                        <a href={currentStore.snsInstagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="home-icon-link"><InstagramIcon size={20} /></a>
+                      )}
+                      {currentStore.snsX && (
+                        <a href={currentStore.snsX} target="_blank" rel="noopener noreferrer" aria-label="X" className="home-icon-link"><TwitterIcon size={20} /></a>
+                      )}
+                      {currentStore.snsWeb && (
+                        <a href={currentStore.snsWeb} target="_blank" rel="noopener noreferrer" aria-label="Web サイト" className="home-icon-link"><GlobeIcon size={20} /></a>
+                      )}
+                    </div>
                   )}
-                  {currentStore.snsX && (
-                    <a href={currentStore.snsX} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-transform active:scale-90">
-                      <TwitterIcon size={15} />
-                    </a>
-                  )}
-                  {currentStore.snsWeb && (
-                    <a href={currentStore.snsWeb} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-transform active:scale-90">
-                      <GlobeIcon size={15} />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 退店ボタン */}
-            <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-4 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
-            >
-              <LogOutIcon className="text-[15px]" />退店する
-            </button>
+                </li>
+                <li>
+                  <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)} className="home-row home-row-btn" style={{ color: '#D70015' }}>
+                    <LogOutIcon size={20} />
+                    <span style={{ flex: 1, fontSize: 17 }}>退店する</span>
+                  </button>
+                </li>
+              </ul>
+            </section>
 
             {/* バンクロールカード */}
             <div data-tutorial="balance-card" className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
@@ -2076,26 +2056,18 @@ const medalClass = (rank: number) => {
             <ChipDisclaimer className="px-2 pb-2" />
 
             {/* ランキング */}
-            <div data-tutorial="store-ranking" className="section-card a-rise">
-              {/* ヘッダー */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
-                    {currentStore.iconUrl
-                      ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
-                      : <div className="flex h-full w-full items-center justify-center"><HouseIcon className="text-label3" size={12} /></div>
-                    }
-                  </div>
-                  <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>店内純増ランキング</p>
-                </div>
+            <section data-tutorial="store-ranking">
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                <h2 className="home-list-hd">店内純増ランキング</h2>
                 {(rankingTab === 'all' ? ranking : monthlyRanking).length > 3 && (
                   <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)}
-                    className="rounded-full bg-[#F2A900]/10 px-4 py-2 text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
+                    style={{ minHeight: 44, padding: '0 16px', border: 'none', background: 'none', fontSize: 15, color: '#B57F00', cursor: 'pointer', fontFamily: 'inherit' }}>すべて見る</button>
                 )}
               </div>
+              <div className="home-list" style={{ padding: 16 }}>
 
               {/* タブ */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: (rankingTab === 'monthly' || rankingTab === 'yearly') ? 10 : 14, background: '#F2F2F7', borderRadius: 12, padding: 8 }}>
+              <div role="tablist" style={{ display: 'flex', gap: 4, marginBottom: 16, background: 'rgba(118,118,128,0.12)', borderRadius: 12, padding: 4 }}>
                 {([
                   { key: 'all', label: '全期間' },
                   { key: 'monthly', label: '月別' },
@@ -2106,10 +2078,10 @@ const medalClass = (rank: number) => {
                     type="button"
                     onClick={() => setRankingTab(tab.key)}
                     style={{
-                      flex: 1, height: 44, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', transition: 'all .15s',
+                      flex: 1, height: 44, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: rankingTab === tab.key ? 600 : 500, fontFamily: 'inherit',
                       background: rankingTab === tab.key ? '#fff' : 'transparent',
-                      color: rankingTab === tab.key ? '#D4910A' : 'var(--label3)',
-                      boxShadow: rankingTab === tab.key ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                      color: 'var(--label)',
+                      boxShadow: rankingTab === tab.key ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
                     }}
                   >
                     {tab.label}
@@ -2267,7 +2239,7 @@ const medalClass = (rank: number) => {
               })()}
 
               {/* リスト */}
-              <div className="space-y-2">
+              <div>
                 {(() => {
                   const loading = rankingTab === 'all' ? rankingLoading : monthlyRankingLoading
                   const list = rankingTab === 'all' ? ranking : monthlyRanking
@@ -2279,66 +2251,56 @@ const medalClass = (rank: number) => {
                       <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
                     </div>
                   )
-                  if (list.length === 0) return <p className="term-comment text-center text-[13px] text-label3 py-4">データがありません</p>
+                  if (list.length === 0) return <p className="text-center py-4" style={{ fontSize: 15, color: 'var(--label2)' }}>まだランキングがありません</p>
                   return list.slice(0, 5).map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-2 hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${index === 0 ? "medal-gold text-white" : index === 1 ? "medal-silver text-gray-700" : index === 2 ? "medal-bronze text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
-                          {index + 1}
-                        </div>
-                        <span className="text-[13px] font-medium text-gray-700">{player.name || "プレイヤー"}</span>
+                    <div key={player.id} className="flex items-center gap-4" style={{ minHeight: 52, borderTop: index ? '1px solid rgba(60,60,67,0.12)' : 'none' }}>
+                      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[13px] font-bold ${index === 0 ? "medal-gold text-white" : index === 1 ? "medal-silver text-gray-700" : index === 2 ? "medal-bronze text-white" : "bg-gray-100 text-label2"}`}>
+                        {index + 1}
                       </div>
-                      <span className={`text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatSignedChipValue(player.netGain)}</span>
+                      <span className="flex-1 truncate" style={{ fontSize: 17, color: 'var(--label)' }}>{player.name || "プレイヤー"}</span>
+                      <span className={`tech-num ${player.netGain >= 0 ? "net-positive" : "net-negative"}`} style={{ fontSize: 17, fontWeight: 600 }}>{formatSignedChipValue(player.netGain)}</span>
                     </div>
                   ))
                 })()}
               </div>
-            </div>
+              </div>
+            </section>
           </>
         ) : (
           /* ════ 未入店 ════ */
           <>
-            {/* 店舗セレクター */}
-            <div className="section-card">
-              <div className="flex items-center justify-between mb-4">
-                <p className="section-label">入店したことのある店舗</p>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={openJoinModal}
-                    className="gold-btn flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold text-white"
-                  >
-                    <SearchIcon size={12} />店舗を検索
-                  </button>
-                </div>
-              </div>
-              {orderedJoinedStores.length > 0 ? (
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {orderedJoinedStores.map(storeId => {
-                    const store = stores[storeId]
-                    const isFav = favoriteStores.includes(storeId)
-                    return (
-                      <button key={storeId} type="button" onClick={() => store && setSelectedStore(store)}
-                        className={`flex-shrink-0 flex flex-col items-center gap-2 group`}
-                      >
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border-2 bg-white shadow-sm transition-all active:scale-95 ${isFav ? "border-[#F2A900]" : "border-gray-200"}`}>
-                          {store?.iconUrl ? <img src={store.iconUrl} alt={store.name} className="h-12 w-12 rounded-xl object-cover" /> : <span className="text-[12px] text-label3">店</span>}
-                        </div>
-                        <span className="text-[11px] text-gray-500 max-w-[56px] truncate">{store?.name ?? ""}</span>
+            {/* 入店したことのある店舗(一覧) */}
+            <section>
+              <h2 className="home-list-hd">入店したことのある店舗</h2>
+              <ul className="home-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {orderedJoinedStores.map(storeId => {
+                  const store = stores[storeId]
+                  const isFav = favoriteStores.includes(storeId)
+                  return (
+                    <li key={storeId}>
+                      <button type="button" onClick={() => store && setSelectedStore(store)} className="home-row home-row-btn" style={{ minHeight: 64 }}>
+                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[10px] bg-gray-100">
+                          {store?.iconUrl ? <img src={store.iconUrl} alt="" className="h-full w-full object-cover" /> : <StoreIcon size={20} color="var(--label3)" />}
+                        </span>
+                        <span className="flex-1 truncate" style={{ fontSize: 17, color: 'var(--label)' }}>{store?.name ?? ""}</span>
+                        {isFav && <StarIcon size={16} fill="#F2A900" color="#F2A900" aria-label="お気に入り" />}
+                        <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                       </button>
-                    )
-                  })}
-                </div>
-              ) : (
-                <p className="term-comment text-[13px] text-label3 text-center py-4">入店したことのある店舗がありません</p>
-              )}
-            </div>
+                    </li>
+                  )
+                })}
+                <li>
+                  <button type="button" onClick={openJoinModal} className="home-row home-row-btn" style={{ color: '#B57F00' }}>
+                    <SearchIcon size={20} />
+                    <span style={{ flex: 1, fontSize: 17 }}>店舗を探して入店</span>
+                  </button>
+                </li>
+              </ul>
+            </section>
 
             {/* 5日間スケジュールタブ */}
-            <div data-tutorial="schedule-section" className="section-card a-rise" style={{ padding: 0, overflow: 'hidden' }}>
-                {/* ── セクションヘッダー */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 16px' }}>
-                  <CalendarIcon color="#F2A900" size={15} />
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>予定</p>
-                </div>
+            <h2 className="home-list-hd" style={{ marginTop: 8 }}>トーナメントの予定</h2>
+            <div data-tutorial="schedule-section" className="home-list" style={{ paddingTop: 16 }}>
 
                 {/* ── 日付タブ（スクロール可） */}
                 <div
@@ -2404,21 +2366,19 @@ const medalClass = (rank: number) => {
                 <div style={{ padding: '16px 16px 16px', minHeight: 100 }}>
                   {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0 16px' }}>
-                      <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
+                      <p style={{ fontSize: 15, color: 'var(--label2)' }}>この日のトーナメントはありません</p>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', margin: '-16px -16px' }}>
                       {(scheduleEntries[calScheduleTab] ?? []).map((entry: any, idx: number) => (
                         <button
                           key={idx}
                           type="button"
+                          className="home-row-btn"
                           onClick={() => setCalDetailTournament({ date: calScheduleTab, entries: [entry] })}
-                          style={{ width: '100%', textAlign: 'left', background: '#fff', borderRadius: 16, border: '0.5px solid rgba(60,60,67,0.1)', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', padding: 0, overflow: 'hidden', cursor: 'pointer', display: 'block' }}
+                          style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderTop: idx ? '1px solid rgba(60,60,67,0.12)' : 'none', padding: 0, cursor: 'pointer', display: 'block' }}
                         >
                           <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
-                            {/* ゴールドサイドバー */}
-                            <div style={{ width: 4, background: '#F2A900', flexShrink: 0, borderRadius: '0 0 0 0' }} />
-
                             {/* コンテンツ */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', flex: 1 }}>
                               {/* 店舗アイコン */}
@@ -2432,20 +2392,20 @@ const medalClass = (rank: number) => {
                               {/* テキスト */}
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                                  <p style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                                  <p style={{ fontSize: 17, fontWeight: 600, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                     {entry.name || 'トーナメント'}
                                   </p>
                                   {entry.repeatWeekly && (
                                     <span style={{ fontSize: 11, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
                                   )}
                                 </div>
-                                <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>{entry.storeName}</p>
+                                <p style={{ fontSize: 15, color: 'var(--label2)' }}>{entry.storeName}</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
                                   {entry.startTime && (
-                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43' }}><ClockIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> {formatDateTime(entry.startTime)}</span>
+                                    <span style={{ fontSize: 15, color: 'var(--label2)' }}><ClockIcon size={14} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> {formatDateTime(entry.startTime)}</span>
                                   )}
                                   {entry.entryFee != null && (
-                                    <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>
+                                    <span style={{ fontSize: 15, fontWeight: 600, color: '#B57F00' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
                               </div>
