@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { AwardIcon, CheckIcon, LayoutGridIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
@@ -136,6 +136,9 @@ export default function StorePage() {
 
 
   const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
+  // 分割表示(2〜4 個のタイマーを 1 画面に)
+  const [splitOpen, setSplitOpen] = useState(false)
+  const [splitIds, setSplitIds] = useState<string[]>([])
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
   const [adjustTab, setAdjustTab] = useState<Record<string, 'time' | 'blind'>>({})
@@ -1043,6 +1046,37 @@ export default function StorePage() {
       {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
       <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
+      <AppleSheet open={splitOpen} onClose={() => setSplitOpen(false)} title="SPLIT VIEW">
+        <p style={{ fontSize: 15, color: 'var(--label2)', margin: '0 0 16px', lineHeight: 1.5 }}>1 つの画面に並べるタイマーを、2〜4 個選んでください。2 個は左右、3 個は横に 3 つ、4 個は 4 分割で表示します。</p>
+        <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 24 }}>
+          {activeTournaments.map((t, i) => {
+            const on = splitIds.includes(t.id)
+            const full = !on && splitIds.length >= 4
+            return (
+              <button key={t.id} type="button" role="checkbox" aria-checked={on} disabled={full}
+                onClick={() => setSplitIds(ids => on ? ids.filter(x => x !== t.id) : [...ids, t.id])}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid rgba(60,60,67,0.12)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
+                <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
+                <span className="tech-label" style={{ fontSize: 13, color: timerRunning[t.id] ? '#1E7B34' : 'var(--label2)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
+                <span style={{ width: 24, height: 24, borderRadius: 12, border: on ? 'none' : '2px solid var(--label3)', background: on ? '#F2A900' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {on && <CheckIcon size={16} color="#fff" strokeWidth={3} />}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+        <button type="button" disabled={splitIds.length < 2} className="gl-press"
+          onClick={() => {
+            const url = `/home/store/timer/split?ids=${splitIds.join(',')}`
+            setSplitOpen(false)
+            // Web は別のタブ(モニター用)、アプリは同じ画面で開く(タップで閉じるボタンが出る)
+            if (isNativeApp()) router.push(url)
+            else window.open(url, '_blank')
+          }}
+          style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: splitIds.length < 2 ? '#E5E5EA' : '#F2A900', color: splitIds.length < 2 ? 'var(--label3)' : '#fff', fontSize: 17, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+          <span className="tech-label" style={{ fontSize: 17 }}>OPEN {splitIds.length >= 2 ? `${splitIds.length}-SPLIT` : ''}</span>
+        </button>
+      </AppleSheet>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
@@ -1187,12 +1221,20 @@ export default function StorePage() {
         <div className="su d1" style={{ marginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
             <p className="section-hd" style={{ marginBottom: 0 }}>LIVE TOURNAMENTS</p>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            {activeTournaments.length >= 2 && (
+              <button type="button" onClick={() => { setSplitIds(activeTournaments.slice(0, 4).map(t => t.id)); setSplitOpen(true) }} className="gl-press"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid var(--a-sep, rgba(60,60,67,0.18))', background: '#fff', color: 'var(--label)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                <LayoutGridIcon size={16} /> <span className="tech-label" style={{ fontSize: 13 }}>SPLIT</span>
+              </button>
+            )}
             {activeTournaments.length > 0 && (
               <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 8px' }}>
                 <span className="tech-status-dot" style={{ background: '#34C759' }} />
                 {activeTournaments.length} 件
               </span>
             )}
+            </span>
           </div>
 
           {activeTournaments.length === 0 ? (
