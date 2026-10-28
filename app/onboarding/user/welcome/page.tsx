@@ -22,7 +22,7 @@ export default function UserWelcomePage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="min-h-screen bg-white px-6">
       <div className="mx-auto max-w-sm text-center">
         <div className="pt-[96px]">
           <h1 className="text-[24px] font-semibold text-gray-900">はじめまして、{name}さん</h1>

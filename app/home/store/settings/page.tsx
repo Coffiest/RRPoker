@@ -1,4 +1,5 @@
 "use client"
+import { ArrowLeftIcon, MinusIcon, PlusIcon, SearchIcon, Trash2Icon, UserIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -24,7 +25,6 @@ import {
   where,
 } from "firebase/firestore"
 
-import { FiArrowLeft, FiTrash2, FiSearch, FiX, FiMinus, FiPlus, FiUser } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -66,7 +66,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return <div className="section-card" style={{ padding: 20 }}>{children}</div>
+  return <div className="section-card" style={{ padding: 24 }}>{children}</div>
 }
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -125,7 +125,7 @@ function GhostButton({ onClick, children }: { onClick: () => void; children: Rea
 
 function FeedbackText({ text, color }: { text: string; color: "green" | "red" }) {
   return (
-    <p className="text-[12px] mt-1.5 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
+    <p className="text-[12px] mt-2 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
       {text}
     </p>
   )
@@ -508,18 +508,18 @@ export default function StoreSettingsPage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="mx-auto max-w-sm px-5">
+      <div className="mx-auto max-w-sm px-6">
         <button
           type="button"
           onClick={() => router.push("/home/store")}
-          className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold active:scale-95 transition-all"
+          className="mt-6 inline-flex items-center gap-2 text-[13px] font-semibold active:scale-95 transition-all"
           style={{ color: CLR.gray2 }}
         >
-          <FiArrowLeft size={14} />
+          <ArrowLeftIcon size={14} />
           戻る
         </button>
 
-        <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
+        <h1 className="mt-4 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
         <div className="mt-6 space-y-4">
 
@@ -532,7 +532,7 @@ export default function StoreSettingsPage() {
                   key={opt.v}
                   type="button"
                   onClick={() => setLanguage(opt.v)}
-                  className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+                  className="flex-1 h-11 rounded-2xl text-[13px] font-semibold transition-all"
                   style={{
                     background: language === opt.v ? CLR.gold : CLR.surface,
                     color: language === opt.v ? CLR.ink : CLR.gray2,
@@ -561,9 +561,9 @@ export default function StoreSettingsPage() {
               <Toggle on={checkinBonusEnabled} onToggle={toggleCheckinBonus} />
             </div>
             {checkinBonusEnabled && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <div>
-                  <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>クーポン名</p>
+                  <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>クーポン名</p>
                   <FieldInput
                     value={couponName}
                     onChange={setCouponName}
@@ -602,7 +602,7 @@ export default function StoreSettingsPage() {
               <Toggle on={birthdayCouponEnabled} onToggle={toggleBirthdayCoupon} />
             </div>
             {birthdayCouponEnabled && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <FieldInput
                   value={birthdayCouponName}
                   onChange={setBirthdayCouponName}
@@ -622,13 +622,13 @@ export default function StoreSettingsPage() {
                     value={birthdayCouponExpiryUnit}
                     onChange={e => setBirthdayCouponExpiryUnit(e.target.value as any)}
                     disabled={birthdayCouponUnlimited}
-                    className="h-11 rounded-2xl px-3 text-[14px] outline-none disabled:opacity-40"
+                    className="h-11 rounded-2xl px-4 text-[14px] outline-none disabled:opacity-40"
                     style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                   >
                     <option value="day">日</option>
                     <option value="month">ヶ月</option>
                   </select>
-                  <label className="flex items-center gap-1.5 shrink-0 text-[13px] cursor-pointer" style={{ color: CLR.gray2 }}>
+                  <label className="flex items-center gap-2 shrink-0 text-[13px] cursor-pointer" style={{ color: CLR.gray2 }}>
                     <input
                       type="checkbox"
                       checked={birthdayCouponUnlimited}
@@ -653,14 +653,14 @@ export default function StoreSettingsPage() {
               onChange={e => setNoticeMessage(e.target.value)}
               placeholder="メッセージを入力..."
               rows={3}
-              className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+              className="w-full rounded-2xl px-4 py-4 text-[14px] resize-none outline-none transition-all"
               style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
               onFocus={e => (e.target.style.borderColor = CLR.gold)}
               onBlur={e => (e.target.style.borderColor = CLR.border)}
             />
             {noticeError && <FeedbackText text={noticeError} color="red" />}
             {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
-            <div className="mt-3">
+            <div className="mt-4">
               <PrimaryButton onClick={sendNotice} disabled={noticeSending}>
                 {noticeSending ? "送信中..." : "送信する"}
               </PrimaryButton>
@@ -672,7 +672,7 @@ export default function StoreSettingsPage() {
             <SectionTitle title="店内通貨の単位" subtitle="全画面でチップ量の横に表示されます" />
             <div className="space-y-4">
               <div>
-                <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
+                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
                 <FieldInput
                   value={chipUnitLabel}
                   onChange={setChipUnitLabel}
@@ -681,13 +681,13 @@ export default function StoreSettingsPage() {
               </div>
               <div>
                 <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>表示位置</p>
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   {([{ v: true, label: "前（例: $500）" }, { v: false, label: "後（例: 500pt.）" }] as const).map(opt => (
                     <button
                       key={String(opt.v)}
                       type="button"
                       onClick={() => setChipUnitBefore(opt.v)}
-                      className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+                      className="flex-1 h-11 rounded-2xl text-[13px] font-semibold transition-all"
                       style={{
                         background: chipUnitBefore === opt.v ? CLR.gold : CLR.surface,
                         color: chipUnitBefore === opt.v ? CLR.ink : CLR.gray2,
@@ -700,7 +700,7 @@ export default function StoreSettingsPage() {
                 </div>
               </div>
               <div className="rounded-2xl p-4 text-center" style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}>
-                <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>プレビュー</p>
+                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>プレビュー</p>
                 <p className="text-[24px] font-bold" style={{ color: CLR.ink }}>
                   {chipUnitLabel
                     ? chipUnitBefore ? `${chipUnitLabel}500` : `500${chipUnitLabel}`
@@ -735,7 +735,7 @@ export default function StoreSettingsPage() {
           {/* ── 店舗の場所 ── */}
           <SectionCard>
             <SectionTitle title="店舗の場所" subtitle="プレイヤーのスケジュール画面で近い順に表示するために使用します" />
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
+            <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
             <FieldInput
               value={postalCode}
               onChange={v => { setPostalCode(v); setPostalCodeError(""); setPostalCodeSuccess("") }}
@@ -744,7 +744,7 @@ export default function StoreSettingsPage() {
             />
             {postalCodeError && <FeedbackText text={postalCodeError} color="red" />}
             {postalCodeSuccess && <FeedbackText text={postalCodeSuccess} color="green" />}
-            <div className="mt-3">
+            <div className="mt-4">
               <PrimaryButton onClick={savePostalCode}>保存する</PrimaryButton>
             </div>
           </SectionCard>
@@ -764,15 +764,15 @@ export default function StoreSettingsPage() {
       {isChipExpiryModalOpen && (
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
-            <div className="flex items-center justify-between mb-5">
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
+            <div className="flex items-center justify-between mb-6">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
               <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
                 className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
             </div>
 
             <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>有効期限（ヶ月）　0で期限なし</p>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-4 mb-4">
               <div className="w-28">
                 <FieldInput
                   type="number"
@@ -786,7 +786,7 @@ export default function StoreSettingsPage() {
 
             {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
             {chipExpirySuccess && (
-              <div className="mb-3 rounded-2xl p-3" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
                 <p className="text-[12px] font-bold" style={{ color: "#15803D" }}>{chipExpirySuccess}</p>
                 <p className="text-[11px] mt-0.5" style={{ color: "#16A34A" }}>通知を送信しました</p>
               </div>
@@ -800,7 +800,7 @@ export default function StoreSettingsPage() {
       {isRakeModalOpen && (
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
               <button type="button" onClick={() => setIsRakeModalOpen(false)}
@@ -809,7 +809,7 @@ export default function StoreSettingsPage() {
 
             {/* Total */}
             <div className="rounded-2xl p-4 mb-4 text-center" style={{ background: CLR.surface }}>
-              <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>レーキ総数</p>
+              <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>レーキ総数</p>
               <p className="text-[28px] font-bold" style={{ color: CLR.ink }}>{rakeTotal.toLocaleString()}</p>
             </div>
 
@@ -821,20 +821,20 @@ export default function StoreSettingsPage() {
             )}
 
             {rakeView === "add" && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <FieldInput type="number" value={rakeAmount} onChange={setRakeAmount} placeholder="レーキ額" />
                 <textarea
                   value={rakeMemo}
                   onChange={e => setRakeMemo(e.target.value)}
                   placeholder="メモ（任意）"
                   rows={3}
-                  className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+                  className="w-full rounded-2xl px-4 py-4 text-[14px] resize-none outline-none transition-all"
                   style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                   onFocus={e => (e.target.style.borderColor = CLR.gold)}
                   onBlur={e => (e.target.style.borderColor = CLR.border)}
                 />
                 {rakeError && <FeedbackText text={rakeError} color="red" />}
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-2">
                   <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
                   <button
                     type="button"
@@ -869,18 +869,18 @@ export default function StoreSettingsPage() {
                 {sortedRakeEntries.length === 0 ? (
                   <p className="term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
                 ) : (
-                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-3">
+                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
                     {sortedRakeEntries.map(entry => (
                       <div
                         key={entry.id}
-                        className="flex items-center justify-between rounded-2xl px-4 py-3"
+                        className="flex items-center justify-between rounded-2xl px-4 py-4"
                         style={{ background: CLR.surface }}
                       >
                         <div>
                           <p className="text-[11px]" style={{ color: CLR.gray3 }}>{formatDateTime(entry.createdAt?.seconds)}</p>
                           {entry.memo && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{entry.memo}</p>}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>+{entry.amount.toLocaleString()}</p>
                           <button
                             type="button"
@@ -897,7 +897,7 @@ export default function StoreSettingsPage() {
                             style={{ color: CLR.gray3 }}
                             aria-label="削除"
                           >
-                            <FiTrash2 size={14} />
+                            <Trash2Icon size={14} />
                           </button>
                         </div>
                       </div>
@@ -916,23 +916,23 @@ export default function StoreSettingsPage() {
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm flex flex-col" style={{ maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
             {/* ハンドル + ヘッダー */}
-            <div className="shrink-0 px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${CLR.border}` }}>
+            <div className="shrink-0 px-6 pt-4 pb-4" style={{ borderBottom: `1px solid ${CLR.border}` }}>
               <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>スタンプ管理</p>
                 <button type="button" onClick={() => setStampModalOpen(false)}>
-                  <FiX size={20} color={CLR.gray2} />
+                  <XIcon size={20} color={CLR.gray2} />
                 </button>
               </div>
               {/* 検索 */}
-              <div className="relative mb-3">
-                <FiSearch size={14} color={CLR.gray3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+              <div className="relative mb-4">
+                <SearchIcon size={14} color={CLR.gray3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
                 <input
                   type="text"
                   value={stampSearch}
                   onChange={e => setStampSearch(e.target.value)}
                   placeholder="名前で検索"
-                  className="w-full h-10 rounded-2xl pl-9 pr-4 text-[13px] outline-none"
+                  className="w-full h-10 rounded-2xl pl-10 pr-4 text-[13px] outline-none"
                   style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                 />
               </div>
@@ -947,7 +947,7 @@ export default function StoreSettingsPage() {
                     key={opt.key}
                     type="button"
                     onClick={() => setStampSort(opt.key)}
-                    className="flex-1 h-8 rounded-xl text-[11px] font-semibold transition-all"
+                    className="flex-1 h-11 rounded-xl text-[11px] font-semibold transition-all"
                     style={{
                       background: stampSort === opt.key ? CLR.gold : CLR.surface,
                       color: stampSort === opt.key ? CLR.ink : CLR.gray2,
@@ -961,7 +961,7 @@ export default function StoreSettingsPage() {
             </div>
 
             {/* プレイヤーリスト */}
-            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+            <div className="overflow-y-auto flex-1 px-4 py-4 space-y-2">
               {stampLoading ? (
                 <p className="term-comment text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
               ) : filteredStampPlayers.length === 0 ? (
@@ -973,13 +973,13 @@ export default function StoreSettingsPage() {
                   key={player.uid}
                   type="button"
                   onClick={() => { setEditStampPlayer(player); setEditStampCount(String(player.stampCount)) }}
-                  className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-all"
+                  className="w-full flex items-center gap-4 rounded-2xl px-4 py-4 text-left active:scale-[0.98] transition-all"
                   style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}
                 >
                   <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ background: CLR.border }}>
                     {player.iconUrl
                       ? <img src={player.iconUrl} alt={player.name} className="w-full h-full object-cover" />
-                      : <FiUser size={16} color={CLR.gray3} />
+                      : <UserIcon size={16} color={CLR.gray3} />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
@@ -990,7 +990,7 @@ export default function StoreSettingsPage() {
                       </p>
                     )}
                   </div>
-                  <div className="shrink-0 flex items-center gap-1.5">
+                  <div className="shrink-0 flex items-center gap-2">
                     <span className="text-[20px] font-bold" style={{ color: CLR.ink }}>{player.stampCount}</span>
                     <span className="text-[11px]" style={{ color: CLR.gray3 }}>個</span>
                   </div>
@@ -1007,14 +1007,14 @@ export default function StoreSettingsPage() {
           onClick={() => setEditStampPlayer(null)}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
             onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
 
             {/* プレイヤー情報 */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: CLR.surface }}>
                 {editStampPlayer.iconUrl
                   ? <img src={editStampPlayer.iconUrl} alt={editStampPlayer.name} className="w-full h-full object-cover" />
-                  : <FiUser size={20} color={CLR.gray3} />
+                  : <UserIcon size={20} color={CLR.gray3} />
                 }
               </div>
               <div>
@@ -1024,14 +1024,14 @@ export default function StoreSettingsPage() {
             </div>
 
             {/* スタンプ数コントロール */}
-            <div className="flex items-center justify-center gap-6 mb-5">
+            <div className="flex items-center justify-center gap-6 mb-6">
               <button
                 type="button"
                 onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))}
                 className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
                 style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}` }}
               >
-                <FiMinus size={18} color={CLR.ink} />
+                <MinusIcon size={18} color={CLR.ink} />
               </button>
 
               <input
@@ -1049,7 +1049,7 @@ export default function StoreSettingsPage() {
                 className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
                 style={{ background: CLR.gold, border: `1.5px solid ${CLR.goldDk}` }}
               >
-                <FiPlus size={18} color={CLR.ink} />
+                <PlusIcon size={18} color={CLR.ink} />
               </button>
             </div>
 

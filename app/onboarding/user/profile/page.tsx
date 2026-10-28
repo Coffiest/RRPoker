@@ -1,4 +1,5 @@
 'use client'
+import { CheckIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -261,7 +262,7 @@ export default function UserProfileOnboardingPage() {
   return (
     <main
       style={{ background: '#FFFBF5' }}
-      className={`min-h-screen px-5 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
+      className={`min-h-screen px-6 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
     >
       <style>{`
         @keyframes slideUp {
@@ -312,7 +313,7 @@ export default function UserProfileOnboardingPage() {
           background: linear-gradient(90deg, transparent, rgba(242,169,0,0.18), transparent);
         }
         .btn-primary {
-          background: linear-gradient(135deg, #F2A900 0%, #D4910A 100%);
+          background: #F2A900;
           box-shadow: 0 4px 16px rgba(242,169,0,0.28), 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.13s ease, box-shadow 0.13s ease, opacity 0.13s ease;
           border-radius: 20px;
@@ -371,7 +372,7 @@ export default function UserProfileOnboardingPage() {
           width: 26px;
           height: 26px;
           border-radius: 9999px;
-          background: linear-gradient(135deg, #F2A900, #D4910A);
+          background: #F2A900;
           box-shadow: 0 2px 6px rgba(242,169,0,0.4);
           display: flex;
           align-items: center;
@@ -386,7 +387,7 @@ export default function UserProfileOnboardingPage() {
           <button
             type="button"
             onClick={() => router.push('/onboarding')}
-            className="flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-2 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
             aria-label="戻る"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -399,14 +400,14 @@ export default function UserProfileOnboardingPage() {
         {/* Header */}
         <div className="mt-6 text-center animate-slideUp-d1">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
-          <p className="mt-1.5 text-[14px] text-gray-500">あなたの情報を入力してください</p>
+          <p className="mt-2 text-[14px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
             本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
         {/* Avatar picker */}
-        <div className="mt-7 flex flex-col items-center gap-3 animate-slideUp-d2">
+        <div className="mt-8 flex flex-col items-center gap-4 animate-slideUp-d2">
           <button
             type="button"
             onClick={handlePickImage}
@@ -418,12 +419,12 @@ export default function UserProfileOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="プレビュー" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-2">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                   <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
-                <span className="text-[10px] font-semibold text-[#F2A900] tracking-wide">TAP</span>
+                <span className="text-[11px] font-semibold text-[#F2A900] tracking-wide">TAP</span>
               </div>
             )}
 
@@ -434,7 +435,7 @@ export default function UserProfileOnboardingPage() {
                   <path d="M7 7L9 5H15L17 7H20C21.1 7 22 7.9 22 9V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V9C2 7.9 2.9 7 4 7H7Z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                   <circle cx="12" cy="13" r="3" stroke="white" strokeWidth="1.8"/>
                 </svg>
-                <span className="text-[10px] font-semibold text-white">変更</span>
+                <span className="text-[11px] font-semibold text-white">変更</span>
               </div>
             )}
 
@@ -456,7 +457,7 @@ export default function UserProfileOnboardingPage() {
         <div className="divider-line mt-6 animate-slideUp-d2" />
 
         {/* Form card */}
-        <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp-d3">
+        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp-d3">
 
           {/* Poker name */}
           <div>
@@ -474,10 +475,10 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Player ID */}
-          <div className="mt-5">
+          <div className="mt-6">
             {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <label className="text-[14px] font-medium text-gray-700">Player ID</label>
 
                 
@@ -490,7 +491,7 @@ export default function UserProfileOnboardingPage() {
                     border: `1.5px solid ${showIdInfo ? '#F2A900' : '#d1d5db'}`,
                     background: showIdInfo ? 'rgba(242,169,0,0.08)' : '#f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700,
+                    fontSize: 11, fontWeight: 700,
                     color: showIdInfo ? '#D4910A' : '#6b7280',
                     cursor: 'pointer', transition: 'all 0.15s',
                     flexShrink: 0,
@@ -502,16 +503,16 @@ export default function UserProfileOnboardingPage() {
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-3 rounded-2xl p-3.5" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
                 <p className="text-[12px] font-semibold mb-2" style={{ color: '#92610A' }}>Player ID とは？</p>
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {[
                     '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
                     '一度設定すると変更できません。慎重に決めてください',
                     '好きな値で大丈夫です。何でも構いません',
                     '使える文字：半角英小文字 (a–z)・数字 (0–9)・アンダースコア (_)・ハイフン (-)',
                   ].map((txt, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
+                    <li key={i} className="flex items-start gap-2">
                       <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 1 }}>•</span>
                       <span className="text-[11px] leading-relaxed" style={{ color: '#92610A' }}>{txt}</span>
                     </li>
@@ -543,25 +544,25 @@ export default function UserProfileOnboardingPage() {
                 value={playerId.replace(/^@/, '')}
                 onChange={e => handlePlayerIdChange(e.target.value)}
                 placeholder="例: naoyuki"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 12px', minWidth: 0 }}
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 16px', minWidth: 0 }}
               />
-              <div className="flex items-center pr-3 flex-shrink-0">
+              <div className="flex items-center pr-4 flex-shrink-0">
                 {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
-                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}>✓ 利用可</span>}
-                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}>✗ 使用中</span>}
+                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
+                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
               </div>
             </div>
-            {idError && <p className="mt-1.5 text-[12px] text-red-400">{idError}</p>}
+            {idError && <p className="mt-2 text-[12px] text-red-400">{idError}</p>}
 
             {/* おすすめ + 自動取得 */}
-            <div className="mt-3">
+            <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
                 <span style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>おすすめ</span>
                 <button
                   type="button"
                   onClick={handleAutoGet}
                   disabled={autoGetLoading}
-                  className="flex items-center gap-1 transition-opacity"
+                  className="flex items-center gap-2 transition-opacity"
                   style={{ fontSize: 11, fontWeight: 600, color: '#F2A900', opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
@@ -591,7 +592,7 @@ export default function UserProfileOnboardingPage() {
                       type="button"
                       onClick={() => applyId(s)}
                       style={{
-                        padding: '5px 12px', borderRadius: 99,
+                        padding: '8px 16px', borderRadius: 99,
                         fontSize: 12, fontWeight: 500,
                         background: '#f3f4f6', color: '#374151',
                         border: '1px solid #e5e7eb',
@@ -612,7 +613,7 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Birthday */}
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
               <label className="text-[14px] font-medium text-gray-700">誕生日</label>
               <span className="text-[11px] text-label3">任意</span>
@@ -623,7 +624,7 @@ export default function UserProfileOnboardingPage() {
               onChange={e => setBirthday(e.target.value)}
               className="field-input"
             />
-            <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1">
+            <p className="mt-2 text-[11px] text-amber-500 flex items-center gap-2">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                 <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -634,7 +635,7 @@ export default function UserProfileOnboardingPage() {
 
           {/* Error */}
           {error && (
-            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-4">
               <p className="text-[13px] text-red-500 text-center">{error}</p>
             </div>
           )}
@@ -660,7 +661,7 @@ export default function UserProfileOnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-5 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
+        <p className="mt-6 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
           プロフィールはあとから編集できます
         </p>
 

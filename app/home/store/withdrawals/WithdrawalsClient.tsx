@@ -70,7 +70,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-white px-5 pb-28">
+    <main className="min-h-screen bg-white px-6 pb-28">
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -78,14 +78,14 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
         menuItems={getCommonMenuItems(router, "store")}
       />
       <div className="mx-auto max-w-sm mt-6">
-        <h2 className="text-[16px] font-semibold text-gray-900 mb-1">チップ引出申請一覧</h2>
+        <h2 className="text-[16px] font-semibold text-gray-900 mb-2">チップ引出申請一覧</h2>
         <ChipDisclaimer className="mb-4" />
         {withdrawals.length === 0 ? (
           <p className="text-[13px] text-gray-500">申請はありません</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {withdrawals.map(w => (
-              <div key={w.id} className="rounded-2xl border border-gray-200 p-3">
+              <div key={w.id} className="rounded-2xl border border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[14px] font-semibold text-gray-900">{players[w.playerId]?.name ?? w.playerId}</p>
@@ -93,7 +93,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
                   </div>
                   <p className="text-[16px] font-semibold text-gray-900">{w.amount}</p>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-4 flex gap-2">
                   <button type="button" onClick={() => approveWithdrawal(w)} className="flex-1 rounded-2xl bg-green-500 py-2 text-[13px] font-semibold text-white">承認</button>
                   <button type="button" onClick={() => rejectWithdrawal(w)} className="flex-1 rounded-2xl bg-red-500 py-2 text-[13px] font-semibold text-white">却下</button>
                 </div>

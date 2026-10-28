@@ -82,9 +82,9 @@ function PairPageInner() {
         myPagePath="/home/mypage"
         menuItems={getCommonMenuItems(router, 'user')}
       />
-      <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+      <div style={{ flex: 1, padding: '24px 24px 104px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 420, marginTop: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span className="tech-status-dot" />
             <span className="tech-label" style={{ color: 'var(--label3)' }}>DEVICE LINK</span>
           </div>
@@ -107,7 +107,7 @@ function PairPageInner() {
             </div>
           ) : (
             <>
-              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 6 }}>
+              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 8 }}>
                 PAIRING CODE
               </label>
               <input
@@ -123,11 +123,11 @@ function PairPageInner() {
                   letterSpacing: 8,
                   textAlign: 'center',
                   fontWeight: 700,
-                  padding: '16px 12px',
+                  padding: '16px 16px',
                   borderRadius: 12,
                   border: `2px solid ${COLORS.border}`,
                   color: COLORS.dark,
-                  marginBottom: 20,
+                  marginBottom: 24,
                   boxSizing: 'border-box',
                 }}
               />

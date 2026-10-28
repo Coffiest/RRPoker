@@ -1,10 +1,10 @@
 "use client"
+import { CheckIcon, ChevronLeftIcon } from 'lucide-react'
 
 import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
-import { FiCheck, FiChevronLeft } from "react-icons/fi"
 import { isNativeApp, isNativeIOS } from "@/lib/platform"
 import { purchaseStorePlan } from "@/lib/iap"
 import { isSubscriptionActive } from "@/lib/subscription-client"
@@ -189,30 +189,30 @@ function BillingContent() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">
           {isActive ? (
             <>
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-                <FiCheck className="text-green-600" size={32} />
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+                <CheckIcon className="text-green-600" size={32} />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">ご登録ありがとうございます！</h2>
               <p className="text-sm text-gray-500">RRPokerへ移動します...</p>
             </>
           ) : (
             <>
-              <div className="w-16 h-16 flex items-center justify-center mx-auto mb-5">
+              <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
                 <div className="w-10 h-10 rounded-full border-4 border-[#F2A900] border-t-transparent animate-spin" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
               <p className="text-sm text-gray-500">お支払いを確認しています</p>
               {syncError && (
                 <>
-                  <p className="text-sm text-red-600 mt-5 mb-3">{syncError}</p>
+                  <p className="text-sm text-red-600 mt-6 mb-4">{syncError}</p>
                   <button
                     onClick={handleRecover}
                     disabled={recovering}
-                    className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-3 text-[15px] disabled:opacity-60"
+                    className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[15px] disabled:opacity-60"
                   >
                     {recovering ? "確認中..." : "お支払いを再確認する"}
                   </button>
-                  {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+                  {recoverMsg && <p className="text-xs text-gray-500 mt-4">{recoverMsg}</p>}
                 </>
               )}
             </>
@@ -260,9 +260,9 @@ function BillingContent() {
         <button
           type="button"
           onClick={() => router.push("/home/store/mypage")}
-          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-1 transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-2 transition-colors"
         >
-          <FiChevronLeft size={18} />
+          <ChevronLeftIcon size={18} />
           戻る
         </button>
         <div className="text-center mb-8">
@@ -270,19 +270,19 @@ function BillingContent() {
           <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="flex items-center justify-center gap-4 mb-8">
           <button
             onClick={() => setBillingInterval("monthly")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "monthly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "monthly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             月払い
           </button>
           <button
             onClick={() => setBillingInterval("yearly")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             年払い
-            <span className="ml-2 text-[10px] font-bold bg-green-500 text-white rounded-full px-1.5 py-0.5">17%OFF</span>
+            <span className="ml-2 text-[11px] font-bold bg-green-500 text-white rounded-full px-2 py-0.5">17%OFF</span>
           </button>
         </div>
 
@@ -294,14 +294,14 @@ function BillingContent() {
               className={`text-left rounded-2xl border-2 p-6 transition-all ${plan === p.id ? "border-[#F2A900] bg-amber-50" : "border-gray-200 bg-white"}`}
             >
               {p.badge && (
-                <span className="inline-block text-[11px] font-bold bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 mb-3">
+                <span className="inline-block text-[11px] font-bold bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 mb-4">
                   {p.badge}
                 </span>
               )}
-              <div className="flex items-start justify-between mb-1">
+              <div className="flex items-start justify-between mb-2">
                 <h3 className="font-bold text-gray-900 text-[15px]">{p.name}</h3>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${plan === p.id ? "border-[#F2A900] bg-[#F2A900]" : "border-gray-300"}`}>
-                  {plan === p.id && <FiCheck size={11} color="#fff" strokeWidth={3} />}
+                  {plan === p.id && <CheckIcon size={11} color="#fff" strokeWidth={3} />}
                 </div>
               </div>
               <div className="mb-4">
@@ -312,15 +312,15 @@ function BillingContent() {
                     <span className="text-2xl font-bold text-gray-900">¥{p.yearly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/年</span></span>
                     <div className="text-xs text-gray-500 mt-0.5">（¥{p.perMonth.toLocaleString()}/月換算）</div>
                     {iosNative && p.id === "standard" && (
-                      <span className="inline-block mt-1 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">App内では取扱なし</span>
+                      <span className="inline-block mt-2 text-[11px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">App内では取扱なし</span>
                     )}
                   </div>
                 )}
               </div>
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {p.features.map(f => (
                   <li key={f} className="flex items-start gap-2 text-[13px] text-gray-600">
-                    <FiCheck className="text-green-500 flex-shrink-0 mt-0.5" size={14} />
+                    <CheckIcon className="text-green-500 flex-shrink-0 mt-0.5" size={14} />
                     {f}
                   </li>
                 ))}
@@ -330,27 +330,27 @@ function BillingContent() {
         </div>
 
         {plan === "circle" && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">シリアルコード</label>
             <input
               type="text"
               value={circleCode}
               onChange={e => setCircleCode(e.target.value)}
               placeholder="発行されたシリアルコードを入力"
-              className="w-full rounded-xl px-4 py-3 text-sm text-gray-900 border border-gray-200 outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
+              className="w-full rounded-xl px-4 py-4 text-sm text-gray-900 border border-gray-200 outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
             />
             <p className="text-xs text-label3 mt-2">管理者から発行されたコードを入力してください</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 text-sm text-red-600">
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-4 text-sm text-red-600">
             {error}
           </div>
         )}
 
         {iosWebOnlyPlan ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-[13px] text-gray-600 leading-relaxed">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-[13px] text-gray-600 leading-relaxed">
             Standardの年額プランはこのAppでは取り扱っていません。月払いをお選びください。
           </div>
         ) : (
@@ -376,16 +376,16 @@ function BillingContent() {
         </p>
 
         {/* すでに決済済みなのに反映されない場合の救済 */}
-        <div className="mt-6 pt-5 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500 mb-3">お支払い済みなのに反映されない場合</p>
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <p className="text-xs text-gray-500 mb-4">お支払い済みなのに反映されない場合</p>
           <button
             onClick={handleRecover}
             disabled={recovering}
-            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-3 text-[14px] hover:bg-gray-50 disabled:opacity-60 transition-all"
+            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-4 text-[14px] hover:bg-gray-50 disabled:opacity-60 transition-all"
           >
             {recovering ? "確認中..." : "お支払いを確認して反映する"}
           </button>
-          {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+          {recoverMsg && <p className="text-xs text-gray-500 mt-4">{recoverMsg}</p>}
         </div>
       </div>
     </div>

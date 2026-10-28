@@ -1,8 +1,8 @@
 'use client'
+import { XIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
-import { FiX } from 'react-icons/fi'
 
 interface Props {
   onScan: (uid: string) => void
@@ -130,26 +130,26 @@ export default function QRScanner({ onScan, onClose }: Props) {
       </div>
 
       {/* Header */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '52px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '56px 24px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" />
           <span className="tech-label" style={{ color: 'rgba(255,255,255,0.55)' }}>LIVE</span>
         </div>
         <p className="term-prompt-arrow" style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
         <button type="button" onClick={() => { stopCamera(); onClose() }}
-          style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
+          style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
         >
-          <FiX size={18} style={{ color: '#fff' }} />
+          <XIcon size={18} style={{ color: '#fff' }} />
         </button>
       </div>
 
       {/* Instructions */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px 48px', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 24px 48px', textAlign: 'center' }}>
         {error ? (
           <p className="term-prompt" style={{ fontSize: 14, color: '#FF3B30', fontWeight: 600 }}>{error}</p>
         ) : (
           <>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 6 }}>プレイヤーのQRコードを枠内に合わせてください</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
             <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
           </>
         )}

@@ -44,7 +44,7 @@ export default function Page() {
 
   if (!storeIdParam) {
     return (
-      <main className="min-h-screen bg-white px-5">
+      <main className="min-h-screen bg-white px-6">
         <HomeHeader
           homePath="/home"
           myPagePath="/home/mypage"
@@ -65,7 +65,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="min-h-screen bg-white px-6">
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"
@@ -76,12 +76,12 @@ export default function Page() {
           <h1 className="text-[22px] font-semibold text-gray-900">入店中プレイヤー</h1>
         </div>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-4">
           {players.length === 0 ? (
             <p className="text-center text-[13px] text-gray-500">入店中のプレイヤーがいません</p>
           ) : (
             players.map(player => (
-              <div key={player.id} className="flex items-center gap-3 rounded-[20px] border border-gray-200 p-3">
+              <div key={player.id} className="flex items-center gap-4 rounded-[20px] border border-gray-200 p-4">
                 {player.iconUrl ? (
                   <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
                 ) : (

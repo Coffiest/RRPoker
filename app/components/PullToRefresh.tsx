@@ -75,9 +75,9 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
       }}
     >
       <div style={{
-        marginBottom: 12,
+        marginBottom: 16,
         width: 36, height: 36, borderRadius: '50%',
-        background: ready ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'rgba(242,169,0,0.12)',
+        background: ready ? '#F2A900' : 'rgba(242,169,0,0.12)',
         border: `2px solid ${ready ? '#F2A900' : 'rgba(242,169,0,0.25)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s, border-color 0.2s',

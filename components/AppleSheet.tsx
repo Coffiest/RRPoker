@@ -287,7 +287,7 @@ export default function AppleSheet({
         >
           <div className="a-grabber" />
           {title != null && (
-            <div style={{ flexShrink: 0, padding: '16px 20px 12px' }}>{title}</div>
+            <div style={{ flexShrink: 0, padding: '16px 24px 16px' }}>{title}</div>
           )}
           <div
             ref={bodyRef}
@@ -297,7 +297,7 @@ export default function AppleSheet({
               flex: 1,
               overflowY: 'auto',
               overscrollBehavior: 'contain',
-              padding: '0 20px',
+              padding: '0 24px',
               touchAction: 'pan-y',
             }}
           >

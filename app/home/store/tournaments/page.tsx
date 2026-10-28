@@ -1,4 +1,5 @@
 "use client"
+import { AwardIcon, CalendarIcon, CameraIcon, ChevronLeftIcon, ClockIcon, CoffeeIcon, CopyIcon, EllipsisIcon, PlusIcon, RepeatIcon, SearchIcon, SettingsIcon, Trash2Icon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -9,10 +10,6 @@ import { db, auth, storage } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import {
-  FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
-  FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
-} from "react-icons/fi"
 import TechBackdrop from "@/components/TechBackdrop"
 import { createPortal } from "react-dom"
 
@@ -447,11 +444,10 @@ export default function TournamentsPage() {
         /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
         .section-hd {
           position:relative; font-family:var(--stack-mono);
-          font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.18em;
-          color:var(--label3); padding:0 0 7px; margin-bottom:12px;
+          font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.18em;
+          color:var(--label3); padding:0 0 8px; margin-bottom:16px;
           display:flex; align-items:center; gap:8px;
         }
-        .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }
         .section-hd::after {
           content:""; position:absolute; left:0; bottom:0; width:100%; height:1px;
           background:linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
@@ -475,7 +471,7 @@ export default function TournamentsPage() {
         .itap { transition:opacity 0.15s,transform 0.15s; cursor:pointer; -webkit-tap-highlight-color:transparent; }
         .itap:active { opacity:0.65; transform:scale(0.97); }
         .divider { height:1px; background:var(--sep); }
-        .con-mono { font-family:var(--stack-mono); font-variant-numeric:tabular-nums slashed-zero; }
+        .con-mono { font-family:var(--stack-mono); font-variant-numeric:tabular-nums; }
         .no-spin::-webkit-inner-spin-button,
         .no-spin::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
         .no-spin { -moz-appearance:textfield; }
@@ -494,44 +490,44 @@ export default function TournamentsPage() {
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
         {/* ─ Page header ─ */}
-        <div className="su0" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '20px 0 18px' }}>
+        <div className="su0" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '24px 0 16px' }}>
           {/* Title — flex:1 + minWidth:0 ensures it never pushes buttons off screen */}
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <p className="section-hd" style={{ marginBottom: 2 }}>Store</p>
             <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0, color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tournaments</h1>
           </div>
           {/* Buttons — flex-shrink:0 ensures they always fully appear */}
-          <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             {/* + Blind: outlined pill */}
             <button onClick={() => setIsBlindModalOpen(true)} className="itap" style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              height: 34, padding: '0 12px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              height: 44, padding: '0 16px',
               borderRadius: 99, border: '1.5px solid var(--gold)',
               background: 'rgba(242,169,0,0.06)',
               color: 'var(--gold-dk)', fontSize: 12, fontWeight: 700,
               whiteSpace: 'nowrap',
             }}>
-              <FiPlus size={11} strokeWidth={2.5}/> Blind
+              <PlusIcon size={11} strokeWidth={2.5}/> Blind
             </button>
             {/* + New: filled gold pill */}
             <button onClick={() => { setEditData(null); setOpenModal(true) }} className="itap" style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              height: 34, padding: '0 14px',
+              display: 'flex', alignItems: 'center', gap: 8,
+              height: 44, padding: '0 16px',
               borderRadius: 99, background: 'var(--gold)',
               border: 'none', color: '#fff', fontSize: 12, fontWeight: 700,
               whiteSpace: 'nowrap',
               boxShadow: '0 2px 8px rgba(242,169,0,0.35)',
             }}>
-              <FiPlus size={11} strokeWidth={2.5}/> New
+              <PlusIcon size={11} strokeWidth={2.5}/> New
             </button>
           </div>
         </div>
 
         {/* ─ Current / active tournaments ─ */}
         {currentTournaments.length > 0 && (
-          <div className="su1" style={{ marginBottom: 20 }}>
+          <div className="su1" style={{ marginBottom: 24 }}>
             <p className="section-hd">開催中・予定</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {currentTournaments.map((t, index) => {
                 const entries      = entriesMap[t.id] ?? []
                 const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
@@ -543,44 +539,44 @@ export default function TournamentsPage() {
                     border: isActive ? '1.5px solid rgba(242,169,0,0.35)' : 'none',
                     background: isActive ? 'linear-gradient(135deg,#FFFBF0,#FFF9F0)' : '#fff',
                   }}>
-                    <div style={{ padding: '14px 16px' }}>
+                    <div style={{ padding: '16px 16px' }}>
                       {isActive && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                           <span className="live-dot" style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: 'var(--gold)' }}/>
                           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-dk)', letterSpacing: '0.05em' }}>LIVE</span>
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
                             <p style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--label)', letterSpacing: '-0.2px' }}>{t.name}</p>
                             {t.repeatWeekly && (
                               <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 8px', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                                <FiRepeat size={9}/> 毎週
+                                <RepeatIcon size={9}/> 毎週
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--label2)' }}>
-                              <FiCalendar size={11} style={{ color: 'var(--gold)' }}/> {t.date}
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--label2)' }}>
+                              <CalendarIcon size={11} style={{ color: 'var(--gold)' }}/> {t.date}
                             </span>
                             {t.startTime && (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--label2)' }}>
-                                <FiClock size={11} style={{ color: 'var(--gold)' }}/> {t.startTime}
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--label2)' }}>
+                                <ClockIcon size={11} style={{ color: 'var(--gold)' }}/> {t.startTime}
                               </span>
                             )}
                             <span style={{ fontSize: 11, color: 'var(--label2)' }}>E:{totalEntry} R:{totalReentry} A:{totalAddon}</span>
                           </div>
                         </div>
                         {t.status === "scheduled" && (
-                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                             <button onClick={() => handleEdit(t)} className="itap"
-                              style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                              <FiSettings size={14}/>
+                              style={{ width: 44, height: 44, borderRadius: 10, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+                              <SettingsIcon size={14}/>
                             </button>
                             <button onClick={() => handleDelete(t.id)} className="itap"
-                              style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
-                              <FiTrash2 size={14}/>
+                              style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
+                              <Trash2Icon size={14}/>
                             </button>
                           </div>
                         )}
@@ -608,14 +604,14 @@ export default function TournamentsPage() {
           {/* Tab bar */}
           {/* 縮小して詰め込むと、44px の丸が 39px まで小さくなり、指で外しやすくなる。
               大きさは変えず、入りきらないときは横に送れるようにする。 */}
-          <div style={{ marginBottom: 14, overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingRight: 4 }}>
+          <div style={{ marginBottom: 16, overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingRight: 8 }}>
               {([...DAYS, "履歴"] as string[]).map(tab => {
                 const isAct   = activeTab === tab
                 const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
                 return (
                   <button key={tab} onClick={() => setActiveTab(tab)} className="itap"
-                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0 }}>
+                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0 }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: '50%',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -637,26 +633,26 @@ export default function TournamentsPage() {
           {activeTab === "履歴" ? (
             <>
               {/* Search */}
-              <div style={{ position: 'relative', marginBottom: 12 }}>
-                <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
+              <div style={{ position: 'relative', marginBottom: 16 }}>
+                <SearchIcon size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input placeholder="トーナメント名で検索…" value={historySearch} onChange={e => setHistorySearch(e.target.value)}
-                  style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', paddingLeft: 34, paddingRight: historySearch ? 34 : 14, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', paddingLeft: 32, paddingRight: historySearch ? 34 : 14, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
                 />
                 {historySearch && (
                   <button onClick={() => setHistorySearch("")} className="itap"
-                    style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FiX size={10} style={{ color: 'var(--label2)' }}/>
+                    style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <XIcon size={10} style={{ color: 'var(--label2)' }}/>
                   </button>
                 )}
               </div>
               {tabHistory.length === 0 ? (
-                <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
+                <div className="ios-card" style={{ padding: '32px 24px', textAlign: 'center' }}>
                   <p style={{ fontSize: 13, color: 'var(--label2)' }}>
                     {historySearch ? "該当する履歴がありません" : "履歴はまだありません"}
                   </p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {tabHistory.map((t) => {
                     const entries      = entriesMap[t.id] ?? []
                     const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
@@ -664,50 +660,50 @@ export default function TournamentsPage() {
                     const totalAddon   = entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0)
                     return (
                       <div key={t.id} className="ios-card">
-                        <div style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                        <div style={{ padding: '16px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
-                              <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                              <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: 11, color: 'var(--label2)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                  <FiClock size={10}/> {t.startedAt || t.createdAt}
+                                  <ClockIcon size={10}/> {t.startedAt || t.createdAt}
                                 </span>
                                 <span style={{ fontSize: 11, color: 'var(--label2)' }}>E:{totalEntry} R:{totalReentry} A:{totalAddon}</span>
                               </div>
                             </div>
-                            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                               <button onClick={() => handleCopy(t)} className="itap"
-                                style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                                <FiCopy size={13}/>
+                                style={{ width: 44, height: 44, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+                                <CopyIcon size={13}/>
                               </button>
                               <button onClick={() => handleDelete(t.id)} className="itap"
-                                style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
-                                <FiTrash2 size={13}/>
+                                style={{ width: 44, height: 44, borderRadius: 9, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
+                                <Trash2Icon size={13}/>
                               </button>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             {(entriesMap[t.id] ?? []).filter((e: any) => (e.entryCount ?? 0) > 0 || (e.reentryCount ?? 0) > 0 || (e.addonCount ?? 0) > 0)
                               .map((e: any, i: number) => {
                                 const payout = t.payouts?.find((p: any) => p.playerId === e.id)
                                 const isITM  = !!payout
                                 return (
-                                  <div key={i} className={isITM ? "itm-row" : "lvl-row"} style={{ padding: '9px 12px' }}>
+                                  <div key={i} className={isITM ? "itm-row" : "lvl-row"} style={{ padding: '8px 16px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: isITM ? 'var(--gold-dk)' : 'var(--label)' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: isITM ? 'var(--gold-dk)' : 'var(--label)' }}>
                                         {isITM && typeof payout.rank === "number" && (
-                                          <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{payout.rank}</span>
+                                          <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{payout.rank}</span>
                                         )}
                                         {typeof e.name === "string" ? e.name : typeof e.id === "string" ? e.id : ""}
                                       </div>
                                       {isITM && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                          <FiAward size={12} style={{ color: 'var(--gold)' }}/>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                          <AwardIcon size={12} style={{ color: 'var(--gold)' }}/>
                                           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-dk)' }}>{fmtChip(typeof payout.amount === "number" ? payout.amount : 0, chipUnit, chipUnitBefore)}</span>
                                         </div>
                                       )}
                                     </div>
-                                    <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'var(--label2)' }}>
+                                    <div style={{ display: 'flex', gap: 8, fontSize: 11, color: 'var(--label2)' }}>
                                       <span>E:{e.entryCount ?? 0}</span>
                                       <span>R:{e.reentryCount ?? 0}</span>
                                       <span>A:{e.addonCount ?? 0}</span>
@@ -725,26 +721,26 @@ export default function TournamentsPage() {
             </>
           ) : (
             tabTemplates.length === 0 && tabInstances.length === 0 ? (
-              <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
+              <div className="ios-card" style={{ padding: '32px 24px', textAlign: 'center' }}>
                 <p style={{ fontSize: 13, color: 'var(--label2)' }}>{activeTab}曜日のトーナメントはありません</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {tabTemplates.length > 0 && (
                   <div>
-                    <p className="section-hd" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <FiRepeat size={10} style={{ color: 'var(--gold)' }}/> 定期テンプレート
+                    <p className="section-hd" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <RepeatIcon size={10} style={{ color: 'var(--gold)' }}/> 定期テンプレート
                     </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {tabTemplates.map(t => (
-                        <div key={t.id} className="ios-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                        <div key={t.id} className="ios-card" style={{ padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
                             <p style={{ fontSize: 11, color: 'var(--label2)', margin: '3px 0 0' }}>次回: {t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
                           </div>
                           <button onClick={() => handleEdit(t)} className="itap"
-                            style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                            <FiSettings size={13}/>
+                            style={{ width: 44, height: 44, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
+                            <SettingsIcon size={13}/>
                           </button>
                         </div>
                       ))}
@@ -756,12 +752,12 @@ export default function TournamentsPage() {
                     <p className="section-hd">今後の予定</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {tabInstances.map(t => (
-                        <div key={t.id} className="ios-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                        <div key={t.id} className="ios-card" style={{ padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
                             <p style={{ fontSize: 11, color: 'var(--label2)', margin: '3px 0 0' }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
                           </div>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)', background: 'var(--fill)', borderRadius: 99, padding: '4px 10px', flexShrink: 0 }}>{t.status}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)', background: 'var(--fill)', borderRadius: 99, padding: '8px 8px', flexShrink: 0 }}>{t.status}</span>
                         </div>
                       ))}
                     </div>
@@ -784,24 +780,24 @@ export default function TournamentsPage() {
             paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
           }}>
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 8px', flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(60,60,67,0.2)' }}/>
             </div>
             {/* Title row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 14px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 24px 16px', flexShrink: 0 }}>
               <p style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: '-0.4px', color: 'var(--label)' }}>
                 {editData ? "編集" : "新規トーナメント"}
               </p>
-              <button onClick={closeModal} className="itap" style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={14}/>
+              <button onClick={closeModal} className="itap" style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+                <XIcon size={14}/>
               </button>
             </div>
             {/* Scrollable body */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
 
               {/* ── 基本情報 group ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>基本情報</p>
-              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
+              <p className="section-hd" style={{ paddingLeft: 8, marginBottom: 8 }}>基本情報</p>
+              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 24 }}>
                 {/* Name row */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
                   <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>名称</span>
@@ -842,22 +838,22 @@ export default function TournamentsPage() {
               </div>
 
               {/* ── 費用・スタック group ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>費用・スタック設定</p>
-              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
+              <p className="section-hd" style={{ paddingLeft: 8, marginBottom: 8 }}>費用・スタック設定</p>
+              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 24 }}>
                 {[
                   { label: 'エントリー', feeKey: 'entryFee', stackKey: 'entryStack' },
                   { label: 'リエントリー', feeKey: 'reentryFee', stackKey: 'reentryStack' },
                   { label: 'アドオン', feeKey: 'addonFee', stackKey: 'addonStack' },
                 ].map((row, i) => (
                   <div key={row.feeKey} style={{ borderBottom: i < 2 ? '1px solid var(--sep)' : 'none' }}>
-                    <div style={{ padding: '10px 16px 0', display: 'flex', alignItems: 'center' }}>
+                    <div style={{ padding: '8px 16px 0', display: 'flex', alignItems: 'center' }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>{row.label}</span>
                     </div>
-                    <div style={{ display: 'flex', padding: '4px 16px 10px', gap: 10 }}>
+                    <div style={{ display: 'flex', padding: '8px 16px 8px', gap: 8 }}>
                       {[[row.feeKey, '費用', '0'], [row.stackKey, 'スタック', '0']].map(([key, placeholder, defVal]) => (
                         <div key={key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <span style={{ fontSize: 10, color: 'var(--label2)', fontWeight: 600 }}>{placeholder}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', background: '#F9F9F9', borderRadius: 10, padding: '0 10px', height: 36 }}>
+                          <span style={{ fontSize: 11, color: 'var(--label2)', fontWeight: 600 }}>{placeholder}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', background: '#F9F9F9', borderRadius: 10, padding: '0 8px', height: 36 }}>
                             <input type="number" value={(form as any)[key]} onChange={e => handleChange(key, e.target.value)} placeholder={defVal}
                               className="no-spin"
                               style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right', width: '100%' }}
@@ -873,13 +869,13 @@ export default function TournamentsPage() {
               {/* ── ブラインドプリセット ── */}
               {blindPresets.length > 0 && (
                 <>
-                  <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>ブラインドプリセット</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+                  <p className="section-hd" style={{ paddingLeft: 8, marginBottom: 8 }}>ブラインドプリセット</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
                     {[{ id: '', name: 'なし' }, ...blindPresets].map(p => {
                       const sel = blindPresetId === p.id
                       return (
                         <button key={p.id} type="button" onClick={() => setBlindPresetId(p.id)} className="itap" style={{
-                          padding: '7px 14px', borderRadius: 99,
+                          padding: '8px 16px', borderRadius: 99,
                           border: sel ? 'none' : '1.5px solid var(--sep)',
                           background: sel ? 'var(--gold)' : '#fff',
                           color: sel ? '#fff' : 'var(--label)',
@@ -895,20 +891,20 @@ export default function TournamentsPage() {
               )}
 
               {/* ── チラシ画像 ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>チラシ画像</p>
+              <p className="section-hd" style={{ paddingLeft: 8, marginBottom: 8 }}>チラシ画像</p>
               <div style={{ marginBottom: 24 }}>
                 {imagePreview ? (
                   <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
                     <img src={imagePreview} alt="preview" style={{ width: '100%', maxHeight: 160, objectFit: 'cover', display: 'block' }}/>
                     <button onClick={() => { setImagePreview(null); setImageFile(null) }} className="itap"
-                      style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      <FiX size={13}/>
+                      style={{ position: 'absolute', top: 10, right: 10, width: 44, height: 44, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      <XIcon size={13}/>
                     </button>
                   </div>
                 ) : (
-                  <label className="itap" style={{ display: 'flex', alignItems: 'center', gap: 12, border: '2px dashed var(--sep)', borderRadius: 16, padding: '14px 16px', cursor: 'pointer', background: 'rgba(255,255,255,0.6)' }}>
+                  <label className="itap" style={{ display: 'flex', alignItems: 'center', gap: 16, border: '2px dashed var(--sep)', borderRadius: 16, padding: '16px 16px', cursor: 'pointer', background: 'rgba(255,255,255,0.6)' }}>
                     <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <FiCamera size={17} style={{ color: 'var(--label2)' }}/>
+                      <CameraIcon size={17} style={{ color: 'var(--label2)' }}/>
                     </div>
                     <div>
                       <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--label)', margin: 0 }}>画像を選択</p>
@@ -922,11 +918,11 @@ export default function TournamentsPage() {
               {/* ── Save button ── */}
               <button onClick={handleSave} className="itap" style={{
                 width: '100%', height: 54, borderRadius: 999,
-                background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                background: '#F2A900',
                 border: 'none', color: '#1C1C1E', fontSize: 16, fontWeight: 800,
                 letterSpacing: '-0.2px',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
-                marginBottom: 4,
+                marginBottom: 8,
               }}>
                 {editData ? "変更を保存" : "作成する"}
               </button>
@@ -949,17 +945,17 @@ export default function TournamentsPage() {
             paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
           }}>
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0 8px', flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(60,60,67,0.2)' }}/>
             </div>
 
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 14px', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 24px 16px', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {blindModalView === "edit" && (
                   <button onClick={() => setBlindModalView("list")} className="itap"
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, height: 30, padding: '0 10px', borderRadius: 99, background: 'rgba(120,120,128,0.14)', border: 'none', color: 'var(--label)', fontSize: 13, fontWeight: 600 }}>
-                    ← 一覧
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, height: 44, padding: '0 8px', borderRadius: 99, background: 'rgba(120,120,128,0.14)', border: 'none', color: 'var(--label)', fontSize: 13, fontWeight: 600 }}>
+                    <ChevronLeftIcon size={16} /> 一覧
                   </button>
                 )}
                 <p style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: '-0.4px', color: 'var(--label)' }}>
@@ -967,8 +963,8 @@ export default function TournamentsPage() {
                 </p>
               </div>
               <button onClick={closeBlindModal} className="itap"
-                style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={14}/>
+                style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+                <XIcon size={14}/>
               </button>
             </div>
 
@@ -976,9 +972,9 @@ export default function TournamentsPage() {
               /* ─ List view ─ */
               <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
                 {blindPresets.length === 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 10 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 8 }}>
                     <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <FiZap size={22} style={{ color: 'var(--label2)' }}/>
+                      <ZapIcon size={22} style={{ color: 'var(--label2)' }}/>
                     </div>
                     <p className="term-comment" style={{ fontSize: 14, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>プリセットがまだありません</p>
                     <p style={{ fontSize: 12, color: 'var(--label2)', margin: 0 }}>下のボタンから作成してください</p>
@@ -990,21 +986,21 @@ export default function TournamentsPage() {
                       const brkCount = Array.isArray(preset.levels) ? preset.levels.filter((l: any) => l.type === "break").length : 0
                       return (
                         <div key={preset.id} className="itap" onClick={() => openEditBlindPreset(preset)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', borderRadius: 18, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: '1px solid var(--sep)', cursor: 'pointer' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#fff', borderRadius: 18, padding: '16px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: '1px solid var(--sep)', cursor: 'pointer' }}>
                           {/* Left accent circle */}
-                          <div style={{ width: 42, height: 42, borderRadius: 13, background: `linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <div style={{ width: 42, height: 42, borderRadius: 13, background: `var(--gold)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{i + 1}</span>
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</p>
-                            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 7px' }}>Lv {lvCount}</span>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: '#007AFF', background: 'rgba(0,122,255,0.08)', borderRadius: 99, padding: '2px 7px' }}>Break {brkCount}</span>
+                            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 8px' }}>Lv {lvCount}</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: '#007AFF', background: 'rgba(0,122,255,0.08)', borderRadius: 99, padding: '2px 8px' }}>Break {brkCount}</span>
                             </div>
                           </div>
                           <button onClick={e => { e.stopPropagation(); deleteBlindPreset(preset.id) }} className="itap"
-                            style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
-                            <FiTrash2 size={13}/>
+                            style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
+                            <Trash2Icon size={13}/>
                           </button>
                         </div>
                       )
@@ -1016,8 +1012,8 @@ export default function TournamentsPage() {
               /* ─ Edit view ─ */
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
                 {/* Name field */}
-                <div style={{ padding: '0 16px 12px', flexShrink: 0 }}>
-                  <div style={{ background: '#fff', borderRadius: 14, padding: '0 14px', display: 'flex', alignItems: 'center', height: 50, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ padding: '0 16px 16px', flexShrink: 0 }}>
+                  <div style={{ background: '#fff', borderRadius: 14, padding: '0 16px', display: 'flex', alignItems: 'center', height: 50, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                     <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 72 }}>名称</span>
                     <input value={blindPresetName} onChange={e => setBlindPresetName(e.target.value)}
                       style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
@@ -1026,8 +1022,8 @@ export default function TournamentsPage() {
                   </div>
                 </div>
                 {/* Bulk change */}
-                <div style={{ padding: '0 16px 12px', flexShrink: 0 }}>
-                  <div style={{ background: '#fff', borderRadius: 14, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ padding: '0 16px 16px', flexShrink: 0 }}>
+                  <div style={{ background: '#fff', borderRadius: 14, padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', flexShrink: 0 }}>一括時間変更</span>
                     <input type="number" value={bulkDuration} onChange={e => setBulkDuration(e.target.value)} placeholder="分"
                       className="no-spin"
@@ -1039,7 +1035,7 @@ export default function TournamentsPage() {
                       if (!bulkDuration || isNaN(d) || d <= 0) return
                       setBlindLevels(ls => ls.map(l => ({ ...l, duration: d }))); setBulkDuration("")
                     }} className="itap"
-                      style={{ marginLeft: 'auto', height: 30, padding: '0 12px', borderRadius: 9, background: 'var(--gold)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 700 }}>
+                      style={{ marginLeft: 'auto', height: 44, padding: '0 16px', borderRadius: 9, background: 'var(--gold)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 700 }}>
                       変更
                     </button>
                   </div>
@@ -1047,7 +1043,7 @@ export default function TournamentsPage() {
                 {/* Level list */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
                   <p className="section-hd" style={{ paddingLeft: 2 }}>レベルリスト</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {blindLevels.map((lv, idx) => (
                       <div key={idx} style={{ position: 'relative' }}>
                         <div className="blind-level-item"
@@ -1065,7 +1061,7 @@ export default function TournamentsPage() {
                           }}
                         >
                           {/* Row header */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px 5px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px' }}>
                             <span style={{ cursor: 'move', color: 'var(--label3)', fontSize: 14, userSelect: 'none', flexShrink: 0, lineHeight: 1 }}>⠿</span>
                             <span style={{ fontSize: 11, fontWeight: 700, minWidth: 38, color: lv.type === "level" ? 'var(--gold-dk)' : '#007AFF' }}>
                               {lv.type === "level" ? `Lv ${blindLevels.slice(0, idx).filter(l => l.type === "level").length + 1}` : "Break"}
@@ -1075,17 +1071,17 @@ export default function TournamentsPage() {
                               {lv.comment || "コメント追加"}
                             </button>
                             <button type="button" onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)} className="itap"
-                              style={{ width: 26, height: 26, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                              <FiMoreHorizontal size={13}/>
+                              style={{ width: 44, height: 44, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
+                              <EllipsisIcon size={13}/>
                             </button>
                             <button onClick={() => removeBlindLevel(idx)} className="itap"
-                              style={{ width: 26, height: 26, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
-                              <FiTrash2 size={12}/>
+                              style={{ width: 44, height: 44, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
+                              <Trash2Icon size={12}/>
                             </button>
                           </div>
                           {/* Inputs */}
                           {lv.type === "level" ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 5, padding: '0 10px 10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, padding: '0 8px 8px' }}>
                               {([["SB", "smallBlind", (e: any) => {
                                   const raw = e.target.value
                                   if (raw === "" || raw === "-") { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: null })); return }
@@ -1097,7 +1093,7 @@ export default function TournamentsPage() {
                                 ["MIN", "duration", (e: any) => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))],
                               ] as [string, string, (e: any) => void][]).map(([lbl, key, handler]) => (
                                 <div key={lbl} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--label2)', textAlign: 'center', letterSpacing: '0.04em' }}>{lbl}</span>
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', textAlign: 'center', letterSpacing: '0.04em' }}>{lbl}</span>
                                   <input type="number" value={(lv as any)[key] ?? ""} placeholder="—"
                                     onChange={handler} className="no-spin"
                                     style={{ width: '100%', height: 34, borderRadius: 9, border: '1.5px solid var(--sep)', background: '#F9F9F9', fontSize: 13, color: 'var(--label)', outline: 'none', textAlign: 'center', boxSizing: 'border-box', padding: 0 }}
@@ -1106,7 +1102,7 @@ export default function TournamentsPage() {
                               ))}
                             </div>
                           ) : (
-                            <div style={{ padding: '0 10px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div style={{ padding: '0 8px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span style={{ fontSize: 11, color: '#007AFF', fontWeight: 600 }}>時間</span>
                               <input type="number" value={lv.duration ?? ""} placeholder="10"
                                 onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
@@ -1118,15 +1114,15 @@ export default function TournamentsPage() {
                           )}
                           {/* Comment row */}
                           {(blindEditingCommentIdx === idx || lv.comment) && (
-                            <div className="blind-comment-expand" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 10px' }}>
+                            <div className="blind-comment-expand" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px 8px' }}>
                               <input type="text" placeholder="コメントを入力…" value={lv.comment ?? ""}
                                 onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                                style={{ flex: 1, height: 30, borderRadius: 8, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 10px', fontSize: 12, color: 'var(--label)', outline: 'none' }}
+                                style={{ flex: 1, height: 30, borderRadius: 8, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 8px', fontSize: 12, color: 'var(--label)', outline: 'none' }}
                                 autoFocus={blindEditingCommentIdx === idx}
                               />
                               <button type="button" onClick={() => { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: null })); setBlindEditingCommentIdx(null) }} className="itap"
-                                style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                                <FiX size={9}/>
+                                style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
+                                <XIcon size={9}/>
                               </button>
                             </div>
                           )}
@@ -1138,13 +1134,13 @@ export default function TournamentsPage() {
                             <div className="a-dialog" style={{ position: 'absolute', right: 40, top: 4, zIndex: 200, overflow: 'hidden', minWidth: 170, transformOrigin: 'top right' }}>
                               {([["この前にレベルを追加", () => insertLevelBefore(idx)], ["この後にレベルを追加", () => insertLevelAfter(idx)]] as [string, () => void][]).map(([label, action]) => (
                                 <button key={label} type="button" onClick={action} className="itap"
-                                  style={{ width: '100%', padding: '12px 16px', textAlign: 'left', fontSize: 13, color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
+                                  style={{ width: '100%', padding: '16px 16px', textAlign: 'left', fontSize: 13, color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
                                   {label}
                                 </button>
                               ))}
                               <div style={{ height: 1, background: 'var(--sep)' }}/>
                               <button type="button" onClick={() => toggleLevelBreak(idx)} className="itap"
-                                style={{ width: '100%', padding: '12px 16px', textAlign: 'left', fontSize: 13, color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
+                                style={{ width: '100%', padding: '16px 16px', textAlign: 'left', fontSize: 13, color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
                                 {lv.type === "level" ? "ブレイクに変更" : "レベルに変更"}
                               </button>
                             </div>
@@ -1155,13 +1151,13 @@ export default function TournamentsPage() {
                   </div>
                 </div>
                 {/* Add level/break */}
-                <div style={{ padding: '10px 16px', borderTop: '1px solid var(--sep)', flexShrink: 0, display: 'flex', gap: 8 }}>
+                <div style={{ padding: '8px 16px', borderTop: '1px solid var(--sep)', flexShrink: 0, display: 'flex', gap: 8 }}>
                   <button onClick={addBlindLevel} className="itap"
-                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(242,169,0,0.14)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.20)', color: '#B57F00', fontSize: 13, fontWeight: 700 }}>
+                    style={{ flex: 1, height: 44, borderRadius: 999, background: 'rgba(242,169,0,0.14)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.20)', color: '#B57F00', fontSize: 13, fontWeight: 700 }}>
                     ＋ レベル
                   </button>
                   <button onClick={addBlindBreak} className="itap"
-                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(0,122,255,0.10)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(0,122,255,0.18)', color: '#007AFF', fontSize: 13, fontWeight: 700 }}>
+                    style={{ flex: 1, height: 44, borderRadius: 999, background: 'rgba(0,122,255,0.10)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(0,122,255,0.18)', color: '#007AFF', fontSize: 13, fontWeight: 700 }}>
                     ＋ ブレイク
                   </button>
                 </div>
@@ -1169,33 +1165,33 @@ export default function TournamentsPage() {
             )}
 
             {/* Footer */}
-            <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
+            <div style={{ padding: '8px 16px 0', flexShrink: 0 }}>
               {blindModalView === "list" ? (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={openNewBlindPreset} className="itap" style={{
                     flex: 1, height: 52, borderRadius: 999,
-                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                    background: '#F2A900',
                     border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   }}>
-                    <FiPlus size={16}/> 新規作成
+                    <PlusIcon size={16}/> 新規作成
                   </button>
                   <button onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="itap" style={{
                     flex: 1, height: 52, borderRadius: 999,
                     background: 'var(--label)',
                     border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
                   }}>
-                    <FiZap size={14}/> AI生成
+                    <ZapIcon size={14}/> AI生成
                   </button>
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={saveBlindPreset} className="itap" style={{
                     flex: 2, height: 52, borderRadius: 999,
-                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
+                    background: '#F2A900',
                     border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
                   }}>
@@ -1224,34 +1220,34 @@ export default function TournamentsPage() {
             borderRadius: '20px 20px 0 0', background: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column',
             boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 99, background: 'var(--sep)' }}/>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FiZap size={14} style={{ color: 'var(--gold)' }}/>
+                <ZapIcon size={14} style={{ color: 'var(--gold)' }}/>
                 <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)' }}>
                   {aiView === "input" ? "AIストラクチャー生成" : "プレビュー"}
                 </p>
               </div>
               <button onClick={() => setIsAiOpen(false)} className="itap"
-                style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={12}/>
+                style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+                <XIcon size={12}/>
               </button>
             </div>
             {aiView === "input" ? (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
                   <p className="section-hd">プリセット名</p>
                   <input value={aiPresetName} onChange={e => setAiPresetName(e.target.value)} placeholder="例: 3時間RC構成"
-                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
+                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 16px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
                 </div>
                 <div>
                   <p className="section-hd">使用チップ</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {AI_CHIP_OPTIONS.map(chip => (
                       <button key={chip} type="button" onClick={() => setAiChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip])} className="itap"
-                        style={{ height: 34, padding: '0 12px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: '1px solid var(--sep)', background: aiChips.includes(chip) ? 'var(--gold)' : '#fff', color: aiChips.includes(chip) ? '#fff' : 'var(--label)', boxShadow: aiChips.includes(chip) ? '0 2px 6px rgba(242,169,0,0.25)' : 'none' }}>
+                        style={{ height: 44, padding: '0 16px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: '1px solid var(--sep)', background: aiChips.includes(chip) ? 'var(--gold)' : '#fff', color: aiChips.includes(chip) ? '#fff' : 'var(--label)', boxShadow: aiChips.includes(chip) ? '0 2px 6px rgba(242,169,0,0.25)' : 'none' }}>
                         {chip.toLocaleString()}
                       </button>
                     ))}
@@ -1260,33 +1256,33 @@ export default function TournamentsPage() {
                 <div>
                   <p className="section-hd">スタートスタック（チップ合計）</p>
                   <input type="number" value={aiStack} onChange={e => setAiStack(e.target.value)} placeholder="例: 30000"
-                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
+                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 16px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
                 </div>
                 <div>
                   <p className="section-hd">RC時間（スタートから何時間）</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input type="number" step="0.5" min="0.5" value={aiRcHours} onChange={e => setAiRcHours(e.target.value)} placeholder="例: 3"
-                      style={{ width: 90, height: 40, borderRadius: 11, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
+                      style={{ width: 90, height: 40, borderRadius: 11, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 16px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
                     <span style={{ fontSize: 12, color: 'var(--label2)' }}>時間</span>
                   </div>
-                  <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 5 }}>RC直前10分ブレイク終了=RC時刻になるよう自動調整されます</p>
+                  <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 8 }}>RC直前10分ブレイク終了=RC時刻になるよう自動調整されます</p>
                 </div>
                 {aiError && <p style={{ fontSize: 11, color: 'var(--gold-dk)', fontWeight: 600, textAlign: 'center' }}>{aiError}</p>}
               </div>
             ) : (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px' }}>
-                <p style={{ fontSize: 11, color: 'var(--label2)', marginBottom: 10 }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px' }}>
+                <p style={{ fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>
                   レベル数: {aiPreviewLevels.filter(l => l.type === "level").length} / ブレイク: {aiPreviewLevels.filter(l => l.type === "break").length}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {aiPreviewLevels.map((lv, i) => (
                     <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10,
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 10,
                       background: lv.type === "break" ? 'rgba(242,169,0,0.07)' : '#F9F9F9',
                       fontSize: 12, color: lv.type === "break" ? 'var(--gold-dk)' : 'var(--label)', fontWeight: lv.type === "break" ? 600 : 400,
                     }}>
                       {lv.type === "break" ? (
-                        <><span>☕</span><span>{lv.duration === 10 ? "RC直前ブレイク" : "ブレイク"} {lv.duration}分</span></>
+                        <><CoffeeIcon size={16} /><span>{lv.duration === 10 ? "RC直前ブレイク" : "ブレイク"} {lv.duration}分</span></>
                       ) : (
                         <>
                           <span style={{ width: 20, textAlign: 'center', fontWeight: 700, color: 'var(--label2)', fontSize: 11 }}>
@@ -1301,7 +1297,7 @@ export default function TournamentsPage() {
                 </div>
               </div>
             )}
-            <div style={{ padding: '14px 18px', borderTop: '1px solid var(--sep)', flexShrink: 0 }}>
+            <div style={{ padding: '16px 16px', borderTop: '1px solid var(--sep)', flexShrink: 0 }}>
               {aiView === "input" ? (
                 <button onClick={() => {
                   setAiError("")
@@ -1313,8 +1309,8 @@ export default function TournamentsPage() {
                   if (!result.length) { setAiError("有効な構成を生成できませんでした"); return }
                   setAiPreviewLevels(result); setAiView("preview")
                 }} className="itap"
-                  style={{ width: '100%', height: 44, borderRadius: 12, background: 'var(--label)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <FiZap size={14}/> プレビューを生成
+                  style={{ width: '100%', height: 44, borderRadius: 12, background: 'var(--label)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <ZapIcon size={14}/> プレビューを生成
                 </button>
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>

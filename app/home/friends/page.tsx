@@ -1,10 +1,10 @@
 'use client'
+import { ArrowLeftIcon, CheckIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore'
-import { FiArrowLeft, FiCheck, FiX, FiSearch } from 'react-icons/fi'
 import HomeHeader from '@/components/HomeHeader'
 import PlayerBottomNav from '@/components/PlayerBottomNav'
 
@@ -244,7 +244,7 @@ export default function FriendsPage() {
     <main className="min-h-screen bg-white pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
-      <div className="mx-auto max-w-sm px-5 pt-6">
+      <div className="mx-auto max-w-sm px-6 pt-6">
         {/* Search Bar */}
         <div className="flex gap-2">
           <input
@@ -261,7 +261,7 @@ export default function FriendsPage() {
             disabled={isSearching}
             className="h-12 w-12 rounded-2xl bg-[#F2A900] flex items-center justify-center text-gray-900 disabled:opacity-60"
           >
-            <FiSearch className="text-[16px]" />
+            <SearchIcon className="text-[16px]" />
           </button>
         </div>
 
@@ -272,9 +272,9 @@ export default function FriendsPage() {
               <button
                 key={player.id}
                 onClick={() => setSelectedPlayer(player)}
-                className="w-full rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 text-left hover:border-gray-300 transition-colors"
+                className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 text-left hover:border-gray-300 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   {player.iconUrl ? (
                     <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
@@ -295,7 +295,7 @@ export default function FriendsPage() {
 
         {/* Player Detail Modal */}
         {selectedPlayer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
             <div className="w-full max-w-sm rounded-[24px] bg-white p-6">
               <div className="flex items-center justify-center mb-4">
                 {selectedPlayer.iconUrl ? (
@@ -308,8 +308,8 @@ export default function FriendsPage() {
               </div>
 
               <h2 className="font-display text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
-              <p className="text-center text-[13px] text-gray-500 mt-1">{selectedPlayer.playerId}</p>
-              <p className="text-center text-[14px] font-semibold text-gray-700 mt-3">{selectedPlayer.rating.toLocaleString()} RR</p>
+              <p className="text-center text-[13px] text-gray-500 mt-2">{selectedPlayer.playerId}</p>
+              <p className="text-center text-[14px] font-semibold text-gray-700 mt-4">{selectedPlayer.rating.toLocaleString()} RR</p>
 
               <button
                 type="button"
@@ -349,10 +349,10 @@ export default function FriendsPage() {
         {/* Friend Requests */}
         {friendRequests.length > 0 && (
           <div className="mt-6">
-            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-gray-900 mb-3">フォローリクエスト</h3>
+            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-gray-900 mb-4">フォローリクエスト</h3>
             <div className="space-y-2">
               {friendRequests.map(request => (
-                <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3">
+                <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 flex items-center gap-4">
                   {request.fromIcon ? (
                     <img src={request.fromIcon} alt={request.fromName} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
@@ -369,19 +369,19 @@ export default function FriendsPage() {
                       type="button"
                       onClick={() => acceptFriendRequest(request)}
                       disabled={loading}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-60"
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-60"
                       aria-label="承認"
                     >
-                      <FiCheck className="text-[16px]" />
+                      <CheckIcon className="text-[16px]" />
                     </button>
                     <button
                       type="button"
                       onClick={() => rejectFriendRequest(request)}
                       disabled={loading}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60"
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60"
                       aria-label="拒否"
                     >
-                      <FiX className="text-[16px]" />
+                      <XIcon className="text-[16px]" />
                     </button>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export default function FriendsPage() {
                 {friends.map(friend => (
                   <div
                     key={friend.id}
-                    className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3"
+                    className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 flex items-center gap-4"
                   >
                     {friend.iconUrl ? (
                       <img src={friend.iconUrl} alt={friend.name} className="h-10 w-10 rounded-full object-cover" />

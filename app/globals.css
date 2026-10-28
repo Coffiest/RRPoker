@@ -94,7 +94,7 @@ body {
   color: var(--foreground);
   font-family: var(--stack-mono);
   /* zero: スラッシュ付きゼロ。コンソール書体らしい字形を有効化 */
-  font-feature-settings: "zero" 1, "calt" 1;
+  font-feature-settings: "calt" 1;
   font-variant-ligatures: contextual;
 }
 
@@ -108,8 +108,8 @@ body {
 .tech-num,
 .tabular {
   font-family: var(--stack-mono);
-  font-variant-numeric: tabular-nums slashed-zero;
-  font-feature-settings: "zero" 1, "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* --------------------------------------------------------------------------
@@ -142,7 +142,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-weight: 600;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -466,13 +466,13 @@ body {
 .con-hd {
   position: relative;
   font-family: var(--stack-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--label3);
-  padding: 0 0 7px;
-  margin-bottom: 12px;
+  padding: 0 0 8px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -555,7 +555,7 @@ body {
 /* 数値・コードは等幅で桁を揃える */
 .con-mono {
   font-family: var(--stack-mono);
-  font-variant-numeric: tabular-nums slashed-zero;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -647,7 +647,7 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 52px;
-  padding: 0 22px;
+  padding: 0 24px;
   border: none;
   border-radius: var(--a-capsule);
   font-family: var(--stack-mono);
@@ -777,10 +777,10 @@ body {
 .a-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   min-height: 54px;
-  padding: 13px 18px;
+  padding: 16px 16px;
   background: transparent;
   border: none;
   text-align: left;
@@ -799,7 +799,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--a-label-3);
-  padding: 0 6px 8px;
+  padding: 0 8px 8px;
 }
 
 /* --------------------------------------------------------------------------
@@ -848,7 +848,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   height: 5px;
   border-radius: var(--a-capsule);
   background: rgba(60, 60, 67, 0.20);
-  margin: 9px auto 0;
+  margin: 8px auto 0;
   flex-shrink: 0;
 }
 
@@ -946,7 +946,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
     0 2px 8px rgba(0, 0, 0, 0.03),
     0 14px 38px rgba(0, 0, 0, 0.07);
   border-radius: 30px;
-  padding: 20px;
+  padding: 24px;
 }
 
 /* 主の操作。カプセルにして、押した瞬間に沈む */
@@ -1103,8 +1103,8 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    -------------------------------------------------------------------------- */
 .a-kinetic {
   display: inline-flex;
-  font-variant-numeric: tabular-nums slashed-zero;
-  font-feature-settings: "zero" 1, "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .a-kinetic-col {
   display: inline-block;
@@ -1145,3 +1145,108 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .a-kinetic-col > span { transition: none }
   .a-rise { opacity: 1; transform: none; transition: none }
 }
+
+/* ==========================================================================
+   デザインルール レイヤー(design-rules スキル準拠)
+   Apple HIG を最優先に、全画面へ同じ基準を当てる。上の定義より後に置き、
+   ここで上書きする。白基調・金(#F2A900)・灰色3段(--label/2/3)は変えない。
+   - 書体: 端末のシステムフォント(-apple-system / Hiragino Sans)
+   - 文字: 本文 17px、最小 11px
+   - 余白・寸法: 8 の倍数
+   - 押せる場所: 44px 以上
+   - 装飾: 意味を持たない飾り(方眼・走査線・// 記号・トンボ等)は出さない
+   ========================================================================== */
+:root {
+  --stack-system: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+                  "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --stack-mono: var(--stack-system);
+  --stack-display: var(--stack-system);
+
+  --a-r-sm: 16px;
+  --a-r-md: 16px;
+  --a-r-lg: 24px;
+  --a-r-xl: 32px;
+}
+
+body {
+  font-family: var(--stack-system);
+  font-size: 17px;
+  line-height: 1.47;
+  font-feature-settings: normal;
+  font-variant-ligatures: normal;
+}
+
+.font-display { font-family: var(--stack-system); letter-spacing: -0.01em; }
+.tech-num, .tabular, .con-mono {
+  font-family: var(--stack-system);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 飾りを消す(色は意味を伝える時だけ使う) */
+.tech-grid, .tech-dots { background-image: none; }
+.tech-rule { border-top: 1px solid var(--a-sep); }
+.tech-label-bracket::before, .tech-label-bracket::after,
+.term-prompt::before, .term-prompt-arrow::before, .term-comment::before,
+.tech-caret::after, .tech-corners::before, .tech-corners::after,
+.tech-scanline::after, .con-live-panel::after, .con-panel::before,
+.con-hd::before { content: none; display: none; }
+.tech-status-dot { animation: none; box-shadow: none; }
+
+/* 小さな見出し・ラベル(HIG の footnote 相当) */
+.tech-label, .a-section-hd, .a-eyebrow {
+  font-family: var(--stack-system);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.38;
+  color: var(--label2);
+}
+.uppercase:not([class*="tracking-"]) { letter-spacing: 0.02em; }
+.a-section-hd { padding: 0 8px 8px; }
+
+.con-hd {
+  font-family: var(--stack-system);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--label2);
+  padding: 0 0 8px;
+  margin-bottom: 16px;
+}
+.con-hd::after { background: var(--a-sep); animation: none; }
+.con-panel { border-radius: var(--a-r-lg); box-shadow: var(--a-shadow-sm); }
+.con-btn { font-family: var(--stack-system); letter-spacing: 0; text-transform: none; }
+
+/* ボタン・行(押せる場所 44px 以上、寸法は 8 の倍数) */
+.a-btn {
+  font-family: var(--stack-system);
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.a-btn-filled {
+  background: #F2A900;
+  box-shadow: none;
+}
+.a-btn-sm { min-height: 44px; padding: 0 16px; font-size: 15px; }
+.a-btn-icon { min-height: 44px; width: 44px; padding: 0; }
+.a-row { min-height: 56px; padding: 16px; gap: 16px; }
+.a-grabber { margin: 8px auto 0; }
+.a-switch { min-width: 51px; }
+
+/* 文字の階層(HIG Dynamic Type の既定値) */
+.a-display { font-size: 34px; line-height: 1.2; letter-spacing: -0.02em; }
+.a-title-lg{ font-size: 28px; line-height: 1.21; letter-spacing: -0.015em; }
+.a-title   { font-size: 22px; line-height: 1.27; letter-spacing: -0.01em; }
+.a-heading { font-size: 17px; line-height: 1.29; letter-spacing: 0; font-weight: 600; }
+.a-body    { font-size: 17px; line-height: 1.29; }
+.a-caption { font-size: 13px; line-height: 1.38; letter-spacing: 0; }
+
+/* 主の操作は金の単色。グラデーション・光沢は使わない */
+.gold-btn, .gold-btn:active { background: #F2A900; box-shadow: none; }
+.a-kinetic { font-feature-settings: "tnum" 1; }

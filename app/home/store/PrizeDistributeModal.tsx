@@ -1,4 +1,5 @@
 "use client"
+import { CheckIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
 import {
@@ -379,7 +380,7 @@ await updateDoc(tournamentRef, {
 
 for (const p of payouts) {
 
-  // 🔴 仮プレイヤーはスキップ
+  // 仮プレイヤーはスキップ
   if (p.playerId.startsWith("temp_")) continue
 
   const balRef = doc(db, "users", p.playerId, "storeBalances", balanceGroupId ?? storeId!)
@@ -461,16 +462,16 @@ for (const p of payouts) {
         <div className="a-grabber" />
 
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
           <button
             onClick={onClose}
-            style={{ width: 34, height: 34, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
-          >×</button>
+            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+          ><XIcon size={20} /></button>
           <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Pay Out</span>
           <button
             onClick={async () => { await saveDraft(); onClose() }}
-            style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
-          >✓</button>
+            style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
+          ><CheckIcon size={20} /></button>
         </div>
 
         {/* スクロール可能ボディ */}
@@ -480,24 +481,24 @@ for (const p of payouts) {
           ) : (
             <>
               {/* Prize Pool カード */}
-              <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '14px 18px', marginBottom: 16 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
+              <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 8 }}>Prize Pool</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
               {/* 順位行 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                 {rows.map((r, idx) => (
-                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 16, padding: '12px 14px' }}>
+                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px' }}>
                     {/* 順位バッジ + プレイヤー選択 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <div style={{ width: 30, height: 30, borderRadius: '50%', background: r.rank <= 3 ? MEDAL[r.rank] : '#D1D1D6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: r.rank <= 3 ? '0 2px 6px rgba(0,0,0,0.18)' : 'none' }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>{r.rank}</span>
                       </div>
                       <select
                         value={r.playerId}
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: e.target.value } : x))}
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 10px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 8px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
                       >
                         <option value="">プレイヤーを選択</option>
                         {participants.map(p => <option key={p.id} value={p.id}>{p.name ?? p.id}</option>)}
@@ -510,11 +511,11 @@ for (const p of payouts) {
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, amount: e.target.value } : x))}
                         placeholder="金額"
                         inputMode="numeric"
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 12px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
                       />
                       <button
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
-                        style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : 'var(--label3)', fontSize: 20, fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ width: 44, height: 44, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : 'var(--label3)', fontSize: 20, fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >＋</button>
                     </div>
                     {/* 景品テキスト */}
@@ -524,7 +525,7 @@ for (const p of payouts) {
                           value={r.text}
                           onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
                           placeholder="景品・メモ"
-                          style={{ width: '100%', height: 36, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', height: 36, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                     )}
@@ -537,7 +538,7 @@ for (const p of payouts) {
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: 'var(--label3)', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 12 }}
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: 'var(--label3)', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 16 }}
               >＋ 入賞者を追加</button>
 
               {/* コメント */}
@@ -546,7 +547,7 @@ for (const p of payouts) {
                 onChange={e => setComment(e.target.value)}
                 placeholder="コメント（タイマー画面に表示）"
                 rows={2}
-                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#F2F2F7', padding: '12px 14px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 4 }}
+                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#F2F2F7', padding: '16px 16px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
               />
 
               {error && <p style={{ color: '#FF3B30', fontSize: 13, marginTop: 8, textAlign: 'center' }}>{error}</p>}
@@ -555,13 +556,13 @@ for (const p of payouts) {
         </div>
 
         {/* フッター: Pay Out ボタン */}
-        <div style={{ padding: '12px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
+        <div style={{ padding: '16px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
           <ChipDisclaimer className="pb-2" />
           <button
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
-            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
+            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F2A900', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
           >Pay Out</button>
         </div>
       </div>
@@ -570,12 +571,12 @@ for (const p of payouts) {
       {confirmOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 450, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: '0 24px' }}>
           <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}>
-            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>プライズを配布しますか？</p>
+            <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#D70015' }}><TriangleAlertIcon size={24} /></div>
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>プライズを配布しますか？</p>
               <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.6 }}>この操作は取り消せません</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}

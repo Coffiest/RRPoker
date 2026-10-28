@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
 
   return (
-    <main className="tech-grid min-h-screen bg-white px-5">
+    <main className="tech-grid min-h-screen bg-white px-6">
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
           <h1 className="font-display text-[28px] font-semibold leading-tight text-gray-900">
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
           <p className="term-comment mt-2 text-[14px] text-gray-500">パスワード再設定</p>
         </div>
 
-        <div className="tech-corners mt-7 rounded-[24px] border border-gray-200 p-4">
+        <div className="tech-corners mt-8 rounded-[24px] border border-gray-200 p-4">
           <label className="tech-label tech-label-bracket block text-gray-500">メールアドレス</label>
           <input
             type="email"
@@ -61,15 +61,15 @@ export default function ForgotPasswordPage() {
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </button>
 
-          {error && <p className="term-prompt mt-3 text-center text-[13px] text-red-500">{error}</p>}
+          {error && <p className="term-prompt mt-4 text-center text-[13px] text-red-500">{error}</p>}
           {success && (
-            <p className="term-prompt-arrow mt-3 text-center text-[13px] text-green-600">
+            <p className="term-prompt-arrow mt-4 text-center text-[13px] text-green-600">
               パスワード再設定メールを送信しました。メールをご確認ください。
             </p>
           )}
         </div>
 
-        <div className="mt-6 flex items-center justify-center pb-7 text-[13px] text-gray-500">
+        <div className="mt-6 flex items-center justify-center pb-8 text-[13px] text-gray-500">
           <button
             type="button"
             onClick={() => router.push("/login")}

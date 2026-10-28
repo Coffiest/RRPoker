@@ -1,8 +1,8 @@
 "use client"
+import { CheckIcon, PlusIcon, RefreshCwIcon, SearchIcon, Trash2Icon, XIcon } from 'lucide-react'
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { FiPlus, FiTrash2, FiRefreshCw, FiCheck, FiX, FiSearch } from "react-icons/fi"
 import AdminPlayersTab from "./AdminPlayersTab"
 
 type CircleCode = { id: string; active: boolean; usedBy: string | null; createdAt?: number }
@@ -47,7 +47,7 @@ function SubscriptionBadge({ sub, isFree }: { sub: StoreSubscription | null; isF
       <span className="text-xs font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">
         手動無料化
         {sub.currentPeriodEnd && (
-          <span className="ml-1 font-normal">
+          <span className="ml-2 font-normal">
             〜{new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
           </span>
         )}
@@ -219,7 +219,7 @@ export default function AdminPage() {
         </div>
 
         {apiError && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
+          <div className="mb-4 px-4 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
             {apiError}
           </div>
         )}
@@ -242,11 +242,11 @@ export default function AdminPage() {
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-400">{codes.length} 件</p>
               <div className="flex gap-2">
-                <button onClick={fetchCodes} disabled={loadingCodes} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
-                  <FiRefreshCw size={13} className={loadingCodes ? "animate-spin" : ""} /> 更新
+                <button onClick={fetchCodes} disabled={loadingCodes} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
+                  <RefreshCwIcon size={13} className={loadingCodes ? "animate-spin" : ""} /> 更新
                 </button>
-                <button onClick={generateCode} disabled={generating} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#F2A900] text-black text-sm font-bold hover:bg-amber-400 disabled:opacity-50">
-                  <FiPlus size={14} /> コードを発行
+                <button onClick={generateCode} disabled={generating} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#F2A900] text-black text-sm font-bold hover:bg-amber-400 disabled:opacity-50">
+                  <PlusIcon size={14} /> コードを発行
                 </button>
               </div>
             </div>
@@ -256,24 +256,24 @@ export default function AdminPage() {
                 <p className="term-comment text-center text-gray-400 py-8 text-sm">コードがありません</p>
               )}
               {codes.map(c => (
-                <div key={c.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3">
+                <div key={c.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-4">
                   <div>
                     <p className="font-mono text-sm font-medium">{c.id}</p>
                     {c.usedBy && <p className="text-xs text-gray-400 mt-0.5">使用済: {c.usedBy}</p>}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     {c.active && !c.usedBy ? (
-                      <span className="text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <FiCheck size={11} /> 有効
+                      <span className="text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full flex items-center gap-2">
+                        <CheckIcon size={11} /> 有効
                       </span>
                     ) : (
-                      <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <FiX size={11} /> {c.usedBy ? "使用済" : "無効"}
+                      <span className="text-xs font-bold text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full flex items-center gap-2">
+                        <XIcon size={11} /> {c.usedBy ? "使用済" : "無効"}
                       </span>
                     )}
                     {c.active && !c.usedBy && (
                       <button onClick={() => deactivateCode(c.id)} className="text-gray-400 hover:text-red-400 transition-colors">
-                        <FiTrash2 size={15} />
+                        <Trash2Icon size={15} />
                       </button>
                     )}
                   </div>
@@ -287,19 +287,19 @@ export default function AdminPage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-400">{stores.length} ストア</p>
-              <button onClick={fetchStores} disabled={loadingStores} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
-                <FiRefreshCw size={13} className={loadingStores ? "animate-spin" : ""} /> 更新
+              <button onClick={fetchStores} disabled={loadingStores} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
+                <RefreshCwIcon size={13} className={loadingStores ? "animate-spin" : ""} /> 更新
               </button>
             </div>
 
             <div className="relative mb-4">
-              <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={storeSearch}
                 onChange={e => setStoreSearch(e.target.value)}
                 placeholder="ストア名・コード・IDで検索"
-                className="w-full bg-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40"
+                className="w-full bg-gray-800 rounded-xl pl-10 pr-4 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40"
               />
             </div>
 
@@ -311,17 +311,17 @@ export default function AdminPage() {
                 <p className="term-comment text-center text-gray-400 py-8 text-sm">ストアが見つかりません</p>
               )}
               {filteredStores.map(s => (
-                <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-3 gap-3">
+                <div key={s.id} className="flex items-center justify-between bg-gray-900 rounded-xl px-4 py-4 gap-4">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{s.name || "(名称未設定)"}</p>
                     <p className="text-xs text-gray-400 font-mono truncate">{s.id}</p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-4 shrink-0">
                     <SubscriptionBadge sub={s.subscription} isFree={s.isFree} />
                     <button
                       onClick={() => s.isFree ? revokeFree(s.id) : setFreeModalStore(s)}
                       disabled={savingStoreId === s.id}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                      className={`text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 ${
                         s.isFree
                           ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
                           : "bg-purple-600 text-white hover:bg-purple-500"
@@ -344,7 +344,7 @@ export default function AdminPage() {
         {freeModalStore && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
             <div className="w-full max-w-sm rounded-2xl bg-gray-900 p-6 shadow-2xl">
-              <h2 className="text-base font-bold mb-1">無料期間を設定</h2>
+              <h2 className="text-base font-bold mb-2">無料期間を設定</h2>
               <p className="text-xs text-gray-400 mb-4 truncate">{freeModalStore.name || freeModalStore.id}</p>
 
               <div className="space-y-2 mb-4">
@@ -371,7 +371,7 @@ export default function AdminPage() {
                     value={freeCustomMonths}
                     onChange={e => setFreeCustomMonths(e.target.value)}
                     placeholder="例: 3"
-                    className="w-full bg-gray-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40 ml-6"
+                    className="w-full bg-gray-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40 ml-6"
                     style={{ width: "calc(100% - 1.5rem)" }}
                   />
                 )}
@@ -380,14 +380,14 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setFreeModalStore(null)}
-                  className="flex-1 h-10 rounded-xl bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700"
+                  className="flex-1 h-11 rounded-xl bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700"
                 >
                   キャンセル
                 </button>
                 <button
                   onClick={confirmGrantFree}
                   disabled={savingStoreId === freeModalStore.id}
-                  className="flex-1 h-10 rounded-xl bg-purple-600 text-sm font-bold text-white hover:bg-purple-500 disabled:opacity-50"
+                  className="flex-1 h-11 rounded-xl bg-purple-600 text-sm font-bold text-white hover:bg-purple-500 disabled:opacity-50"
                 >
                   {savingStoreId === freeModalStore.id ? "..." : "適用する"}
                 </button>

@@ -1,4 +1,5 @@
 "use client"
+import { CircleAlertIcon, CircleCheckIcon, CreditCardIcon, FileTextIcon, GlobeIcon, InstagramIcon, MapPinIcon, PenIcon, TargetIcon, TriangleAlertIcon, TwitterIcon, UserIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -6,8 +7,6 @@ import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { deleteField, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
-import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe, FiCreditCard } from "react-icons/fi"
-import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
 import TechBackdrop from "@/components/TechBackdrop"
 import StoreBottomNav from "@/components/StoreBottomNav"
@@ -445,7 +444,6 @@ export default function StoreMyPage() {
           font-family: var(--stack-mono); letter-spacing: 0.06em;
           padding-bottom: 8px;
         }
-        .con-title::before { content: "//"; color: #F2A900; opacity: .75; font-size: 0.6em; }
         .con-title::after {
           content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px;
           background: linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
@@ -475,20 +473,20 @@ export default function StoreMyPage() {
       `}</style>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
-      <div className="mx-auto max-w-sm px-5">
+      <div className="mx-auto max-w-sm px-6">
         {/* 端末の見出し。稼働ドットで「開いている」ことを示す。 */}
-        <div className="pt-[28px] flex items-center justify-between">
+        <div className="pt-[32px] flex items-center justify-between">
           <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span className="tech-status-dot" />
-            <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>STORE</span>
+            <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>STORE</span>
           </span>
         </div>
 
         {/* Profile Card */}
         <div className="mt-6 profile-card p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
           {/* Icon Section */}
-          <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
+          <div className="flex items-center gap-4 pb-6 border-b border-gray-100">
             <div className="relative shrink-0">
               {previewUrl || profile.iconUrl ? (
                 <img
@@ -498,7 +496,7 @@ export default function StoreMyPage() {
                 />
               ) : (
                 <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
-                  <FiUser size={32} />
+                  <UserIcon size={32} />
                 </div>
               )}
               {savingIcon && (
@@ -509,10 +507,10 @@ export default function StoreMyPage() {
               <button
                 type="button"
                 onClick={openIconPicker}
-                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-lg flex items-center justify-center text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all active:scale-95"
+                className="absolute -bottom-1 -right-1 h-11 w-11 rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-lg flex items-center justify-center text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all active:scale-95"
                 aria-label="アイコンを編集"
               >
-                <FiEdit2 size={14} />
+                <PenIcon size={14} />
               </button>
               <input
                 ref={fileInputRef}
@@ -525,12 +523,12 @@ export default function StoreMyPage() {
 
             <div className="flex-1">
               <p className="text-[18px] font-semibold text-gray-900">{profile.name ?? ""}</p>
-              <p className="mt-1 text-[13px] text-gray-500">{email}</p>
+              <p className="mt-2 text-[13px] text-gray-500">{email}</p>
             </div>
           </div>
 
           {/* Editable Fields */}
-          <div className="mt-5 space-y-4">
+          <div className="mt-6 space-y-4">
             {/* Store Name */}
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -539,10 +537,10 @@ export default function StoreMyPage() {
                   <button
                     type="button"
                     onClick={() => setEditingField("name")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                     aria-label="店舗名を編集"
                   >
-                    <FiEdit2 size={14} />
+                    <PenIcon size={14} />
                   </button>
                 )}
               </div>
@@ -563,17 +561,17 @@ export default function StoreMyPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <FiFileText size={14} className="text-label3" />
+                  <FileTextIcon size={14} className="text-label3" />
                   <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
                 </div>
                 {editingField !== "description" && (
                   <button
                     type="button"
                     onClick={() => setEditingField("description")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                     aria-label="店舗の説明を編集"
                   >
-                    <FiEdit2 size={14} />
+                    <PenIcon size={14} />
                   </button>
                 )}
               </div>
@@ -581,7 +579,7 @@ export default function StoreMyPage() {
                 <textarea
                   value={draftDescription}
                   onChange={e => setDraftDescription(e.target.value)}
-                  className="h-24 w-full px-4 py-3 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                  className="h-24 w-full px-4 py-4 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
                   autoFocus
                 />
               ) : (
@@ -593,17 +591,17 @@ export default function StoreMyPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <FiMapPin size={14} className="text-label3" />
+                  <MapPinIcon size={14} className="text-label3" />
                   <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
                 </div>
                 {editingField !== "postalCode" && (
                   <button
                     type="button"
                     onClick={() => setEditingField("postalCode")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                     aria-label="郵便番号を編集"
                   >
-                    <FiEdit2 size={14} />
+                    <PenIcon size={14} />
                   </button>
                 )}
               </div>
@@ -628,10 +626,10 @@ export default function StoreMyPage() {
                   <button
                     type="button"
                     onClick={() => setEditingField("addressLine")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                     aria-label="住所を編集"
                   >
-                    <FiEdit2 size={14} />
+                    <PenIcon size={14} />
                   </button>
                 )}
               </div>
@@ -656,10 +654,10 @@ export default function StoreMyPage() {
                   <button
                     type="button"
                     onClick={() => setEditingField("addressDetail")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                     aria-label="番地を編集"
                   >
-                    <FiEdit2 size={14} />
+                    <PenIcon size={14} />
                   </button>
                 )}
               </div>
@@ -679,21 +677,21 @@ export default function StoreMyPage() {
 
           {/* Messages */}
           {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
-              <FiAlertCircle className="text-red-600 shrink-0" size={18} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-4">
+              <CircleAlertIcon className="text-red-600 shrink-0" size={18} />
               <p className="text-[13px] text-red-700 font-medium">{error}</p>
             </div>
           )}
           {success && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-3 animate-slideUp">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={18} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-4 animate-slideUp">
+              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={18} />
               <p className="text-[13px] text-[#D4910A] font-medium">{success}</p>
             </div>
           )}
 
           {/* Save Button */}
           {editingField && (
-            <div className="mt-5 flex gap-3">
+            <div className="mt-6 flex gap-4">
               <button
                 type="button"
                 onClick={() => {
@@ -719,12 +717,12 @@ export default function StoreMyPage() {
         {/* Blind Settings Card */}
         <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
-            <FiTarget className="text-[#F2A900]" size={18} />
+            <TargetIcon className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">ブラインド設定</p>
           </div>
           <p className="text-[13px] text-gray-500 mb-4">空欄で保存すると解除されます</p>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="flex-1">
               <label className="block text-[11px] font-medium text-gray-600 mb-2">SB</label>
               <input
@@ -751,14 +749,14 @@ export default function StoreMyPage() {
           </div>
 
           {blindError && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+              <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
               <p className="text-[12px] text-red-700 font-medium">{blindError}</p>
             </div>
           )}
           {blindSuccess && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
+              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={16} />
               <p className="text-[12px] text-[#D4910A] font-medium">{blindSuccess}</p>
             </div>
           )}
@@ -775,15 +773,15 @@ export default function StoreMyPage() {
         {/* SNS Links Card */}
         <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
-            <FiGlobe className="text-[#F2A900]" size={18} />
+            <GlobeIcon className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
           </div>
           <p className="text-[13px] text-gray-500 mb-4">入力したリンクはプレイヤーのスケジュール画面に表示されます</p>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FaInstagram size={13} className="text-[#E1306C]" />Instagram URL
+              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
+                <InstagramIcon size={13} className="text-[#E1306C]" />Instagram URL
               </label>
               <input
                 type="url"
@@ -794,8 +792,8 @@ export default function StoreMyPage() {
               />
             </div>
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FaXTwitter size={13} className="text-gray-900" />X（旧Twitter）URL
+              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
+                <TwitterIcon size={13} className="text-gray-900" />X（旧Twitter）URL
               </label>
               <input
                 type="url"
@@ -806,8 +804,8 @@ export default function StoreMyPage() {
               />
             </div>
             <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FiGlobe size={13} className="text-blue-500" />Webサイト URL
+              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
+                <GlobeIcon size={13} className="text-blue-500" />Webサイト URL
               </label>
               <input
                 type="url"
@@ -820,14 +818,14 @@ export default function StoreMyPage() {
           </div>
 
           {snsError && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+              <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
               <p className="text-[12px] text-red-700 font-medium">{snsError}</p>
             </div>
           )}
           {snsSuccess && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
+            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
+              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={16} />
               <p className="text-[12px] text-[#D4910A] font-medium">{snsSuccess}</p>
             </div>
           )}
@@ -845,13 +843,13 @@ export default function StoreMyPage() {
         {/* Subscription Card */}
         <div className="mt-4 profile-card p-6 animate-slideUp">
           <div className="flex items-center gap-2 mb-4">
-            <FiCreditCard className="text-[#F2A900]" size={18} />
+            <CreditCardIcon className="text-[#F2A900]" size={18} />
             <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
           </div>
 
           {subscription ? (
             <>
-              <div className="space-y-3 mb-5">
+              <div className="space-y-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-[13px] text-gray-500">プラン</span>
                   <span className="text-[14px] font-semibold text-gray-900">
@@ -866,16 +864,16 @@ export default function StoreMyPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-[13px] text-gray-500">ステータス</span>
                   {isSubscriptionActive(subscription) && !subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">有効</span>
+                    <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-4 py-0.5 rounded-full">有効</span>
                   )}
                   {isSubscriptionActive(subscription) && subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full">キャンセル予定</span>
+                    <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-4 py-0.5 rounded-full">キャンセル予定</span>
                   )}
                   {subscription.status === "past_due" && (
-                    <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-3 py-0.5 rounded-full">支払い失敗</span>
+                    <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-4 py-0.5 rounded-full">支払い失敗</span>
                   )}
                   {!isSubscriptionActive(subscription) && subscription.status !== "past_due" && (
-                    <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-3 py-0.5 rounded-full">停止中</span>
+                    <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-4 py-0.5 rounded-full">停止中</span>
                   )}
                 </div>
                 {subscription.currentPeriodEnd && (
@@ -893,14 +891,14 @@ export default function StoreMyPage() {
               </div>
 
               {billingError && (
-                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-                  <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+                <div className="mb-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+                  <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
                   <p className="text-[12px] text-red-700 font-medium">{billingError}</p>
                 </div>
               )}
               {billingSuccess && (
-                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
-                  <FiCheckCircle className="text-green-600 shrink-0" size={16} />
+                <div className="mb-4 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
+                  <CircleCheckIcon className="text-green-600 shrink-0" size={16} />
                   <p className="text-[12px] text-green-700 font-medium">{billingSuccess}</p>
                 </div>
               )}
@@ -982,7 +980,7 @@ export default function StoreMyPage() {
             </>
           ) : (
             <div className="text-center py-4">
-              <p className="text-[13px] text-gray-500 mb-3">有効なサブスクリプションがありません</p>
+              <p className="text-[13px] text-gray-500 mb-4">有効なサブスクリプションがありません</p>
               <button
                 type="button"
                 onClick={() => router.push("/home/store/billing")}
@@ -998,9 +996,9 @@ export default function StoreMyPage() {
         {showCancelConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
             <div className="a-dialog w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <FiAlertCircle className="text-orange-600" size={24} />
+                  <CircleAlertIcon className="text-orange-600" size={24} />
                 </div>
                 <h2 className="text-[18px] font-semibold text-gray-900">キャンセル確認</h2>
               </div>
@@ -1008,7 +1006,7 @@ export default function StoreMyPage() {
                 サブスクリプションをキャンセルしますか？<br />
                 期間終了まで引き続きご利用いただけます。
               </p>
-              <div className="mt-5 flex gap-3">
+              <div className="mt-6 flex gap-4">
                 <button
                   type="button"
                   onClick={() => setShowCancelConfirm(false)}
@@ -1031,7 +1029,7 @@ export default function StoreMyPage() {
         )}
 
         {/* Action Buttons */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-4">
           <button
             type="button"
             onClick={() => router.push("/home/store/mypage/password")}
@@ -1059,21 +1057,21 @@ export default function StoreMyPage() {
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
             <div className="a-dialog w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-4 mb-4">
                 <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <FiAlertCircle className="text-red-600" size={24} />
+                  <CircleAlertIcon className="text-red-600" size={24} />
                 </div>
                 <h2 className="text-[18px] font-semibold text-gray-900">アカウント削除</h2>
               </div>
               <p className="text-[14px] text-gray-600 leading-relaxed">
                 本当にアカウントを削除しますか？
               </p>
-              <div className="mt-3 bg-red-50 rounded-2xl p-4 border border-red-100">
-                <p className="text-[13px] text-red-700 font-medium">⚠️ この操作は取り消せません</p>
-                <p className="text-[12px] text-gray-600 mt-1">• 保持チップやレートも失われます</p>
+              <div className="mt-4 bg-red-50 rounded-2xl p-4 border border-red-100">
+                <p className="text-[13px] text-red-700 font-medium"><TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> この操作は取り消せません</p>
+                <p className="text-[12px] text-gray-600 mt-2">• 保持チップやレートも失われます</p>
                 <p className="text-[12px] text-gray-600">• すべてのデータが完全に削除されます</p>
               </div>
-              <div className="mt-5 flex gap-3">
+              <div className="mt-6 flex gap-4">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}

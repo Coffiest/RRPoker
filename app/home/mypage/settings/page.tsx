@@ -88,7 +88,7 @@ export default function UserSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="min-h-screen bg-white px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
@@ -122,19 +122,19 @@ export default function UserSettingsPage() {
           </button>
         </div>
 
-        {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
-        {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
+        {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
+        {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
           <label className="text-[12px] text-gray-500">{t('settings.language')}</label>
           <p className="mt-0.5 text-[11px] text-label3">{t('settings.languageNote')}</p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-2">
             {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
               <button
                 key={opt.v}
                 type="button"
                 onClick={() => setLanguage(opt.v)}
-                className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+                className="flex-1 h-11 rounded-2xl text-[13px] font-semibold transition-all"
                 style={{
                   background: language === opt.v ? '#F2A900' : '#F3F4F6',
                   color: language === opt.v ? '#1a1a1a' : '#6b7280',
@@ -149,11 +149,11 @@ export default function UserSettingsPage() {
         <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
           <label className="text-[12px] text-gray-500">位置情報の利用</label>
           <p className="mt-0.5 text-[11px] text-label3">近くの店舗を距離順に表示するために使用します</p>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-2">
             <button
               type="button"
               onClick={() => updateGeoConsent("granted")}
-              className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+              className="flex-1 h-11 rounded-2xl text-[13px] font-semibold transition-all"
               style={{ background: geoConsent === "granted" ? '#F2A900' : '#F3F4F6', color: geoConsent === "granted" ? '#1a1a1a' : '#6b7280' }}
             >
               使う
@@ -161,7 +161,7 @@ export default function UserSettingsPage() {
             <button
               type="button"
               onClick={() => updateGeoConsent("declined")}
-              className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
+              className="flex-1 h-11 rounded-2xl text-[13px] font-semibold transition-all"
               style={{ background: geoConsent === "declined" ? '#F2A900' : '#F3F4F6', color: geoConsent === "declined" ? '#1a1a1a' : '#6b7280' }}
             >
               使わない
@@ -180,7 +180,7 @@ export default function UserSettingsPage() {
         <button
           type="button"
           onClick={() => window.open('/privacy', '_blank')}
-          className="mt-3 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-700"
+          className="mt-4 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-700"
         >
           {t('common.privacyPolicy')}
         </button>

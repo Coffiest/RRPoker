@@ -101,7 +101,7 @@ export default function UserWelcomePage() {
   }, [])
 
   return (
-    <main style={{ background: '#FFFBF5' }} className="min-h-screen px-5 pb-16">
+    <main style={{ background: '#FFFBF5' }} className="min-h-screen px-6 pb-16">
       <style>{`
         @keyframes slideUp {
           from { opacity:0; transform:translateY(12px); }
@@ -142,7 +142,7 @@ export default function UserWelcomePage() {
           box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         .shimmer-text {
-          background: linear-gradient(90deg, #D4910A 0%, #F2A900 40%, #ffe066 55%, #F2A900 70%, #D4910A 100%);
+          background: #F2A900;
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -150,7 +150,7 @@ export default function UserWelcomePage() {
           animation: shimmer 2.4s linear infinite;
         }
         .btn-primary {
-          background: linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
+          background: #F2A900;
           box-shadow: 0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.13s ease, box-shadow 0.13s ease;
           animation: pulse-ring 2s ease-out 1.2s 3;
@@ -193,9 +193,9 @@ export default function UserWelcomePage() {
         <div className="pt-14 text-center">
           {/* Trophy icon */}
           <div
-            className="pop mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px]"
+            className="pop mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[28px]"
             style={{
-              background: 'linear-gradient(135deg,#F2A900 0%,#D4910A 100%)',
+              background: '#F2A900',
               boxShadow: '0 8px 28px rgba(242,169,0,0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
@@ -215,24 +215,24 @@ export default function UserWelcomePage() {
               <span className="text-gray-900"> さん、</span>
               <br />ようこそ！
             </h1>
-            <p className="mt-3 text-[14px] text-gray-500 leading-relaxed">
-              セットアップ完了。あなたのポーカーライフが<br />今日からはじまります🎉
+            <p className="mt-4 text-[14px] text-gray-500 leading-relaxed">
+              セットアップ完了。あなたのポーカーライフが<br />今日からはじまります
             </p>
           </div>
         </div>
 
-        <div className="divider-line mt-7 d2" />
+        <div className="divider-line mt-8 d2" />
 
         {/* Feature list */}
         <div className="mt-6 d3">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.7px] text-label3 mb-3">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.7px] text-label3 mb-4">
             できること
           </p>
-          <div className="profile-card rounded-3xl p-3 space-y-1">
+          <div className="profile-card rounded-3xl p-4 space-y-2">
             {FEATURES.map((f, i) => (
               <div
                 key={i}
-                className={`feature-item flex items-start gap-3 rounded-2xl border px-3 py-3 ${
+                className={`feature-item flex items-start gap-4 rounded-2xl border px-4 py-4 ${
                   i === featureIndex
                     ? 'active border-[rgba(242,169,0,0.35)]'
                     : 'border-transparent'
@@ -257,7 +257,7 @@ export default function UserWelcomePage() {
           </div>
 
           {/* Dot indicator */}
-          <div className="flex justify-center gap-1.5 mt-3">
+          <div className="flex justify-center gap-2 mt-4">
             {FEATURES.map((_, i) => (
               <div key={i} className={`dot ${i === featureIndex ? 'active' : ''}`} />
             ))}
@@ -265,9 +265,9 @@ export default function UserWelcomePage() {
         </div>
 
         {/* Tip rotator */}
-        <div className="mt-5 d4">
+        <div className="mt-6 d4">
           <div
-            className="rounded-2xl px-4 py-3 flex items-start gap-2.5"
+            className="rounded-2xl px-4 py-4 flex items-start gap-2"
             style={{
               background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)',
               border: '1px solid rgba(242,169,0,0.2)',
@@ -286,14 +286,14 @@ export default function UserWelcomePage() {
         </div>
 
         {/* Stats teaser */}
-        <div className="mt-5 grid grid-cols-3 gap-2 d5">
+        <div className="mt-6 grid grid-cols-3 gap-2 d5">
           {[
             { label: 'チップ残高', value: '0', unit: '' },
             { label: 'RR Rating', value: '1000', unit: 'pt' },
             { label: 'トナメ参加', value: '0', unit: '回' },
           ].map((s, i) => (
-            <div key={i} className="profile-card rounded-2xl p-3 text-center">
-              <p className="text-[10px] text-label3 mb-1">{s.label}</p>
+            <div key={i} className="profile-card rounded-2xl p-4 text-center">
+              <p className="text-[11px] text-label3 mb-2">{s.label}</p>
               <p className="text-[18px] font-bold text-gray-900">
                 {s.value}
                 <span className="text-[11px] font-medium text-label3 ml-0.5">{s.unit}</span>
@@ -303,7 +303,7 @@ export default function UserWelcomePage() {
         </div>
 
         {/* CTA */}
-        <div className="mt-7 d6">
+        <div className="mt-8 d6">
           <button
             type="button"
             onClick={async () => {
@@ -318,7 +318,7 @@ export default function UserWelcomePage() {
             </svg>
             はじめる
           </button>
-          <p className="mt-3 text-center text-[12px] text-label3">
+          <p className="mt-4 text-center text-[12px] text-label3">
             いつでもプロフィールは編集できます
           </p>
         </div>

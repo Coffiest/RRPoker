@@ -1,4 +1,5 @@
 "use client"
+import { ClubIcon, DiamondIcon, HeartIcon, SpadeIcon } from 'lucide-react'
 
 import { useState, type CSSProperties } from "react"
 
@@ -10,7 +11,7 @@ import { useState, type CSSProperties } from "react"
  * ランクは A/K/Q/J/T/2-10 を受け付ける。
  */
 
-const SUIT_GLYPH: Record<string, string> = { s: "♠", h: "♥", d: "♦", c: "♣" }
+const SUIT_ICON = { s: SpadeIcon, h: HeartIcon, d: DiamondIcon, c: ClubIcon } as const
 // 画像のデザインに合わせた4色デッキ(スペード=黒, ハート=赤, ダイヤ=青, クラブ=緑)
 const SUIT_COLOR: Record<string, string> = { s: "#1D1D1F", h: "#E53E3A", d: "#2563EB", c: "#16A34A" }
 
@@ -54,10 +55,10 @@ function CardFace({ card, height }: { card: string; height: number }) {
   return (
     <span
       className="inline-flex flex-col items-center justify-center font-bold leading-none select-none"
-      style={{ ...box, background: "#FFFFFF", border: "1px solid #E8E3DB", color: SUIT_COLOR[suit], fontSize: Math.max(5, height * 0.3) }}
+      style={{ ...box, background: "#FFFFFF", border: "1px solid #E8E3DB", color: SUIT_COLOR[suit], fontSize: Math.max(11, height * 0.3) }}
     >
       <span>{card.slice(0, -1)}</span>
-      <span>{SUIT_GLYPH[suit]}</span>
+      {(() => { const Icon = SUIT_ICON[suit as keyof typeof SUIT_ICON]; return Icon ? <Icon size={Math.max(8, height * 0.3)} fill="currentColor" strokeWidth={0} /> : null })()}
     </span>
   )
 }

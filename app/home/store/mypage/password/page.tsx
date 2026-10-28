@@ -47,7 +47,7 @@ export default function StorePasswordChangePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="min-h-screen bg-white px-6">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
@@ -67,18 +67,18 @@ export default function StorePasswordChangePage() {
             placeholder="新しいパスワード"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード（確認）"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
           />
 
-          {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
-          {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
+          {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
+          {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
 
           <button
             type="button"

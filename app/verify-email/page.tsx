@@ -1,4 +1,5 @@
 "use client"
+import { AtSignIcon, FolderIcon, MailIcon, TimerIcon, TriangleAlertIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
@@ -41,7 +42,7 @@ export default function VerifyEmailPage() {
     setResending(true)
     try {
       await sendEmailVerification(user)
-      setMessage("確認メールを再送しました ✓"); setMessageType("ok"); setCooldown(60)
+      setMessage("確認メールを再送しました"); setMessageType("ok"); setCooldown(60)
     } catch {
       setMessage("再送に失敗しました。時間をおいてお試しください。"); setMessageType("err")
     } finally { setResending(false) }
@@ -120,7 +121,7 @@ export default function VerifyEmailPage() {
         .d5{ animation-delay:.44s; }
 
         .shimmer-text {
-          background:linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
+          background:#F2A900;
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 3s linear infinite;
@@ -133,10 +134,10 @@ export default function VerifyEmailPage() {
         .pop { animation:pop-in .55s cubic-bezier(.22,1,.36,1) .08s both; }
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
-          background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
+          background:#F2A900;
           color:#1a1a1a; font-size:15px; font-weight:800; letter-spacing:-.1px;
           box-shadow:0 4px 18px rgba(242,169,0,0.32);
-          display:flex; align-items:center; justify-content:center; gap:7px;
+          display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease;
           animation:pulse-ring 2.6s ease-in-out 1s infinite;
           position:relative; overflow:hidden;
@@ -152,7 +153,7 @@ export default function VerifyEmailPage() {
           width:100%; height:50px; border-radius:14px; cursor:pointer;
           background:#fff; border:1.5px solid rgba(60,60,67,0.15);
           color:var(--label); font-size:15px; font-weight:600;
-          display:flex; align-items:center; justify-content:center; gap:7px;
+          display:flex; align-items:center; justify-content:center; gap:8px;
           box-shadow:0 1px 4px rgba(0,0,0,0.05);
           transition:transform .13s ease, border-color .13s, background .13s;
         }
@@ -186,7 +187,7 @@ export default function VerifyEmailPage() {
       <header className="sticky top-0 z-50 border-b"
         style={{ background:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:'rgba(60,60,67,0.07)', position:'relative', zIndex:50 }}
       >
-        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 20px', minHeight:64, display:'flex', alignItems:'center' }}>
+        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center' }}>
           <button type="button" onClick={() => router.push('/')}
             style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'pointer', padding:0 }}
           >
@@ -197,16 +198,16 @@ export default function VerifyEmailPage() {
       </header>
 
       {/* ── Main ── */}
-      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 20px 60px' }}>
+      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 24px 64px' }}>
 
         {/* ── エンベロープヒーロー ── */}
         <div style={{ paddingTop:40, paddingBottom:24, textAlign:'center' }}>
 
           {/* アニメーション封筒アイコン */}
-          <div className="pop" style={{ display:'inline-block', marginBottom:20 }}>
+          <div className="pop" style={{ display:'inline-block', marginBottom:24 }}>
             <div style={{ position:'relative', display:'inline-block' }}>
               <div style={{ position:'absolute', inset:-14, borderRadius:9999, background:'radial-gradient(circle,rgba(242,169,0,0.18) 0%,transparent 70%)', filter:'blur(10px)' }}/>
-              <div className="envelope-anim" style={{ position:'relative', zIndex:1, width:80, height:80, borderRadius:24, background:'linear-gradient(135deg,#F2A900,#D4910A)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 28px rgba(242,169,0,0.32), 0 2px 8px rgba(0,0,0,0.1)' }}>
+              <div className="envelope-anim" style={{ position:'relative', zIndex:1, width:80, height:80, borderRadius:24, background:'#F2A900', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 28px rgba(242,169,0,0.32), 0 2px 8px rgba(0,0,0,0.1)' }}>
                 <svg width="38" height="38" viewBox="0 0 24 24" fill="none">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
                   <polyline points="22,6 12,13 2,6" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
@@ -228,7 +229,7 @@ export default function VerifyEmailPage() {
               <span className="shimmer-text">送信しました</span>
             </h1>
             {email && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(242,169,0,0.08)', border:'1px solid rgba(242,169,0,0.2)', borderRadius:99, padding:'5px 12px', marginTop:4 }}>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(242,169,0,0.08)', border:'1px solid rgba(242,169,0,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#D4910A" strokeWidth="2" strokeLinecap="round"/>
                   <polyline points="22,6 12,13 2,6" stroke="#D4910A" strokeWidth="2" strokeLinecap="round"/>
@@ -241,12 +242,12 @@ export default function VerifyEmailPage() {
 
         {/* ── メインカード ── */}
         <div className="appear d1 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
+          <div style={{ height:3, background:'#F2A900', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
-          <div style={{ padding:'22px 20px 24px' }}>
+          <div style={{ padding:'24px 24px 24px' }}>
 
             {/* 手順 */}
-            <p style={{ fontSize:13, color:'var(--label2)', lineHeight:1.75, marginBottom:20 }}>
+            <p style={{ fontSize:13, color:'var(--label2)', lineHeight:1.75, marginBottom:24 }}>
               メール内の<strong style={{ color:'var(--label)', fontWeight:700 }}>確認リンク</strong>をクリックして認証を完了してください。完了後、下の「認証完了後はこちら」ボタンを押してください。
             </p>
 
@@ -293,7 +294,7 @@ export default function VerifyEmailPage() {
 
             {/* メッセージ */}
             {message && (
-              <div className="msg-box" style={{ marginTop:12, borderRadius:12, padding:'10px 14px', background:messageType==='ok'?'rgba(52,199,89,0.07)':'rgba(255,59,48,0.06)', border:`1px solid ${messageType==='ok'?'rgba(52,199,89,0.22)':'rgba(255,59,48,0.2)'}` }}>
+              <div className="msg-box" style={{ marginTop:16, borderRadius:12, padding:'8px 16px', background:messageType==='ok'?'rgba(52,199,89,0.07)':'rgba(255,59,48,0.06)', border:`1px solid ${messageType==='ok'?'rgba(52,199,89,0.22)':'rgba(255,59,48,0.2)'}` }}>
                 <p style={{ fontSize:12, fontWeight:600, color:messageType==='ok'?'#28A745':'var(--red)', textAlign:'center' }}>{message}</p>
               </div>
             )}
@@ -301,16 +302,16 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* ── チェックリストカード ── */}
-        <div className="appear d2 ios-card" style={{ marginTop:12, overflow:'hidden' }}>
-          <div style={{ padding:'18px 20px' }}>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label2)', marginBottom:12 }}>メールが届かない場合</p>
+        <div className="appear d2 ios-card" style={{ marginTop:16, overflow:'hidden' }}>
+          <div style={{ padding:'16px 24px' }}>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label2)', marginBottom:16 }}>メールが届かない場合</p>
             {[
-              { icon:'📁', text:'迷惑メールフォルダを確認する' },
-              { icon:'✉️', text:'入力したメールアドレスが正しいか確認する' },
-              { icon:'⏱️', text:'数分待ってから再送する' },
-              { icon:'📧', text:'GmailなどiCloud以外のアドレスを使う' },
+              { icon:<FolderIcon size={20} />, text:'迷惑メールフォルダを確認する' },
+              { icon:<MailIcon size={20} />, text:'入力したメールアドレスが正しいか確認する' },
+              { icon:<TimerIcon size={20} />, text:'数分待ってから再送する' },
+              { icon:<AtSignIcon size={20} />, text:'GmailなどiCloud以外のアドレスを使う' },
             ].map((item, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:i<3?'1px solid var(--sep)':'none' }}>
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:16, padding:'8px 0', borderBottom:i<3?'1px solid var(--sep)':'none' }}>
                 <span style={{ fontSize:18, flexShrink:0 }}>{item.icon}</span>
                 <p style={{ fontSize:13, color:'var(--label)', fontWeight:500, lineHeight:1.45 }}>{item.text}</p>
               </div>
@@ -319,9 +320,9 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* ── iCloud注意 ── */}
-        <div className="appear d3" style={{ marginTop:10 }}>
-          <div style={{ borderRadius:14, padding:'12px 14px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
-            <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>⚠️</span>
+        <div className="appear d3" style={{ marginTop:8 }}>
+          <div style={{ borderRadius:14, padding:'16px 16px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
+            <TriangleAlertIcon size={16} style={{ flexShrink:0, marginTop:2 }} />
             <p style={{ fontSize:12, color:'#A05000', fontWeight:500, lineHeight:1.65 }}>
               <strong>iCloudメールは確認メールが届かない</strong>または遅延する場合があります。Gmail、または別のメールアドレスの使用を推奨します。
             </p>
@@ -329,9 +330,9 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* ── ログインへ戻る ── */}
-        <div className="appear d4" style={{ marginTop:20, textAlign:'center' }}>
+        <div className="appear d4" style={{ marginTop:24, textAlign:'center' }}>
           <button type="button" onClick={() => router.replace('/login')}
-            style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:99, transition:'color .15s' }}
+            style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:99, transition:'color .15s' }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -341,14 +342,14 @@ export default function VerifyEmailPage() {
         </div>
 
         {/* ── フッター ── */}
-        <div className="appear d5" style={{ marginTop:28, textAlign:'center' }}>
+        <div className="appear d5" style={{ marginTop:32, textAlign:'center' }}>
           <div className="divider-line" style={{ marginBottom:16 }}/>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginBottom:9 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.4.7</p>
-          <p style={{ fontSize:10, color:'var(--label3)' }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>ver 1.4.7</p>
+          <p style={{ fontSize:11, color:'var(--label3)' }}>RRPoker by Runner Runner</p>
         </div>
       </div>
     </div>

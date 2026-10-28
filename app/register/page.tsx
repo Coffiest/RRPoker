@@ -1,4 +1,5 @@
 'use client'
+import { CheckIcon, ChevronRightIcon, TriangleAlertIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
@@ -192,7 +193,7 @@ export default function RegisterPage() {
         .logo-wrap{ animation:logo-drop .55s cubic-bezier(.22,1,.36,1) .05s both; }
 
         .shimmer-text{
-          background:linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
+          background:#F2A900;
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 3s linear infinite;
@@ -218,14 +219,14 @@ export default function RegisterPage() {
 
         .field-input-bare{
           width:100%; height:50px; background:transparent;
-          border:none; outline:none; padding:0 44px 0 40px;
+          border:none; outline:none; padding:0 48px 0 40px;
           font-size:16px; color:var(--label); box-sizing:border-box;
         }
         .field-input-bare::placeholder{ color:var(--label3); }
 
         .btn-gold{
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
-          background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
+          background:#F2A900;
           color:#1a1a1a; font-size:16px; font-weight:800; letter-spacing:-.2px;
           box-shadow:0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
@@ -248,7 +249,7 @@ export default function RegisterPage() {
         .btn-google{
           width:100%; height:50px; border-radius:14px;
           border:1.5px solid rgba(60,60,67,0.14); background:#fff;
-          display:flex; align-items:center; justify-content:center; gap:9px;
+          display:flex; align-items:center; justify-content:center; gap:8px;
           font-size:15px; font-weight:600; color:var(--label); cursor:pointer;
           box-shadow:0 1px 4px rgba(0,0,0,0.06);
           transition:transform .13s ease, box-shadow .13s ease;
@@ -257,17 +258,17 @@ export default function RegisterPage() {
         .btn-google:disabled{ opacity:.5; pointer-events:none; }
 
         .header-cta{
-          background:linear-gradient(135deg,#F2A900,#D4910A);
-          border:none; border-radius:20px; padding:7px 14px;
+          background:#F2A900;
+          border:none; border-radius:20px; padding:8px 16px;
           color:white; font-size:13px; font-weight:700; cursor:pointer;
           box-shadow:0 2px 8px rgba(242,169,0,0.28); white-space:nowrap;
-          display:flex; align-items:center; gap:4px;
+          display:flex; align-items:center; gap:8px;
           transition:transform .12s, opacity .12s;
         }
         .header-cta:active{ transform:scale(0.95); opacity:.85; }
 
         .error-box{
-          border-radius:12px; padding:10px 14px;
+          border-radius:12px; padding:8px 16px;
           background:rgba(255,59,48,0.06); border:1px solid rgba(255,59,48,0.2);
           animation:error-shake .35s ease-out;
         }
@@ -300,7 +301,7 @@ export default function RegisterPage() {
       <header className="sticky top-0 z-50 border-b"
         style={{ background:headerElevated?'rgba(255,255,255,0.96)':'rgba(255,255,255,0.88)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:headerElevated?'rgba(60,60,67,0.12)':'rgba(60,60,67,0.05)', transition:'background .2s, border-color .2s', position:'relative', zIndex:50 }}
       >
-        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 20px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <button type="button" onClick={() => router.push('/')}
             style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'pointer', padding:0 }}
           >
@@ -316,25 +317,25 @@ export default function RegisterPage() {
       {/* ドロワー */}
       {menuOpen && <div className="fixed inset-0 z-[999]" style={{ background:'rgba(0,0,0,0.3)', backdropFilter:'blur(3px)' }} onClick={() => setMenuOpen(false)}/>}
       <aside className={menuOpen?'drawer':''} style={{ position:'fixed', right:0, top:0, zIndex:1000, height:'100dvh', width:'80%', maxWidth:340, background:'white', borderLeft:'1px solid rgba(60,60,67,0.1)', boxShadow:'-8px 0 32px rgba(0,0,0,0.12)', transform:menuOpen?'translateX(0)':'translateX(100%)', transition:menuOpen?'none':'transform .25s cubic-bezier(.22,1,.36,1)', display:'flex', flexDirection:'column' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 24px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
           <p style={{ fontSize:14, fontWeight:700, color:'var(--label)' }}>メニュー</p>
-          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>閉じる</button>
+          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
         </div>
-        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
+        <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
             { label:'ログインはこちら', action:() => { setMenuOpen(false); router.push('/login') }, gold:false },
             { label:'新規登録', action:() => setMenuOpen(false), gold:true },
             { label:'パスワードを忘れた方', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
-              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'13px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
             >{item.label}</button>
           ))}
         </div>
       </aside>
 
       {/* ── Main ── */}
-      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 20px 60px' }}>
+      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 24px 64px' }}>
 
         {/* ── ロゴヒーロー ── */}
         <div style={{ paddingTop:40, paddingBottom:24, textAlign:'center' }}>
@@ -347,7 +348,7 @@ export default function RegisterPage() {
             </div>
           </div>
           <div className="appear d0">
-            <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:5 }}>
+            <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.65 }}>
@@ -356,19 +357,19 @@ export default function RegisterPage() {
           </div>
 
           {/* ステップインジケーター */}
-          <div className="appear d1" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:14 }}>
+          <div className="appear d1" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:16 }}>
             {[
               { n:'1', t:'アカウント作成', active:true },
-              { n:'→', t:'', active:false, arrow:true },
+              { n:'', t:'', active:false, arrow:true },
               { n:'2', t:'メール認証', active:false },
-              { n:'→', t:'', active:false, arrow:true },
+              { n:'', t:'', active:false, arrow:true },
               { n:'3', t:'プロフィール設定', active:false },
             ].map((s, i) => s.arrow ? (
-              <span key={i} style={{ fontSize:11, color:'var(--label3)', fontWeight:600 }}>→</span>
+              <ChevronRightIcon key={i} size={12} color="var(--label3)" />
             ) : (
               <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'linear-gradient(135deg,#F2A900,#D4910A)':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(242,169,0,0.35)':'none' }}>{s.n}</div>
-                <span style={{ fontSize:9, fontWeight:600, color:s.active?'var(--gold-dk)':'var(--label3)', whiteSpace:'nowrap' }}>{s.t}</span>
+                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'#F2A900':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(242,169,0,0.35)':'none' }}>{s.n}</div>
+                <span style={{ fontSize:11, fontWeight:600, color:s.active?'var(--gold-dk)':'var(--label3)', whiteSpace:'nowrap' }}>{s.t}</span>
               </div>
             ))}
           </div>
@@ -376,16 +377,16 @@ export default function RegisterPage() {
 
         {/* ── 登録フォーム ── */}
         <div id="form-anchor" className="appear d2 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
+          <div style={{ height:3, background:'#F2A900', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
-          <div style={{ padding:'22px 20px 24px' }}>
-            <div style={{ marginBottom:20 }}>
+          <div style={{ padding:'24px 24px 24px' }}>
+            <div style={{ marginBottom:24 }}>
               <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Create account</p>
               <p style={{ fontSize:12, color:'var(--label2)' }}>無料でアカウントを新規作成</p>
             </div>
 
             {/* ソーシャル登録 — 丸アイコン */}
-            <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
               <button onClick={handleGoogleRegister} disabled={isLoading || googleLoading}
                 style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
               >
@@ -413,15 +414,15 @@ export default function RegisterPage() {
             </div>
 
             {/* or 区切り */}
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
               <div className="divider-line" style={{ flex:1 }}/>
               <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>or</span>
               <div className="divider-line" style={{ flex:1 }}/>
             </div>
 
             {/* メール */}
-            <div style={{ marginBottom:10 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Email</label>
+            <div style={{ marginBottom:8 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Email</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -436,15 +437,15 @@ export default function RegisterPage() {
               </div>
               {/* iCloud警告 */}
               {email.includes('icloud') && (
-                <p style={{ fontSize:10, color:'#FF9500', fontWeight:600, marginTop:5, display:'flex', alignItems:'center', gap:4 }}>
-                  <span>⚠️</span> iCloudメールは確認メールが届かない場合があります
+                <p style={{ fontSize:11, color:'#FF9500', fontWeight:600, marginTop:8, display:'flex', alignItems:'center', gap:8 }}>
+                  <TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> iCloudメールは確認メールが届かない場合があります
                 </p>
               )}
             </div>
 
             {/* パスワード */}
-            <div style={{ marginBottom:10 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Password</label>
+            <div style={{ marginBottom:8 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Password</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -463,13 +464,13 @@ export default function RegisterPage() {
 
               {/* パスワード強度バー */}
               {password.length > 0 && (
-                <div style={{ marginTop:7 }}>
-                  <div style={{ display:'flex', gap:4, marginBottom:4 }}>
+                <div style={{ marginTop:8 }}>
+                  <div style={{ display:'flex', gap:8, marginBottom:8 }}>
                     {[1,2,3,4].map(i => (
                       <div key={i} style={{ flex:1, height:3, borderRadius:2, background:i<=pwStrength?strengthColor:'var(--sep)', transition:'background .25s' }}/>
                     ))}
                   </div>
-                  <p style={{ fontSize:10, fontWeight:600, color:strengthColor, transition:'color .25s' }}>
+                  <p style={{ fontSize:11, fontWeight:600, color:strengthColor, transition:'color .25s' }}>
                     パスワード強度: {strengthLabel}
                   </p>
                 </div>
@@ -477,8 +478,8 @@ export default function RegisterPage() {
             </div>
 
             {/* パスワード確認 */}
-            <div style={{ marginBottom:6 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>Password (Confirm)</label>
+            <div style={{ marginBottom:8 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Password (Confirm)</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -499,21 +500,21 @@ export default function RegisterPage() {
                   style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:cpwFocus?'var(--gold-dk)':'var(--label3)', fontSize:11, fontWeight:700, transition:'color .18s' }}
                 >{showCPw?'隠す':'表示'}</button>
               </div>
-              {pwMismatch && <p style={{ fontSize:10, color:'var(--red)', fontWeight:600, marginTop:4 }}>パスワードが一致しません</p>}
-              {pwMatch && <p style={{ fontSize:10, color:'var(--green)', fontWeight:600, marginTop:4 }}>✓ パスワードが一致しました</p>}
+              {pwMismatch && <p style={{ fontSize:11, color:'var(--red)', fontWeight:600, marginTop:8 }}>パスワードが一致しません</p>}
+              {pwMatch && <p style={{ fontSize:11, color:'var(--green)', fontWeight:600, marginTop:8 }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> パスワードが一致しました</p>}
             </div>
 
             <div style={{ height:12 }}/>
 
             {/* エラー */}
             {error && (
-              <div className="error-box" style={{ marginBottom:14 }}>
+              <div className="error-box" style={{ marginBottom:16 }}>
                 <p style={{ fontSize:12, color:'var(--red)', fontWeight:600, textAlign:'center' }}>{error}</p>
               </div>
             )}
 
             {/* プライバシー注記 */}
-            <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:12, textAlign:'center' }}>
+            <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:16, textAlign:'center' }}>
               {t('register.privacyNotice')}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
             </p>
 
@@ -535,7 +536,7 @@ export default function RegisterPage() {
             </button>
 
             {/* ログインへ */}
-            <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
+            <div style={{ marginTop:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
@@ -545,9 +546,9 @@ export default function RegisterPage() {
         </div>
 
         {/* 店舗向け(カードの外に控えめに) */}
-        <div className="appear d4" style={{ marginTop:12, textAlign:'center' }}>
+        <div className="appear d4" style={{ marginTop:16, textAlign:'center' }}>
           <button type="button" onClick={() => router.push('/store-register')}
-            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'4px 6px', display:'inline-flex', alignItems:'center', gap:4 }}
+            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             店舗の方はこちら
@@ -555,9 +556,9 @@ export default function RegisterPage() {
         </div>
 
         {/* ── iCloud注意書き（カード外） ── */}
-        <div className="appear d4" style={{ marginTop:12 }}>
-          <div style={{ borderRadius:14, padding:'12px 14px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
-            <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>⚠️</span>
+        <div className="appear d4" style={{ marginTop:16 }}>
+          <div style={{ borderRadius:14, padding:'16px 16px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
+            <TriangleAlertIcon size={16} style={{ flexShrink:0, marginTop:2 }} />
             <p style={{ fontSize:12, color:'#A05000', fontWeight:500, lineHeight:1.6 }}>
               <strong>iCloudメールは確認メールが届かない場合があります。</strong><br/>
               Gmailなどのメールアドレスのご利用を推奨します。
@@ -568,13 +569,13 @@ export default function RegisterPage() {
         {/* ── フッター ── */}
         <div className="appear d6" style={{ marginTop:24, textAlign:'center' }}>
           <div className="divider-line" style={{ marginBottom:16 }}/>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginBottom:9 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0 </p>
-          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
-          <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
+          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0 </p>
+          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize:11, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>
       </div>
     </div>

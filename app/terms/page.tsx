@@ -1,5 +1,5 @@
+import { ChevronLeftIcon } from 'lucide-react'
 import Link from "next/link"
-import { FiChevronLeft } from "react-icons/fi"
 
 export const metadata = {
   title: "利用規約 | RRPoker",
@@ -11,9 +11,9 @@ export default function TermsPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-1 transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-2 transition-colors"
         >
-          <FiChevronLeft size={18} />
+          <ChevronLeftIcon size={18} />
           戻る
         </Link>
 
@@ -36,7 +36,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">2. チップの性質</h2>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-6 space-y-2">
               <li>当サービス上の「チップ」（バイイン・キャッシュアウト・プライズ等の表示を含む）は、店舗内でのゲーム進行・成績を記録するための、店舗が独自に発行するポイントです。</li>
               <li>チップは現金その他の金銭的価値を有さず、当サービス上で現金・金券・仮想通貨その他の対価と交換・換金することはできません。</li>
               <li>利用者は、チップを金銭的価値のあるものとして第三者と売買・譲渡してはならないものとします。</li>
@@ -45,7 +45,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">3. サブスクリプション・料金</h2>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-6 space-y-2">
               <li>店舗アカウントの利用には有料サブスクリプションが必要です。料金プランはアプリ内の料金ページに表示されます。</li>
               <li>Web版はStripeを通じて決済され、いつでもキャンセル可能です。</li>
               <li>iOS版はApple In-App Purchaseを通じて決済され、自動更新されます。解約はiOSの「設定」アプリの サブスクリプション管理から行えます。</li>
@@ -55,7 +55,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">4. 禁止事項</h2>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-6 space-y-2">
               <li>法令または公序良俗に違反する行為</li>
               <li>不正アクセス、当サービスの運営を妨害する行為</li>
               <li>他の利用者・店舗に対する詐欺・不正行為</li>
