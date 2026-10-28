@@ -1,5 +1,4 @@
-import { ChevronLeftIcon } from 'lucide-react'
-import Link from "next/link"
+import BackLink from "@/components/BackLink"
 
 export const metadata = {
   title: "利用規約 | RRPoker",
@@ -9,13 +8,7 @@ export default function TermsPage() {
   return (
     <div className="tech-grid min-h-screen bg-[#FAFAFA] px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-2 transition-colors"
-        >
-          <ChevronLeftIcon size={18} />
-          戻る
-        </Link>
+        <BackLink />
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">利用規約</h1>
         <p className="text-xs text-label3 mb-8">最終更新日: 2026年8月31日</p>
