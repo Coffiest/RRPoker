@@ -1,5 +1,6 @@
 'use client'
 import { ClockIcon, MapPinIcon, SpadeIcon, TrophyIcon, UserIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase'
@@ -96,30 +97,10 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
     : '—'
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 500,
-        background: 'rgba(0,0,0,0.45)',
-        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          width: '100%', maxWidth: 440,
-          background: '#fff',
-          borderRadius: '24px 24px 0 0',
-          maxHeight: '88vh',
-          display: 'flex', flexDirection: 'column',
-          paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* ドラッグハンドル */}
-        <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '16px auto 0', flexShrink: 0 }} />
+    <AppleSheet open onClose={onClose} bare maxWidth={440} maxHeightVh={88} zIndex={500}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
 
-        <div style={{ overflowY: 'auto', flex: 1, padding: '24px 24px 8px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '24px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
               <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>読み込み中…</p>
@@ -230,6 +211,6 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </AppleSheet>
   )
 }

@@ -1,5 +1,6 @@
 "use client"
 import { CheckIcon, GiftIcon, PlusIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useMemo, useState } from "react"
 import {
@@ -23,6 +24,8 @@ type Props = {
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
+  /** 重なり順。全画面タイマーの上に出すときに上げる。 */
+  zIndex?: number
 }
 
 type Participant = {
@@ -44,7 +47,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PrizeDistributeModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose }: Props) {
+export default function PrizeDistributeModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose, zIndex }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -453,13 +456,9 @@ for (const p of payouts) {
   }
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
-    >
-      <div style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRadius: '34px 34px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', maxHeight: '92vh', display: 'flex', flexDirection: 'column', paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+    <AppleSheet open onClose={async () => { await saveDraft(); onClose() }} bare maxWidth={480} maxHeightVh={92} zIndex={zIndex ?? 400}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
 
-        {/* ドラッグハンドル */}
-        <div className="a-grabber" />
 
         {/* ヘッダー */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
@@ -475,7 +474,7 @@ for (const p of payouts) {
         </div>
 
         {/* スクロール可能ボディ */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 16px 8px' }}>
           {loading ? (
             <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
           ) : (
@@ -597,6 +596,6 @@ for (const p of payouts) {
           </div>
         </div>
       )}
-    </div>
+    </AppleSheet>
   )
 }

@@ -1,5 +1,6 @@
 "use client"
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PencilIcon, PlayIcon, Share2Icon, StarIcon, Trash2Icon, XIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useMemo, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
@@ -379,21 +380,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
   return (
     <>
-      {typeof window!=="undefined" && isOpen && createPortal(
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-[200]"
-            style={{ background:"rgba(0,0,0,0.28)", backdropFilter:"blur(3px)", WebkitBackdropFilter:"blur(3px)" }}
-            onClick={() => { if (!htSaving){setIsOpen(false);reset()} }} />
-
-          {/* Sheet */}
-          <div className="fixed bottom-0 left-0 right-0 z-[201] mx-auto max-w-sm flex flex-col"
-            style={{ maxHeight:"94vh", background:CLR.bg, borderRadius:"28px 28px 0 0", boxShadow:"0 -2px 32px rgba(0,0,0,0.18)" }}>
-
-            {/* Handle */}
-            <div className="flex justify-center pt-2 pb-2 shrink-0">
-              <div className="w-9 h-[3px] rounded-full" style={{ background:CLR.border }} />
-            </div>
+      <AppleSheet open={isOpen} onClose={() => { if (!htSaving) { setIsOpen(false); reset() } }} bare maxWidth={384} maxHeightVh={94} zIndex={200} background={CLR.bg}>
 
             {/* Header */}
             <div className="shrink-0 px-6 pt-2 pb-4">
@@ -424,7 +411,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
             {/* ─── RECORD VIEW ─────────────────────────────────────────── */}
             {view==="record" && (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 min-h-0 overflow-y-auto">
 
                 {/* Controls — only on preflop */}
                 {htStreet === "preflop" && (
@@ -759,7 +746,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
 
             {/* ─── HISTORY VIEW ─────────────────────────────────────────── */}
             {view==="history" && (
-              <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
+              <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-2 pb-6">
                 {histLoading ? (
                   <div className="flex justify-center py-16">
                     <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{borderColor:`${CLR.gold} transparent ${CLR.gold} ${CLR.gold}`}} />
@@ -943,58 +930,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* ── Card picker ── */}
-          {htPick!==null && (
-            <>
-              <div className="fixed inset-0 z-[209]"
-                style={{background:"rgba(0,0,0,0.28)",backdropFilter:"blur(3px)",WebkitBackdropFilter:"blur(3px)"}}
-                onClick={() => setHtPick(null)} />
-              <div className="fixed bottom-1/2 left-1/2 z-[210] -translate-x-1/2 translate-y-1/2 rounded-3xl flex flex-col w-[88%] max-w-sm max-h-[70vh]"
-                style={{background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)'}}>
-                <div className="flex items-center justify-between px-6 pt-4 pb-4 shrink-0" style={{borderBottom:`1px solid ${CLR.border}`}}>
-                  <p className="text-[14px] font-bold" style={{color:CLR.ink}}>カードを選択</p>
-                  <button type="button" onClick={() => setHtPick(null)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center active:scale-95"
-                    style={{background:CLR.surface,color:CLR.gray2}}><XIcon size={13}/></button>
-                </div>
-                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-                  {HAND_SUITS.map(suit => (
-                    <div key={suit} className="flex gap-2 overflow-x-auto pb-2" style={{scrollbarWidth:"none"}}>
-                      {HAND_RANKS.map(rank => {
-                        const card=`${rank}${suit}`
-                        const curr=getCard(htPick)
-                        const used=usedCards.has(card)&&curr!==card
-                        return (
-                          <button key={card} type="button" disabled={used}
-                            onClick={() => {
-                              const t=htPick!; const cv=getCard(t)
-                              if (cv===card){setCard(t,null);setHtPick(null);return}
-                              setCard(t,card)
-                              const p=t.split("|")
-                              if (p[0]==="c"&&p[2]==="0") setHtPick(`c|${p[1]}|1`)
-                              else if (p[0]==="b"&&Number(p[1])<2) setHtPick(`b|${Number(p[1])+1}`)
-                              else setHtPick(null)
-                            }}
-                            className="shrink-0 flex items-center justify-center rounded-lg active:scale-95 transition-all"
-                            style={{ padding:2,
-                              opacity:used?0.2:1,
-                              background:curr===card?"#FFF8E7":"transparent",
-                              boxShadow:curr===card?`0 0 0 2px ${CLR.gold}, 0 2px 8px rgba(242,169,0,0.2)`:"none" }}>
-                            <PlayingCard card={card} height={46}/>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </>,
-        document.body
-      )}
+          </AppleSheet>
 
       {/* ── Hand Replay Popup ── */}
       {typeof window !== "undefined" && viewingHand && createPortal(
@@ -1145,7 +1081,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 </div>
 
                 {/* Action text list — all shown, current highlighted */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4">
                   {streets.map(st => {
                     const stActs = allActs.filter(a => a.street===st)
                     const stLabel = {preflop:"プリフロップ",flop:"フロップ",turn:"ターン",river:"リバー"}[st]
@@ -1196,17 +1132,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
         document.body
       )}
 
-      {typeof window !== "undefined" && itmOpen && createPortal(
-        <>
-          <div className="fixed inset-0 z-[200]"
-            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
-            onClick={() => setItmOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[201] mx-auto max-w-sm flex flex-col"
-            style={{ maxHeight: "94vh", background: "#F2F2F7", borderRadius: "28px 28px 0 0", boxShadow: "0 -2px 32px rgba(0,0,0,0.18)" }}>
-
-            <div className="flex justify-center pt-2 pb-2 shrink-0">
-              <div className="w-9 h-[3px] rounded-full bg-gray-300" />
-            </div>
+      <AppleSheet open={itmOpen} onClose={() => setItmOpen(false)} bare maxWidth={384} maxHeightVh={94} zIndex={200} background={"#F2F2F7"}>
 
             <div className="shrink-0 px-6 pt-2 pb-4">
               <div className="flex items-center justify-between">
@@ -1219,7 +1145,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-10 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-10 space-y-4">
               <div className="rounded-2xl px-4 py-4" style={{ background: "#FFF8E7", border: `1px solid ${CLR.gold}44` }}>
                 <p className="text-[12px] leading-relaxed" style={{ color: CLR.goldDk }}>
                   あなたの現在のチップ数から、インマネ確率を推定します。あくまで目安であり、スキル差などは考慮していません。
@@ -1266,10 +1192,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 </div>
               )}
             </div>
-          </div>
-        </>,
-        document.body
-      )}
+          </AppleSheet>
     </>
   )
 }

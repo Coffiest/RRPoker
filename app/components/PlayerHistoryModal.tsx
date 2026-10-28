@@ -1,5 +1,6 @@
 "use client"
 import { ArrowDownIcon, ArrowUpIcon, Trash2Icon, TriangleAlertIcon, XIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useState } from "react"
 import { collection, query, where, onSnapshot, orderBy, getDocs, writeBatch, doc } from "firebase/firestore"
@@ -22,6 +23,8 @@ type Props = {
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
+  /** 重なり順。全画面タイマーの上に出すときに上げる。 */
+  zIndex?: number
 }
 
 function formatDate(ts: any) {
@@ -66,7 +69,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose }: Props) {
+export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose, zIndex }: Props) {
   const [history, setHistory] = useState<Transaction[]>([])
   const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false)
   const [wiping, setWiping] = useState(false)
@@ -122,14 +125,8 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
   }
 
   return (
-    <div
-      style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
-      onClick={onClose}
-    >
-      <div
-        style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRadius: '34px 34px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
-        onClick={e => e.stopPropagation()}
-      >
+    <AppleSheet open onClose={onClose} bare maxWidth={480} maxHeightVh={80} zIndex={zIndex ?? 200}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
         {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, flexShrink: 0 }}>
           <div style={{ width: 36, height: 5, borderRadius: 999, background: 'rgba(60,60,67,0.20)' }}/>
@@ -262,6 +259,6 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
           </div>
         </div>
       )}
-    </div>
+    </AppleSheet>
   )
 }

@@ -1,5 +1,6 @@
 "use client"
 import { CameraIcon, CheckIcon, ChevronRightIcon, CircleAlertIcon, ClockIcon, CopyIcon, LockIcon, LogOutIcon, MapPinIcon, PenIcon, Share2Icon, SpadeIcon, TriangleAlertIcon, UserIcon, XIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -703,11 +704,9 @@ export default function MyPage() {
 
       {/* ── 拡張プロフィール編集シート ── */}
       {isEditingExtProfile && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-          onClick={() => setIsEditingExtProfile(false)}>
-          <div className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '16px 24px 48px' }}
-            onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 24 }} />
+        <AppleSheet open onClose={() => setIsEditingExtProfile(false)} bare maxWidth={480} maxHeightVh={88} zIndex={300}>
+          <div className="mp-sheet a-sheet" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 24px 48px', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}>
+
             <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 24 }}>プロフィール詳細を編集</p>
 
             {/* 地域 */}
@@ -744,16 +743,14 @@ export default function MyPage() {
               {savingExtProfile ? '保存中...' : '保存する'}
             </button>
           </div>
-        </div>
+        </AppleSheet>
       )}
 
       {/* ── アカウント削除確認モーダル ── */}
       {showDeleteConfirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-          onClick={() => setShowDeleteConfirm(false)}>
-          <div className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '16px 24px 40px' }}
-            onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 24 }} />
+        <AppleSheet open onClose={() => setShowDeleteConfirm(false)} bare maxWidth={480} maxHeightVh={88} zIndex={300}>
+          <div className="mp-sheet a-sheet" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 24px 40px', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
               <div style={{ width: 44, height: 44, borderRadius: 14, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <CircleAlertIcon size={22} style={{ color: '#fff' }} />
@@ -778,7 +775,7 @@ export default function MyPage() {
               </button>
             </div>
           </div>
-        </div>
+        </AppleSheet>
       )}
 
       {/* ── ボトムナビ ── */}

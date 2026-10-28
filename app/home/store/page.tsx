@@ -1422,18 +1422,15 @@ export default function StorePage() {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
-                <PlayerManageModal
+            <PlayerManageModal
                   tournamentId={et.id}
                   storeId={storeId}
                   balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
                   chipUnit={store?.chipUnitLabel}
                   chipUnitBefore={store?.chipUnitBefore}
                   onClose={() => setExpandPlayerOpen(false)}
+                zIndex={10001}
                 />
-              </div>
-            </div>
           )
         })()}
 
@@ -1442,18 +1439,15 @@ export default function StorePage() {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
-                <PrizeDistributeModal
+            <PrizeDistributeModal
                   tournamentId={et.id}
                   storeId={storeId}
                   balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined}
                   chipUnit={store?.chipUnitLabel}
                   chipUnitBefore={store?.chipUnitBefore}
                   onClose={() => setExpandPrizeOpen(false)}
+                zIndex={10001}
                 />
-              </div>
-            </div>
           )
         })()}
 

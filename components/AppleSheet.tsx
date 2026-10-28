@@ -48,6 +48,13 @@ type Props = {
   maxWidth?: number
   /** 重なり順。呼び出し側で必要なら上げる。 */
   zIndex?: number
+  /**
+   * 中身をそのまま入れる(見出し・本文の枠を付けない)。見出しと、自分でスクロールする本文を
+   * すでに持っている画面を、作りを変えずにこの面へ載せ替えるときに使う。
+   */
+  bare?: boolean
+  /** 面の背景。既定は白。 */
+  background?: string
 }
 
 export default function AppleSheet({
@@ -59,6 +66,8 @@ export default function AppleSheet({
   maxHeightVh = 88,
   maxWidth = 420,
   zIndex = 100,
+  bare = false,
+  background,
 }: Props) {
   const sheetRef = useRef<HTMLDivElement | null>(null)
   const scrimRef = useRef<HTMLDivElement | null>(null)
@@ -212,10 +221,10 @@ export default function AppleSheet({
     if (e.button !== 0 && e.pointerType === 'mouse') return
     // 入力欄の中は文字の選択・カーソル移動に使うので、面は掴まない。
     if ((e.target as HTMLElement).closest?.('input, textarea, select, [data-no-drag]')) return
-    // 本文を上に送っている途中は、面ではなく本文を動かす。
-    const body = bodyRef.current
-    const fromBody = body?.contains(e.target as Node)
-    if (fromBody && body && body.scrollTop > 0) return
+    // 本文を上に送っている途中は、面ではなく本文を動かす(指の下にある、スクロールできる箱を見る)。
+    for (let n = e.target as HTMLElement | null; n && n !== sheetRef.current; n = n.parentElement) {
+      if (n.scrollTop > 0) return
+    }
     pending.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
   }
 
@@ -308,6 +317,7 @@ export default function AppleSheet({
             willChange: 'transform',
             touchAction: 'none',
             animation: 'none',   // 位置はスプリングが持つ
+            ...(background ? { background } : {}),
           }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -315,6 +325,7 @@ export default function AppleSheet({
           onPointerCancel={endDrag}
         >
           <div className="a-grabber" />
+          {bare ? children : <>
           {title != null && (
             <div style={{ flexShrink: 0, padding: '16px 24px 16px' }}>{title}</div>
           )}
@@ -344,6 +355,7 @@ export default function AppleSheet({
               {footer}
             </div>
           )}
+          </>}
         </div>
       </div>
     </div>,

@@ -1,5 +1,6 @@
 "use client"
 import { ArrowLeftIcon, AwardIcon, ChevronRightIcon, Share2Icon, TrendingUpIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useState } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -427,11 +428,9 @@ export default function TournamentHistoryPage() {
         const roi = cost > 0 ? ((reward - cost) / cost * 100) : 0
         const isITM = rank !== '-' && rank !== ''
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-            onClick={() => setSelectedItem(null)}>
-            <div className="tour-sheet" style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, padding: '16px 24px 48px', maxHeight: '88dvh', overflowY: 'auto' }}
-              onClick={e => e.stopPropagation()}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 24px' }} />
+          <AppleSheet open onClose={() => setSelectedItem(null)} bare maxWidth={480} maxHeightVh={88} zIndex={300}>
+            <div className="tour-sheet" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 24px 48px', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}>
+
 
               {/* Sheet header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -512,7 +511,7 @@ export default function TournamentHistoryPage() {
                 {sharingCard ? '生成中...' : 'この結果をシェア'}
               </button>
             </div>
-          </div>
+          </AppleSheet>
         )
       })()}
     </main>
