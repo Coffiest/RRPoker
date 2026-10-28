@@ -135,8 +135,8 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             left: spotlight.x, top: spotlight.y,
             width: spotlight.width, height: spotlight.height,
             borderRadius: spotlight.rx,
-            border: '2px solid rgba(242,169,0,0.75)',
-            boxShadow: '0 0 0 4px rgba(242,169,0,0.20)',
+            border: '2px solid rgba(249,179,24,0.75)',
+            boxShadow: '0 0 0 4px rgba(249,179,24,0.20)',
             pointerEvents: 'none',
             zIndex: 2,
           }} />
@@ -178,7 +178,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                   width: i === currentStep ? 20 : 6,
                   height: 6,
                   borderRadius: 99,
-                  background: i === currentStep ? '#F2A900' : '#E5E5EA',
+                  background: i === currentStep ? '#F9B318' : '#E5E5EA',
                   transition: 'transform 0.25s ease, opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease',
                   flexShrink: 0,
                 }} />
@@ -211,14 +211,14 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                   height: 44,
                   paddingInline: 32,
                   borderRadius: 99,
-                  background: '#F2A900',
+                  background: '#F9B318',
                   border: 'none',
                   cursor: 'pointer',
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 700,
                   fontFamily: 'inherit',
-                  boxShadow: '0 3px 14px rgba(242,169,0,0.45)',
+                  boxShadow: '0 3px 14px rgba(249,179,24,0.45)',
                   letterSpacing: '-0.1px',
                 }}
               >

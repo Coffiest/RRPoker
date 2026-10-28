@@ -11,8 +11,8 @@ const ACT_JP: Record<string, string> = {
   fold: "fold", check: "check", call: "call", bet: "bet", raise: "raise", allin: "All-in",
 }
 const CLR = {
-  bg: "#FFFBF5", white: "#FFFFFF", surface: "#F5F3EF", border: "#E8E3DB",
-  gold: "#F2A900", goldDk: "#D4910A", ink: "#1D1D1F", gray2: "#545458", gray3: "#6E6E73",
+  bg: "#EDECE6", white: "#FFFFFF", surface: "#F5F4EF", border: "#E8E3DB",
+  gold: "#F9B318", goldDk: "#8F5E00", ink: "#1D1D1F", gray2: "#545458", gray3: "#6E6E73",
   red: "#E53E3A",
 }
 
@@ -148,7 +148,7 @@ export default function HandPage() {
         {/* Info badges */}
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[11px] font-bold rounded-full px-2 py-2"
-            style={{ background: "#FFF8E7", color: CLR.goldDk }}>{hand.heroPosition}</span>
+            style={{ background: "#FEF0D1", color: CLR.goldDk }}>{hand.heroPosition}</span>
           <span className="text-[11px] rounded-full px-2 py-2"
             style={{ background: CLR.surface, color: CLR.gray2 }}>{rPositions.length}人</span>
         </div>
@@ -208,9 +208,9 @@ export default function HandPage() {
                 )}
                 <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
                   style={{
-                    background: isCur ? "#FFF8E7" : CLR.white,
+                    background: isCur ? "#FEF0D1" : CLR.white,
                     border: isCur ? `2px solid ${CLR.gold}` : isHero ? `1.5px solid ${CLR.gold}` : `1.5px solid ${CLR.border}`,
-                    boxShadow: isCur ? `0 0 0 3px rgba(242,169,0,0.18)` : undefined,
+                    boxShadow: isCur ? `0 0 0 3px rgba(249,179,24,0.18)` : undefined,
                   }}>
                   <div className="flex gap-[2px]">
                     {[0, 1].map(i => {
@@ -226,7 +226,7 @@ export default function HandPage() {
                     style={{
                       background: act.action === "bet" || act.action === "raise" ? "#FFFBEB" : act.action === "allin" ? "#FFF5F5" : CLR.white,
                       border: `1px solid ${act.action === "bet" || act.action === "raise" ? "#FDE68A" : act.action === "allin" ? "#FCA5A5" : CLR.border}`,
-                      color: act.action === "bet" || act.action === "raise" ? "#B45309" : act.action === "allin" ? CLR.red : CLR.gray2,
+                      color: act.action === "bet" || act.action === "raise" ? "#8F5E00" : act.action === "allin" ? CLR.red : CLR.gray2,
                     }}>
                     {ACT_JP[act.action]}{act.amount != null ? ` ${act.amount}` : ""}
                   </div>
@@ -247,7 +247,7 @@ export default function HandPage() {
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronLeftIcon size={20} /></button>
           <button onClick={() => setReplayPlaying(p => !p)} aria-label={replayPlaying ? "一時停止" : "再生"}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, boxShadow: "0 3px 12px rgba(249,179,24,0.4)" }}>
             {replayPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" />}
           </button>
           <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))} aria-label="1つ進む"
@@ -277,14 +277,14 @@ export default function HandPage() {
                       <div key={i} className="flex items-center gap-2 rounded-2xl px-4 transition" aria-current={isCurrent ? "step" : undefined}
                         style={{
                           minHeight: 44,
-                          background: isCurrent ? "#FFF8E7" : isFuture ? "transparent" : CLR.white,
+                          background: isCurrent ? "#FEF0D1" : isFuture ? "transparent" : CLR.white,
                           border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.border}`,
                         }}>
                         <span className="text-[15px] font-semibold shrink-0 w-10"
                           style={{ color: isHeroAct ? CLR.goldDk : CLR.gray2 }}>{a.position}</span>
                         <span className="text-[15px]" style={{ color: isFuture ? CLR.gray3 :
                           a.action === "fold" ? CLR.gray3 :
-                          a.action === "bet" || a.action === "raise" ? "#B45309" :
+                          a.action === "bet" || a.action === "raise" ? "#8F5E00" :
                           a.action === "allin" ? CLR.red : CLR.ink }}>
                           {ACT_JP[a.action]}{a.amount != null ? ` ${a.amount} BB` : ""}
                         </span>
@@ -307,7 +307,7 @@ export default function HandPage() {
           <p className="text-[13px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/"
             className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-[0.97] transition"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, textDecoration: "none", boxShadow: "0 3px 14px rgba(249,179,24,0.4)" }}>
             RRPOKERを使ってみる <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} />
           </a>
         </div>

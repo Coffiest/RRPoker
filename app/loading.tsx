@@ -3,11 +3,11 @@
 /**
  * 読み込み画面。
  * 起動シーケンスを流すコンソールに見立て、方眼＋走査線＋シェルプロンプトで構成する。
- * 配色は既存テーマ（白基調・グレー階層・#F2A900）のみ。
+ * 配色は既存テーマ（白基調・グレー階層・#F9B318）のみ。
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[#EDECE6] flex items-center justify-center px-6">
       <div className="tech-grid tech-scanline tech-corners w-full max-w-[300px] rounded-[22px] border border-gray-100 bg-white/70 px-6 py-8 shadow-sm">
         {/* 端末のタイトルバー */}
         <div className="flex items-center justify-between">
@@ -32,7 +32,7 @@ export default function Loading() {
 
         <div className="mt-4 flex items-center justify-between">
           <span className="tech-label text-label3">状態</span>
-          <span className="tech-label text-[#D4910A]">LOADING</span>
+          <span className="tech-label text-[#8F5E00]">LOADING</span>
         </div>
       </div>
     </div>

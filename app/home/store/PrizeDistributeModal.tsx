@@ -461,7 +461,7 @@ for (const p of payouts) {
 
 
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #EDECE6' }}>
           <button
             onClick={onClose}
             style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
@@ -480,15 +480,15 @@ for (const p of payouts) {
           ) : (
             <>
               {/* Prize Pool カード */}
-              <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 8 }}>賞金総額</p>
+              <div style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF3CC)', border: '1px solid rgba(249,179,24,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8F5E00', marginBottom: 8 }}>賞金総額</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
               {/* 順位行 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                 {rows.map((r, idx) => (
-                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px' }}>
+                  <div key={idx} style={{ background: '#EDECE6', borderRadius: 16, padding: '16px 16px' }}>
                     {/* 順位バッジ + プレイヤー選択 */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <div style={{ width: 30, height: 30, borderRadius: '50%', background: r.rank <= 3 ? MEDAL[r.rank] : '#D1D1D6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: r.rank <= 3 ? '0 2px 6px rgba(0,0,0,0.18)' : 'none' }}>
@@ -518,7 +518,7 @@ for (const p of payouts) {
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
                         aria-label={r.showText ? '景品・メモを閉じる' : '景品・メモを追加'}
                         aria-pressed={r.showText}
-                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#8A5F00' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
+                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(249,179,24,0.15)' : '#fff', color: r.showText ? '#7A5000' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
                       ><GiftIcon size={16} /> 景品</button>
                     </div>
                     {/* 景品テキスト */}
@@ -528,7 +528,7 @@ for (const p of payouts) {
                           value={r.text}
                           onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
                           placeholder="景品・メモ"
-                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(249,179,24,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                     )}
@@ -550,7 +550,7 @@ for (const p of payouts) {
                 onChange={e => setComment(e.target.value)}
                 placeholder="コメント（タイマー画面に表示）"
                 rows={2}
-                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#F2F2F7', padding: '16px 16px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#EDECE6', padding: '16px 16px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
               />
 
               {error && <p style={{ color: '#FF3B30', fontSize: 13, marginTop: 8, textAlign: 'center' }}>{error}</p>}
@@ -559,13 +559,13 @@ for (const p of payouts) {
         </div>
 
         {/* フッター: Pay Out ボタン */}
-        <div style={{ padding: '16px 16px', paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
+        <div style={{ padding: '16px 16px', paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))', borderTop: '1px solid #EDECE6', flexShrink: 0 }}>
           <ChipDisclaimer className="pb-2" />
           <button
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
-            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F2A900', color: '#fff', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
+            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.35)', opacity: submitting ? 0.6 : 1 }}
           >賞金の分配</button>
         </div>
       </div>
@@ -584,7 +584,7 @@ for (const p of payouts) {
                 type="button"
                 onClick={() => setConfirmOpen(false)}
                 disabled={submitting}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                style={{ height: 48, borderRadius: 12, border: 'none', background: '#EDECE6', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
               >Cancel</button>
               <button
                 type="button"

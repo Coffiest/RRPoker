@@ -14,7 +14,7 @@ export function PageTitleBar({ title, onBack, backLabel = '戻る' }: { title: s
     <div data-nav-back={onBack ? '' : undefined} style={{ display: 'flex', alignItems: 'center', minHeight: 44, margin: '8px 0 0' }}>
       {onBack && (
         <button type="button" onClick={onBack} className="gl-press"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 44, padding: '0 8px 0 0', border: 'none', background: 'none', color: '#B57F00', fontSize: 17, fontFamily: 'inherit', cursor: 'pointer' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 44, padding: '0 8px 0 0', border: 'none', background: 'none', color: '#1546D9', fontSize: 17, fontFamily: 'inherit', cursor: 'pointer' }}>
           <ChevronLeftIcon size={24} /> {backLabel}
         </button>
       )}
@@ -93,7 +93,7 @@ export function ChoiceRow({ label, detail, selected, onSelect }: { label: string
         {detail && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{detail}</span>}
       </span>
       {selected && (
-        <CheckIcon size={20} style={{ color: '#B57F00', flexShrink: 0 }} aria-hidden="true" />
+        <CheckIcon size={20} style={{ color: '#8F5E00', flexShrink: 0 }} aria-hidden="true" />
       )}
     </button>
   )
@@ -116,7 +116,7 @@ export function SwitchRow({ label, hint, checked, onChange }: { label: string; h
 export function PrimaryButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} className="gl-press"
-      style={{ width: '100%', minHeight: 48, borderRadius: 999, border: 'none', background: '#F2A900', color: '#fff', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', opacity: disabled ? 0.5 : 1 }}>
+      style={{ width: '100%', minHeight: 48, borderRadius: 999, border: 'none', background: '#F9B318', color: '#fff', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', opacity: disabled ? 0.5 : 1 }}>
       {children}
     </button>
   )

@@ -211,10 +211,10 @@ export default function StoreOnboardingPage() {
   const orb2y = Math.sin(orbPhase * 0.8) * 18
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold: #F2A900; --gold-dk: #D4910A;
+          --gold: #F9B318; --gold-dk: #8F5E00;
           --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --red: #FF3B30;
         }
@@ -227,12 +227,12 @@ export default function StoreOnboardingPage() {
           50%     { opacity: 1; }
         }
         @keyframes so-badge-pulse {
-          0%,100% { box-shadow: 0 6px 24px rgba(242,169,0,0.35); }
-          50%     { box-shadow: 0 6px 36px rgba(242,169,0,0.55); }
+          0%,100% { box-shadow: 0 6px 24px rgba(249,179,24,0.35); }
+          50%     { box-shadow: 0 6px 36px rgba(249,179,24,0.55); }
         }
         @keyframes so-icon-ring {
-          0%,100% { box-shadow: 0 0 0 3px rgba(242,169,0,0.25), 0 4px 20px rgba(242,169,0,0.18); }
-          50%     { box-shadow: 0 0 0 4px rgba(242,169,0,0.4),  0 4px 28px rgba(242,169,0,0.28); }
+          0%,100% { box-shadow: 0 0 0 3px rgba(249,179,24,0.25), 0 4px 20px rgba(249,179,24,0.18); }
+          50%     { box-shadow: 0 0 0 4px rgba(249,179,24,0.4),  0 4px 28px rgba(249,179,24,0.28); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .so-appear { opacity: 0; animation: so-fade-up .5s cubic-bezier(.22,1,.36,1) forwards; }
@@ -245,7 +245,7 @@ export default function StoreOnboardingPage() {
         .so-icon-ring { animation: so-icon-ring 3s ease-in-out infinite; }
         .so-field {
           position: relative; display: flex; align-items: center;
-          background: #FAFAFA; border: 1.5px solid var(--sep);
+          background: #EDECE6; border: 1.5px solid var(--sep);
           border-radius: 14px; transition: border-color .18s, box-shadow .18s, background .18s;
           overflow: hidden;
         }
@@ -254,7 +254,7 @@ export default function StoreOnboardingPage() {
         input[type=number] { -moz-appearance: textfield; }
         .so-field:focus-within {
           border-color: var(--gold);
-          box-shadow: 0 0 0 3px rgba(242,169,0,0.12);
+          box-shadow: 0 0 0 3px rgba(249,179,24,0.12);
           background: white;
         }
         .so-field.field-error {
@@ -270,10 +270,10 @@ export default function StoreOnboardingPage() {
         .so-input::placeholder { color: var(--label3); }
         .so-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
-          background: #F2A900;
+          background: #F9B318;
           font-size: 17px; font-weight: 700; color: #fff;
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          box-shadow: 0 4px 18px rgba(242,169,0,0.32);
+          box-shadow: 0 4px 18px rgba(249,179,24,0.32);
           transition: transform .13s, opacity .13s;
           font-family: inherit;
         }
@@ -305,16 +305,16 @@ export default function StoreOnboardingPage() {
 
         {/* Hero */}
         <div className="so-appear so-d1" style={{ textAlign: 'center', padding: '32px 0 24px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
+          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(249,179,24,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(249,179,24,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
 
-          <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', position: 'relative', zIndex: 1 }}>
+          <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', position: 'relative', zIndex: 1 }}>
             <HouseIcon size={30} color="white" />
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#8F5E00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
 
           <h1 style={{ fontSize: 23, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1.3, position: 'relative', zIndex: 1 }}>
@@ -333,7 +333,7 @@ export default function StoreOnboardingPage() {
             className="so-icon-ring"
             style={{
               width: 90, height: 90, borderRadius: 28,
-              background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)',
+              background: previewUrl ? 'transparent' : 'rgba(249,179,24,0.1)',
               border: 'none', cursor: 'pointer', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               position: 'relative',
@@ -343,9 +343,9 @@ export default function StoreOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <CameraIcon size={30} color="#F2A900" />
+              <CameraIcon size={30} color="#F9B318" />
             )}
-            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
+            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(249,179,24,0.4)' }}>
               <SquarePenIcon size={12} color="white" />
             </div>
           </button>
@@ -371,7 +371,7 @@ export default function StoreOnboardingPage() {
           </div>
 
           {/* 住所は任意 */}
-          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 12, padding: '8px 16px' }}>
+          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 12, padding: '8px 16px' }}>
             {t('storeOnboarding.addressOptionalNote')}
           </p>
 

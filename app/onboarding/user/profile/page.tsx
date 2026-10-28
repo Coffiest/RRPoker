@@ -263,7 +263,7 @@ export default function UserProfileOnboardingPage() {
 
   return (
     <main
-      style={{ background: '#FFFBF5' }}
+      style={{ background: '#EDECE6' }}
       className={`min-h-screen px-6 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
     >
       <style>{`
@@ -278,7 +278,7 @@ export default function UserProfileOnboardingPage() {
 
         .profile-card {
           background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 8px rgba(249,179,24,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         .field-input {
           height: 48px;
@@ -294,9 +294,9 @@ export default function UserProfileOnboardingPage() {
         }
         .field-input::placeholder { color: var(--label3); }
         .field-input:focus {
-          border-color: #F2A900;
+          border-color: #F9B318;
           background: #fffdf7;
-          box-shadow: 0 0 0 3px rgba(242,169,0,0.12);
+          box-shadow: 0 0 0 3px rgba(249,179,24,0.12);
         }
         .field-input.has-error {
           border-color: #f87171;
@@ -312,11 +312,11 @@ export default function UserProfileOnboardingPage() {
         }
         .divider-line {
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(242,169,0,0.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(249,179,24,0.18), transparent);
         }
         .btn-primary {
-          background: #F2A900;
-          box-shadow: 0 4px 16px rgba(242,169,0,0.28), 0 1px 3px rgba(0,0,0,0.08);
+          background: #F9B318;
+          box-shadow: 0 4px 16px rgba(249,179,24,0.28), 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.13s ease, box-shadow 0.13s ease, opacity 0.13s ease;
           border-radius: 20px;
           height: 54px;
@@ -333,8 +333,8 @@ export default function UserProfileOnboardingPage() {
           height: 96px;
           border-radius: 9999px;
           overflow: hidden;
-          border: 2.5px dashed #F2A900;
-          background: #fffbf5;
+          border: 2.5px dashed #F9B318;
+          background: #EDECE6;
           cursor: pointer;
           transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
           display: flex;
@@ -342,13 +342,13 @@ export default function UserProfileOnboardingPage() {
           justify-content: center;
         }
         .icon-ring:hover, .icon-ring.hovered {
-          border-color: #D4910A;
-          box-shadow: 0 0 0 4px rgba(242,169,0,0.12);
+          border-color: #8F5E00;
+          box-shadow: 0 0 0 4px rgba(249,179,24,0.12);
           transform: scale(1.03);
         }
         .icon-ring.has-image {
           border-style: solid;
-          border-color: #F2A900;
+          border-color: #F9B318;
         }
         .icon-overlay {
           position: absolute;
@@ -374,8 +374,8 @@ export default function UserProfileOnboardingPage() {
           width: 26px;
           height: 26px;
           border-radius: 9999px;
-          background: #F2A900;
-          box-shadow: 0 2px 6px rgba(242,169,0,0.4);
+          background: #F9B318;
+          box-shadow: 0 2px 6px rgba(249,179,24,0.4);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -402,7 +402,7 @@ export default function UserProfileOnboardingPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
           <p className="mt-2 text-[14px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
-            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。
+            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#8F5E00] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
@@ -420,7 +420,7 @@ export default function UserProfileOnboardingPage() {
               <img src={previewUrl} alt="プレビュー" className="h-full w-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-2">
-                <UserIcon size={28} color="#F2A900" />
+                <UserIcon size={28} color="#F9B318" />
               </div>
             )}
 
@@ -454,7 +454,7 @@ export default function UserProfileOnboardingPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[15px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
-              <span className="text-[13px] font-semibold text-[#D4910A]">必須</span>
+              <span className="text-[13px] font-semibold text-[#8F5E00]">必須</span>
             </div>
             <input
               type="text"
@@ -482,19 +482,19 @@ export default function UserProfileOnboardingPage() {
                     width: 44, height: 44, minHeight: 44, margin: '-16px -8px', borderRadius: '50%',
                     border: 'none', background: 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: showIdInfo ? '#D4910A' : 'var(--label3)',
+                    color: showIdInfo ? '#8F5E00' : 'var(--label3)',
                     cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                     flexShrink: 0,
                   }}
                 ><InfoIcon size={18} /></button>
               </div>
-              <span className="text-[13px] font-semibold text-[#D4910A]">必須</span>
+              <span className="text-[13px] font-semibold text-[#8F5E00]">必須</span>
             </div>
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-4 rounded-2xl p-4" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
-                <p className="text-[12px] font-semibold mb-2" style={{ color: '#92610A' }}>Player ID とは？</p>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(249,179,24,0.25)' }}>
+                <p className="text-[12px] font-semibold mb-2" style={{ color: '#7A5000' }}>Player ID とは？</p>
                 <ul className="space-y-2">
                   {[
                     '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
@@ -503,8 +503,8 @@ export default function UserProfileOnboardingPage() {
                     '使える文字：半角英小文字 (a–z)・数字 (0–9)・アンダースコア (_)・ハイフン (-)',
                   ].map((txt, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 1 }}>•</span>
-                      <span className="text-[11px] leading-relaxed" style={{ color: '#92610A' }}>{txt}</span>
+                      <span style={{ color: '#F9B318', flexShrink: 0, marginTop: 1 }}>•</span>
+                      <span className="text-[11px] leading-relaxed" style={{ color: '#7A5000' }}>{txt}</span>
                     </li>
                   ))}
                 </ul>
@@ -553,7 +553,7 @@ export default function UserProfileOnboardingPage() {
                   onClick={handleAutoGet}
                   disabled={autoGetLoading}
                   className="flex items-center gap-2 transition-opacity"
-                  style={{ fontSize: 13, fontWeight: 600, color: '#D4910A', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  style={{ fontSize: 13, fontWeight: 600, color: '#1546D9', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
                     <LoaderCircleIcon size={11} className="animate-spin" />
@@ -583,7 +583,7 @@ export default function UserProfileOnboardingPage() {
                         border: '1px solid #e5e7eb',
                         cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFBF0'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F2A900'; (e.currentTarget as HTMLButtonElement).style.color = '#D4910A' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F7F1E3'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F9B318'; (e.currentTarget as HTMLButtonElement).style.color = '#8F5E00' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}
                     >
                       @{s}

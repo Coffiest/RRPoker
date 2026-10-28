@@ -137,11 +137,11 @@ function LiveTournamentRow({
         disabled={short}
         style={{
           flex: 1, height: 50, borderRadius: 999, border: 'none',
-          background: short ? '#F2F2F7' : '#F2A900',
+          background: short ? '#EDECE6' : '#F9B318',
           color: short ? 'var(--label3)' : '#fff',
           fontSize: 12.5, fontWeight: 800,
           cursor: short ? 'default' : 'pointer',
-          boxShadow: short ? 'none' : '0 3px 12px rgba(242,169,0,0.30)',
+          boxShadow: short ? 'none' : '0 3px 12px rgba(249,179,24,0.30)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
         }}
       >
@@ -180,7 +180,7 @@ function LiveTournamentRow({
       {message && (
         <p style={{
           fontSize: 12, fontWeight: 600, marginTop: 8, textAlign: 'center',
-          color: message.tone === 'ok' ? '#D4910A' : '#FF3B30',
+          color: message.tone === 'ok' ? '#8F5E00' : '#FF3B30',
         }}>
           {message.text}
         </p>

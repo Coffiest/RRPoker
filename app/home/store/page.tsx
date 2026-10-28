@@ -855,8 +855,8 @@ export default function StorePage() {
   }
 
   if (role === null) return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .8s linear infinite' }}/>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(249,179,24,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
     </div>
   )
   if (role !== "store") return null
@@ -866,11 +866,11 @@ export default function StorePage() {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。プレイヤー側と同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
+    <TechBackdrop base="#EDECE6" />
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
       <style>{`
         :root {
-          --gold:#F2A900; --gold-dk:#D4910A;
+          --gold:#F9B318; --gold-dk:#8F5E00;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -914,7 +914,7 @@ export default function StorePage() {
         }
         .ios-card::before {
           content:""; position:absolute; top:0; left:0; right:0; height:2px;
-          background:linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
+          background:linear-gradient(90deg,transparent,#F9B318 40%,#FFD36B 50%,#F9B318 60%,transparent);
           opacity:0.55; pointer-events:none;
         }
         /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
@@ -928,7 +928,7 @@ export default function StorePage() {
         }
         .section-hd::after {
           content:""; position:absolute; left:0; bottom:0; width:100%; height:1px;
-          background:linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
+          background:linear-gradient(90deg,rgba(249,179,24,0.55),rgba(249,179,24,0.06));
           transform-origin:left center;
           animation:techDraw .7s cubic-bezier(.22,1,.36,1) both;
         }
@@ -937,14 +937,14 @@ export default function StorePage() {
         /* Gold accent line */
         .gold-line {
           height:3px;
-          background:#F2A900;
+          background:#F9B318;
           background-size:200% auto;
           animation:shimmer 3s linear infinite;
         }
 
         /* Stat chip */
         .stat-chip {
-          background:#F2F2F7; border-radius:12px; padding:8px 8px; text-align:center;
+          background:#EDECE6; border-radius:12px; padding:8px 8px; text-align:center;
           font-family:var(--stack-mono); font-variant-numeric:tabular-nums;
         }
 
@@ -960,13 +960,13 @@ export default function StorePage() {
 
         /* Gold btn */
         .btn-gold {
-          background:#F2A900;
+          background:#F9B318;
           color:#fff;
         }
 
         /* Outline btn */
         .btn-outline-gold {
-          background:#fff; border:1.5px solid rgba(242,169,0,0.45); color:#D4910A;
+          background:#fff; border:1.5px solid rgba(249,179,24,0.45); color:#8F5E00;
         }
 
         /* Danger btn */
@@ -985,7 +985,7 @@ export default function StorePage() {
           padding:16px 16px; background:#fff; transition:background .12s;
         }
         .player-row:not(:last-child) { border-bottom:1px solid var(--sep); }
-        .player-row:active { background:#F2F2F7; }
+        .player-row:active { background:#EDECE6; }
 
         /* Tab bar */
         .tab-item {
@@ -1008,7 +1008,7 @@ export default function StorePage() {
 
         /* Pending player */
         .pending-row {
-          background:#F2F2F7; border-radius:14px; padding:16px 16px;
+          background:#EDECE6; border-radius:14px; padding:16px 16px;
           display:flex; align-items:center; justify-content:space-between;
         }
 
@@ -1025,8 +1025,8 @@ export default function StorePage() {
         }
         .adj-btn:active { transform:scale(0.97); opacity:.85; }
         .adj-btn-dark { background:#1C1C1E; color:#fff; }
-        .adj-btn-gold { background:#F2A900; color:#fff; box-shadow:0 2px 8px rgba(242,169,0,0.25); }
-        .adj-btn-add  { background:linear-gradient(135deg,#007AFF,#0066DD); color:#fff; }
+        .adj-btn-gold { background:#F9B318; color:#fff; box-shadow:0 2px 8px rgba(249,179,24,0.25); }
+        .adj-btn-add  { background:linear-gradient(135deg,#1546D9,#0066DD); color:#fff; }
         .adj-btn-sub  { background:rgba(255,59,48,0.1); color:#FF3B30; border:1.5px solid rgba(255,59,48,0.2); }
 
         .divider { height:1px; background:var(--sep); }
@@ -1058,7 +1058,7 @@ export default function StorePage() {
                 style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid rgba(60,60,67,0.12)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
                 <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
                 <span className="tech-label" style={{ fontSize: 13, color: timerRunning[t.id] ? '#1E7B34' : 'var(--label2)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
-                <span style={{ width: 24, height: 24, borderRadius: 12, border: on ? 'none' : '2px solid var(--label3)', background: on ? '#F2A900' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: 24, height: 24, borderRadius: 12, border: on ? 'none' : '2px solid var(--label3)', background: on ? '#F9B318' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {on && <CheckIcon size={16} color="#fff" strokeWidth={3} />}
                 </span>
               </button>
@@ -1073,7 +1073,7 @@ export default function StorePage() {
             if (isNativeApp()) router.push(url)
             else window.open(url, '_blank')
           }}
-          style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: splitIds.length < 2 ? '#E5E5EA' : '#F2A900', color: splitIds.length < 2 ? 'var(--label3)' : '#fff', fontSize: 17, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+          style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: splitIds.length < 2 ? '#E5E5EA' : '#F9B318', color: splitIds.length < 2 ? 'var(--label3)' : '#fff', fontSize: 17, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
           <span className="tech-label" style={{ fontSize: 17 }}>OPEN {splitIds.length >= 2 ? `${splitIds.length}-SPLIT` : ''}</span>
         </button>
       </AppleSheet>
@@ -1119,7 +1119,7 @@ export default function StorePage() {
                 </div>
               ) : (
                 <div
-                  style={{ width: 60, height: 60, borderRadius: 18, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)', cursor: 'pointer' }}
+                  style={{ width: 60, height: 60, borderRadius: 18, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(249,179,24,0.28)', cursor: 'pointer' }}
                   onClick={handleIconTap}
                   onTouchStart={startLongPress}
                   onTouchEnd={cancelLongPress}
@@ -1147,7 +1147,7 @@ export default function StorePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <button
                   onClick={() => setIsScannerOpen(true)}
-                  style={{ width: 44, height: 44, borderRadius: 999, background: '#F2A900', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)', flexShrink: 0, transition: 'transform 100ms ease-out, filter 100ms ease-out' }}
+                  style={{ width: 44, height: 44, borderRadius: 999, background: '#F9B318', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(249,179,24,0.30)', flexShrink: 0, transition: 'transform 100ms ease-out, filter 100ms ease-out' }}
                   onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.97)')}
                   onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
                   onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.97)' }}
@@ -1169,10 +1169,10 @@ export default function StorePage() {
             <div style={{ maxHeight: switcherOpen ? 80 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
               <div style={{ borderTop: '1px solid var(--sep)', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px' }}>
                 {ownedStores.map(s => (
-                  <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: 14, padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F2A900' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
+                  <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: 14, padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F9B318' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
                     {s.iconUrl
                       ? <img src={s.iconUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}/>
-                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
+                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
                     }
                   </button>
                 ))}
@@ -1192,16 +1192,16 @@ export default function StorePage() {
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {ownedStores.map(s => (
-                    <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left' }}>
+                    <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: s.id === storeId ? 'rgba(249,179,24,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left' }}>
                       {s.iconUrl
                         ? <img src={s.iconUrl} style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}/>
-                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
+                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
                       }
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
-                        {s.id === storeId && <p style={{ fontSize: 11, color: '#F2A900', fontWeight: 600 }}>表示中</p>}
+                        {s.id === storeId && <p style={{ fontSize: 11, color: '#F9B318', fontWeight: 600 }}>表示中</p>}
                       </div>
-                      {s.id === storeId && <CheckIcon size={14} style={{ color: '#F2A900', flexShrink: 0 }}/>}
+                      {s.id === storeId && <CheckIcon size={14} style={{ color: '#F9B318', flexShrink: 0 }}/>}
                     </button>
                   ))}
                 </div>
@@ -1346,7 +1346,7 @@ export default function StorePage() {
                         ><SkipBackIcon size={17} style={{ color: 'var(--label)' }}/></button>
 
                         <button className="timer-btn" onClick={() => toggleTimer(t.id)}
-                          style={{ width: 56, height: 56, borderRadius: '50%', background: '#F2A900', boxShadow: '0 4px 14px rgba(242,169,0,0.32)' }}
+                          style={{ width: 56, height: 56, borderRadius: '50%', background: '#F9B318', boxShadow: '0 4px 14px rgba(249,179,24,0.32)' }}
                         >
                           {timerRunning[t.id] ? <PauseIcon size={20} style={{ color: 'white' }}/> : <PlayIcon size={20} style={{ color: 'white', marginLeft: 2 }}/>}
                         </button>
@@ -1377,9 +1377,9 @@ export default function StorePage() {
           const iconCircle = (gold?: boolean): React.CSSProperties => ({
             width: gold ? 52 : 42, height: gold ? 52 : 42, borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: gold ? '#F2A900' : 'rgba(255,255,255,0.14)',
+            background: gold ? '#F9B318' : 'rgba(255,255,255,0.14)',
             border: gold ? 'none' : '1px solid rgba(255,255,255,0.22)',
-            boxShadow: gold ? '0 4px 14px rgba(242,169,0,0.38)' : 'none',
+            boxShadow: gold ? '0 4px 14px rgba(249,179,24,0.38)' : 'none',
           })
           const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }
           return (
@@ -1455,7 +1455,7 @@ export default function StorePage() {
                             ? <PauseIcon size={20} style={{ color: '#fff' }} />
                             : <PlayIcon size={20} style={{ color: '#fff', marginLeft: 2 }} />}
                         </div>
-                        <span style={{ ...labelStyle, color: 'rgba(242,169,0,0.8)' }}>
+                        <span style={{ ...labelStyle, color: 'rgba(249,179,24,0.8)' }}>
                           {timerRunning[et.id] ? 'PAUSE' : 'START'}
                         </span>
                       </button>
@@ -1579,7 +1579,7 @@ export default function StorePage() {
                   </p>
                   <input type="range" min={0} max={7200} step={10} value={sec} aria-label="残り時間"
                     onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
-                    style={{ width: '100%', height: 44, accentColor: '#F2A900', cursor: 'pointer' }} />
+                    style={{ width: '100%', height: 44, accentColor: '#F9B318', cursor: 'pointer' }} />
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                     {[{ label: '−1分', diff: -60 }, { label: '−10秒', diff: -10 }, { label: '+10秒', diff: 10 }, { label: '+1分', diff: 60 }].map(b => (
                       <button key={b.label} type="button" onClick={() => updateAdjustTime(t.id, b.diff)} className="action-btn"
@@ -1643,9 +1643,9 @@ export default function StorePage() {
                     ))}
                   </div>
                   {withdrawOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
-                        <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
+                        <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する
                       </label>
                       <input value={withdrawOtherComment} onChange={e => setWithdrawOtherComment(e.target.value)}
@@ -1653,7 +1653,7 @@ export default function StorePage() {
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveWithdrawWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                       >確定する</button>
                     </div>
                   )}
@@ -1705,9 +1705,9 @@ export default function StorePage() {
                     ))}
                   </div>
                   {depositOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
-                        <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
+                        <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する
                       </label>
                       <input value={depositOtherComment} onChange={e => setDepositOtherComment(e.target.value)}
@@ -1715,7 +1715,7 @@ export default function StorePage() {
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveDepositWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                       >確定する</button>
                     </div>
                   )}
@@ -1801,7 +1801,7 @@ export default function StorePage() {
                     {filteredPlayers.map((p, i) => (
                       <button key={p.id} onClick={() => selectPlayer(p.id)}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '16px 16px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer', transition: 'background 0.15s ease' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.02)'}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,179,24,0.02)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}
                       >
                         <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -1853,7 +1853,7 @@ export default function StorePage() {
                       display: 'flex', alignItems: 'center', padding: '16px 16px',
                       gap: 16,
                       borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
-                      background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.06)' : 'transparent',
+                      background: selectedPlayerId === player.id ? 'rgba(249,179,24,0.06)' : 'transparent',
                       opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
                       transition: 'opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease',
                     }}>
@@ -1861,7 +1861,7 @@ export default function StorePage() {
                       <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s ease' }} onClick={() => setProfileUid(player.id)}>
                         {player.iconUrl
                           ? <img src={player.iconUrl} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}/>
-                          : <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>
+                          : <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}>
                               {player.name
                                 ? <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{player.name.charAt(0)}</span>
                                 : <UserIcon size={20} style={{ color: '#fff' }}/>
@@ -1909,9 +1909,9 @@ export default function StorePage() {
                         ><ClockIcon size={15} style={{ color: 'var(--label2)', transition: 'color 0.15s ease' }}/></button>
 
                         <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
-                          style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)', transition: 'transform 0.18s ease, opacity 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease' }}
-                          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(242,169,0,0.45)'}
-                          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(242,169,0,0.35)'}
+                          style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--gold)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.35)', transition: 'transform 0.18s ease, opacity 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease' }}
+                          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(249,179,24,0.45)'}
+                          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(249,179,24,0.35)'}
                         ><DollarSignIcon size={16} style={{ color: '#fff' }}/></button>
 
                         {player.isInStore ? (
@@ -1955,8 +1955,8 @@ export default function StorePage() {
                   )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.03)'}
+                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#1546D9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,179,24,0.03)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
                       もっと見る <ChevronDownIcon size={14} style={{ transition: 'transform 0.2s ease' }}/>
@@ -2003,7 +2003,7 @@ export default function StorePage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {adjustModalPlayer.iconUrl
                   ? <img src={adjustModalPlayer.iconUrl} style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'cover' }}/>
-                  : <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(242,169,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  : <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(249,179,24,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <UserIcon size={16} style={{ color: 'var(--gold)' }}/>
                     </div>
                 }

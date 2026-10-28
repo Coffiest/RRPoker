@@ -93,7 +93,7 @@ export default function UserSettingsPage() {
   const iconPreview = file ? URL.createObjectURL(file) : null
 
   return (
-    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 48 }}>
+    <main style={{ minHeight: '100dvh', background: '#EDECE6', paddingBottom: 48 }}>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
         <PageTitleBar title="" onBack={() => router.back()} />

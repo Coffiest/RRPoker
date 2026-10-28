@@ -70,7 +70,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 pb-28">
+    <main className="min-h-screen bg-[#EDECE6] px-6 pb-28">
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"

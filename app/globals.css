@@ -8,7 +8,7 @@
    - Space Grotesk  … 等幅と骨格を共有する幾何学サンセリフ。見出し・ロゴ用。
    Fontjoy の指針「共通のテーマを持ちつつ心地よいコントラスト」に沿った組み合わせ。
 
-   配色は既存テーマ（白基調・グレー階層・#F2A900 ゴールド）から一切追加しない。
+   配色は既存テーマ（白基調・グレー階層・#F9B318 ゴールド）から一切追加しない。
    ========================================================================== */
 
 html, body {
@@ -43,7 +43,10 @@ html, body {
 }
 
 :root {
-  --background: #ffffff;
+  /* テーマ色(オーナー確定): 地 ウォームベージュ / 主色 サンイエロー / 差し色 コバルトブルー */
+  --background: #EDECE6;
+  --sun: #F9B318;
+  --cobalt: #1546D9;
   --foreground: #171717;
 
   /* 和文フォールバック。和文の等幅は可読性を損なうため端末標準に委ねる */
@@ -55,8 +58,8 @@ html, body {
   --stack-display: var(--font-space), var(--font-jetbrains), var(--font-jp), sans-serif;
 
   /* テック装飾用。既存テーマ色のみで構成 */
-  --tech-gold: #F2A900;
-  --tech-gold-deep: #D4910A;
+  --tech-gold: #F9B318;
+  --tech-gold-deep: #8F5E00;
   --tech-line: rgba(17, 24, 39, 0.07);
   --tech-line-strong: rgba(17, 24, 39, 0.14);
 }
@@ -75,7 +78,7 @@ html, body {
    色を指定していない文字(例: 店舗詳細シートの見出し)が白い面の上で
    ほぼ白になり読めなかった。ダーク用の上書きは置かない(test/textContrast.test.ts が守る)。
 
-   灰色の文字は次の3段だけを使う。どれも白(#fff)と #F2F2F7 の上で
+   灰色の文字は次の3段だけを使う。どれも白(#fff)と #EDECE6 の上で
    コントラスト比 4.5:1 以上。これより薄い灰色を文字に使わない。
      --label  : 本文・見出し      #1C1C1E (16:1)
      --label2 : 補足・ラベル      #545458 (7.5:1)
@@ -84,7 +87,7 @@ html, body {
   color-scheme: light;
   --label: #1C1C1E;
   --label2: #545458;
-  --label3: #6E6E73;
+  --label3: #636368; /* 地のベージュ(#EDECE6)でも 4.5:1 以上 */
 }
 .text-label2 { color: var(--label2); }
 .text-label3 { color: var(--label3); }
@@ -159,7 +162,7 @@ body {
 /* シェルプロンプト接頭辞 */
 .term-prompt::before {
   content: "$";
-  color: var(--tech-gold);
+  color: var(--cobalt);
   margin-right: 0.55em;
   font-weight: 700;
 }
@@ -184,7 +187,7 @@ body {
   height: 1.05em;
   margin-left: 0.15em;
   vertical-align: -0.16em;
-  background: var(--tech-gold);
+  background: var(--cobalt);
   animation: techCaretBlink 1.05s steps(1) infinite;
 }
 
@@ -222,7 +225,7 @@ body {
   height: 6px;
   border-radius: 9999px;
   background: var(--tech-gold);
-  box-shadow: 0 0 0 0 rgba(242, 169, 0, 0.55);
+  box-shadow: 0 0 0 0 rgba(249,179,24, 0.55);
   animation: techPulse 1.9s ease-out infinite;
 }
 
@@ -239,9 +242,9 @@ body {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(242, 169, 0, 0.10) 48%,
-    rgba(242, 169, 0, 0.16) 50%,
-    rgba(242, 169, 0, 0.10) 52%,
+    rgba(249,179,24, 0.10) 48%,
+    rgba(249,179,24, 0.16) 50%,
+    rgba(249,179,24, 0.10) 52%,
     transparent 100%
   );
   transform: translateY(-100%);
@@ -279,9 +282,9 @@ body {
 }
 
 @keyframes techPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(242, 169, 0, 0.55); }
-  70%  { box-shadow: 0 0 0 7px rgba(242, 169, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(242, 169, 0, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(249,179,24, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(249,179,24, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249,179,24, 0); }
 }
 
 @keyframes techScan {
@@ -479,7 +482,7 @@ body {
 }
 .con-hd::before {
   content: "//";
-  color: var(--tech-gold, #F2A900);
+  color: var(--tech-gold, #F9B318);
   opacity: 0.75;
 }
 .con-hd::after {
@@ -489,7 +492,7 @@ body {
   bottom: 0;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, rgba(242, 169, 0, 0.55), rgba(242, 169, 0, 0.06));
+  background: linear-gradient(90deg, rgba(249,179,24, 0.55), rgba(249,179,24, 0.06));
   transform-origin: left center;
   animation: techDraw 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--tech-reveal-delay, 0.05s);
@@ -517,7 +520,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent);
+  background: linear-gradient(90deg, transparent, #F9B318 40%, #FFD36B 50%, #F9B318 60%, transparent);
   opacity: 0.65;
   pointer-events: none;
 }
@@ -532,9 +535,9 @@ body {
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(242, 169, 0, 0.055) 48%,
-    rgba(242, 169, 0, 0.10) 50%,
-    rgba(242, 169, 0, 0.055) 52%,
+    rgba(249,179,24, 0.055) 48%,
+    rgba(249,179,24, 0.10) 50%,
+    rgba(249,179,24, 0.055) 52%,
     transparent 100%
   );
   transform: translateY(-100%);
@@ -570,7 +573,7 @@ body {
    ここで一元化する。各画面はこのクラスを当てるだけにして、同じ操作が
    同じ見え方・同じ手応えになるようにする。
 
-   変えないもの: テーマ色(#F2A900)と書体(--stack-mono / --stack-display)。
+   変えないもの: テーマ色(#F9B318)と書体(--stack-mono / --stack-display)。
    変えるもの:   輪郭(角丸→カプセル)、素材(白い板→ガラス)、
                  階層(枠線→影と透過)、動き(一定時間→スプリング)、
                  字間(一律→寸法ごと)。
@@ -591,10 +594,10 @@ body {
   --a-r-xl: 34px;
 
   /* 色。金はテーマのまま。灰は iOS のラベル階層に合わせる。 */
-  --a-gold: #F2A900;
-  --a-gold-deep: #B57F00;
+  --a-gold: #F9B318;
+  --a-gold-deep: #8F5E00;
   --a-surface: #fff;
-  --a-surface-2: #F2F2F7;
+  --a-surface-2: #EDECE6;
   --a-sep: rgba(60, 60, 67, 0.09);
   --a-label: #1C1C1E;
   --a-label-2: var(--label2);
@@ -666,16 +669,16 @@ body {
 
 /* 塗り。テーマの金。上端の光でカプセルに丸みを出す。 */
 .a-btn-filled {
-  background: linear-gradient(180deg, #FFC53D 0%, #F2A900 46%, #DE9A00 100%);
+  background: linear-gradient(180deg, #FFC53D 0%, #F9B318 46%, #DE9A00 100%);
   color: #1C1C1E;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.62),
     inset 0 -1px 0 rgba(120, 80, 0, 0.18),
-    0 6px 18px rgba(242, 169, 0, 0.30);
+    0 6px 18px rgba(249,179,24, 0.30);
 }
 .a-btn-filled:active {
   filter: brightness(0.94);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(242,169,0,0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(249,179,24,0.24);
 }
 
 /* ガラス。並列の選択肢に使う。下の内容が透けるので、面の上に置ける。 */
@@ -691,11 +694,11 @@ body {
 
 /* 淡色。金を薄く敷く。主でも副でもない、その場の操作に使う。 */
 .a-btn-tinted {
-  background: rgba(242, 169, 0, 0.14);
+  background: rgba(249,179,24, 0.14);
   color: var(--a-gold-deep);
-  box-shadow: inset 0 0 0 1px rgba(242, 169, 0, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(249,179,24, 0.16);
 }
-.a-btn-tinted:active { background: rgba(242, 169, 0, 0.24) }
+.a-btn-tinted:active { background: rgba(249,179,24, 0.24) }
 
 /* 文字だけ。退く側に使う。 */
 .a-btn-bare {
@@ -908,7 +911,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 }
 @media (prefers-contrast: more) {
   .a-card, .a-list { box-shadow: inset 0 0 0 1px rgba(60,60,67,0.32) }
-  .a-btn-tinted { background: rgba(242,169,0,0.24); color: #7A5600 }
+  .a-btn-tinted { background: rgba(249,179,24,0.24); color: #7A5000 }
   .a-btn-glass, .a-glass, .a-glass-thick, .a-sheet, .a-dialog {
     background: #fff; backdrop-filter: none;  }
 }
@@ -917,14 +920,14 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    9. 地
    真っ白の上ではガラスが成立しない(透ける先が無い)。iOS のグループ背景に
    あたる淡い灰を敷き、上端にだけテーマの金をごく薄く落として奥行きを作る。
-   新しい色は足していない。使っているのは #F2A900 と灰だけ。
+   新しい色は足していない。使っているのは #F9B318 と灰だけ。
    -------------------------------------------------------------------------- */
 .a-app-bg {
   position: relative;
   min-height: 100%;
   background:
-    radial-gradient(120% 52% at 50% -8%, rgba(242, 169, 0, 0.10) 0%, transparent 62%),
-    linear-gradient(180deg, #F6F5F2 0%, #F2F2F7 46%, #EFEFF4 100%);
+    radial-gradient(120% 52% at 50% -8%, rgba(249,179,24, 0.10) 0%, transparent 62%),
+    linear-gradient(180deg, #F6F5F2 0%, #EDECE6 46%, #EFEFF4 100%);
   background-attachment: fixed;
 }
 
@@ -952,17 +955,17 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 /* 主の操作。カプセルにして、押した瞬間に沈む */
 .gold-btn {
   border-radius: var(--a-capsule);
-  background: linear-gradient(180deg, #FFC53D 0%, #F2A900 46%, #DE9A00 100%);
+  background: linear-gradient(180deg, #FFC53D 0%, #F9B318 46%, #DE9A00 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.62),
     inset 0 -1px 0 rgba(120, 80, 0, 0.18),
-    0 6px 18px rgba(242, 169, 0, 0.30);
+    0 6px 18px rgba(249,179,24, 0.30);
   transition: transform var(--a-press), box-shadow 240ms var(--a-spring), filter var(--a-press);
 }
 .gold-btn:active {
   transform: scale(0.97);
   filter: brightness(0.94);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(242,169,0,0.24);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(249,179,24,0.24);
 }
 
 /* 副の操作。金の枠線ではなく、透過と光の縁で並列を示す */
@@ -1035,7 +1038,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    タイポグラフィ / ガラス / 粒子・モーション / スクロール連動 —— を、
    外部の生成物を持ち込まずに、この地の色と金だけで組む。
 
-   足していない色は無い。使うのは #F2A900 と灰だけ。書体も変えない。
+   足していない色は無い。使うのは #F9B318 と灰だけ。書体も変えない。
    動かすのは、位置・不透明度・ぼかし・字幅だけ。
    ========================================================================== */
 
@@ -1051,9 +1054,9 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(38% 30% at 22% 18%, rgba(242, 169, 0, 0.11) 0%, transparent 70%),
-    radial-gradient(32% 26% at 78% 32%, rgba(242, 169, 0, 0.07) 0%, transparent 72%),
-    radial-gradient(44% 34% at 50% 88%, rgba(242, 169, 0, 0.05) 0%, transparent 74%);
+    radial-gradient(38% 30% at 22% 18%, rgba(249,179,24, 0.11) 0%, transparent 70%),
+    radial-gradient(32% 26% at 78% 32%, rgba(249,179,24, 0.07) 0%, transparent 72%),
+    radial-gradient(44% 34% at 50% 88%, rgba(249,179,24, 0.05) 0%, transparent 74%);
   animation: aAurora 48s ease-in-out infinite;
   will-change: transform;
 }
@@ -1145,7 +1148,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-breathe { animation: aBreathe 3.6s ease-in-out infinite }
 @keyframes aBreathe {
   0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,0,0,0.03), 0 14px 38px rgba(0,0,0,0.07) }
-  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(242,169,0,0.10), 0 14px 42px rgba(242,169,0,0.16) }
+  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(249,179,24,0.10), 0 14px 42px rgba(249,179,24,0.16) }
 }
 
 /* --------------------------------------------------------------------------
@@ -1165,7 +1168,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 /* ==========================================================================
    デザインルール レイヤー(design-rules スキル準拠)
    Apple HIG を最優先に、全画面へ同じ基準を当てる。上の定義より後に置き、
-   ここで上書きする。白基調・金(#F2A900)・灰色3段(--label/2/3)は変えない。
+   ここで上書きする。白基調・金(#F9B318)・灰色3段(--label/2/3)は変えない。
    - 書体とコンソール風の装飾は上の定義のまま(絶対ルール。CLAUDE.md 参照)。ここでは上書きしない
    - 余白・寸法: 8 の倍数
    - 押せる場所: 44px 以上
@@ -1184,7 +1187,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   font-weight: 600;
 }
 .a-btn-filled {
-  background: #F2A900;
+  background: #F9B318;
   box-shadow: none;
 }
 .a-btn-sm { min-height: 44px; padding: 0 16px; font-size: 15px; }
@@ -1202,7 +1205,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-caption { font-size: 13px; line-height: 1.38; letter-spacing: 0; }
 
 /* 主の操作は金の単色。グラデーション・光沢は使わない */
-.gold-btn, .gold-btn:active { background: #F2A900; box-shadow: none; }
+.gold-btn, .gold-btn:active { background: #F9B318; box-shadow: none; }
 .a-kinetic { font-feature-settings: "tnum" 1; }
 .confirm-btn { -webkit-tap-highlight-color: transparent; transition: background-color 100ms ease-out; }
 .confirm-btn:active { background: rgba(60, 60, 67, 0.08) !important; }

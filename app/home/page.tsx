@@ -204,13 +204,13 @@ function GraphShelf({
       {/* セクションタイトル：カード化せず、ページの背景に直接置く */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <ChartNoAxesColumnIcon className="text-[15px] text-[#F2A900]" />
+          <ChartNoAxesColumnIcon className="text-[15px] text-[#F9B318]" />
           <p className="text-[15px] font-bold text-gray-900">{sectionTitle}</p>
         </div>
         <div className="flex gap-2">
           {(["7", "1m", "all"] as const).map(tab => (
             <button key={tab} type="button" onClick={() => { onPeriodChange(tab); closeTooltip() }}
-              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition ${periodTab === tab ? "bg-[#F2A900] text-white" : "bg-gray-100 text-gray-500"}`}>
+              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition ${periodTab === tab ? "bg-[#F9B318] text-white" : "bg-gray-100 text-gray-500"}`}>
               {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
             </button>
           ))}
@@ -1362,7 +1362,7 @@ const medalClass = (rank: number) => {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
+    <TechBackdrop base="#EDECE6" />
     <main className="min-h-screen pb-32" style={{ background: "transparent", position: "relative", zIndex: 1 }}>
       <style>{`
         /* ── アニメーション ── */
@@ -1395,7 +1395,7 @@ const medalClass = (rank: number) => {
         }
         @keyframes deltaGlow {
           0%,100% { box-shadow: none; }
-          30%  { box-shadow: 0 0 0 3px rgba(242,169,0,0.35); }
+          30%  { box-shadow: 0 0 0 3px rgba(249,179,24,0.35); }
         }
         @keyframes countFlip {
           0%   { transform:translateY(6px); opacity:0; }
@@ -1412,8 +1412,8 @@ const medalClass = (rank: number) => {
         .delta-glow { animation: deltaGlow 2s ease-in-out 2; }
         .count-flip { animation: countFlip 0.28s cubic-bezier(0.22,1,0.36,1) both; }
         @keyframes pulseGlow {
-          0%,100% { box-shadow:0 0 0 0 rgba(242,169,0,0.3); }
-          50%      { box-shadow:0 0 0 8px rgba(242,169,0,0); }
+          0%,100% { box-shadow:0 0 0 0 rgba(249,179,24,0.3); }
+          50%      { box-shadow:0 0 0 8px rgba(249,179,24,0); }
         }
         @keyframes shimmer {
           0%   { background-position:-200% center; }
@@ -1443,29 +1443,29 @@ const medalClass = (rank: number) => {
         /* ── カード共通 ── */
         .profile-card {
           background: linear-gradient(145deg,#fff 0%,#fefefe 100%);
-          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 8px rgba(249,179,24,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         /* .section-card は globals.css へ移した(店舗側でも同じ面を使うため) */
 
         /* ── ストアバッジ ── */
         .store-badge {
-          background: linear-gradient(145deg,rgba(242,169,0,0.08) 0%,rgba(242,169,0,0.03) 100%);
-          border: 1.5px solid rgba(242,169,0,0.2);
+          background: linear-gradient(145deg,rgba(249,179,24,0.08) 0%,rgba(249,179,24,0.03) 100%);
+          border: 1.5px solid rgba(249,179,24,0.2);
         }
 
         /* ── RR ── */
         .rr-board {
           position:relative;
-          background: linear-gradient(145deg,#FFFBF5 0%,#FFF8ED 100%);
-          border: 1px solid rgba(242,169,0,0.15);
+          background: linear-gradient(145deg,#EDECE6 0%,#F7F1E3 100%);
+          border: 1px solid rgba(249,179,24,0.15);
           border-radius: 28px;
           padding: 24px;
-          box-shadow: 0 2px 8px rgba(242,169,0,0.08), 0 12px 32px rgba(242,169,0,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+          box-shadow: 0 2px 8px rgba(249,179,24,0.08), 0 12px 32px rgba(249,179,24,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
         }
         .rr-rate-card {
-          background: #F2A900;
+          background: #F9B318;
           border-radius: 20px; padding:24px;
-          box-shadow: 0 4px 16px rgba(242,169,0,0.3), 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 16px rgba(249,179,24,0.3), 0 1px 3px rgba(0,0,0,0.1);
           position:relative; overflow:hidden;
         }
         .rr-rate-card::before {
@@ -1478,15 +1478,15 @@ const medalClass = (rank: number) => {
         }
         .rr-ranking-item {
           background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-          border:1px solid rgba(242,169,0,0.1); border-radius:16px; padding:16px 16px;
-          box-shadow:0 1px 3px rgba(242,169,0,0.08),inset 0 1px 0 rgba(255,255,255,1);
+          border:1px solid rgba(249,179,24,0.1); border-radius:16px; padding:16px 16px;
+          box-shadow:0 1px 3px rgba(249,179,24,0.08),inset 0 1px 0 rgba(255,255,255,1);
           transition:transform 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1);
         }
-        .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(242,169,0,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(242,169,0,0.2); }
+        .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(249,179,24,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(249,179,24,0.2); }
         .rr-my-entry {
-          background:linear-gradient(135deg,#FFFBF5 0%,#FFF4E0 100%);
-          border:1.5px solid rgba(242,169,0,0.3); border-radius:16px; padding:16px 16px;
-          box-shadow:0 2px 8px rgba(242,169,0,0.12),inset 0 1px 0 rgba(255,255,255,0.9);
+          background:linear-gradient(135deg,#EDECE6 0%,#FFF4E0 100%);
+          border:1.5px solid rgba(249,179,24,0.3); border-radius:16px; padding:16px 16px;
+          box-shadow:0 2px 8px rgba(249,179,24,0.12),inset 0 1px 0 rgba(255,255,255,0.9);
         }
 
         /* ── メダル ── */
@@ -1504,8 +1504,8 @@ const medalClass = (rank: number) => {
           50%      { opacity:1;   transform:translate(-50%,-52%) scale(1.18); }
         }
         @keyframes goldDotPulse {
-          0%,100% { box-shadow:0 0 0 0 rgba(242,169,0,0); }
-          50%      { box-shadow:0 0 0 4px rgba(242,169,0,0.25); }
+          0%,100% { box-shadow:0 0 0 0 rgba(249,179,24,0); }
+          50%      { box-shadow:0 0 0 4px rgba(249,179,24,0.25); }
         }
         .bank-card {
           perspective:1600px;
@@ -1531,7 +1531,7 @@ const medalClass = (rank: number) => {
           box-shadow:
             0 0 0 1px rgba(255,255,255,0.07),
             0 36px 72px rgba(0,0,0,0.72),
-            0 8px 24px rgba(242,169,0,0.04);
+            0 8px 24px rgba(249,179,24,0.04);
         }
         .bank-card-front::before {
           content:""; position:absolute; inset:0; pointer-events:none;
@@ -1543,12 +1543,12 @@ const medalClass = (rank: number) => {
         }
         .bank-card-front::after {
           content:""; position:absolute; top:0; left:0; right:0; height:2px;
-          background:linear-gradient(90deg,transparent 0%,#E09000 15%,#F2A900 40%,#FFD060 50%,#F2A900 60%,#E09000 85%,transparent 100%);
+          background:linear-gradient(90deg,transparent 0%,#E09000 15%,#F9B318 40%,#FFD060 50%,#F9B318 60%,#E09000 85%,transparent 100%);
         }
         .bank-card-glow {
           position:absolute; top:50%; left:50%;
           width:64%; padding-top:40%;
-          background:radial-gradient(ellipse at center,rgba(242,169,0,0.2) 0%,rgba(242,169,0,0.06) 45%,transparent 70%);
+          background:radial-gradient(ellipse at center,rgba(249,179,24,0.2) 0%,rgba(249,179,24,0.06) 45%,transparent 70%);
           transform:translate(-50%,-52%);
           animation:breatheGold 3.6s ease-in-out infinite;
           pointer-events:none;
@@ -1582,11 +1582,11 @@ const medalClass = (rank: number) => {
         .a-scrim { background:rgba(0,0,0,0.3); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 
         /* ── 追加ユーティリティ ── */
-        .divider-gold { height:1px; background:linear-gradient(90deg,transparent,rgba(242,169,0,0.2),transparent); }
+        .divider-gold { height:1px; background:linear-gradient(90deg,transparent,rgba(249,179,24,0.2),transparent); }
         .stat-chip {
-          background:#fff; border:1px solid rgba(242,169,0,0.18);
+          background:#fff; border:1px solid rgba(249,179,24,0.18);
           border-radius:16px; padding:16px 16px;
-          box-shadow:0 1px 4px rgba(242,169,0,0.06);
+          box-shadow:0 1px 4px rgba(249,179,24,0.06);
         }
         /* .gold-btn / .outline-gold-btn は globals.css へ移した */
         .section-label {
@@ -1594,7 +1594,7 @@ const medalClass = (rank: number) => {
         }
         .pulse-dot { animation:pulseGlow 2s ease-in-out infinite; }
         .shimmer-num {
-          background:#F2A900;
+          background:#F9B318;
           background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
           animation:shimmer 2.4s linear infinite;
         }
@@ -1619,7 +1619,7 @@ const medalClass = (rank: number) => {
         }
 
         /* ── カレンダー ── */
-        .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F2A900; margin:0 auto; }
+        .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F9B318; margin:0 auto; }
 
         /* ── スタンプ ── */
         @keyframes stampPress {
@@ -1666,7 +1666,7 @@ const medalClass = (rank: number) => {
               いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
           {/* 面の色は元のテーマ(金)のまま。変えたのは意匠だけ:
               方眼と基板のドットを薄く重ね、端末のタイトル行を足している。 */}
-          <div data-tutorial="rr-card-hero" style={{ background: '#F2A900', padding: '16px 24px 24px', position: 'relative', overflow: 'hidden' }}>
+          <div data-tutorial="rr-card-hero" style={{ background: '#F9B318', padding: '16px 24px 24px', position: 'relative', overflow: 'hidden' }}>
             {/* 金の面に、方眼と基板のドットを黒で薄く敷く(色は足さない) */}
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
             <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
@@ -1783,7 +1783,7 @@ const medalClass = (rank: number) => {
                     if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
                     setIsRankingModalOpen(true)
                   }}>
-                  <AwardIcon size={20} style={{ color: '#B57F00' }} />
+                  <AwardIcon size={20} style={{ color: '#8F5E00' }} />
                   <span className="tech-label" style={{ flex: 1, fontSize: 13, color: 'var(--label)', letterSpacing: '0.14em' }}>RR RATING RANKING</span>
                   <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                 </button>
@@ -1795,7 +1795,7 @@ const medalClass = (rank: number) => {
               {/* ヘッダー行(押すと履歴の一覧へ) */}
               <button type="button" className="home-row home-row-btn" onClick={() => router.push("/home/tournaments")}>
                 <span className="tech-label" style={{ flex: 1, fontSize: 13, color: 'var(--label)', letterSpacing: '0.16em' }}>TOURNAMENT HISTORY</span>
-                <span className="tech-label" style={{ fontSize: 13, color: 'var(--label2)', letterSpacing: '0.08em' }}>VIEW ALL</span>
+                <span className="tech-label" style={{ fontSize: 13, color: '#1546D9', letterSpacing: '0.08em' }}>VIEW ALL</span>
                 <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
               </button>
 
@@ -1824,7 +1824,7 @@ const medalClass = (rank: number) => {
                         {n > 1 && (
                           <polyline
                             points={tnChartData.map((d, i) => `${PL + i * STEP},${yOf(d.pnl)}`).join(' ')}
-                            fill="none" stroke="#F2A900" strokeWidth={1.5} strokeLinejoin="round"
+                            fill="none" stroke="#F9B318" strokeWidth={1.5} strokeLinejoin="round"
                           />
                         )}
                         {tnChartData.map((d, i) => {
@@ -1966,7 +1966,7 @@ const medalClass = (rank: number) => {
                       </p>
                       {/* 面の中でここだけが明るい。金は数値にだけ使う。 */}
                       {/* 数値の色は元のまま(白 + 金のにじみ)。変えたのは並べ方だけ。 */}
-                      <p className="tech-num" style={{ fontSize:46, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-1.5px', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
+                      <p className="tech-num" style={{ fontSize:46, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-1.5px', textShadow:'0 2px 28px rgba(249,179,24,0.22)' }}>
                         <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
                       </p>
                       {displayNetGain !== 0 && (
@@ -2061,7 +2061,7 @@ const medalClass = (rank: number) => {
                 <h2 className="home-list-hd">店内純増ランキング</h2>
                 {(rankingTab === 'all' ? ranking : monthlyRanking).length > 3 && (
                   <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)}
-                    style={{ minHeight: 44, padding: '0 16px', border: 'none', background: 'none', fontSize: 15, color: '#B57F00', cursor: 'pointer', fontFamily: 'inherit' }}>すべて見る</button>
+                    style={{ minHeight: 44, padding: '0 16px', border: 'none', background: 'none', fontSize: 15, color: '#1546D9', cursor: 'pointer', fontFamily: 'inherit' }}>すべて見る</button>
                 )}
               </div>
               <div className="home-list" style={{ padding: 16 }}>
@@ -2105,7 +2105,7 @@ const medalClass = (rank: number) => {
                           return next
                         })
                       }}
-                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition ${rankingMultiSelectMode ? "bg-[#F2A900] text-white" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
+                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition ${rankingMultiSelectMode ? "bg-[#F9B318] text-white" : "bg-[#F9B318]/10 text-[#F9B318]"}`}
                     >
                       {rankingMultiSelectMode ? "完了" : "複数月を選択"}
                     </button>
@@ -2139,8 +2139,8 @@ const medalClass = (rank: number) => {
                           style={{
                             flexShrink: 0, minWidth: 56, padding: '8px 8px', borderRadius: 12, border: 'none', cursor: 'pointer',
                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-                            background: selected ? '#F2A900' : '#F2F2F7',
-                            boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                            background: selected ? '#F9B318' : '#EDECE6',
+                            boxShadow: selected ? '0 3px 10px rgba(249,179,24,0.35)' : 'none',
                             transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                           }}
                         >
@@ -2188,8 +2188,8 @@ const medalClass = (rank: number) => {
                         style={{
                           flexShrink: 0, minWidth: 64, padding: '8px 8px', borderRadius: 12, border: 'none', cursor: 'pointer',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
-                          background: selected ? '#F2A900' : '#F2F2F7',
-                          boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                          background: selected ? '#F9B318' : '#EDECE6',
+                          boxShadow: selected ? '0 3px 10px rgba(249,179,24,0.35)' : 'none',
                           transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                         }}
                       >
@@ -2221,10 +2221,10 @@ const medalClass = (rank: number) => {
                 const myRank = rankingTab === 'all' ? userRank : monthlyUserRank
                 if (!myRank) return null
                 return (
-                  <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1.5px solid rgba(242,169,0,0.25)' }}>
+                  <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)', border: '1.5px solid rgba(249,179,24,0.25)' }}>
                     <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F2A900]/15">
-                        <UserIcon className="text-[13px] text-[#D4910A]" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9B318]/15">
+                        <UserIcon className="text-[13px] text-[#8F5E00]" />
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500">あなたの順位</p>
@@ -2283,14 +2283,14 @@ const medalClass = (rank: number) => {
                           {store?.iconUrl ? <img src={store.iconUrl} alt="" className="h-full w-full object-cover" /> : <StoreIcon size={20} color="var(--label3)" />}
                         </span>
                         <span className="flex-1 truncate" style={{ fontSize: 17, color: 'var(--label)' }}>{store?.name ?? ""}</span>
-                        {isFav && <StarIcon size={16} fill="#F2A900" color="#F2A900" aria-label="お気に入り" />}
+                        {isFav && <StarIcon size={16} fill="#F9B318" color="#F9B318" aria-label="お気に入り" />}
                         <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                       </button>
                     </li>
                   )
                 })}
                 <li>
-                  <button type="button" onClick={openJoinModal} className="home-row home-row-btn" style={{ color: '#B57F00' }}>
+                  <button type="button" onClick={openJoinModal} className="home-row home-row-btn" style={{ color: '#8F5E00' }}>
                     <SearchIcon size={20} />
                     <span style={{ flex: 1, fontSize: 17 }}>店舗を探して入店</span>
                   </button>
@@ -2321,8 +2321,8 @@ const medalClass = (rank: number) => {
                           flexShrink: 0, flexBasis: 'calc((100% - 6px * 4) / 5)',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
                           padding: '8px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
-                          background: selected ? '#F2A900' : '#F2F2F7',
-                          boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
+                          background: selected ? '#F9B318' : '#EDECE6',
+                          boxShadow: selected ? '0 3px 10px rgba(249,179,24,0.35)' : 'none',
                           transition: 'transform 0.18s cubic-bezier(0.22,1,0.36,1), opacity 0.18s cubic-bezier(0.22,1,0.36,1), background-color 0.18s cubic-bezier(0.22,1,0.36,1), border-color 0.18s cubic-bezier(0.22,1,0.36,1), color 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s cubic-bezier(0.22,1,0.36,1)',
                         }}
                       >
@@ -2330,7 +2330,7 @@ const medalClass = (rank: number) => {
                         <span style={{ fontSize: 20, fontWeight: 800, color: numColor, lineHeight: 1.1 }}>{day}</span>
                         <div style={{ height: 5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {entries.length > 0 && (
-                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? 'rgba(255,255,255,0.6)' : '#F2A900' }} />
+                            <div style={{ width: 5, height: 5, borderRadius: '50%', background: selected ? 'rgba(255,255,255,0.6)' : '#F9B318' }} />
                           )}
                         </div>
                       </button>
@@ -2382,7 +2382,7 @@ const medalClass = (rank: number) => {
                             {/* コンテンツ */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', flex: 1 }}>
                               {/* 店舗アイコン */}
-                              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', flexShrink: 0, border: '2px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#EDECE6', flexShrink: 0, border: '2px solid rgba(249,179,24,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {entry.storeIconUrl
                                   ? <img src={entry.storeIconUrl} alt={entry.storeName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   : <StoreIcon size={20} color="var(--label3)" />
@@ -2396,7 +2396,7 @@ const medalClass = (rank: number) => {
                                     {entry.name || 'トーナメント'}
                                   </p>
                                   {entry.repeatWeekly && (
-                                    <span style={{ fontSize: 11, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
+                                    <span style={{ fontSize: 11, fontWeight: 800, color: '#8F5E00', background: 'rgba(249,179,24,0.12)', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
                                   )}
                                 </div>
                                 <p style={{ fontSize: 15, color: 'var(--label2)' }}>{entry.storeName}</p>
@@ -2405,7 +2405,7 @@ const medalClass = (rank: number) => {
                                     <span style={{ fontSize: 15, color: 'var(--label2)' }}><ClockIcon size={14} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> {formatDateTime(entry.startTime)}</span>
                                   )}
                                   {entry.entryFee != null && (
-                                    <span style={{ fontSize: 15, fontWeight: 600, color: '#B57F00' }}>{fmtChip(Number(entry.entryFee))}</span>
+                                    <span style={{ fontSize: 15, fontWeight: 600, color: '#8F5E00' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
                               </div>
@@ -2445,7 +2445,7 @@ const medalClass = (rank: number) => {
               style={{ height: 50, borderRadius: 14, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
             >退店する</button>
             <button type="button" onClick={() => setIsLeaveConfirmOpen(false)}
-              style={{ height: 46, borderRadius: 14, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ height: 46, borderRadius: 14, border: 'none', background: '#EDECE6', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
             >Cancel</button>
           </div>
         }
@@ -2479,7 +2479,7 @@ const medalClass = (rank: number) => {
                     <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>{d.item.storeName ?? ''}</p>
                   </div>
                   {d.rank !== '-' && (
-                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>{d.rank}位</span>
                     </div>
                   )}
@@ -2505,15 +2505,15 @@ const medalClass = (rank: number) => {
                   <span>合計</span><span>{d.buyin.toLocaleString()}</span>
                 </div>
                 {d.rank !== '-' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#8F5E00', fontWeight: 700 }}>
                     <span>獲得チップ</span><span>{d.prize.toLocaleString()}</span>
                   </div>
                 )}
                 {d.rrRating !== null && (
                   <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 8, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, color: '#D4910A' }}>トナメ偏差値</span>
+                    <span style={{ fontWeight: 600, color: '#8F5E00' }}>トナメ偏差値</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#D4910A' }}>{d.rrRating.toFixed(2)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#8F5E00' }}>{d.rrRating.toFixed(2)}</span>
                       {d.rrDelta !== null && Math.abs(d.rrDelta) >= 0.01 && (
                         <span style={{
                           fontSize: 11, fontWeight: 700,
@@ -2556,7 +2556,7 @@ const medalClass = (rank: number) => {
             <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>トナメ偏差値とは？</p>
             ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
             {tournamentStats.plays === 0 && (
-              <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#92610A' }}>
+              <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#7A5000' }}>
                 「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・獲得チップ）が確定すると、ここに数値が表示されます。
               </p>
             )}
@@ -2568,8 +2568,8 @@ const medalClass = (rank: number) => {
       {showGeoConsentModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center a-scrim">
           <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
-              <GlobeIcon className="text-[24px] text-[#F2A900]" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF0C0)' }}>
+              <GlobeIcon className="text-[24px] text-[#F9B318]" />
             </div>
             <p className="text-[17px] font-bold text-gray-900 mb-2">{t('geo.title')}</p>
             <p className="text-[13px] text-gray-500 leading-relaxed mb-2">
@@ -2588,8 +2588,8 @@ const medalClass = (rank: number) => {
       {isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center a-scrim">
           <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
-              <ClockIcon className="text-[24px] text-[#F2A900]" />
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF0C0)' }}>
+              <ClockIcon className="text-[24px] text-[#F9B318]" />
             </div>
             <p className="text-[18px] font-bold text-gray-900 mb-2">入店申請中</p>
             <p className="text-[13px] text-gray-500 mb-2">入店承認までしばらくお待ちください</p>
@@ -2619,9 +2619,9 @@ const medalClass = (rank: number) => {
               >
                 <div style={{
                   width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-                  background: '#F2A900',
+                  background: '#F9B318',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 16px rgba(242,169,0,0.45)',
+                  boxShadow: '0 4px 16px rgba(249,179,24,0.45)',
                 }}>
                   <CheckIcon size={20} color="white" aria-hidden="true" />
                 </div>
@@ -2666,7 +2666,7 @@ const medalClass = (rank: number) => {
                           className={`relative h-[58px] w-[58px] rounded-full overflow-hidden flex items-center justify-center ${isNew ? "stamp-new-press" : ""}`}
                           style={isStamped
                             ? { border: "3px solid #7B1818", boxShadow: "0 3px 10px rgba(123,24,24,0.28), inset 0 1px 2px rgba(0,0,0,0.12)" }
-                            : { border: "2px dashed #E8D5A8", background: "rgba(242,169,0,0.04)" }}
+                            : { border: "2px dashed #E8D5A8", background: "rgba(249,179,24,0.04)" }}
                         >
                           {isStamped ? (
                             <>
@@ -2721,7 +2721,7 @@ const medalClass = (rank: number) => {
               <input type="text" value={searchQuery}
                 onChange={e => { const v = e.target.value; setSearchQuery(v); if (v.trim() && !allStores.length) void loadAllStores() }}
                 placeholder="店舗コード or 店舗名"
-                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition"
+                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-[#F9B318] focus:ring-2 focus:ring-[#F9B318]/20 transition"
               />
               <button type="button" onClick={handleSearch} className="a-btn a-btn-filled a-btn-icon" style={{ minHeight: 48, width: 48 }}>
                 <SearchIcon size={17} />
@@ -2770,7 +2770,7 @@ const medalClass = (rank: number) => {
                 aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)}
                 className="a-btn a-btn-icon"
                 style={favoriteStores.includes(selectedStore.id)
-                  ? { minHeight: 44, width: 34, background: 'rgba(242,169,0,0.16)', color: '#B57F00', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
+                  ? { minHeight: 44, width: 34, background: 'rgba(249,179,24,0.16)', color: '#8F5E00', boxShadow: 'inset 0 0 0 1px rgba(249,179,24,0.24)' }
                   : { minHeight: 44, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
               ><StarIcon size={15} /></button>
             </div>
@@ -2778,7 +2778,7 @@ const medalClass = (rank: number) => {
             {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、
                 ここでナビバー分を空ける必要はもう無い。 */}
             <div className="overflow-y-auto flex-1 px-6" style={{ paddingBottom: 16 }}>
-              {favoriteMessage && <p className="mb-4 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
+              {favoriteMessage && <p className="mb-4 text-center text-[12px] font-semibold text-[#F9B318] animate-slideUp">{favoriteMessage}</p>}
 
               {/* 店舗情報 */}
               <div className="flex items-center gap-4 mb-4 mt-2">
@@ -2926,7 +2926,7 @@ const medalClass = (rank: number) => {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 8px', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <AwardIcon size={15} style={{ color: '#fff' }} />
                 </div>
                 <div>
@@ -2943,14 +2943,14 @@ const medalClass = (rank: number) => {
 
             {/* My entry (pinned) */}
             {rrMyEntry && (
-              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#FFFBF5,#FFF4E0)', border: '1.5px solid rgba(242,169,0,0.3)', borderRadius: 16, padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#EDECE6,#FFF4E0)', border: '1.5px solid rgba(249,179,24,0.3)', borderRadius: 16, padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {profile.iconUrl ? <img src={profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <UserIcon style={{ color: '#F2A900', fontSize: 14 }} />}
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F9B318', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {profile.iconUrl ? <img src={profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <UserIcon style={{ color: '#F9B318', fontSize: 14 }} />}
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
-                    <p style={{ fontSize: 11, color: '#D4910A', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
+                    <p style={{ fontSize: 11, color: '#8F5E00', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
                   </div>
                 </div>
                 <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px' }}>{displayRrRating.toFixed(2)}</p>
@@ -2958,7 +2958,7 @@ const medalClass = (rank: number) => {
             )}
 
             {/* Divider */}
-            <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(242,169,0,0.2),transparent)', margin: '0 16px 8px', flexShrink: 0 }} />
+            <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,rgba(249,179,24,0.2),transparent)', margin: '0 16px 8px', flexShrink: 0 }} />
 
             {/* List */}
             <div style={{ overflowY: 'auto', flex: 1, padding: '8px 16px 40px' }}>
@@ -2975,16 +2975,16 @@ const medalClass = (rank: number) => {
               ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
                 const isMe = player.id === userId
                 return (
-                  <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2, cursor: 'pointer' }}>
+                  <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderRadius: 14, background: isMe ? 'rgba(249,179,24,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#F2F2F7' }) }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#EDECE6' }) }}>
                         {player.iconUrl
                           ? <img src={player.iconUrl} alt={player.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
                           : <UserIcon style={{ fontSize: 13, color: player.rank <= 3 ? '#fff' : 'var(--label3)' }} />
                         }
                       </div>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 11, color: '#D4910A', marginLeft: 8 }}>（あなた）</span>}</p>
+                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 11, color: '#8F5E00', marginLeft: 8 }}>（あなた）</span>}</p>
                         <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 1 }}>{player.rank}位</p>
                       </div>
                     </div>
@@ -3059,7 +3059,7 @@ const medalClass = (rank: number) => {
                         <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}</p>
                       </div>
                       {entry.repeatWeekly && (
-                        <span className="shrink-0 rounded-full bg-[#F2A900]/15 px-2 py-2 text-[11px] font-bold text-[#D4910A]">毎週</span>
+                        <span className="shrink-0 rounded-full bg-[#F9B318]/15 px-2 py-2 text-[11px] font-bold text-[#8F5E00]">毎週</span>
                       )}
                     </div>
 
@@ -3085,7 +3085,7 @@ const medalClass = (rank: number) => {
                       {entry.entryFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">エントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
                         </div>
                       )}
                       {entry.entryStack != null && (
@@ -3097,7 +3097,7 @@ const medalClass = (rank: number) => {
                       {entry.reentryFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">リエントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
                         </div>
                       )}
                       {entry.reentryStack != null && (
@@ -3109,7 +3109,7 @@ const medalClass = (rank: number) => {
                       {entry.addonFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">Add-on</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
+                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
                         </div>
                       )}
                       {entry.addonStack != null && (
@@ -3188,7 +3188,7 @@ const medalClass = (rank: number) => {
                                 if (snap.exists()) setCalDetailPreset({ tournamentId: key, ...snap.data() })
                               } catch {}
                             }}
-                            className="flex items-center gap-2 text-[12px] font-semibold text-[#F2A900]">
+                            className="flex items-center gap-2 text-[12px] font-semibold text-[#F9B318]">
                             <ChevronRightIcon size={14} className={calDetailPreset?.tournamentId === key ? "rotate-90" : ""} />
                             ブラインド構成
                           </button>

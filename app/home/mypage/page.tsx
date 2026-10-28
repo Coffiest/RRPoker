@@ -74,14 +74,14 @@ async function generateProfileCard(opts: {
   ctx.fillRect(0, 0, W, H)
 
   // Decorative circles
-  ctx.fillStyle = 'rgba(242,169,0,0.04)'
+  ctx.fillStyle = 'rgba(249,179,24,0.04)'
   ctx.beginPath(); ctx.arc(-30, -30, 150, 0, Math.PI * 2); ctx.fill()
   ctx.beginPath(); ctx.arc(W + 30, H * 0.7, 120, 0, Math.PI * 2); ctx.fill()
 
   // Gold top bar
   const goldGrad = ctx.createLinearGradient(0, 0, W, 0)
-  goldGrad.addColorStop(0, '#F2A900')
-  goldGrad.addColorStop(1, '#D4910A')
+  goldGrad.addColorStop(0, '#F9B318')
+  goldGrad.addColorStop(1, '#8F5E00')
   ctx.fillStyle = goldGrad
   ctx.fillRect(0, 0, W, 5)
 
@@ -94,7 +94,7 @@ async function generateProfileCard(opts: {
   // Avatar ring
   const CX = W / 2, CY = 108, R = 46
   const ringGrad = ctx.createLinearGradient(CX - R, CY - R, CX + R, CY + R)
-  ringGrad.addColorStop(0, '#F2A900'); ringGrad.addColorStop(1, '#D4910A')
+  ringGrad.addColorStop(0, '#F9B318'); ringGrad.addColorStop(1, '#8F5E00')
   ctx.strokeStyle = ringGrad; ctx.lineWidth = 3
   ctx.beginPath(); ctx.arc(CX, CY, R + 3, 0, Math.PI * 2); ctx.stroke()
 
@@ -163,7 +163,7 @@ async function generateProfileCard(opts: {
   ctx.font = `600 11px ${FONT}`; ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.textAlign = 'center'
   ctx.fillText('トナメ偏差値', W / 2, 315)
   const ratingGrad = ctx.createLinearGradient(0, 320, 0, 395)
-  ratingGrad.addColorStop(0, '#F2A900'); ratingGrad.addColorStop(1, '#C97D00')
+  ratingGrad.addColorStop(0, '#F9B318'); ratingGrad.addColorStop(1, '#C97D00')
   ctx.fillStyle = ratingGrad
   ctx.font = `800 68px ${FONT}`
   ctx.fillText(opts.rrRating.toFixed(1), W / 2, 395)
@@ -192,7 +192,7 @@ async function generateProfileCard(opts: {
   if (opts.todayTournamentName) {
     ctx.font = `500 10px ${FONT}`; ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.textAlign = 'center'
     ctx.fillText('今日参加したトナメ', W / 2, statsY + 68)
-    ctx.font = `600 13px ${FONT}`; ctx.fillStyle = '#F2A900'
+    ctx.font = `600 13px ${FONT}`; ctx.fillStyle = '#F9B318'
     ctx.fillText(opts.todayTournamentName, W / 2, statsY + 88)
     ctx.font = `400 10px ${FONT}`; ctx.fillStyle = 'rgba(255,255,255,0.22)'
     ctx.fillText('RR Poker でポーカーライフをシェア', W / 2, H - 18)
@@ -432,7 +432,7 @@ export default function MyPage() {
     <>
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
+    <TechBackdrop base="#EDECE6" />
     <main style={{ minHeight: '100dvh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {
@@ -489,7 +489,7 @@ export default function MyPage() {
         </div>
       )}
       {success && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#F2A900', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(242,169,0,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#F9B318', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(249,179,24,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <CheckIcon size={15} />{success}
         </div>
       )}
@@ -502,7 +502,7 @@ export default function MyPage() {
           {/* ヘッダーバンド */}
           {/* 面の色は元のテーマ(金)のまま。ホームの偏差値カードと同じ扱いで、
               方眼と基板のドットを薄く重ねるだけにする。 */}
-          <div style={{ background: '#F2A900', height: 110, position: 'relative', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ background: '#F9B318', height: 110, position: 'relative', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
             <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: -28, left: -18, width: 130, height: 130, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
@@ -538,7 +538,7 @@ export default function MyPage() {
           {/* アバター */}
           <div style={{ padding: '0 24px', marginTop: -40, marginBottom: 16 }}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid #fff', overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
+              <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid #fff', overflow: 'hidden', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
                 {previewUrl || profile.iconUrl
                   ? <img src={previewUrl ?? profile.iconUrl} alt="icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <UserIcon size={30} style={{ color: 'var(--label3)' }} />
@@ -567,11 +567,11 @@ export default function MyPage() {
                   onChange={e => setDraftName(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") { setDraftName(profile.name ?? ""); setIsEditingName(false) } }}
                   autoFocus
-                  style={{ flex: 1, height: 44, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.32)', padding: '0 16px', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#1C1C1E' }}
+                  style={{ flex: 1, height: 44, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(249,179,24,0.32)', padding: '0 16px', fontSize: 16, fontFamily: 'inherit', outline: 'none', color: '#1C1C1E' }}
                   placeholder="名前を入力"
                 />
                 <button type="button" onClick={saveName} disabled={savingName}
-                  style={{ width: 44, height: 44, borderRadius: 999, background: '#F2A900', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: savingName ? 0.6 : 1, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
+                  style={{ width: 44, height: 44, borderRadius: 999, background: '#F9B318', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: savingName ? 0.6 : 1, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(249,179,24,0.30)' }}>
                   <CheckIcon size={18} style={{ color: '#fff' }} />
                 </button>
                 <button type="button" onClick={() => { setDraftName(profile.name ?? ""); setIsEditingName(false) }}
@@ -583,7 +583,7 @@ export default function MyPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px', margin: 0 }}>{profile.name || "名前未設定"}</h2>
                 <button type="button" onClick={() => { setError(""); setSuccess(""); setIsEditingName(true) }}
-                  style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  style={{ width: 44, height: 44, borderRadius: '50%', background: '#EDECE6', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                   <PenIcon size={14} style={{ color: 'var(--label3)' }} />
                 </button>
               </div>
@@ -606,7 +606,7 @@ export default function MyPage() {
               <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.06em' }}>プロフィール詳細</p>
               <button type="button"
                 onClick={() => { setDraftRegion(profile.region ?? ""); setDraftFavoriteHand(profile.favoriteHand ?? ""); setDraftPokerHistory(profile.pokerHistory ?? ""); setIsEditingExtProfile(true) }}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px', borderRadius: 8, background: '#F2F2F7', border: 'none', cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px', borderRadius: 8, background: '#EDECE6', border: 'none', cursor: 'pointer' }}>
                 <PenIcon size={11} style={{ color: 'var(--label3)' }} />
                 <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>編集</span>
               </button>
@@ -617,7 +617,7 @@ export default function MyPage() {
                 { icon: <SpadeIcon size={20} />, label: '好きなハンド', value: profile.favoriteHand },
                 { icon: <ClockIcon size={20} />, label: 'ポーカー歴', value: profile.pokerHistory },
               ].map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F2F2F7', borderRadius: 10, padding: '8px 16px' }}>
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EDECE6', borderRadius: 10, padding: '8px 16px' }}>
                   <span style={{ fontSize: 14 }}>{item.icon}</span>
                   <div>
                     <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
@@ -636,7 +636,7 @@ export default function MyPage() {
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
                   style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
-                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F2A900', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
+                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(249,179,24,0.30)' }}>
                   Save
                 </button>
               </div>
@@ -650,7 +650,7 @@ export default function MyPage() {
         {/* ── 設定リスト ── */}
         <div data-tutorial="mypage-settings" className="mp-card mp-animate tech-corners" style={{ marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.10s' } as React.CSSProperties}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #EDECE6' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <LockIcon size={15} style={{ color: '#fff' }} />
             </div>
@@ -714,7 +714,7 @@ export default function MyPage() {
               <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><MapPinIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 地域</label>
               <input type="text" value={draftRegion} onChange={e => setDraftRegion(e.target.value)}
                 placeholder="例: 東京都" maxLength={30}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* 好きなハンド */}
@@ -722,7 +722,7 @@ export default function MyPage() {
               <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><SpadeIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 好きなハンド</label>
               <input type="text" value={draftFavoriteHand} onChange={e => setDraftFavoriteHand(e.target.value)}
                 placeholder="例: AA, KK, AKs" maxLength={20}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* ポーカー歴 */}
@@ -731,7 +731,7 @@ export default function MyPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
-                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(242,169,0,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(242,169,0,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#B57F00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
+                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(249,179,24,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(249,179,24,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#8F5E00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
                     {opt}
                   </button>
                 ))}
@@ -739,7 +739,7 @@ export default function MyPage() {
             </div>
 
             <button type="button" onClick={saveExtProfile} disabled={savingExtProfile}
-              style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: savingExtProfile ? 0.7 : 1 }}>
+              style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: savingExtProfile ? 0.7 : 1 }}>
               {savingExtProfile ? '保存中...' : '保存する'}
             </button>
           </div>

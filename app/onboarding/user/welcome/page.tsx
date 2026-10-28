@@ -22,7 +22,7 @@ export default function UserWelcomePage() {
   }, [])
 
   return (
-    <main className="min-h-screen bg-white px-6">
+    <main className="min-h-screen bg-[#EDECE6] px-6">
       <div className="mx-auto max-w-sm text-center">
         <div className="pt-[96px]">
           <h1 className="text-[28px] font-bold leading-tight tracking-[-0.01em] text-[color:var(--label)]">{name ? `はじめまして、${name}さん` : 'はじめまして'}</h1>
@@ -30,7 +30,7 @@ export default function UserWelcomePage() {
           <button
             type="button"
             onClick={() => router.replace('/home')}
-            className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[17px] font-semibold text-white shadow-sm transition-transform active:scale-[0.97]"
+            className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[17px] font-semibold text-white shadow-sm transition-transform active:scale-[0.97]"
           >
             はじめる
           </button>

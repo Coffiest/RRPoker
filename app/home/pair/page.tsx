@@ -9,10 +9,10 @@ import PlayerBottomNav from '@/components/PlayerBottomNav'
 import { getCommonMenuItems } from '@/components/commonMenuItems'
 
 const COLORS = {
-  gold: '#F2A900',
+  gold: '#F9B318',
   dark: '#1C1C1E',
-  light: '#FAFAFA',
-  lightGray: '#F2F2F7',
+  light: '#EDECE6',
+  lightGray: '#EDECE6',
   border: '#E5E5EA',
   red: '#d32f2f',
 }

@@ -457,12 +457,12 @@ export default function TournamentsPage() {
     <main style={{ minHeight: '100dvh', paddingBottom: 128, background: 'var(--t-bg)', color: 'var(--label)' }}>
       <style>{`
         :root {
-          --t-bg: #F2F2F7;
+          --t-bg: #EDECE6;
           --sep: rgba(60,60,67,0.12);
           --fill: rgba(120,120,128,0.12);
-          --gold: #F2A900;
-          --gold-dk: #B57F00;
-          --blue: #0A6CD6;
+          --gold: #F9B318;
+          --gold-dk: #8F5E00;
+          --blue: #1546D9;
         }
         .tp-press { transition: transform 100ms ease-out, background-color 100ms ease-out, opacity 100ms ease-out; -webkit-tap-highlight-color: transparent; cursor: pointer; }
         .tp-press:active { transform: scale(0.97); }
@@ -481,7 +481,7 @@ export default function TournamentsPage() {
 
         {/* 大見出し + 主な操作 */}
         <header style={{ padding: '16px 0 24px' }}>
-          <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }}>トーナメント</h1>
+          <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }} className="font-display term-prompt tech-caret">Tournaments</h1>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button type="button" onClick={openCreate} className="tp-press" style={{ ...btn.primary, flex: 1, minWidth: 0, padding: '0 16px' }}>
               <PlusIcon size={20} strokeWidth={2.5} /> トーナメントを作成
@@ -493,7 +493,7 @@ export default function TournamentsPage() {
         </header>
 
         {/* 開催中・予定 */}
-        <GroupLabel>開催中・予定</GroupLabel>
+        <GroupLabel>LIVE & UPCOMING</GroupLabel>
         {currentTournaments.length === 0 ? (
           <EmptyCard
             icon={<TrophyIcon size={32} />}
@@ -506,7 +506,7 @@ export default function TournamentsPage() {
               const c = countsOf(t.id)
               const isActive = t.status === "active"
               return (
-                <article key={t.id} style={{ ...card, boxShadow: isActive ? 'inset 0 0 0 2px rgba(242,169,0,0.6)' : card.boxShadow }}>
+                <article key={t.id} style={{ ...card, boxShadow: isActive ? 'inset 0 0 0 2px rgba(249,179,24,0.6)' : card.boxShadow }}>
                   <div style={{ padding: 16 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                       <StatusBadge status={t.status} />
@@ -547,7 +547,7 @@ export default function TournamentsPage() {
         )}
 
         {/* 週間スケジュール */}
-        <GroupLabel>週間スケジュール</GroupLabel>
+        <GroupLabel>WEEKLY SCHEDULE</GroupLabel>
         <div role="tablist" aria-label="曜日" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 4, padding: 4, background: 'rgba(118,118,128,0.12)', borderRadius: 16, marginBottom: 16 }}>
           {([...DAYS, "履歴"] as string[]).map(tab => {
             const isAct = activeTab === tab
@@ -630,7 +630,7 @@ export default function TournamentsPage() {
           <>
             {tabTemplates.length > 0 && (
               <>
-                <GroupLabel small>毎週の設定</GroupLabel>
+                <GroupLabel small>WEEKLY</GroupLabel>
                 <div style={{ ...list, marginBottom: 24 }}>
                   {tabTemplates.map((t, i) => (
                     <button key={t.id} type="button" onClick={() => handleEdit(t)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
@@ -647,7 +647,7 @@ export default function TournamentsPage() {
             )}
             {tabInstances.length > 0 && (
               <>
-                <GroupLabel small>今後の予定</GroupLabel>
+                <GroupLabel small>UPCOMING</GroupLabel>
                 <div style={list}>
                   {tabInstances.map((t, i) => (
                     <div key={t.id} style={{ ...listRow, cursor: 'default', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
@@ -725,7 +725,7 @@ export default function TournamentsPage() {
         </div>
         <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 8px 24px' }}>使わない項目は 0 のままにします。</p>
 
-        <GroupLabel small>ブラインド</GroupLabel>
+        <GroupLabel small>BLINDS</GroupLabel>
         <div style={{ ...list, marginBottom: 24 }}>
           {[{ id: '', name: 'ブラインドなし', levels: [] as any[] }, ...blindPresets].map((p, i) => {
             const sel = blindPresetId === p.id
@@ -999,7 +999,7 @@ const btn = {
 
 function GroupLabel({ children, small }: { children: React.ReactNode; small?: boolean }) {
   return (
-    <h2 style={{ fontSize: small ? 13 : 20, fontWeight: small ? 600 : 700, color: small ? 'var(--label2)' : 'var(--label)', letterSpacing: small ? 0 : '-0.01em', margin: small ? '0 8px 8px' : '0 0 16px' }}>
+    <h2 className={small ? "tech-label term-comment" : "tech-label"} style={{ fontSize: small ? 13 : 20, fontWeight: small ? 600 : 700, color: small ? 'var(--label2)' : 'var(--label)', letterSpacing: small ? 0 : '-0.01em', margin: small ? '0 8px 8px' : '0 0 16px' }}>
       {children}
     </h2>
   )
@@ -1038,14 +1038,14 @@ function FormRow({ label, hint, children, last }: { label: string; hint?: string
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, [string, string, string]> = {
-    active: ['開催中', 'rgba(242,169,0,0.16)', '#8A5F00'],
+    active: ['LIVE', 'rgba(249,179,24,0.16)', '#7A5000'],
     scheduled: ['予定', 'rgba(118,118,128,0.12)', 'var(--label2)'],
     finished: ['終了', 'rgba(118,118,128,0.12)', 'var(--label2)'],
   }
   const [label, bg, fg] = map[status] ?? [status, 'rgba(118,118,128,0.12)', 'var(--label2)']
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: bg, color: fg, flexShrink: 0 }}>
-      {status === 'active' && <span className="tp-live" style={{ width: 8, height: 8, borderRadius: 4, background: '#F2A900' }} />}
+      {status === 'active' && <span className="tp-live" style={{ width: 8, height: 8, borderRadius: 4, background: '#F9B318' }} />}
       {label}
     </span>
   )

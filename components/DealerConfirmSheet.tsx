@@ -79,7 +79,7 @@ export default function DealerConfirmSheet({
         {/* 上端の金の線。店舗側の面と同じ意匠。 */}
         <div style={{
           height: 3,
-          background: 'linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent)',
+          background: 'linear-gradient(90deg, transparent, #F9B318 40%, #FFD36B 50%, #F9B318 60%, transparent)',
         }} />
 
         <div style={{ padding: '16px 24px 24px' }}>
@@ -91,7 +91,7 @@ export default function DealerConfirmSheet({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 999, overflow: 'hidden', flexShrink: 0,
-              background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               {playerIconUrl
                 ? <img src={playerIconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -142,9 +142,9 @@ export default function DealerConfirmSheet({
               className="con-btn"
               style={{
                 flex: 1, height: 52, borderRadius: 999, border: 'none',
-                background: '#F2A900',
+                background: '#F9B318',
                 fontSize: 13, fontWeight: 800, color: '#fff', cursor: busy ? 'default' : 'pointer',
-                boxShadow: '0 4px 14px rgba(242,169,0,0.38)',
+                boxShadow: '0 4px 14px rgba(249,179,24,0.38)',
                 opacity: busy ? 0.6 : 1,
               }}
             >

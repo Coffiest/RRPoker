@@ -9,9 +9,9 @@ import { Section } from '@/components/GroupedList'
 
 // アイコンの地色は iOS の標準色。文字は白い面の上の濃い灰(--label / --label2)だけを使う。
 const STORE_FEATURES = [
-  { icon: TrophyIcon, title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計', color: '#F2A900' },
+  { icon: TrophyIcon, title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計', color: '#F9B318' },
   { icon: WalletIcon, title: 'チップ残高管理', desc: '購入・引き出しをリアルタイムで管理', color: '#34C759' },
-  { icon: ChartColumnIcon, title: '純増ランキング', desc: 'プレイヤーの純増を自動でランキング表示', color: '#007AFF' },
+  { icon: ChartColumnIcon, title: '純増ランキング', desc: 'プレイヤーの純増を自動でランキング表示', color: '#1546D9' },
   { icon: TimerIcon, title: 'ブラインドタイマー', desc: 'カスタム構成を保存してすぐに再利用', color: '#FF9500' },
   { icon: MegaphoneIcon, title: 'お知らせ配信', desc: 'チェックイン中の全員に一斉送信', color: '#AF52DE' },
   { icon: TargetIcon, title: 'RR Rating連携', desc: 'トナメ結果がプレイヤーの偏差値に反映', color: '#FF3B30' },
@@ -32,12 +32,12 @@ export default function StoreWelcomePage() {
   }, [])
 
   return (
-    <main style={{ minHeight: '100dvh', background: '#F2F2F7' }}>
+    <main style={{ minHeight: '100dvh', background: '#EDECE6' }}>
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px calc(32px + env(safe-area-inset-bottom, 0px))' }}>
 
         <div className="su d0" style={{ textAlign: 'center', paddingTop: 64, paddingBottom: 32 }}>
           {/* 金の面の上は白 */}
-          <div style={{ width: 80, height: 80, borderRadius: 24, background: '#F2A900', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(242,169,0,0.3)', marginBottom: 24 }}>
+          <div style={{ width: 80, height: 80, borderRadius: 24, background: '#F9B318', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(249,179,24,0.3)', marginBottom: 24 }}>
             <CheckIcon size={40} strokeWidth={3} color="#fff" />
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.25, color: 'var(--label)', margin: 0 }}>
@@ -75,7 +75,7 @@ export default function StoreWelcomePage() {
 
         <div className="su d2">
           <button type="button" onClick={() => router.replace('/home/store')} className="gl-press"
-            style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: '#F2A900', color: '#fff', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+            style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
             <HouseIcon size={20} />
             店舗管理をはじめる
           </button>

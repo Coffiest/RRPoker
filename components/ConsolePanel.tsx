@@ -24,7 +24,7 @@ export function ConsolePanel({
 }) {
   const dark = tone === 'dark'
   const bg = dark ? '#0E0E10' : '#FFFFFF'
-  const bar = dark ? '#1A1A1E' : '#F2F2F7'
+  const bar = dark ? '#1A1A1E' : '#EDECE6'
   const line = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
   const titleColor = dark ? 'rgba(255,255,255,0.75)' : 'var(--label3)'
 
@@ -78,7 +78,7 @@ export function ConsoleLine({
   const dark = tone === 'dark'
   const color =
     kind === 'cmd' ? (dark ? 'rgba(255,255,255,0.92)' : '#1C1C1E')
-    : kind === 'ok' ? '#F2A900'
+    : kind === 'ok' ? '#F9B318'
     : kind === 'note' ? (dark ? 'rgba(255,255,255,0.7)' : 'var(--label3)')
     : (dark ? 'rgba(255,255,255,0.75)' : 'var(--label2)')
 

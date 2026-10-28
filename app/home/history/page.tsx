@@ -135,14 +135,14 @@ export default function HistoryPage() {
 
   if (!storeId) {
     return (
-      <main className="min-h-screen bg-white px-6">
+      <main className="min-h-screen bg-[#EDECE6] px-6">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
           <p className="term-comment text-[14px] text-gray-500">入店中の店舗がありません</p>
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
           >
             ホームへ戻る
           </button>
@@ -152,7 +152,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6">
+    <main className="min-h-screen bg-[#EDECE6] px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">

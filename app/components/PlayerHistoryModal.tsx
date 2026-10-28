@@ -168,11 +168,11 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   {/* Direction icon */}
                   <div style={{
                     width: 36, height: 36, borderRadius: 11, flexShrink: 0, marginRight: 16,
-                    background: isAdd ? 'rgba(242,169,0,0.1)' : 'rgba(120,120,128,0.08)',
+                    background: isAdd ? 'rgba(249,179,24,0.1)' : 'rgba(120,120,128,0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {isAdd
-                      ? <ArrowUpIcon size={15} style={{ color: '#D4910A' }}/>
+                      ? <ArrowUpIcon size={15} style={{ color: '#8F5E00' }}/>
                       : <ArrowDownIcon size={15} style={{ color: 'var(--label3)' }}/>
                     }
                   </div>
@@ -194,7 +194,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   <p style={{
                     fontSize: 14, fontWeight: 800, flexShrink: 0, marginLeft: 8,
                     fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px',
-                    color: isAdd ? '#D4910A' : 'var(--label3)',
+                    color: isAdd ? '#8F5E00' : 'var(--label3)',
                   }}>
                     {isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                   </p>

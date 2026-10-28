@@ -58,7 +58,7 @@ async function generateTournamentCard(opts: {
 
   // Decorative glow
   if (isITM) {
-    ctx.fillStyle = 'rgba(242,169,0,0.07)'
+    ctx.fillStyle = 'rgba(249,179,24,0.07)'
     ctx.beginPath(); ctx.arc(W * 0.8, H * 0.2, 160, 0, Math.PI * 2); ctx.fill()
   } else {
     ctx.fillStyle = 'rgba(255,255,255,0.02)'
@@ -67,8 +67,8 @@ async function generateTournamentCard(opts: {
 
   // Gold top bar
   const goldGrad = ctx.createLinearGradient(0, 0, W, 0)
-  goldGrad.addColorStop(0, '#F2A900')
-  goldGrad.addColorStop(1, '#D4910A')
+  goldGrad.addColorStop(0, '#F9B318')
+  goldGrad.addColorStop(1, '#8F5E00')
   ctx.fillStyle = goldGrad
   ctx.fillRect(0, 0, W, 5)
 
@@ -80,11 +80,11 @@ async function generateTournamentCard(opts: {
   if (isITM) {
     const rankCX = W - 58, rankCY = 82, rankR = 36
     const rankGrad = ctx.createLinearGradient(rankCX - rankR, rankCY - rankR, rankCX + rankR, rankCY + rankR)
-    rankGrad.addColorStop(0, '#F2A900'); rankGrad.addColorStop(1, '#D4910A')
+    rankGrad.addColorStop(0, '#F9B318'); rankGrad.addColorStop(1, '#8F5E00')
     ctx.fillStyle = rankGrad
     ctx.beginPath(); ctx.arc(rankCX, rankCY, rankR, 0, Math.PI * 2); ctx.fill()
     // Shadow ring
-    ctx.strokeStyle = 'rgba(242,169,0,0.3)'; ctx.lineWidth = 6
+    ctx.strokeStyle = 'rgba(249,179,24,0.3)'; ctx.lineWidth = 6
     ctx.beginPath(); ctx.arc(rankCX, rankCY, rankR + 5, 0, Math.PI * 2); ctx.stroke()
     ctx.font = `800 ${opts.rank.length > 2 ? 13 : 16}px ${FONT}`
     ctx.fillStyle = '#fff'; ctx.textAlign = 'center'
@@ -123,8 +123,8 @@ async function generateTournamentCard(opts: {
     {
       label: '獲得',
       value: opts.prize > 0 ? opts.prize.toLocaleString() : '-',
-      color: isITM ? 'rgba(242,169,0,0.14)' : 'rgba(255,255,255,0.06)',
-      valueColor: isITM ? '#F2A900' : '#FFFFFF',
+      color: isITM ? 'rgba(249,179,24,0.14)' : 'rgba(255,255,255,0.06)',
+      valueColor: isITM ? '#F9B318' : '#FFFFFF',
     },
     {
       label: 'ROI',
@@ -254,7 +254,7 @@ export default function TournamentHistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFFBF5] px-4 pb-12">
+    <main className="min-h-screen bg-[#EDECE6] px-4 pb-12">
       <style>{`
         @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }
@@ -265,7 +265,7 @@ export default function TournamentHistoryPage() {
         .tour-sheet { animation: sheetUp .38s cubic-bezier(.22,1,.36,1) both; }
         .history-card {
           background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 8px rgba(249,179,24,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         .tour-card-tap { cursor: pointer; transition: transform .15s, box-shadow .15s; }
         .tour-card-tap:active { transform: scale(0.98); }
@@ -286,7 +286,7 @@ export default function TournamentHistoryPage() {
         {history.length > 0 && (
           <div className="history-card rounded-3xl p-6 mb-6 animate-slideUp">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUpIcon className="text-[#F2A900]" size={18} />
+              <TrendingUpIcon className="text-[#F9B318]" size={18} />
               <p className="text-[14px] font-semibold text-gray-900">サマリー</p>
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -296,13 +296,13 @@ export default function TournamentHistoryPage() {
               </div>
               <div className="text-center">
                 <p className="text-[11px] text-gray-500">インマネ回数</p>
-                <p className="text-[20px] font-bold text-[#F2A900]">
+                <p className="text-[20px] font-bold text-[#F9B318]">
                   {history.filter(h => h.rank && h.rank !== "-").length}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-[11px] text-gray-500">インマネ率</p>
-                <p className="text-[20px] font-bold text-[#D4910A]">
+                <p className="text-[20px] font-bold text-[#8F5E00]">
                   {history.length > 0
                     ? `${Math.round((history.filter(h => h.rank && h.rank !== "-").length / history.length) * 100)}%`
                     : "0%"}
@@ -334,7 +334,7 @@ export default function TournamentHistoryPage() {
                     </p>
                   </div>
                   {rank !== "-" && (
-                    <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm flex-shrink-0">
+                    <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F9B318] to-[#8F5E00] shadow-sm flex-shrink-0">
                       <span className="text-[13px] font-bold text-white">{rank}位</span>
                     </div>
                   )}
@@ -344,7 +344,7 @@ export default function TournamentHistoryPage() {
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="col-span-2 rounded-xl bg-gray-50 p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#F2A900]"></div>
+                      <div className="h-1.5 w-1.5 rounded-full bg-[#F9B318]"></div>
                       <p className="text-[11px] font-semibold text-gray-600">参加費の内訳</p>
                     </div>
                     <div className="space-y-2 text-[12px] text-gray-600">
@@ -374,13 +374,13 @@ export default function TournamentHistoryPage() {
                     </div>
                   </div>
 
-                  <div className={`rounded-xl p-4 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#FFFBF5] border border-[#F2A900]/20" : "bg-gray-50"}`}>
+                  <div className={`rounded-xl p-4 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#EDECE6] border border-[#F9B318]/20" : "bg-gray-50"}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className={`h-1.5 w-1.5 rounded-full ${rank !== "-" ? "bg-[#F2A900]" : "bg-gray-400"}`}></div>
+                      <div className={`h-1.5 w-1.5 rounded-full ${rank !== "-" ? "bg-[#F9B318]" : "bg-gray-400"}`}></div>
                       <p className="text-[11px] font-semibold text-gray-600">獲得チップ</p>
                     </div>
                     {rank !== "-" ? (
-                      <p className="text-[16px] font-bold text-[#D4910A]">{prize.toLocaleString()}</p>
+                      <p className="text-[16px] font-bold text-[#8F5E00]">{prize.toLocaleString()}</p>
                     ) : (
                       <p className="text-[14px] text-label3">-</p>
                     )}
@@ -439,14 +439,14 @@ export default function TournamentHistoryPage() {
                   <p style={{ fontSize: 12, color: 'var(--label3)' }}>{formatDateTime(selectedItem.startedAt?.seconds)} · {selectedItem.storeName ?? ""}</p>
                 </div>
                 {isITM && (
-                  <div style={{ marginLeft: 16, width: 52, height: 52, borderRadius: '50%', background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(242,169,0,0.4)' }}>
+                  <div style={{ marginLeft: 16, width: 52, height: 52, borderRadius: '50%', background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(249,179,24,0.4)' }}>
                     <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{rank}位</span>
                   </div>
                 )}
               </div>
 
               {/* Buy-in breakdown */}
-              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', marginBottom: 16 }}>
+              <div style={{ background: '#EDECE6', borderRadius: 16, padding: '16px 16px', marginBottom: 16 }}>
                 <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>Buy-in 内訳</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entryCount > 0 && (
@@ -477,11 +477,11 @@ export default function TournamentHistoryPage() {
 
               {/* Result stats row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '16px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
+                <div style={{ background: isITM ? 'rgba(249,179,24,0.08)' : '#EDECE6', borderRadius: 16, padding: '16px 16px', border: isITM ? '1px solid rgba(249,179,24,0.2)' : 'none' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得チップ</p>
-                  <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : 'var(--label3)' }}>{isITM ? prize.toLocaleString() : '-'}</p>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#8F5E00' : 'var(--label3)' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
-                <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '16px 16px' }}>
+                <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#EDECE6', borderRadius: 16, padding: '16px 16px' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>ROI</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : 'var(--label3)' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
@@ -489,7 +489,7 @@ export default function TournamentHistoryPage() {
                 </div>
               </div>
 
-              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', display: 'flex', gap: 24, marginBottom: 24 }}>
+              <div style={{ background: '#EDECE6', borderRadius: 16, padding: '16px 16px', display: 'flex', gap: 24, marginBottom: 24 }}>
                 <div>
                   <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>支払い</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{cost.toFixed(2)}</p>
@@ -503,7 +503,7 @@ export default function TournamentHistoryPage() {
 
               {/* Share button */}
               <button type="button" onClick={() => shareTournamentCard(selectedItem)} disabled={sharingCard}
-                style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
+                style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
                 {sharingCard
                   ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .8s linear infinite' }} />
                   : <Share2Icon size={17} />

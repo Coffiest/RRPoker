@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
 
   return (
-    <main className="tech-grid min-h-screen bg-white px-6">
+    <main className="tech-grid min-h-screen bg-[#EDECE6] px-6">
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
           <h1 className="font-display text-[28px] font-semibold leading-tight text-gray-900">
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
             type="button"
             onClick={handleResetPassword}
             disabled={isLoading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[16px] font-semibold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
           >
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </button>

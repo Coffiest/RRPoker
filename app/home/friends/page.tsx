@@ -241,7 +241,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white pb-24">
+    <main className="min-h-screen bg-[#EDECE6] pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
       <div className="mx-auto max-w-sm px-6 pt-6">
@@ -259,7 +259,7 @@ export default function FriendsPage() {
             type="button"
             onClick={searchPlayers}
             disabled={isSearching}
-            className="h-12 w-12 rounded-2xl bg-[#F2A900] flex items-center justify-center text-white disabled:opacity-60"
+            className="h-12 w-12 rounded-2xl bg-[#F9B318] flex items-center justify-center text-white disabled:opacity-60"
           >
             <SearchIcon className="text-[16px]" />
           </button>
@@ -315,7 +315,7 @@ export default function FriendsPage() {
                 type="button"
                 onClick={() => sendFriendRequest(selectedPlayer)}
                 disabled={loading}
-                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-white disabled:opacity-60"
+                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F9B318] text-[15px] font-semibold text-white disabled:opacity-60"
               >
                 フォローする
               </button>

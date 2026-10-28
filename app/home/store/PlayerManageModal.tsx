@@ -409,7 +409,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
 
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #EDECE6' }}>
           <button
             onClick={onClose}
             style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
@@ -431,7 +431,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
           ) : (
             <>
               {/* プレイヤー統計カード */}
-              <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '16px 16px', marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#EDECE6)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '16px 16px', marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ textAlign: 'center', paddingRight: 16, borderRight: '1px solid #D1D1D6' }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>PLAYERS</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
@@ -447,14 +447,14 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               </div>
 
               {/* Bust コントロール */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '16px 16px', background: '#F2F2F7', borderRadius: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '16px 16px', background: '#EDECE6', borderRadius: 14 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>敗退</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
                     style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', color: 'var(--label)', opacity: localBust <= 0 ? 0.3 : 1 }} aria-label="敗退を1人減らす"><MinusIcon size={20} /></button>
                   <span style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', minWidth: '36px', textAlign: 'center' }}>{localBust}</span>
                   <button onClick={() => handleTournamentBustChange(1)}
-                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)' }} aria-label="敗退を1人増やす"><PlusIcon size={20} /></button>
+                    style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(249,179,24,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)' }} aria-label="敗退を1人増やす"><PlusIcon size={20} /></button>
                 </div>
               </div>
 
@@ -490,7 +490,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             <input
                               value={player.name}
                               onChange={e => updateTempPlayerName(player.id, e.target.value)}
-                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #D4910A', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
+                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #8F5E00', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
                             />
                           ) : (
                             <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', flex: 1 }}>{player.name}</span>
@@ -510,9 +510,9 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           const totalLen = curStr.length + buyStr.length + feeStr.length + finStr.length
                           const wrap = totalLen > 18
                           return (
-                            <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
+                            <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#8F5E00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>
@@ -572,7 +572,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                   style={{ minWidth: 0, height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                 />
                 <button onClick={addTempPlayer}
-                  style={{ height: 44, borderRadius: 12, background: '#F2A900', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><PlusIcon size={20} /> 追加</button>
+                  style={{ height: 44, borderRadius: 12, background: '#F9B318', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><PlusIcon size={20} /> 追加</button>
               </div>
             </>
           )}
@@ -592,11 +592,11 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
                 <button
                   onClick={() => setInsufficientAlert(null)}
-                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#EDECE6', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
                 >Cancel</button>
                 <button
                   onClick={confirmInsufficientPurchase}
-                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2A900', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F9B318', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                 >確認</button>
               </div>
             </div>

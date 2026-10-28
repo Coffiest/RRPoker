@@ -70,7 +70,7 @@ function StampGrid({ count, iconUrl }: { count: number; iconUrl?: string }) {
                 iconUrl ? (
                   <img src={iconUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                 ) : (
-                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #D4910A, #C8820A)" }} />
+                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #8F5E00, #8F5E00)" }} />
                 )
               ) : null}
             </div>
@@ -87,7 +87,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
     <div
       style={{
         position: "relative",
-        background: isUsed ? "#F2F2F7" : "#fff",
+        background: isUsed ? "#EDECE6" : "#fff",
         borderRadius: 16,
         overflow: "hidden",
         boxShadow: isUsed ? "none" : "0 2px 12px rgba(0,0,0,0.08)",
@@ -98,7 +98,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       {/* 左側ゴールドストライプ */}
       <div style={{
         width: 8,
-        background: isUsed ? "#C7C7CC" : "#F2A900",
+        background: isUsed ? "#C7C7CC" : "#F9B318",
         flexShrink: 0,
       }} />
 
@@ -114,7 +114,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       <div style={{ flex: 1, padding: "16px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#D4910A", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#8F5E00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
               {isUsed ? "USED" : "COUPON"}
             </p>
             <p style={{
@@ -135,7 +135,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
               onClick={onUse}
               style={{
                 height: 44, padding: "0 16px", borderRadius: 99, border: "none",
-                background: "#F2A900",
+                background: "#F9B318",
                 color: "#1C1C1E", fontSize: 12, fontWeight: 700,
                 cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
               }}
@@ -226,7 +226,7 @@ export default function TicketsPage() {
   const usedCoupons = coupons.filter(c => c.isUsed || isExpired(c.expiresAt))
 
   return (
-    <main className="min-h-screen pb-32" style={{ background: "#F2F2F7" }}>
+    <main className="min-h-screen pb-32" style={{ background: "#EDECE6" }}>
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"
@@ -266,7 +266,7 @@ export default function TicketsPage() {
                           {card.storeName}
                         </p>
                         {card.couponName && (
-                          <p style={{ fontSize: 11, color: "#C8820A", fontWeight: 500, lineHeight: 1.3 }}>
+                          <p style={{ fontSize: 11, color: "#8F5E00", fontWeight: 500, lineHeight: 1.3 }}>
                             {STAMP_GOAL}スタンプで {card.couponName}
                           </p>
                         )}
@@ -276,7 +276,7 @@ export default function TicketsPage() {
                           onClick={() => claimCoupon(card)}
                           disabled={claiming === card.storeId}
                           style={{
-                            background: "#F2A900",
+                            background: "#F9B318",
                             borderRadius: 10, border: "none", cursor: "pointer",
                             paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
                             flexShrink: 0, opacity: claiming === card.storeId ? 0.6 : 1,
@@ -301,10 +301,10 @@ export default function TicketsPage() {
 
                     {/* プログレスバー + 最終入店 */}
                     <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#F2F2F7", overflow: "hidden" }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#EDECE6", overflow: "hidden" }}>
                         <div style={{
                           height: "100%", width: `${pct * 100}%`, borderRadius: 99,
-                          background: "#F2A900",
+                          background: "#F9B318",
                           transition: "width 0.4s ease",
                         }} />
                       </div>
@@ -400,8 +400,8 @@ export default function TicketsPage() {
           >
             <div style={{ width: 36, height: 4, borderRadius: 99, background: "#D1D1D6", margin: "0 auto 24px" }} />
 
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(242,169,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <CreditCardIcon size={26} color="#D4910A" />
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(249,179,24,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <CreditCardIcon size={26} color="#8F5E00" />
             </div>
             <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
               {selectedCoupon.name}
@@ -410,12 +410,12 @@ export default function TicketsPage() {
               スタッフにこの画面を見せてください
             </p>
 
-            <label style={{ display: "flex", alignItems: "center", gap: 16, background: "#F2F2F7", borderRadius: 14, padding: "16px 16px", cursor: "pointer", marginBottom: 16 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 16, background: "#EDECE6", borderRadius: 14, padding: "16px 16px", cursor: "pointer", marginBottom: 16 }}>
               <input
                 type="checkbox"
                 checked={isChecked}
                 onChange={e => setIsChecked(e.target.checked)}
-                style={{ width: 20, height: 20, accentColor: "#D4910A" }}
+                style={{ width: 20, height: 20, accentColor: "#8F5E00" }}
               />
               <span style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E" }}>スタッフが確認しました</span>
             </label>
@@ -432,10 +432,10 @@ export default function TicketsPage() {
               }}
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none", cursor: isChecked ? "pointer" : "default",
-                background: isChecked ? "#F2A900" : "#E5E5EA",
+                background: isChecked ? "#F9B318" : "#E5E5EA",
                 color: isChecked ? "#1C1C1E" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
-                boxShadow: isChecked ? "0 4px 14px rgba(200,130,10,0.30)" : "none",
+                boxShadow: isChecked ? "0 4px 14px rgba(143,94,0,0.30)" : "none",
                 transition: "transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
               }}
             >

@@ -407,7 +407,7 @@ export default function HomeHeader({
 									<button
 										type="button"
 										onClick={markAllRead}
-										className="text-[12px] font-semibold text-[#D4910A] bg-[#FFF8E7] rounded-full px-4 py-2 active:bg-[#FFE9B0] transition-colors"
+										className="text-[12px] font-semibold text-[#8F5E00] bg-[#FEF0D1] rounded-full px-4 py-2 active:bg-[#FFE9B0] transition-colors"
 									>
 										すべて既読にする
 									</button>
@@ -425,12 +425,12 @@ export default function HomeHeader({
 											return (
 												<div
 													key={n.id}
-													className={`px-4 py-4 border-b border-gray-50 transition-colors ${isUnread ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+													className={`px-4 py-4 border-b border-gray-50 transition-colors ${isUnread ? 'bg-[#FEF0D1] active:bg-[#FFE9B0]' : 'bg-white'}`}
 													onClick={() => { if (isUnread) markStoreNoticeRead(n.id) }}
 												>
 													<div className="flex items-center gap-2 mb-2">
-														{isUnread && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
-														<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
+														{isUnread && <span className="h-2 w-2 rounded-full bg-[#8F5E00] flex-shrink-0" />}
+														<span className="tech-label text-[#8F5E00] flex-1 truncate">{n.storeName}</span>
 														<span className="tech-num text-[11px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 													</div>
 													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
@@ -440,12 +440,12 @@ export default function HomeHeader({
 										{userNotifications.map(n => (
 											<div
 												key={n.id}
-												className={`px-4 py-4 border-b border-gray-50 transition-colors ${!n.read ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+												className={`px-4 py-4 border-b border-gray-50 transition-colors ${!n.read ? 'bg-[#FEF0D1] active:bg-[#FFE9B0]' : 'bg-white'}`}
 												onClick={() => { if (!n.read) markUserNotifRead(n.id) }}
 											>
 												<div className="flex items-center gap-2 mb-2">
-													{!n.read && <span className="h-2 w-2 rounded-full bg-[#D4910A] flex-shrink-0" />}
-													<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
+													{!n.read && <span className="h-2 w-2 rounded-full bg-[#8F5E00] flex-shrink-0" />}
+													<span className="tech-label text-[#8F5E00] flex-1 truncate">{n.storeName}</span>
 													<span className="tech-num text-[11px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
 												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>

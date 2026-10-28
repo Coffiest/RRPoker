@@ -32,7 +32,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         .qr-sheet { animation: qr-sheet-up .38s cubic-bezier(.22,1,.36,1) both; }
         .qr-scan-line {
           position: absolute; left: 4px; right: 4px; height: 2px;
-          background: linear-gradient(90deg, transparent, #F2A900, transparent);
+          background: linear-gradient(90deg, transparent, #F9B318, transparent);
           animation: qr-scan-line 2.2s ease-in-out infinite;
           border-radius: 2px;
         }
@@ -50,9 +50,9 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
 
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '8px 16px' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
-            <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#D4910A' }}>入店QRコード</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
+            <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8F5E00' }}>入店QRコード</span>
           </div>
           <button
             type="button"
@@ -79,8 +79,8 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         </div>
 
         {/* Player info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#F2F2F7', borderRadius: 16, padding: '16px 16px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#EDECE6', borderRadius: 16, padding: '16px 16px' }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F9B318', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {iconUrl
               ? <img src={iconUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : <UserIcon size={24} color="var(--label3)" />
