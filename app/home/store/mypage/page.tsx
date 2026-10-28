@@ -1,5 +1,6 @@
 "use client"
 import { CircleAlertIcon, CircleCheckIcon, CreditCardIcon, FileTextIcon, GlobeIcon, InstagramIcon, MapPinIcon, PenIcon, TargetIcon, TriangleAlertIcon, TwitterIcon, UserIcon } from 'lucide-react'
+import { showToast } from "@/components/Toast"
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -361,19 +362,14 @@ export default function StoreMyPage() {
   }
 
   const deleteAccount = async () => {
-    console.log("DELETE CLICKED")
-
     const user = auth.currentUser
-    console.log("CURRENT USER:", user)
 
     if (!user) {
-      console.log("USER IS NULL")
-      alert("ユーザー情報が取得できません。再ログインしてください。")
+      showToast("ユーザー情報が取得できません。再ログインしてください。")
       return
     }
 
     try {
-      console.log("TRY START")
       setIsDeleting(true)
 
       await setDoc(
@@ -381,19 +377,20 @@ export default function StoreMyPage() {
         { deletedAt: new Date() },
         { merge: true }
       )
-      console.log("FIRESTORE UPDATED")
 
       await user.delete()
-      console.log("AUTH DELETE DONE")
 
-      alert("削除完了")
+      showToast("削除しました", "success")
       router.replace("/login")
 
     } catch (e) {
       console.error("DELETE ERROR:", e)
-      alert("削除エラー")
+      // 最後のログインから時間が経っていると、Firebase は削除を拒む(auth/requires-recent-login)。
+      const code = (e as { code?: string })?.code
+      showToast(code === "auth/requires-recent-login"
+        ? "安全のため、ログインし直してから削除してください"
+        : "削除できませんでした。もう一度お試しください")
     } finally {
-      console.log("FINALLY")
       setIsDeleting(false)
     }
   }

@@ -126,14 +126,14 @@ export default function QRScanner({ onScan, onClose }: Props) {
 
         {/* 走査枠の目盛り */}
         <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', left: 'calc(50% - 120px)', color: 'rgba(242,169,0,0.75)' }}>SCAN</div>
-        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', right: 'calc(50% - 120px)', color: 'rgba(255,255,255,0.35)' }}>240×240</div>
+        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', right: 'calc(50% - 120px)', color: 'rgba(255,255,255,0.72)' }}>240×240</div>
       </div>
 
       {/* Header */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '56px 24px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" />
-          <span className="tech-label" style={{ color: 'rgba(255,255,255,0.55)' }}>LIVE</span>
+          <span className="tech-label" style={{ color: 'rgba(255,255,255,0.72)' }}>LIVE</span>
         </div>
         <p className="term-prompt-arrow" style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
         <button type="button" onClick={() => { stopCamera(); onClose() }}
@@ -150,7 +150,7 @@ export default function QRScanner({ onScan, onClose }: Props) {
         ) : (
           <>
             <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
-            <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
+            <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.72)' }}>自動的に読み取られます</p>
           </>
         )}
       </div>

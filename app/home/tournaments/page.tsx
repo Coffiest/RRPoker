@@ -116,7 +116,7 @@ async function generateTournamentCard(opts: {
     {
       label: '出費合計',
       value: opts.buyin.toLocaleString(),
-      color: 'rgba(255,255,255,0.06)',
+      color: 'rgba(255,255,255,0.72)',
       valueColor: '#FFFFFF',
     },
     {

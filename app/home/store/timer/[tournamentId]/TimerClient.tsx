@@ -1,5 +1,6 @@
 "use client"
 import { Trash2Icon, XIcon } from 'lucide-react'
+import { showToast } from "@/components/Toast"
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { addDoc } from "firebase/firestore"
@@ -228,8 +229,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
   // ── Preset CRUD ──────────────────────────────────────────────────────────
   async function savePreset() {
-    if (!presetName) { alert("ブラインド名を入力してください"); return }
-    if (!storeId) { alert("店舗IDが取得できません"); return }
+    if (!presetName) { showToast("ブラインド名を入力してください"); return }
+    if (!storeId) { showToast("店舗IDが取得できません"); return }
     if (editingPresetId) {
       await updateDoc(doc(db, "stores", storeId, "blindPresets", editingPresetId), { name: presetName, levels })
     } else {

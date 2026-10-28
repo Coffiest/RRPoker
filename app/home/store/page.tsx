@@ -1,5 +1,6 @@
 "use client"
 import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MenuIcon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
@@ -17,6 +18,9 @@ import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { isSubscriptionActive } from "@/lib/subscription-client"
 import { isNativeApp } from "@/lib/platform"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
+import AppleSheet from "@/components/AppleSheet"
+import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
 import TechBackdrop from "@/components/TechBackdrop"
 import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
 import PlayerManageModal from "./PlayerManageModal"
@@ -133,29 +137,11 @@ export default function StorePage() {
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
   const [adjustTab, setAdjustTab] = useState<Record<string, 'time' | 'blind'>>({})
   const [adjustBlindLevels, setAdjustBlindLevels] = useState<Record<string, AdjLevel[]>>({})
-  const [adjDragIdx, setAdjDragIdx] = useState<Record<string, number | null>>({})
-  const [adjDropIdx, setAdjDropIdx] = useState<Record<string, number | null>>({})
-  const [adjCommentIdx, setAdjCommentIdx] = useState<Record<string, number | null>>({})
-  const [adjContextMenuIdx, setAdjContextMenuIdx] = useState<Record<string, number | null>>({})
   const [expandedTimerId, setExpandedTimerId] = useState<string | null>(null)
   const [expandCtrlVisible, setExpandCtrlVisible] = useState(false)
-  const [expandAdjustOpen, setExpandAdjustOpen] = useState(false)
   const [expandPlayerOpen, setExpandPlayerOpen] = useState(false)
   const [expandPrizeOpen, setExpandPrizeOpen] = useState(false)
 
-  // ── Responsive scale for Adjust modal (design base: 480×680) ────────────
-  const ADJ_MODAL_W = 480
-  const ADJ_MODAL_H = 680
-  const [adjustModalScale, setAdjustModalScale] = useState(1)
-  useEffect(() => {
-    function computeAdjScale() {
-      const s = Math.min(1, (window.innerWidth - 32) / ADJ_MODAL_W, (window.innerHeight - 20) / ADJ_MODAL_H)
-      setAdjustModalScale(s)
-    }
-    computeAdjScale()
-    window.addEventListener("resize", computeAdjScale)
-    return () => window.removeEventListener("resize", computeAdjScale)
-  }, [])
 
   const openAdjustModal = (id: string, s: number, blindLevels?: AdjLevel[] | null) => {
     setAdjustModalOpen(p => ({ ...p, [id]: true }))
@@ -173,66 +159,20 @@ export default function StorePage() {
       closeAdjustModal(id)
     } catch (error) {
       console.error("Failed to adjust time:", error)
-      alert("時間調整に失敗しました")
+      showToast("時間調整に失敗しました")
     }
   }
   const confirmAdjustBlinds = async (id: string) => {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: adjustBlindLevels[id] ?? [] })
-    closeAdjustModal(id)
-  }
-  const updateAdjBlind = (id: string, idx: number, fields: Partial<AdjLevel>) =>
-    setAdjustBlindLevels(p => {
-      const lvs = [...(p[id] ?? [])]
-      lvs[idx] = { ...lvs[idx], ...fields } as AdjLevel
-      return { ...p, [id]: lvs }
-    })
-  const addAdjLevel = (id: string) =>
-    setAdjustBlindLevels(p => {
-      const lvs = [...(p[id] ?? [])]
-      const last = [...lvs].reverse().find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
-      const sb = Math.round((last?.smallBlind ?? 100) * 1.5)
-      const bb = Math.round((last?.bigBlind ?? 200) * 1.5)
-      const dur = last?.duration ?? 20
-      lvs.push({ type: 'level', smallBlind: sb, bigBlind: bb, ante: bb, duration: dur })
-      return { ...p, [id]: lvs }
-    })
-  const addAdjBreak = (id: string) =>
-    setAdjustBlindLevels(p => {
-      const lvs = [...(p[id] ?? [])]
-      lvs.push({ type: 'break', duration: 15 })
-      return { ...p, [id]: lvs }
-    })
-  const removeAdjLevel = (id: string, idx: number) =>
-    setAdjustBlindLevels(p => ({ ...p, [id]: (p[id] ?? []).filter((_, i) => i !== idx) }))
-  const adjDragEnd = (id: string) => {
-    const di = adjDragIdx[id]; const dr = adjDropIdx[id]
-    if (di !== null && dr !== null && di !== dr) {
-      setAdjustBlindLevels(p => {
-        const lvs = [...(p[id] ?? [])]; const [moved] = lvs.splice(di, 1); lvs.splice(dr, 0, moved)
-        return { ...p, [id]: lvs }
-      })
+    const invalid = validateLevels(adjustBlindLevels[id] ?? [])
+    if (invalid) { showToast(invalid); return }
+    try {
+      await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: adjustBlindLevels[id] ?? [] })
+      closeAdjustModal(id)
+      showToast("ブラインド表を変更しました", "success")
+    } catch {
+      showToast("ブラインド表を変更できませんでした")
     }
-    setAdjDragIdx(p => ({ ...p, [id]: null })); setAdjDropIdx(p => ({ ...p, [id]: null }))
-  }
-  const insertAdjLevelBefore = (id: string, idx: number) => {
-    setAdjustBlindLevels(p => { const lvs = [...(p[id] ?? [])]; lvs.splice(idx, 0, { type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null }); return { ...p, [id]: lvs } })
-    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
-  }
-  const insertAdjLevelAfter = (id: string, idx: number) => {
-    setAdjustBlindLevels(p => { const lvs = [...(p[id] ?? [])]; lvs.splice(idx + 1, 0, { type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null }); return { ...p, [id]: lvs } })
-    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
-  }
-  const toggleAdjLevelBreak = (id: string, idx: number) => {
-    setAdjustBlindLevels(p => {
-      const lvs = (p[id] ?? []).map((lv, i) => {
-        if (i !== idx) return lv
-        if (lv.type === 'level') return { type: 'break' as const, duration: lv.duration }
-        return { type: 'level' as const, smallBlind: null, bigBlind: null, ante: null, duration: lv.duration }
-      })
-      return { ...p, [id]: lvs }
-    })
-    setAdjContextMenuIdx(p => ({ ...p, [id]: null }))
   }
   const toggleTimer = async (id: string) => {
     hapticAction()
@@ -247,7 +187,7 @@ export default function StorePage() {
       await startTournamentTimer(storeId, id)
     } catch (error) {
       console.error("Failed to start timer:", error)
-      alert("タイマー開始に失敗しました")
+      showToast("タイマー開始に失敗しました")
     }
   }
   async function resumeTimer(id: string) {
@@ -256,7 +196,7 @@ export default function StorePage() {
       await resumeTournamentTimer(storeId, id)
     } catch (error) {
       console.error("Failed to resume timer:", error)
-      alert("タイマー再開に失敗しました")
+      showToast("タイマー再開に失敗しました")
     }
   }
   async function stopTimer(id: string) {
@@ -274,7 +214,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to advance level:", error)
       hapticError()
-      alert("レベル変更に失敗しました")
+      showToast("レベル変更に失敗しました")
     }
   }
   async function pauseTimer(id: string) {
@@ -283,7 +223,7 @@ export default function StorePage() {
       await pauseTournamentTimer(storeId, id)
     } catch (error) {
       console.error("Failed to pause timer:", error)
-      alert("タイマー一時停止に失敗しました")
+      showToast("タイマー一時停止に失敗しました")
     }
   }
   async function prevLevel(id: string) {
@@ -297,7 +237,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to go to previous level:", error)
       hapticError()
-      alert("レベル変更に失敗しました")
+      showToast("レベル変更に失敗しました")
     }
   }
 
@@ -386,6 +326,7 @@ export default function StorePage() {
   const [ownedStores, setOwnedStores] = useState<OwnedStore[]>([])
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [showStorePicker, setShowStorePicker] = useState(false)
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
   const cardTouchStartX = useRef(0)
   const cardTouchStartY = useRef(0)
   const lastIconTapTime = useRef(0)
@@ -962,19 +903,18 @@ export default function StorePage() {
 
         /* Action btn */
         .action-btn {
-          height:46px; border-radius:12px; border:none; cursor:pointer;
-          font-family:var(--stack-mono);
-          font-size:12.5px; font-weight:700; letter-spacing:.10em; text-transform:uppercase;
+          min-height:48px; border-radius:12px; border:none; cursor:pointer; padding:0 8px;
+          font-family:inherit;
+          font-size:15px; font-weight:600; letter-spacing:0;
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .12s ease, opacity .12s ease, filter .12s ease;
         }
-        .action-btn:active { transform:scale(0.965); opacity:.9; filter:brightness(.95); }
+        .action-btn:active { transform:scale(0.97); filter:brightness(.95); }
 
         /* Gold btn */
         .btn-gold {
           background:#F2A900;
-          color:#1a1a1a;
-          box-shadow:0 3px 10px rgba(242,169,0,0.28);
+          color:#fff;
         }
 
         /* Outline btn */
@@ -1013,8 +953,8 @@ export default function StorePage() {
           box-shadow:0 1px 4px rgba(0,0,0,0.05);
         }
         .req-action {
-          height:38px; border-radius:10px; border:none; cursor:pointer;
-          font-size:12px; font-weight:700; transition:transform .12s ease;
+          min-height:44px; border-radius:12px; border:none; cursor:pointer; padding:0 4px;
+          font-size:14px; font-weight:600; transition:transform .1s ease-out;
           display:flex; align-items:center; justify-content:center;
         }
         .req-action:active { transform:scale(0.95); }
@@ -1058,6 +998,7 @@ export default function StorePage() {
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
       {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
@@ -1097,18 +1038,18 @@ export default function StorePage() {
                 >店</div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                {/* 稼働中であることを示す脈打つ点と、等幅の店舗名。 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                  <span className="tech-status-dot" />
-                  <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>STORE ONLINE</span>
-                </div>
-                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</p>
+                {/* 店舗名を押すと系列店の切り替え(以前はスワイプ・長押しでしか出せず、見つけられなかった) */}
+                <button type="button" onClick={() => setShowStorePicker(true)} aria-haspopup="menu" aria-label="店舗を切り替える"
+                  style={{ display: 'flex', alignItems: 'center', gap: 4, maxWidth: '100%', minHeight: 44, padding: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label)', marginBottom: 4 }}>
+                  <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</span>
+                  <ChevronDownIcon size={20} style={{ color: 'var(--label2)', flexShrink: 0 }} />
+                </button>
                 <button onClick={copyCode}
                   className="con-btn"
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
-                  <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>CODE</span>
-                  <span className="con-mono" style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
+                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>店舗コード</span>
+                  <span className="con-mono" style={{ fontSize: 15, fontWeight: 700, color: copiedCode ? '#1E7B34' : 'var(--label)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
                   {copiedCode ? <CheckIcon size={12} style={{ color: '#28A745' }}/> : <CopyIcon size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
               </div>
@@ -1122,6 +1063,7 @@ export default function StorePage() {
                   onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.93)' }}
                   onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)' }}
                   title="QRスキャンで入店"
+                  aria-label="プレイヤーのQRを読み取って入店させる"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M2 7V4a2 2 0 012-2h3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
@@ -1197,11 +1139,11 @@ export default function StorePage() {
         {/* ── Tournaments ── */}
         <div className="su d1" style={{ marginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
-            <p className="section-hd" style={{ marginBottom: 0 }}>Today's Tournaments</p>
+            <p className="section-hd" style={{ marginBottom: 0 }}>開催中のトーナメント</p>
             {activeTournaments.length > 0 && (
               <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 8px' }}>
                 <span className="tech-status-dot" style={{ background: '#34C759' }} />
-                {activeTournaments.length} ACTIVE
+                {activeTournaments.length} 件
               </span>
             )}
           </div>
@@ -1225,7 +1167,7 @@ export default function StorePage() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
                         <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                          <span className="tech-label" style={{ fontSize: 11, color: '#34C759' }}>LIVE</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1E7B34' }}>開催中</span>
                           <span className="tech-status-dot" style={{ background: '#34C759' }} />
                         </span>
                       </div>
@@ -1233,20 +1175,20 @@ export default function StorePage() {
                       {/* Fee / Stack info */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
                         {[
-                          { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
-                          { label: 'Reentry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
-                          { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
+                          { label: 'エントリー',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
+                          { label: 'リエントリー', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
+                          { label: 'アドオン',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
                         ].map(item => (
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Fee:</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>参加費</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                                 {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Stack:</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>スタック</span>
                               <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)' }}>
                                 {item.stack > 0 ? item.stack.toLocaleString() : '—'}
                               </span>
@@ -1285,16 +1227,16 @@ export default function StorePage() {
                       {/* Action buttons */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                         <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
-                          <ClockIcon size={14}/> Timer
+                          <ClockIcon size={16}/> タイマー
                         </button>
                         <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
-                          <PenLineIcon size={14}/> Adjust
+                          <PenLineIcon size={16}/> 時間・ブラインド
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
-                          <UsersIcon size={14}/> Players
+                          <UsersIcon size={16}/> 参加者
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
-                          <DollarSignIcon size={14}/> Pay Out
+                          <DollarSignIcon size={16}/> 賞金
                         </button>
                       </div>
 
@@ -1350,7 +1292,7 @@ export default function StorePage() {
             border: gold ? 'none' : '1px solid rgba(255,255,255,0.22)',
             boxShadow: gold ? '0 4px 14px rgba(242,169,0,0.38)' : 'none',
           })
-          const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em' }
+          const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }
           return (
             <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
               <div style={{
@@ -1433,13 +1375,13 @@ export default function StorePage() {
                         <div style={iconCircle()}>
                           <XIcon size={17} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>CLOSE</span>
+                        <span style={labelStyle}>閉じる</span>
                       </button>
                       <button onClick={() => setExpandCtrlVisible(false)} style={btnBase}>
                         <div style={iconCircle()}>
                           <ChevronDownIcon size={17} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>HIDE</span>
+                        <span style={labelStyle}>隠す</span>
                       </button>
                     </div>
 
@@ -1449,7 +1391,7 @@ export default function StorePage() {
                         <div style={iconCircle()}>
                           <SkipBackIcon size={17} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>PREV</span>
+                        <span style={labelStyle}>前へ</span>
                       </button>
                       <button className="timer-btn" onClick={() => toggleTimer(et.id)} style={btnBase}>
                         <div style={iconCircle(true)}>
@@ -1458,36 +1400,36 @@ export default function StorePage() {
                             : <PlayIcon size={20} style={{ color: '#fff', marginLeft: 2 }} />}
                         </div>
                         <span style={{ ...labelStyle, color: 'rgba(242,169,0,0.8)' }}>
-                          {timerRunning[et.id] ? 'PAUSE' : 'START'}
+                          {timerRunning[et.id] ? '一時停止' : '再開'}
                         </span>
                       </button>
                       <button className="timer-btn" onClick={() => nextLevel(et.id)} style={btnBase}>
                         <div style={iconCircle()}>
                           <SkipForwardIcon size={17} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>NEXT</span>
+                        <span style={labelStyle}>次へ</span>
                       </button>
                     </div>
 
                     {/* 右: アクション */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: getLiveLevelState(et).remainingSec })); setExpandAdjustOpen(true) }} style={btnBase}>
+                      <button onClick={() => openAdjustModal(et.id, getLiveLevelState(et).remainingSec, et.customBlindLevels)} style={btnBase}>
                         <div style={iconCircle()}>
                           <PenLineIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>ADJUST</span>
+                        <span style={labelStyle}>調整</span>
                       </button>
                       <button onClick={() => setExpandPlayerOpen(true)} style={btnBase}>
                         <div style={iconCircle()}>
                           <UsersIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>PLAYERS</span>
+                        <span style={labelStyle}>参加者</span>
                       </button>
                       <button onClick={() => setExpandPrizeOpen(true)} style={btnBase}>
                         <div style={iconCircle()}>
                           <DollarSignIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>PAY OUT</span>
+                        <span style={labelStyle}>賞金</span>
                       </button>
                     </div>
                   </div>
@@ -1497,67 +1439,6 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Expand: インライン Adjust Modal - Apple Bottom-Sheet (z:10001) ── */}
-        {expandAdjustOpen && expandedTimerId && (() => {
-          const et = activeTournaments.find(t => t.id === expandedTimerId)
-          if (!et) return null
-          return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-              <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0', background: '#fff', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 16px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
-
-                {/* Drag Handle */}
-                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, paddingBottom: 0, flexShrink: 0 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
-                </div>
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => setExpandAdjustOpen(false)}
-                      style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease-out' }}
-                    ><XIcon size={16} style={{ color: '#3C3C43' }}/></button>
-                    <button onClick={async () => { await confirmAdjustTime(et.id); setExpandAdjustOpen(false) }}
-                      style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2A900', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)', transition: 'all 0.18s ease-out' }}
-                    ><CheckIcon size={16} style={{ color: '#fff' }}/></button>
-                  </div>
-                </div>
-
-                {/* Content - Scrollable */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-                  {/* Time Display */}
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
-                      {String(Math.floor((adjustSeconds[et.id] ?? 0) / 60)).padStart(2, "0")}
-                      <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
-                      {String((adjustSeconds[et.id] ?? 0) % 60).padStart(2, "0")}
-                    </p>
-                  </div>
-
-                  {/* Slider */}
-                  <input type="range" min={0} max={7200} step={10}
-                    value={adjustSeconds[et.id] ?? 0}
-                    onChange={e => setAdjustSeconds(p => ({ ...p, [et.id]: Number(e.target.value) }))}
-                    style={{ width: '100%', accentColor: '#F2A900', height: 5, borderRadius: 2.5, cursor: 'pointer' }}
-                  />
-
-                  {/* Quick Adjust Buttons */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
-                      <button key={i} onClick={() => updateAdjustTime(et.id, b.diff)}
-                        style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? '#F2A900' : '#F2F2F7', color: b.diff > 0 ? '#1C1C1E' : '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s ease-out' }}
-                      >{b.label}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Footer - Safe Area Inset */}
-                <div style={{ height: 'max(20px, env(safe-area-inset-bottom, 20px))', flexShrink: 0 }} />
-              </div>
-            </div>
-          )
-        })()}
 
         {/* ── Expand: インライン Players Modal - Apple Bottom-Sheet (z:10001) ── */}
         {expandPlayerOpen && expandedTimerId && (() => {
@@ -1599,224 +1480,77 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Adjust Modal — Apple Bottom-Sheet ── */}
-        {activeTournaments.map(t => adjustModalOpen[t.id] && (() => {
+        {/* ── 時間・ブラインドの調整(下から出るシート) ── */}
+        {activeTournaments.map(t => {
           const tab = adjustTab[t.id] ?? 'time'
-          const adjLvs = adjustBlindLevels[t.id] ?? []
+          const sec = adjustSeconds[t.id] ?? 0
           return (
-            <div key={`adj-${t.id}`} style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-              onClick={() => closeAdjustModal(t.id)}>
-              <div
-                style={{
-                  width: ADJ_MODAL_W, maxHeight: `min(${ADJ_MODAL_H}px, 92vh)`,
-                  borderRadius: '24px 24px 0 0', background: '#fff',
-                  display: 'flex', flexDirection: 'column',
-                  boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
-                  transform: `scale(${adjustModalScale})`, transformOrigin: 'center bottom',
-                  overflow: 'hidden',
-                }}
-                onClick={e => e.stopPropagation()}
-              >
-                {/* Drag Handle */}
-                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, flexShrink: 0 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
-                </div>
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>Adjust</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => closeAdjustModal(t.id)}
-                      style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><XIcon size={16} style={{ color: '#3C3C43' }}/></button>
-                    <button onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
-                      style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2A900', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
-                    ><CheckIcon size={16} style={{ color: '#fff' }}/></button>
+            <AppleSheet
+              key={`adj-${t.id}`}
+              open={!!adjustModalOpen[t.id]}
+              onClose={() => closeAdjustModal(t.id)}
+              maxWidth={560}
+              maxHeightVh={92}
+              zIndex={10001}
+              title={
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>時間・ブラインドの調整</p>
+                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                    </div>
+                    <button type="button" onClick={() => closeAdjustModal(t.id)} aria-label="閉じる"
+                      style={{ width: 44, height: 44, borderRadius: 22, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)', marginRight: -8 }}>
+                      <XIcon size={20} />
+                    </button>
                   </div>
-                </div>
-
-                {/* Tab switcher — Apple segmented control */}
-                <div style={{ padding: '16px 24px 0', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', gap: 8, background: '#F2F2F7', borderRadius: 12, padding: 3 }}>
+                  {/* セグメント(iOS の切り替え) */}
+                  <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: 4, marginTop: 16, background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
                     {(['time', 'blind'] as const).map(tb => (
-                      <button key={tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
-                        style={{
-                          flex: 1, height: 44, borderRadius: 9, border: 'none', cursor: 'pointer',
-                          fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
-                          background: tab === tb ? '#fff' : 'transparent',
-                          color: tab === tb ? '#1C1C1E' : 'var(--label3)',
-                          boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
-                        }}
-                      >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>
+                      <button key={tb} type="button" role="tab" aria-selected={tab === tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
+                        style={{ minHeight: 44, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: tab === tb ? 600 : 500,
+                          background: tab === tb ? '#fff' : 'transparent', color: 'var(--label)', boxShadow: tab === tb ? '0 1px 3px rgba(0,0,0,0.12)' : 'none', fontFamily: 'inherit' }}>
+                        {tb === 'time' ? '残り時間' : 'ブラインド表'}
+                      </button>
                     ))}
                   </div>
                 </div>
-
-                {/* ── Time tab ── */}
-                {tab === 'time' && (
-                  <div style={{ padding: '24px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {/* Time display */}
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
-                        {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
-                        <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
-                        {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
-                      </p>
-                    </div>
-                    {/* Slider */}
-                    <input type="range" min={0} max={7200} step={10}
-                      value={adjustSeconds[t.id] ?? 0}
-                      onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
-                      style={{ width: '100%', accentColor: '#F2A900', height: 5, borderRadius: 2.5, cursor: 'pointer' }}
-                    />
-                    {/* Quick buttons */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                      {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
-                        <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
-                          style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? '#F2A900' : '#F2F2F7', color: '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s' }}
-                        >{b.label}</button>
-                      ))}
-                    </div>
-                    {/* Safe area spacer */}
-                    <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
+              }
+              footer={
+                <button type="button" onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)} className="action-btn btn-gold" style={{ width: '100%' }}>
+                  {tab === 'time' ? 'この残り時間にする' : 'このブラインド表にする'}
+                </button>
+              }
+            >
+              {tab === 'time' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '8px 0 16px' }}>
+                  <p aria-live="polite" style={{ textAlign: 'center', fontSize: 64, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>
+                    {String(Math.floor(sec / 60)).padStart(2, "0")}<span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>{String(sec % 60).padStart(2, "0")}
+                  </p>
+                  <input type="range" min={0} max={7200} step={10} value={sec} aria-label="残り時間"
+                    onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
+                    style={{ width: '100%', height: 44, accentColor: '#F2A900', cursor: 'pointer' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                    {[{ label: '−1分', diff: -60 }, { label: '−10秒', diff: -10 }, { label: '+10秒', diff: 10 }, { label: '+1分', diff: 60 }].map(b => (
+                      <button key={b.label} type="button" onClick={() => updateAdjustTime(t.id, b.diff)} className="action-btn"
+                        style={{ background: 'rgba(118,118,128,0.12)', color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
+                        {b.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-
-                {/* ── Blind tab ── */}
-                {tab === 'blind' && (() => {
-                  const bInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all w-full"
-                  let lvCount = 0
-                  return (
-                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '16px 24px' }}>
-                      {adjLvs.length === 0 && (
-                        <p className="text-center text-[13px] text-label3 py-6">ブラインドが設定されていません</p>
-                      )}
-                      <div className="space-y-2">
-                        {adjLvs.map((lv, idx) => {
-                          if (lv.type === 'level') lvCount++
-                          const lvNum = lvCount
-                          return (
-                            <div key={idx} className="relative">
-                              <div
-                                className="rounded-2xl overflow-hidden border border-gray-100"
-                                draggable
-                                onDragStart={() => setAdjDragIdx(p => ({ ...p, [t.id]: idx }))}
-                                onDragEnter={() => setAdjDropIdx(p => ({ ...p, [t.id]: idx }))}
-                                onDragEnd={() => adjDragEnd(t.id)}
-                                onDragOver={e => e.preventDefault()}
-                                style={{ opacity: adjDragIdx[t.id] === idx ? 0.5 : 1, background: lv.type === 'break' ? '#F0F7FF' : '#F9F9F9' }}
-                              >
-                                {/* Row 1: drag + label + comment + controls */}
-                                <div className="flex items-center justify-between px-4 pt-2 pb-2 gap-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="cursor-move text-label3 text-[16px] select-none">≡</span>
-                                    {lv.type === 'level'
-                                      ? <span className="text-[11px] font-bold text-[#F2A900] min-w-[40px]">Lv {lvNum}</span>
-                                      : <span className="text-[11px] font-bold text-blue-400 min-w-[40px]">Break</span>
-                                    }
-                                    <button type="button"
-                                      onClick={() => setAdjCommentIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
-                                      className={`px-2 py-2 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#F2A900]/15 text-[#F2A900] border border-[#F2A900]/30" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
-                                    >{lv.comment ? lv.comment : "＋"}</button>
-                                  </div>
-                                  <div className="flex-shrink-0 flex items-center gap-0.5">
-                                    <button type="button"
-                                      onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
-                                      className="h-11 w-11 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                                    ><EllipsisIcon size={15} className="text-label3" /></button>
-                                    <button onClick={() => removeAdjLevel(t.id, idx)}
-                                      className="h-11 w-11 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
-                                    ><Trash2Icon size={14} className="text-red-400" /></button>
-                                  </div>
-                                </div>
-
-                                {/* Row 2: inputs */}
-                                {lv.type === 'level' ? (
-                                  <div className="grid grid-cols-2 gap-x-2 gap-y-2 px-4 pb-2">
-                                    {([
-                                      { label: 'SB',   field: 'smallBlind', val: lv.smallBlind },
-                                      { label: 'BB',   field: 'bigBlind',   val: lv.bigBlind   },
-                                      { label: 'Ante', field: 'ante',       val: lv.ante       },
-                                      { label: 'min',  field: 'duration',   val: lv.duration   },
-                                    ] as const).map(({ label, field, val }) => (
-                                      <div key={field} className="flex flex-col gap-0.5">
-                                        <span className="text-[11px] text-label3 font-semibold text-center">{label}</span>
-                                        <input type="number" min={1} value={val ?? ''} placeholder="-"
-                                          onChange={e => updateAdjBlind(t.id, idx, { [field]: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) } as Partial<AdjLevel>)}
-                                          className={bInput} />
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2 px-4 pb-2">
-                                    <div className="flex flex-col gap-0.5" style={{ width: 120 }}>
-                                      <span className="text-[11px] text-blue-400 font-semibold text-center">min</span>
-                                      <input type="number" min={1} value={lv.duration ?? ''} placeholder="10"
-                                        onChange={e => updateAdjBlind(t.id, idx, { duration: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) })}
-                                        className={bInput} />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Comment input */}
-                                {(adjCommentIdx[t.id] === idx || lv.comment) && (
-                                  <div className="px-4 pb-2 flex items-center gap-2">
-                                    <input type="text" placeholder="コメントを入力..."
-                                      value={lv.comment ?? ''}
-                                      onChange={e => updateAdjBlind(t.id, idx, { comment: e.target.value || null })}
-                                      autoFocus={adjCommentIdx[t.id] === idx && !lv.comment}
-                                      className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#F2A900] focus:outline-none transition-all"
-                                    />
-                                    <button type="button"
-                                      onClick={() => { updateAdjBlind(t.id, idx, { comment: null }); setAdjCommentIdx(p => ({ ...p, [t.id]: null })) }}
-                                      className="h-11 w-11 flex-shrink-0 rounded-full bg-gray-200 hover:bg-red-50 flex items-center justify-center transition-colors"
-                                    ><XIcon size={11} className="text-gray-500" /></button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Context menu */}
-                              {adjContextMenuIdx[t.id] === idx && (
-                                <>
-                                  <div className="fixed inset-0 z-[199]" onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: null }))} />
-                                  <div className="a-dialog absolute right-9 top-1 z-[200] overflow-hidden min-w-[168px]" style={{ transformOrigin: 'top right' }}>
-                                    <button type="button" onClick={() => insertAdjLevelBefore(t.id, idx)}
-                                      className="w-full px-4 py-4 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                    >この前にレベルを追加</button>
-                                    <button type="button" onClick={() => insertAdjLevelAfter(t.id, idx)}
-                                      className="w-full px-4 py-4 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                    >この後にレベルを追加</button>
-                                    <div className="border-t border-gray-100" />
-                                    <button type="button" onClick={() => toggleAdjLevelBreak(t.id, idx)}
-                                      className="w-full px-4 py-4 text-left text-[13px] text-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-colors"
-                                    >{lv.type === 'level' ? 'ブレイクに変更' : 'レベルに変更'}</button>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Add buttons */}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 16, paddingBottom: 8 }}>
-                        <button onClick={() => addAdjLevel(t.id)}
-                          style={{ flex: 1, height: 44, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#D4910A', cursor: 'pointer', border: '1.5px dashed rgba(242,169,0,0.5)', background: 'rgba(242,169,0,0.04)' }}
-                        >＋ レベル</button>
-                        <button onClick={() => addAdjBreak(t.id)}
-                          style={{ flex: 1, height: 44, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#3B82F6', cursor: 'pointer', border: '1.5px dashed rgba(59,130,246,0.4)', background: 'rgba(59,130,246,0.04)' }}
-                        >＋ ブレイク</button>
-                      </div>
-                      {/* Safe area spacer */}
-                      <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
-                    </div>
-                  )
-                })()}
-
-              </div>
-            </div>
+                </div>
+              ) : (
+                <div style={{ padding: '8px 0' }}>
+                  <BlindLevelEditor
+                    levels={adjustBlindLevels[t.id] ?? []}
+                    onChange={ls => setAdjustBlindLevels(p => ({ ...p, [t.id]: ls }))}
+                    showAddButtons
+                  />
+                </div>
+              )}
+            </AppleSheet>
           )
-        })())}
+        })}
 
         {/* ── Withdraw Requests ── */}
         {withdrawRequests.length > 0 && (
@@ -1839,16 +1573,21 @@ export default function StorePage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {[
-                      { label: 'Buy-in', type: 'buyin' as const },
-                      { label: 'トナメ E', type: 'tE' as const },
-                      { label: 'トナメ R', type: 'tR' as const },
-                      { label: 'トナメ A', type: 'tA' as const },
+                      { label: 'リング', type: 'buyin' as const },
+                      { label: 'エントリー', type: 'tE' as const },
+                      { label: 'リエントリー', type: 'tR' as const },
+                      { label: 'アドオン', type: 'tA' as const },
                       { label: 'その他', type: 'other' as const, special: true },
                       { label: '却下', type: null },
                     ].map((b, i) => (
                       <button key={i}
                         className="req-action"
-                        onClick={() => b.type === null ? rejectWithdraw(req) : b.special ? setWithdrawOtherOpenId(req.id) : approveWithdrawWithType(req, b.type as any)}
+                        onClick={() => {
+                          const who = playerMap[req.playerId]?.name ?? req.playerId
+                          if (b.type === null) setConfirmReq({ title: '引き出しを却下', message: `${who} の ${req.amount.toLocaleString()} の引き出しを却下します。`, action: '却下', destructive: true, run: () => rejectWithdraw(req) })
+                          else if (b.special) setWithdrawOtherOpenId(req.id)
+                          else setConfirmReq({ title: `${b.label}で引き出し`, message: `${who} の残高から ${req.amount.toLocaleString()} を引き出します。`, action: '承認', run: () => approveWithdrawWithType(req, b.type as any) })
+                        }}
                         style={{ background: b.type === null ? 'rgba(255,59,48,0.07)' : 'rgba(255,59,48,0.85)', color: b.type === null ? '#FF3B30' : '#fff', border: b.type === null ? '1px solid rgba(255,59,48,0.2)' : 'none' }}
                       >{b.label}</button>
                     ))}
@@ -1898,14 +1637,19 @@ export default function StorePage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                     {[
-                      { label: 'Cash Out', type: 'cashout' as const },
+                      { label: 'キャッシュアウト', type: 'cashout' as const },
                       { label: 'チップ購入', type: 'chip' as const },
                       { label: 'その他', type: 'other' as const, special: true },
                       { label: '却下', type: null },
                     ].map((b, i) => (
                       <button key={i}
                         className="req-action"
-                        onClick={() => b.type === null ? rejectDeposit(req) : b.special ? setDepositOtherOpenId(req.id) : approveDepositWithType(req, b.type as any)}
+                        onClick={() => {
+                          const who = playerMap[req.playerId]?.name ?? req.playerId
+                          if (b.type === null) setConfirmReq({ title: '預け入れを却下', message: `${who} の ${req.amount.toLocaleString()} の預け入れを却下します。`, action: '却下', destructive: true, run: () => rejectDeposit(req) })
+                          else if (b.special) setDepositOtherOpenId(req.id)
+                          else setConfirmReq({ title: `${b.label}で預け入れ`, message: `${who} の残高に ${req.amount.toLocaleString()} を加えます。`, action: '承認', run: () => approveDepositWithType(req, b.type as any) })
+                        }}
                         style={{ background: b.type === null ? 'rgba(255,59,48,0.07)' : 'rgba(52,199,89,0.85)', color: b.type === null ? '#FF3B30' : '#fff', border: b.type === null ? '1px solid rgba(255,59,48,0.2)' : 'none' }}
                       >{b.label}</button>
                     ))}
@@ -1955,7 +1699,7 @@ export default function StorePage() {
                     <button onClick={() => approvePlayer(player.id)}
                       style={{ height: 44, width: 52, borderRadius: 10, background: '#34C759', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}
                     >許可</button>
-                    <button onClick={() => rejectPlayer(player.id)}
+                    <button onClick={() => setConfirmReq({ title: '入店を却下', message: `${player.name} の入店申請を却下します。`, action: '却下', destructive: true, run: () => rejectPlayer(player.id) })}
                       style={{ height: 44, width: 52, borderRadius: 10, background: 'var(--fill)', color: 'var(--label2)', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer' }}
                     >却下</button>
                   </div>
@@ -1970,7 +1714,7 @@ export default function StorePage() {
 
           {/* Section header + stats */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 16 }}>
-            <p className="section-hd" style={{ marginBottom: 0, letterSpacing: 0.5 }}>Players</p>
+            <p className="section-hd" style={{ marginBottom: 0 }}>プレイヤー</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {/* Total balance of in-store players */}
               {inPlayers.length > 0 && (
@@ -2389,7 +2133,7 @@ export default function StorePage() {
               <p style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.1px' }}>
                 {qrCheckinResult.success ? `${qrCheckinResult.name || 'プレイヤー'} が入店しました` : 'QRコードが無効です'}
               </p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>
                 {qrCheckinResult.success ? '入店が承認されました' : 'RRPokerのQRコードを読み取ってください'}
               </p>
             </div>

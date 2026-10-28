@@ -1695,7 +1695,7 @@ const medalClass = (rank: number) => {
                       <p className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
-                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>not checked in</p>
+                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>not checked in</p>
                   )}
                 </div>
               </div>
@@ -1726,7 +1726,7 @@ const medalClass = (rank: number) => {
               {tournamentStats.plays === 0 ? (
                 <div>
                   <p className="tech-num tech-caret" style={{ fontSize: 34, fontWeight: 800, color: 'rgba(255,255,255,0.78)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
-                  <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.58)', marginTop: 8, lineHeight: 1.6, maxWidth: 240 }}>
+                  <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 8, lineHeight: 1.6, maxWidth: 240 }}>
                     {t('tourneyStat.pendingNote')}
                   </p>
                 </div>
@@ -1976,25 +1976,25 @@ const medalClass = (rank: number) => {
                           <circle cx="17" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
                           <circle cx="30" cy="4" r="4" fill="#F2A900" />
                         </svg>
-                        <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.34)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                        <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                           バンクロール
                         </p>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(true)}
                         style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer', flexShrink:0 }}>
-                        <ClockIcon style={{ fontSize:11, color:'rgba(255,255,255,0.55)' }} />
+                        <ClockIcon style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }} />
                         <span className="tech-label" style={{ fontSize:13, color:'rgba(255,255,255,0.8)' }}>履歴</span>
                       </button>
                     </div>
 
                     {/* 打ち込んだ命令。どの店の残高を出しているのかをそのまま見せる。 */}
-                    <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.40)', marginTop:16, display:'flex', gap:8, minWidth:0 }}>
+                    <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.72)', marginTop:16, display:'flex', gap:8, minWidth:0 }}>
                       <span style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontSize:13, color:'rgba(255,255,255,0.75)' }}>{currentStore.name}</span>
                     </p>
 
                     {/* Balance hero */}
                     <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'flex-start', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
-                      <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.34)', display:'flex', gap:8, marginBottom:8 }}>
+                      <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.72)', display:'flex', gap:8, marginBottom:8 }}>
                         <span style={{ fontSize:13, color:'rgba(255,255,255,0.75)' }}>{showBB && blindBb ? 'BB' : 'チップ'}</span>
                       </p>
                       {/* 面の中でここだけが明るい。金は数値にだけ使う。 */}
@@ -2014,7 +2014,7 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
                         {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                          <span className="tech-num" style={{ fontSize:11, color:'rgba(255,255,255,0.30)', letterSpacing:'0.06em' }}>
+                          <span className="tech-num" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.06em' }}>
                             <span className="tech-label" style={{ fontSize:11, opacity:0.6, marginRight:8 }}>RATE</span>
                             {currentStore.ringBlindSb}/{currentStore.ringBlindBb}
                           </span>
@@ -2035,11 +2035,11 @@ const medalClass = (rank: number) => {
                     {/* Header */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <ClockIcon style={{ color:'rgba(255,255,255,0.42)', fontSize:13 }} />
-                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.52)' }}>History</span>
+                        <ClockIcon style={{ color:'rgba(255,255,255,0.72)', fontSize:13 }} />
+                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>History</span>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(false)}
-                        style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.58)', cursor:'pointer' }}>
+                        style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', cursor:'pointer' }}>
                         <ArrowLeftIcon style={{ fontSize:11 }} />戻る
                       </button>
                     </div>
@@ -2048,7 +2048,7 @@ const medalClass = (rank: number) => {
                     <div className="bank-card-history" style={{ flex:1 }}>
                       {sortedTransactionItems.length === 0 ? (
                         <div style={{ textAlign:'center', paddingTop:32 }}>
-                          <p className="term-comment" style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
+                          <p className="term-comment" style={{ fontSize:12, color:'rgba(255,255,255,0.72)' }}>履歴がありません</p>
                         </div>
                       ) : sortedTransactionItems.map(item => {
                         const amtStr = getHistoryAmount(item)
@@ -2058,7 +2058,7 @@ const medalClass = (rank: number) => {
                           <div key={item.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 16px', borderRadius:13, background:'rgba(255,255,255,0.042)', border:'1px solid rgba(255,255,255,0.07)', marginBottom:8 }}>
                             <div style={{ minWidth:0, flex:1 }}>
                               <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</p>
-                              <p className="tech-num" style={{ fontSize:11, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
+                              <p className="tech-num" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
                             </div>
                             <p className="tech-num" style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', flexShrink:0, marginLeft:8 }}>{amtStr}</p>
                           </div>

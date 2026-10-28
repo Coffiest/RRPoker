@@ -527,7 +527,7 @@ export default function MyPage() {
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
               {tourStats.plays === 0 && (
-                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.58)', marginTop: 8, maxWidth: 170, lineHeight: 1.5 }}>
+                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 8, maxWidth: 170, lineHeight: 1.5 }}>
                   pending results
                 </p>
               )}

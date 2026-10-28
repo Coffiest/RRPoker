@@ -154,7 +154,7 @@ export default function StoreWelcomePage() {
           <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:8 }}>
             {name ? `${name}さん、` : ''}ようこそ！
           </h1>
-          <p className="sw-appear sw-d2" style={{ fontSize:14, color:'rgba(255,255,255,0.4)', lineHeight:1.85 }}>
+          <p className="sw-appear sw-d2" style={{ fontSize:14, color:'rgba(255,255,255,0.72)', lineHeight:1.85 }}>
             あなたの店舗がRRPokerに登録されました。<br/>
             以下の機能がすぐに使えます。
           </p>
@@ -164,7 +164,7 @@ export default function StoreWelcomePage() {
         <div className="sw-appear sw-d3" style={{ marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
             <div style={{ width:3, height:14, borderRadius:2, background:'#F2A900' }}/>
-            <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.3)' }}>店舗でできること</p>
+            <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>店舗でできること</p>
           </div>
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
@@ -174,7 +174,7 @@ export default function StoreWelcomePage() {
                   {f.icon}
                 </div>
                 <p style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.85)', marginBottom:8, lineHeight:1.3 }}>{f.title}</p>
-                <p style={{ fontSize:11, color:'rgba(255,255,255,0.3)', lineHeight:1.6 }}>{f.desc}</p>
+                <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', lineHeight:1.6 }}>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -202,7 +202,7 @@ export default function StoreWelcomePage() {
             </svg>
             店舗管理をはじめる
           </button>
-          <p style={{ fontSize:11, color:'rgba(255,255,255,0.18)', textAlign:'center', marginTop:16 }}>
+          <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', textAlign:'center', marginTop:16 }}>
             各種設定はいつでも変更できます
           </p>
         </div>

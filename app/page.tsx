@@ -454,14 +454,14 @@ export default function TopPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)' }}>Bank Roll</p>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
             <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>$ 24,500</p>
             <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+$ 4,500</p>
             <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
-            <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.25)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
+            <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
           </div>
         </div>
       </section>

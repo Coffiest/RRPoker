@@ -1250,3 +1250,15 @@ body {
 /* 主の操作は金の単色。グラデーション・光沢は使わない */
 .gold-btn, .gold-btn:active { background: #F2A900; box-shadow: none; }
 .a-kinetic { font-feature-settings: "tnum" 1; }
+.confirm-btn { -webkit-tap-highlight-color: transparent; transition: background-color 100ms ease-out; }
+.confirm-btn:active { background: rgba(60, 60, 67, 0.08) !important; }
+
+/* 押せる場所は必ず 44×44 以上(Apple HIG)。見た目が小さい文字ボタンも、押せる範囲はここで確保する。
+   スイッチ(.a-switch)は iOS と同じ 51×31 の見た目を保ち、行全体を押せる範囲にする。 */
+:where(button, [role="button"], [role="tab"], select):not(.a-switch) {
+  min-height: 44px;
+  min-width: 44px;
+}
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), textarea) {
+  min-height: 44px;
+}

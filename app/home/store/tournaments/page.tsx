@@ -1,5 +1,5 @@
 "use client"
-import { ArrowDownIcon, ArrowUpIcon, AwardIcon, CalendarIcon, CameraIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, EllipsisIcon, MessageSquareIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import { AwardIcon, CalendarIcon, CameraIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -11,12 +11,9 @@ import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import AppleSheet from "@/components/AppleSheet"
-import { createPortal } from "react-dom"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
-// ── Level types (shared with TimerClient) ──────────────────────────────────
-type BlindLevel = { type: "level"; smallBlind: number | null; bigBlind: number | null; ante: number | null; duration: number | null; comment?: string | null}
-type BreakLevel  = { type: "break"; duration: number | null; comment?: string | null}
-type Level = BlindLevel | BreakLevel
+import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
 type DayChar = typeof DAYS[number]
@@ -143,15 +140,13 @@ export default function TournamentsPage() {
   const [editingBlindPresetId, setEditingBlindPresetId] = useState<string | null>(null)
   const [blindPresetName, setBlindPresetName] = useState("")
   const [blindLevels, setBlindLevels] = useState<Level[]>([{ ...emptyBlindLevel }])
-  const [blindEditingCommentIdx, setBlindEditingCommentIdx] = useState<number | null>(null)
-  const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
   const [bulkDuration, setBulkDuration] = useState("")
   // 保存中・入力エラー・削除の確認
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState("")
   const [blindError, setBlindError] = useState("")
   const [blindSaving, setBlindSaving] = useState(false)
-  const [confirmState, setConfirmState] = useState<null | { title: string; message: string; action: string; run: () => Promise<void> | void }>(null)
+  const [confirmState, setConfirmState] = useState<ConfirmRequest | null>(null)
   /** ブラインド編集を開いた時点の中身。閉じるときに変更があるか比べる。 */
   const blindSnapshot = useRef("")
 
@@ -322,7 +317,7 @@ export default function TournamentsPage() {
   const askDeleteTournament = (t: any) => setConfirmState({
     title: "トーナメントを削除",
     message: `「${t.name || "名称なし"}」を削除します。参加記録も見られなくなります。元に戻せません。`,
-    action: "削除",
+    action: "削除", destructive: true,
     run: async () => { if (storeId) await deleteDoc(doc(db, "stores", storeId, "tournaments", t.id)) },
   })
   const handleEdit = (t: any) => {
@@ -354,80 +349,36 @@ export default function TournamentsPage() {
 
   // ── ブラインド ─────────────────────────────────────────────────────────
   const setLevels = (fn: (ls: Level[]) => Level[]) => { setBlindError(""); setBlindLevels(fn) }
-  function addBlindLevel() {
-    setLevels(ls => {
-      const last = [...ls].reverse().find(l => l.type === "level") as BlindLevel | undefined
-      if (!last) return [...ls, { type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
-      const sb = Math.max(1, Math.round((last.smallBlind ?? 100) * 1.5))
-      const bb = Math.max(1, Math.round((last.bigBlind ?? 200) * 1.5))
-      return [...ls, { type: "level", smallBlind: sb, bigBlind: bb, ante: bb, duration: last.duration ?? 20 }]
-    })
-  }
-  function addBlindBreak() { setLevels(ls => [...ls, { type: "break", duration: 10 }]) }
-  function removeBlindLevel(idx: number) { setLevels(ls => ls.filter((_, i) => i !== idx)); setBlindContextMenuIdx(null) }
-  function insertLevelBefore(idx: number) { setLevels(ls => { const nl = [...ls]; nl.splice(idx, 0, { ...emptyBlindLevel }); return nl }); setBlindContextMenuIdx(null) }
-  function insertLevelAfter(idx: number) { setLevels(ls => { const nl = [...ls]; nl.splice(idx + 1, 0, { ...emptyBlindLevel }); return nl }); setBlindContextMenuIdx(null) }
-  function moveLevel(idx: number, dir: -1 | 1) {
-    setLevels(ls => {
-      const to = idx + dir
-      if (to < 0 || to >= ls.length) return ls
-      const nl = [...ls]; const [m] = nl.splice(idx, 1); nl.splice(to, 0, m); return nl
-    })
-    setBlindContextMenuIdx(null)
-  }
-  function toggleLevelBreak(idx: number) {
-    setLevels(ls => ls.map((lv, i) => {
-      if (i !== idx) return lv
-      if (lv.type === "level") return { type: "break" as const, duration: lv.duration, comment: lv.comment ?? null }
-      return { type: "level" as const, smallBlind: null, bigBlind: null, ante: null, duration: lv.duration, comment: lv.comment ?? null }
-    }))
-    setBlindContextMenuIdx(null)
-  }
-  /** 入力欄の文字を数値に。空なら null(入力の途中で勝手に 1 に戻さない)。 */
-  const toNum = (raw: string): number | null => raw.trim() === "" ? null : Math.max(0, Math.round(Number(raw)))
-  function setLevelField(idx: number, key: "smallBlind" | "bigBlind" | "ante" | "duration", raw: string) {
-    const v = toNum(raw)
-    setLevels(ls => ls.map((l, i) => {
-      if (i !== idx) return l
-      if (l.type === "break") return key === "duration" ? { ...l, duration: v } : l
-      // SB を入れたら BB・アンティを 2 倍で埋め、BB を入れたらアンティを揃える(よくある構成)。
-      if (key === "smallBlind") return { ...l, smallBlind: v, bigBlind: v === null ? l.bigBlind : v * 2, ante: v === null ? l.ante : v * 2 }
-      if (key === "bigBlind") return { ...l, bigBlind: v, ante: v }
-      return { ...l, [key]: v }
-    }))
-  }
+  function addBlindLevel() { setLevels(withNextLevel) }
+  function addBlindBreak() { setLevels(withBreak) }
   const snapshotOf = (name: string, levels: Level[]) => JSON.stringify({ name, levels })
   function openEditBlindPreset(preset: any) {
     const levels = Array.isArray(preset.levels) && preset.levels.length > 0 ? preset.levels : [{ ...emptyBlindLevel }]
     setEditingBlindPresetId(preset.id); setBlindPresetName(preset.name); setBlindLevels(levels)
-    blindSnapshot.current = snapshotOf(preset.name, levels)
-    setBlindEditingCommentIdx(null); setBlindError(""); setBlindModalView("edit")
+    blindSnapshot.current = snapshotOf(preset.name, levels); setBlindError(""); setBlindModalView("edit")
   }
   function openNewBlindPreset() {
     const levels: Level[] = [{ type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
     setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels)
-    blindSnapshot.current = snapshotOf("", levels)
-    setBlindEditingCommentIdx(null); setBlindError(""); setBlindModalView("edit")
+    blindSnapshot.current = snapshotOf("", levels); setBlindError(""); setBlindModalView("edit")
   }
   const blindDirty = blindModalView === "edit" && snapshotOf(blindPresetName, blindLevels) !== blindSnapshot.current
   function resetBlindEditor() {
     setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName("")
-    setBlindLevels([{ ...emptyBlindLevel }]); setBlindEditingCommentIdx(null); setBlindContextMenuIdx(null); setBlindError("")
+    setBlindLevels([{ ...emptyBlindLevel }]); setBlindError("")
   }
   /** 変更を捨ててよいか確かめてから進む。変更が無ければそのまま進む。 */
   function guardDiscard(next: () => void) {
     if (!blindDirty) { next(); return }
-    setConfirmState({ title: "変更を破棄しますか？", message: "保存していない変更は失われます。", action: "破棄", run: next })
+    setConfirmState({ title: "変更を破棄しますか？", message: "保存していない変更は失われます。", action: "破棄", destructive: true, run: next })
   }
   function closeBlindModal() { guardDiscard(() => { setIsBlindModalOpen(false); resetBlindEditor() }) }
   function backToBlindList() { guardDiscard(resetBlindEditor) }
   async function saveBlindPreset() {
     if (!storeId || blindSaving) return
     if (!blindPresetName.trim()) { setBlindError("プリセット名を入力してください"); return }
-    const levelCount = blindLevels.filter(l => l.type === "level").length
-    if (levelCount === 0) { setBlindError("レベルを1つ以上追加してください"); return }
-    const bad = blindLevels.findIndex(l => !l.duration || (l.type === "level" && (!l.smallBlind || !l.bigBlind)))
-    if (bad >= 0) { setBlindError(`${bad + 1}行目: SB・BB・時間を入力してください`); return }
+    const invalid = validateLevels(blindLevels)
+    if (invalid) { setBlindError(invalid); return }
     setBlindSaving(true)
     try {
       const data = { name: blindPresetName.trim(), levels: blindLevels }
@@ -444,7 +395,7 @@ export default function TournamentsPage() {
   const askDeletePreset = (preset: any) => setConfirmState({
     title: "プリセットを削除",
     message: `「${preset.name}」を削除します。このプリセットを使うトーナメントは「ブラインドなし」になります。`,
-    action: "削除",
+    action: "削除", destructive: true,
     run: async () => { if (storeId) { await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id)); await refreshPresets(storeId) } },
   })
   const runAi = () => {
@@ -480,7 +431,6 @@ export default function TournamentsPage() {
     }
   }
   const unit = (n: number) => fmtChip(n, chipUnit, chipUnitBefore)
-  const levelNo = (idx: number) => blindLevels.slice(0, idx + 1).filter(l => l.type === "level").length
   const totalMinutes = blindLevels.reduce((s, l) => s + (l.duration ?? 0), 0)
 
   // ── 描画 ───────────────────────────────────────────────────────────────
@@ -897,55 +847,7 @@ export default function TournamentsPage() {
               </button>
             </div>
 
-            {/* 列の見出し(レベル行の入力欄と同じ並び) */}
-            <div style={{ display: 'grid', gridTemplateColumns: levelGrid, gap: 8, padding: '0 8px 8px', fontSize: 13, fontWeight: 600, color: 'var(--label2)', textAlign: 'center' }}>
-              <span>Lv</span><span>SB</span><span>BB</span><span>Ante</span><span>分</span><span />
-            </div>
-
-            <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-              {blindLevels.map((lv, idx) => (
-                <li key={idx} style={{ position: 'relative' }}>
-                  <div style={{ ...card, padding: 8, background: lv.type === "break" ? 'rgba(10,108,214,0.06)' : '#fff' }}>
-                    {lv.type === "level" ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: levelGrid, gap: 8, alignItems: 'center' }}>
-                        <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: 'var(--gold-dk)', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
-                        {(["smallBlind", "bigBlind", "ante", "duration"] as const).map(key => (
-                          <input key={key} type="number" inputMode="numeric" min={0}
-                            value={(lv as any)[key] ?? ""} placeholder="—"
-                            aria-label={`レベル${levelNo(idx)} ${{ smallBlind: 'SB', bigBlind: 'BB', ante: 'アンティ', duration: '分' }[key]}`}
-                            onChange={e => setLevelField(idx, key, e.target.value)}
-                            className="no-spin tp-input" style={{ ...numInput, width: '100%', padding: '0 4px' }} />
-                        ))}
-                        <button type="button" onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)} className="tp-press" aria-label="このレベルの操作" style={{ ...btn.icon, background: 'transparent', color: 'var(--label2)' }}>
-                          <EllipsisIcon size={20} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: levelGrid, gap: 8, alignItems: 'center' }}>
-                        <span style={{ display: 'flex', justifyContent: 'center', color: 'var(--blue)' }}><CoffeeIcon size={20} /></span>
-                        <span style={{ gridColumn: '2 / span 3', fontSize: 15, fontWeight: 600, color: 'var(--blue)', paddingLeft: 8 }}>休憩</span>
-                        <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ""} placeholder="10" aria-label="休憩の分"
-                          onChange={e => setLevelField(idx, "duration", e.target.value)}
-                          className="no-spin tp-input" style={{ ...numInput, width: '100%', padding: '0 4px' }} />
-                        <button type="button" onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)} className="tp-press" aria-label="この休憩の操作" style={{ ...btn.icon, background: 'transparent', color: 'var(--label2)' }}>
-                          <EllipsisIcon size={20} />
-                        </button>
-                      </div>
-                    )}
-                    {(blindEditingCommentIdx === idx || lv.comment) && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                        <MessageSquareIcon size={16} style={{ color: 'var(--label3)', flexShrink: 0, marginLeft: 8 }} />
-                        <input type="text" placeholder="タイマーに出すメモ(例: 次はアンティ導入)" value={lv.comment ?? ""}
-                          onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                          className="tp-input" style={{ ...numInput, flex: 1, textAlign: 'left', padding: '0 16px', fontWeight: 400 }}
-                          autoFocus={blindEditingCommentIdx === idx} />
-                      </div>
-                    )}
-                  </div>
-
-                </li>
-              ))}
-            </ol>
+            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }} />
           </>
         )}
       </AppleSheet>
@@ -1028,53 +930,7 @@ export default function TournamentsPage() {
         )}
       </AppleSheet>
 
-      {/* ── レベル行の操作(iOS のアクションシート) ── */}
-      {blindContextMenuIdx !== null && blindLevels[blindContextMenuIdx] && (() => {
-        const idx = blindContextMenuIdx
-        const lv = blindLevels[idx]
-        const items: [React.ReactNode, string, () => void, boolean][] = [
-          [<ArrowUpIcon key="u" size={20} />, "上へ移動", () => moveLevel(idx, -1), idx === 0],
-          [<ArrowDownIcon key="d" size={20} />, "下へ移動", () => moveLevel(idx, 1), idx === blindLevels.length - 1],
-          [<PlusIcon key="b" size={20} />, "この上にレベルを追加", () => insertLevelBefore(idx), false],
-          [<PlusIcon key="a" size={20} />, "この下にレベルを追加", () => insertLevelAfter(idx), false],
-          [<MessageSquareIcon key="c" size={20} />, lv.comment ? "メモを編集" : "メモを追加", () => { setBlindEditingCommentIdx(idx); setBlindContextMenuIdx(null) }, false],
-          [<CoffeeIcon key="t" size={20} />, lv.type === "level" ? "休憩に変える" : "レベルに変える", () => toggleLevelBreak(idx), false],
-        ]
-        return createPortal(
-          <div role="dialog" aria-modal="true" aria-label="行の操作" style={{ position: 'fixed', inset: 0, zIndex: 900, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 8px calc(8px + env(safe-area-inset-bottom, 0px))' }}>
-            <div className="a-scrim" onClick={() => setBlindContextMenuIdx(null)} style={{ position: 'absolute', inset: 0 }} />
-            <div className="a-sheet" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'transparent', boxShadow: 'none', borderRadius: 0 }}>
-              <div role="menu" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
-                <p style={{ fontSize: 13, color: 'var(--label2)', textAlign: 'center', margin: 0, padding: '16px 16px 8px' }}>
-                  {lv.type === "level" ? `レベル ${levelNo(idx)}` : "休憩"}
-                </p>
-                {items.map(([icon, label, action, disabled]) => (
-                  <button key={label} type="button" role="menuitem" onClick={action} disabled={disabled} className="tp-row" style={{ ...menuItem, opacity: disabled ? 0.35 : 1 }}>
-                    <span style={{ flex: 1 }}>{label}</span>{icon}
-                  </button>
-                ))}
-                <button type="button" role="menuitem" onClick={() => removeBlindLevel(idx)} className="tp-row" style={{ ...menuItem, color: '#D70015' }}>
-                  <span style={{ flex: 1 }}>削除</span><Trash2Icon size={20} />
-                </button>
-              </div>
-              <button type="button" onClick={() => setBlindContextMenuIdx(null)} className="tp-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 17, fontWeight: 600, color: '#0A6CD6', fontFamily: 'inherit' }}>
-                キャンセル
-              </button>
-            </div>
-          </div>,
-          document.body,
-        )
-      })()}
-
-      {/* ── 確認ダイアログ(削除・開始・破棄) ── */}
-      {confirmState && (
-        <ConfirmDialog
-          {...confirmState}
-          destructive={confirmState.action === "削除" || confirmState.action === "破棄"}
-          onCancel={() => setConfirmState(null)}
-          onConfirm={async () => { const run = confirmState.run; setConfirmState(null); await run() }}
-        />
-      )}
+      <ConfirmDialog request={confirmState} onClose={() => setConfirmState(null)} />
 
       <StoreBottomNav />
     </main>
@@ -1083,13 +939,6 @@ export default function TournamentsPage() {
 
 // ── 見た目の部品 ───────────────────────────────────────────────────────────
 
-const levelGrid = '32px repeat(4, minmax(0, 1fr)) 44px'
-
-/** 分を「1時間30分」「45分」の形に。 */
-function fmtMinutes(m: number): string {
-  const h = Math.floor(m / 60), r = m % 60
-  return h ? (r ? `${h}時間${r}分` : `${h}時間`) : `${r}分`
-}
 
 const card: React.CSSProperties = {
   background: '#fff', borderRadius: 16, overflow: 'hidden',
@@ -1102,11 +951,6 @@ const listRow: React.CSSProperties = {
   color: 'var(--label)', fontFamily: 'inherit', fontSize: 17, cursor: 'pointer',
   transition: 'background-color 100ms ease-out',
 }
-const menuItem: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 48,
-  padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid var(--sep)',
-  fontSize: 17, color: 'var(--label)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
-}
 const metaItem: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4 }
 const rowInput: React.CSSProperties = {
   flex: 1, minWidth: 0, width: '100%', height: 44, background: 'none', border: 'none', outline: 'none',
@@ -1118,7 +962,7 @@ const numInput: React.CSSProperties = {
   boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit', width: '100%',
 }
 const rankBadge: React.CSSProperties = {
-  width: 24, height: 24, borderRadius: 12, background: 'var(--gold)', color: '#1C1C1E',
+  width: 24, height: 24, borderRadius: 12, background: 'var(--gold)', color: '#fff',
   fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 }
 const btnBase: React.CSSProperties = {
@@ -1127,8 +971,8 @@ const btnBase: React.CSSProperties = {
   fontSize: 17, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
 }
 const btn = {
-  // 金の面の上の文字は濃い色にする(白だとコントラストが 2:1 程度しか取れない)。
-  primary: { ...btnBase, background: 'var(--gold)', color: '#1C1C1E' } as React.CSSProperties,
+  // 金の面の上の文字は白(CLAUDE.md・オーナー確定)。
+  primary: { ...btnBase, background: 'var(--gold)', color: '#fff' } as React.CSSProperties,
   secondary: { ...btnBase, background: '#fff', color: 'var(--label)', boxShadow: 'inset 0 0 0 1px var(--sep)' } as React.CSSProperties,
   small: { ...btnBase, minHeight: 44, padding: '0 16px', fontSize: 15, background: 'var(--label)', color: '#fff' } as React.CSSProperties,
   icon: { ...btnBase, width: 48, minHeight: 48, padding: 0, background: 'var(--fill)', color: 'var(--label)', flexShrink: 0 } as React.CSSProperties,
@@ -1240,30 +1084,5 @@ function CheckMark() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style={{ color: 'var(--gold-dk)', flexShrink: 0 }}>
       <path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  )
-}
-
-function ConfirmDialog({ title, message, action, destructive, onCancel, onConfirm }: {
-  title: string; message: string; action: string; destructive?: boolean; onCancel: () => void; onConfirm: () => void
-}) {
-  return createPortal(
-    <div role="alertdialog" aria-modal="true" aria-label={title} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div className="a-scrim" onClick={onCancel} style={{ position: 'absolute', inset: 0 }} />
-      <div className="a-dialog" style={{ position: 'relative', width: '100%', maxWidth: 320, overflow: 'hidden' }}>
-        <div style={{ padding: '24px 16px 16px', textAlign: 'center' }}>
-          <p style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>{title}</p>
-          <p style={{ fontSize: 15, color: 'var(--label2)', margin: '8px 0 0', lineHeight: 1.4 }}>{message}</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid var(--sep)' }}>
-          <button type="button" onClick={onCancel} className="tp-row" style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, color: '#0A6CD6', fontFamily: 'inherit', borderRight: '1px solid var(--sep)' }}>
-            キャンセル
-          </button>
-          <button type="button" onClick={onConfirm} className="tp-row" autoFocus style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, fontWeight: 600, color: destructive ? '#D70015' : '#0A6CD6', fontFamily: 'inherit' }}>
-            {action}
-          </button>
-        </div>
-      </div>
-    </div>,
-    document.body,
   )
 }

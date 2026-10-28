@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import AuthGuard from '@/components/AuthGuard'
 import CapacitorBoot from '@/components/CapacitorBoot'
+import ToastHost from '@/components/Toast'
 import { LanguageProvider } from '@/lib/i18n'
 import "./globals.css"
 
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip bg-white flex flex-col">
         <CapacitorBoot />
+        <ToastHost />
         <LanguageProvider>
           <AuthGuard>
             <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">

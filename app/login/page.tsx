@@ -646,14 +646,14 @@ export default function LoginPage() {
             <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
+                <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
                 <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
-              <p style={{ fontSize:11, color:'rgba(255,255,255,0.28)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
+              <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
               <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
               <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
               <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.38),transparent)' }}/>
-              <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>{t('login.previewNote')}</p>
+              <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>{t('login.previewNote')}</p>
             </div>
           </div>
         </div>
