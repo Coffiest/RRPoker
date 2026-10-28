@@ -559,7 +559,7 @@ for (const p of payouts) {
         </div>
 
         {/* フッター: Pay Out ボタン */}
-        <div style={{ padding: '16px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
+        <div style={{ padding: '16px 16px', paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
           <ChipDisclaimer className="pb-2" />
           <button
             type="button"

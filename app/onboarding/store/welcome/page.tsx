@@ -67,7 +67,7 @@ export default function StoreWelcomePage() {
           </Section>
 
           <Section header="はじめに" footer="チップ単位・店舗情報・リングゲームのブラインドは、設定画面からいつでも変えられます。">
-            <div className="gl-row" style={{ padding: '12px 16px', fontSize: 15, lineHeight: 1.6, color: 'var(--label)' }}>
+            <div className="gl-row" style={{ padding: '16px 16px', fontSize: 15, lineHeight: 1.6, color: 'var(--label)' }}>
               プレイヤーに<strong>6桁の店舗コード</strong>を伝えるだけで、チェックインしてもらえます。コードは店舗の管理画面で確認できます。
             </div>
           </Section>

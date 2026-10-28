@@ -454,7 +454,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   }
 
   // ── Shared input style for modal ─────────────────────────────────────────
-  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition"
+  const modalInput = "rounded-xl px-4 py-2 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition"
 
   // ════════════════════════════════════════════════════════════════════════
   return (

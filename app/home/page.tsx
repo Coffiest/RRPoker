@@ -2870,7 +2870,7 @@ const medalClass = (rank: number) => {
             <div
               className="flex-shrink-0 px-6 pt-4"
               style={{
-                paddingBottom: 'calc(12px + max(0px, env(safe-area-inset-bottom)))',
+                paddingBottom: 'calc(16px + max(0px, env(safe-area-inset-bottom)))',
                 background: 'transparent',
                 borderTop: '1px solid var(--a-sep)',
               }}

@@ -348,7 +348,7 @@ export default function AppleSheet({
             <div
               style={{
                 flexShrink: 0,
-                padding: '12px 20px calc(14px + max(0px, env(safe-area-inset-bottom)))',
+                padding: '16px 24px calc(16px + max(0px, env(safe-area-inset-bottom)))',
                 borderTop: '1px solid var(--a-sep)',
                 background: 'var(--a-surface)',
               }}

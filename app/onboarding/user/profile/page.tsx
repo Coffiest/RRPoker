@@ -479,7 +479,7 @@ export default function UserProfileOnboardingPage() {
                   aria-label="Player IDの説明"
                   aria-expanded={showIdInfo}
                   style={{
-                    width: 44, height: 44, minHeight: 44, margin: '-12px -8px', borderRadius: '50%',
+                    width: 44, height: 44, minHeight: 44, margin: '-16px -8px', borderRadius: '50%',
                     border: 'none', background: 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: showIdInfo ? '#D4910A' : 'var(--label3)',
