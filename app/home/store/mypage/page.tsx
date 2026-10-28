@@ -1,5 +1,5 @@
 "use client"
-import { CircleAlertIcon, CircleCheckIcon, CreditCardIcon, FileTextIcon, GlobeIcon, InstagramIcon, MapPinIcon, PenIcon, TargetIcon, TriangleAlertIcon, TwitterIcon, UserIcon } from 'lucide-react'
+import { ChevronRightIcon, GlobeIcon, InstagramIcon, TwitterIcon, UserIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import { useEffect, useRef, useState } from "react"
@@ -9,7 +9,9 @@ import { auth, db } from "@/lib/firebase"
 import { deleteField, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
 import HomeHeader from "@/components/HomeHeader"
-import TechBackdrop from "@/components/TechBackdrop"
+import AppleSheet from "@/components/AppleSheet"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
+import { FieldRow, LargeTitle, NavRow, PrimaryButton, Section, fieldInput } from "@/components/GroupedList"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { isSubscriptionActive, subscriptionPlanLabel } from "@/lib/subscription-client"
 
@@ -42,7 +44,6 @@ export default function StoreMyPage() {
   const [saving, setSaving] = useState(false)
   const [savingIcon, setSavingIcon] = useState(false)
   const [email, setEmail] = useState("")
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [blindSb, setBlindSb] = useState("")
   const [blindBb, setBlindBb] = useState("")
@@ -52,7 +53,6 @@ export default function StoreMyPage() {
   const [billingLoading, setBillingLoading] = useState(false)
   const [billingError, setBillingError] = useState("")
   const [billingSuccess, setBillingSuccess] = useState("")
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const [draftInstagram, setDraftInstagram] = useState("")
   const [draftSnsX, setDraftSnsX] = useState("")
@@ -284,7 +284,6 @@ export default function StoreMyPage() {
       })
       const data = await res.json()
       if (!res.ok) { setBillingError(data.error ?? "エラーが発生しました"); return }
-      setShowCancelConfirm(false)
       setBillingSuccess("キャンセルを受け付けました。期間終了まで引き続きご利用いただけます。")
     } catch {
       setBillingError("エラーが発生しました")
@@ -395,705 +394,206 @@ export default function StoreMyPage() {
     }
   }
 
+  // ── 一覧で使う値 ─────────────────────────────────────────────────────
+  const [sheet, setSheet] = useState<null | "field" | "blind" | "sns">(null)
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
+  const FIELD_LABEL = { name: "店舗名", description: "店舗の説明", postalCode: "郵便番号", addressLine: "住所(丁目まで)", addressDetail: "番地・建物名" } as const
+  const openField = (f: keyof typeof FIELD_LABEL) => { setError(""); setSuccess(""); setEditingField(f); setSheet("field") }
+  const closeSheet = () => { setSheet(null); setEditingField(null) }
+  const fieldValue = (f: keyof typeof FIELD_LABEL) => ({ name: draftName, description: draftDescription, postalCode: draftPostalCode, addressLine: draftAddressLine, addressDetail: draftAddressDetail })[f]
+  const setFieldValue = (f: keyof typeof FIELD_LABEL, v: string) => ({ name: setDraftName, description: setDraftDescription, postalCode: setDraftPostalCode, addressLine: setDraftAddressLine, addressDetail: setDraftAddressDetail })[f](v)
+  const shown = (v?: string) => (v && v.trim()) ? v : "未設定"
+  const sub = subscription
+  const subStatus = !sub ? null
+    : isSubscriptionActive(sub) && !sub.cancelAtPeriodEnd ? { label: "有効", color: "#1E7B34" }
+    : isSubscriptionActive(sub) && sub.cancelAtPeriodEnd ? { label: "キャンセル予定", color: "#A15C00" }
+    : sub.status === "past_due" ? { label: "支払いに失敗", color: "#D70015" }
+    : { label: "停止中", color: "var(--label2)" }
+  const closeBtn = (onClick: () => void) => (
+    <button type="button" onClick={onClick} aria-label="閉じる"
+      style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer', flexShrink: 0 }}>
+      <XIcon size={20} />
+    </button>
+  )
+  const note = (text: string, color: string) => <p role={color === '#D70015' ? 'alert' : 'status'} style={{ fontSize: 15, color, margin: '-16px 16px 16px' }}>{text}</p>
+
   return (
-    <>
-    {/* 下地(方眼 + 金のにじみ)。プレイヤー側・店舗の他画面と同じものを敷く。 */}
-    <TechBackdrop base="#FFFBF5" />
-    <main className="store-mypage min-h-screen pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
-      <style>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        /* 立ち上がり。上から順に点いていくように見せる。 */
-        .animate-slideUp {
-          animation: techReveal 0.5s cubic-bezier(.22,1,.36,1) both;
-          animation-delay: var(--tech-reveal-delay, 0s);
-        }
-        /* 紙のカードではなく計器の板に。上端の金の線が読み込み位置を示す。 */
-        /* 面はガラス。枠線をやめ、上端の光と内側の縁で輪郭を出す */
-        .profile-card {
-          position: relative;
-          border-radius: 30px;
-          background: #fff;
-          border: none;
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.9),
-            inset 0 0 0 1px rgba(255,255,255,0.4),
-            0 2px 8px rgba(0,0,0,0.03),
-            0 14px 38px rgba(0,0,0,0.07);
-          overflow: hidden;
-        }
-        .profile-card::before {
-          content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-          background: linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
-          opacity: .55; pointer-events: none;
-        }
-        /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
-        .con-title {
-          position: relative; display: inline-flex; align-items: center; gap: 8px;
-          font-family: var(--stack-mono); letter-spacing: 0.06em;
-          padding-bottom: 8px;
-        }
-        .con-title::after {
-          content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px;
-          background: linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
-          transform-origin: left center;
-          animation: techDraw .7s cubic-bezier(.22,1,.36,1) both;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .animate-slideUp { animation: none; }
-          .con-title::after { animation: none; }
-        }
-        .glass-card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-        }
-        /* 幕は globals.css の .a-scrim に統一した */
-
-        /* ぼかしが使えない環境で半透明にすると、後ろの文字が透けて読めなくなる。
-           使えるときだけガラスにする。 */
-        @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-          .profile-card {
-            background: rgba(255,255,255,0.66);
-            backdrop-filter: blur(28px) saturate(190%);
-            -webkit-backdrop-filter: blur(28px) saturate(190%);
-          }
-        }
-      `}</style>
+    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
-      <div className="mx-auto max-w-sm px-6">
-        {/* 端末の見出し。稼働ドットで「開いている」ことを示す。 */}
-        <div className="pt-[32px] flex items-center justify-between">
-          <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="tech-status-dot" />
-            <span className="tech-label" style={{ fontSize: 11, color: 'var(--label3)' }}>店舗</span>
-          </span>
-        </div>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
+        <LargeTitle>マイページ</LargeTitle>
 
-        {/* Profile Card */}
-        <div className="mt-6 profile-card p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
-          {/* Icon Section */}
-          <div className="flex items-center gap-4 pb-6 border-b border-gray-100">
-            <div className="relative shrink-0">
-              {previewUrl || profile.iconUrl ? (
-                <img
-                  src={previewUrl ?? profile.iconUrl}
-                  alt="icon"
-                  className="h-20 w-20 rounded-2xl object-cover shadow-md border-2 border-white"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
-                  <UserIcon size={32} />
-                </div>
-              )}
-              {savingIcon && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={openIconPicker}
-                className="absolute -bottom-1 -right-1 h-11 w-11 rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-lg flex items-center justify-center text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all active:scale-95"
-                aria-label="アイコンを編集"
-              >
-                <PenIcon size={14} />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
-
-            <div className="flex-1">
-              <p className="text-[18px] font-semibold text-gray-900">{profile.name ?? ""}</p>
-              <p className="mt-2 text-[13px] text-gray-500">{email}</p>
-            </div>
-          </div>
-
-          {/* Editable Fields */}
-          <div className="mt-6 space-y-4">
-            {/* Store Name */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">店舗名</p>
-                {editingField !== "name" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("name")}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="店舗名を編集"
-                  >
-                    <PenIcon size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "name" ? (
-                <input
-                  type="text"
-                  value={draftName}
-                  onChange={e => setDraftName(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[15px] text-gray-900">{profile.name ?? ""}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <FileTextIcon size={14} className="text-label3" />
-                  <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
-                </div>
-                {editingField !== "description" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("description")}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="店舗の説明を編集"
-                  >
-                    <PenIcon size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "description" ? (
-                <textarea
-                  value={draftDescription}
-                  onChange={e => setDraftDescription(e.target.value)}
-                  className="h-24 w-full px-4 py-4 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700 leading-relaxed">{profile.description ?? ""}</p>
-              )}
-            </div>
-
-            {/* Postal Code */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon size={14} className="text-label3" />
-                  <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
-                </div>
-                {editingField !== "postalCode" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("postalCode")}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="郵便番号を編集"
-                  >
-                    <PenIcon size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "postalCode" ? (
-                <input
-                  type="text"
-                  value={draftPostalCode}
-                  onChange={e => setDraftPostalCode(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.postalCode ?? ""}</p>
-              )}
-            </div>
-
-            {/* Address Line */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">住所、丁目</p>
-                {editingField !== "addressLine" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("addressLine")}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="住所を編集"
-                  >
-                    <PenIcon size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "addressLine" ? (
-                <input
-                  type="text"
-                  value={draftAddressLine}
-                  onChange={e => setDraftAddressLine(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.addressLine ?? ""}</p>
-              )}
-            </div>
-
-            {/* Address Detail */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">番地、マンション名、号室など</p>
-                {editingField !== "addressDetail" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("addressDetail")}
-                    className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="番地を編集"
-                  >
-                    <PenIcon size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "addressDetail" ? (
-                <input
-                  type="text"
-                  value={draftAddressDetail}
-                  onChange={e => setDraftAddressDetail(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.addressDetail ?? ""}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Messages */}
-          {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-4">
-              <CircleAlertIcon className="text-red-600 shrink-0" size={18} />
-              <p className="text-[13px] text-red-700 font-medium">{error}</p>
-            </div>
-          )}
-          {success && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-4 animate-slideUp">
-              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={18} />
-              <p className="text-[13px] text-[#D4910A] font-medium">{success}</p>
-            </div>
-          )}
-
-          {/* Save Button */}
-          {editingField && (
-            <div className="mt-6 flex gap-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingField(null)
-                  setError("")
-                }}
-                className="a-btn a-btn-glass" style={{ flex: 1 }}
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="a-btn a-btn-filled" style={{ flex: 1 }}
-              >
-                {saving ? "保存中..." : "保存する"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Blind Settings Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <TargetIcon className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">ブラインド設定</p>
-          </div>
-          <p className="text-[13px] text-gray-500 mb-4">空欄で保存すると解除されます</p>
-          
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="block text-[11px] font-medium text-gray-600 mb-2">SB</label>
-              <input
-                type="number"
-                min={0}
-                value={blindSb}
-                onChange={e => setBlindSb(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-                placeholder="例: 5"
-              />
-            </div>
-            <div className="pt-6 text-label3">-</div>
-            <div className="flex-1">
-              <label className="block text-[11px] font-medium text-gray-600 mb-2">BB</label>
-              <input
-                type="number"
-                min={0}
-                value={blindBb}
-                onChange={e => setBlindBb(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-                placeholder="例: 10"
-              />
-            </div>
-          </div>
-
-          {blindError && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
-              <p className="text-[12px] text-red-700 font-medium">{blindError}</p>
-            </div>
-          )}
-          {blindSuccess && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={16} />
-              <p className="text-[12px] text-[#D4910A] font-medium">{blindSuccess}</p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={saveBlindSettings}
-            className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 transition-all active:scale-98"
-          >
-            ブラインドを保存
+        {/* 店舗の顔(アイコン・名前・メール)。押すとアイコンを変える。 */}
+        <Section>
+          <button type="button" onClick={openIconPicker} disabled={savingIcon} className="gl-row"
+            style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 88, padding: '16px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <span style={{ position: 'relative', width: 64, height: 64, borderRadius: 16, overflow: 'hidden', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {(previewUrl || profile.iconUrl)
+                /* eslint-disable-next-line @next/next/no-img-element -- 店舗アイコン */
+                ? <img src={previewUrl || profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <UserIcon size={28} style={{ color: 'var(--label3)' }} />}
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name || "店舗名を設定"}</span>
+              <span style={{ display: 'block', fontSize: 15, color: 'var(--label2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
+              <span style={{ display: 'block', fontSize: 15, color: '#B57F00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
+            </span>
           </button>
-        </div>
+        </Section>
+        {error && !sheet && note(error, '#D70015')}
+        {success && !sheet && note(success, '#1E7B34')}
 
-        {/* SNS Links Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <GlobeIcon className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
-          </div>
-          <p className="text-[13px] text-gray-500 mb-4">入力したリンクはプレイヤーのスケジュール画面に表示されます</p>
+        <Section header="店舗の情報" footer="プレイヤーの店舗詳細に表示されます。">
+          <NavRow label="店舗名" detail={shown(profile.name)} onClick={() => openField("name")} />
+          <NavRow label="店舗の説明" detail={profile.description ? "設定済み" : "未設定"} onClick={() => openField("description")} />
+        </Section>
 
-          <div className="space-y-4">
-            <div>
-              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
-                <InstagramIcon size={13} className="text-[#E1306C]" />Instagram URL
-              </label>
-              <input
-                type="url"
-                value={draftInstagram}
-                onChange={e => setDraftInstagram(e.target.value)}
-                placeholder="https://www.instagram.com/yourstore"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
-                <TwitterIcon size={13} className="text-gray-900" />X（旧Twitter）URL
-              </label>
-              <input
-                type="url"
-                value={draftSnsX}
-                onChange={e => setDraftSnsX(e.target.value)}
-                placeholder="https://x.com/yourstore"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-[11px] font-medium text-gray-600 mb-2">
-                <GlobeIcon size={13} className="text-blue-500" />Webサイト URL
-              </label>
-              <input
-                type="url"
-                value={draftSnsWeb}
-                onChange={e => setDraftSnsWeb(e.target.value)}
-                placeholder="https://yourstore.com"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-          </div>
+        <Section header="住所">
+          <NavRow label="郵便番号" detail={shown(profile.postalCode)} onClick={() => openField("postalCode")} />
+          <NavRow label="住所(丁目まで)" detail={shown(profile.addressLine)} onClick={() => openField("addressLine")} />
+          <NavRow label="番地・建物名" detail={shown(profile.addressDetail)} onClick={() => openField("addressDetail")} />
+        </Section>
 
-          {snsError && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
-              <p className="text-[12px] text-red-700 font-medium">{snsError}</p>
-            </div>
-          )}
-          {snsSuccess && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <CircleCheckIcon className="text-[#D4910A] shrink-0" size={16} />
-              <p className="text-[12px] text-[#D4910A] font-medium">{snsSuccess}</p>
-            </div>
-          )}
+        <Section header="リングゲーム" footer="プレイヤーのバンクロールを BB で表示するときに使います。">
+          <NavRow label="ブラインド" detail={blindSb && blindBb ? `${blindSb} / ${blindBb}` : "未設定"} onClick={() => { setBlindError(""); setBlindSuccess(""); setSheet("blind") }} />
+        </Section>
 
-          <button
-            type="button"
-            onClick={saveSns}
-            disabled={snsSaving}
-            className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
-          >
-            {snsSaving ? "保存中..." : "SNSリンクを保存"}
-          </button>
-        </div>
+        <Section header="SNS・外部リンク" footer="プレイヤーの予定画面に表示されます。">
+          <NavRow icon={<InstagramIcon size={20} style={{ color: 'var(--label2)' }} />} label="Instagram" detail={draftInstagram ? "設定済み" : "未設定"} onClick={() => { setSnsError(""); setSnsSuccess(""); setSheet("sns") }} />
+          <NavRow icon={<TwitterIcon size={20} style={{ color: 'var(--label2)' }} />} label="X(旧 Twitter)" detail={draftSnsX ? "設定済み" : "未設定"} onClick={() => { setSnsError(""); setSnsSuccess(""); setSheet("sns") }} />
+          <NavRow icon={<GlobeIcon size={20} style={{ color: 'var(--label2)' }} />} label="Web サイト" detail={draftSnsWeb ? "設定済み" : "未設定"} onClick={() => { setSnsError(""); setSnsSuccess(""); setSheet("sns") }} />
+        </Section>
 
-        {/* Subscription Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <CreditCardIcon className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
-          </div>
-
-          {subscription ? (
+        {/* ── サブスクリプション ── */}
+        <Section header="サブスクリプション"
+          footer={!sub ? undefined
+            : sub.provider === "admin_free" ? "運営による無料期間が適用されています。終了日を過ぎると自動的に停止します。"
+            : sub.provider === "apple_iap" ? "ご契約は App Store で管理されています。変更・キャンセルは iOS の「設定」アプリまたは App Store から行えます。"
+            : sub.provider === "google_play" ? "ご契約は Google Play で管理されています。変更・キャンセルは Play ストアから行えます。"
+            : undefined}>
+          {sub ? (
             <>
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-gray-500">プラン</span>
-                  <span className="text-[14px] font-semibold text-gray-900">
-                    {subscriptionPlanLabel(subscription)}
-                    {subscription.provider !== "admin_free" && (
-                      <span className="ml-2 text-[12px] font-normal text-gray-500">
-                        {subscription.interval === "yearly" ? "年払い" : "月払い"}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-gray-500">ステータス</span>
-                  {isSubscriptionActive(subscription) && !subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-4 py-0.5 rounded-full">有効</span>
-                  )}
-                  {isSubscriptionActive(subscription) && subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-4 py-0.5 rounded-full">キャンセル予定</span>
-                  )}
-                  {subscription.status === "past_due" && (
-                    <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-4 py-0.5 rounded-full">支払い失敗</span>
-                  )}
-                  {!isSubscriptionActive(subscription) && subscription.status !== "past_due" && (
-                    <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-4 py-0.5 rounded-full">停止中</span>
-                  )}
-                </div>
-                {subscription.currentPeriodEnd && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-gray-500">
-                      {subscription.provider === "admin_free"
-                        ? "無料期間終了日"
-                        : subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
-                    </span>
-                    <span className="text-[13px] text-gray-700">
-                      {new Date(subscription.currentPeriodEnd * 1000).toLocaleString("ja-JP", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {billingError && (
-                <div className="mb-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-                  <CircleAlertIcon className="text-red-600 shrink-0" size={16} />
-                  <p className="text-[12px] text-red-700 font-medium">{billingError}</p>
-                </div>
+              <InfoRow label="プラン" value={`${subscriptionPlanLabel(sub)}${sub.provider !== "admin_free" ? (sub.interval === "yearly" ? "(年払い)" : "(月払い)") : ""}`} />
+              {subStatus && <InfoRow label="状態" value={subStatus.label} color={subStatus.color} />}
+              {sub.currentPeriodEnd && (
+                <InfoRow
+                  label={sub.provider === "admin_free" ? "無料期間の終了日" : sub.cancelAtPeriodEnd ? "終了日" : "次回の更新日"}
+                  value={new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
+                />
               )}
-              {billingSuccess && (
-                <div className="mb-4 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
-                  <CircleCheckIcon className="text-green-600 shrink-0" size={16} />
-                  <p className="text-[12px] text-green-700 font-medium">{billingSuccess}</p>
-                </div>
+              {sub.provider === "apple_iap" && (
+                <a href="itms-apps://apps.apple.com/account/subscriptions" className="gl-row" style={linkRow}>App Store で管理<ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} /></a>
               )}
-
-              <div className="space-y-2">
-                {subscription.provider === "admin_free" ? (
-                  <p className="text-[12px] text-gray-500 text-center px-2">
-                    運営による無料期間が適用されています。終了日を過ぎると自動的に停止します。
-                  </p>
-                ) : subscription.provider === "apple_iap" ? (
-                  <>
-                    <a
-                      href="itms-apps://apps.apple.com/account/subscriptions"
-                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
-                    >
-                      サブスクリプションを管理（App Store）
-                    </a>
-                    <p className="text-[12px] text-gray-500 text-center px-2">
-                      ご契約はApp Storeで管理されています。変更・キャンセルはiOSの「設定」アプリまたはApp Storeから行えます。
-                    </p>
-                  </>
-                ) : subscription.provider === "google_play" ? (
-                  <>
-                    <a
-                      href="https://play.google.com/store/account/subscriptions"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
-                    >
-                      サブスクリプションを管理（Google Play）
-                    </a>
-                    <p className="text-[12px] text-gray-500 text-center px-2">
-                      ご契約はGoogle Playで管理されています。変更・キャンセルはPlayストアから行えます。
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={openPortal}
-                      disabled={billingLoading}
-                      className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
-                    >
-                      {billingLoading ? "処理中..." : "カードを変更"}
-                    </button>
-                    {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
-                      <button
-                        type="button"
-                        onClick={() => setShowCancelConfirm(true)}
-                        disabled={billingLoading}
-                        className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
-                      >
-                        サブスクリプションをキャンセル
-                      </button>
-                    )}
-                    {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
-                      <button
-                        type="button"
-                        onClick={resumeSubscription}
-                        disabled={billingLoading}
-                        className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
-                      >
-                        {billingLoading ? "処理中..." : "サブスクリプションを再開"}
-                      </button>
-                    )}
-                  </>
-                )}
-                {!isSubscriptionActive(subscription) && (
-                  <button
-                    type="button"
-                    onClick={() => router.push("/home/store/billing")}
-                    disabled={billingLoading}
-                    className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
-                  >
-                    プランを再開する
-                  </button>
-                )}
-              </div>
+              {sub.provider === "google_play" && (
+                <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener noreferrer" className="gl-row" style={linkRow}>Google Play で管理<ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} /></a>
+              )}
+              {sub.provider !== "admin_free" && sub.provider !== "apple_iap" && sub.provider !== "google_play" && (
+                <>
+                  <NavRow label={billingLoading ? "処理しています…" : "支払い方法(カード)を変更"} onClick={() => { if (!billingLoading) void openPortal() }} />
+                  {sub.status === "active" && sub.cancelAtPeriodEnd && (
+                    <NavRow label="サブスクリプションを再開" onClick={() => { if (!billingLoading) void resumeSubscription() }} />
+                  )}
+                  {sub.status === "active" && !sub.cancelAtPeriodEnd && (
+                    <NavRow destructive label="サブスクリプションをキャンセル" onClick={() => setConfirmReq({
+                      title: "サブスクリプションをキャンセル",
+                      message: "期間の終了日まで引き続きご利用いただけます。終了日のあとは店舗の機能が使えなくなります。",
+                      action: "キャンセルする", destructive: true, run: cancelSubscription,
+                    })} />
+                  )}
+                </>
+              )}
+              {!isSubscriptionActive(sub) && <NavRow label="プランを再開する" onClick={() => router.push("/home/store/billing")} />}
             </>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-[13px] text-gray-500 mb-4">有効なサブスクリプションがありません</p>
-              <button
-                type="button"
-                onClick={() => router.push("/home/store/billing")}
-                className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white"
-              >
-                プランを選択
-              </button>
-            </div>
+            <NavRow label="プランを選ぶ" detail="未契約" onClick={() => router.push("/home/store/billing")} />
           )}
-        </div>
+        </Section>
+        {billingError && note(billingError, '#D70015')}
+        {billingSuccess && note(billingSuccess, '#1E7B34')}
 
-        {/* Cancel Subscription Confirm Modal */}
-        {showCancelConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
-            <div className="a-dialog w-full max-w-sm p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <CircleAlertIcon className="text-orange-600" size={24} />
-                </div>
-                <h2 className="text-[18px] font-semibold text-gray-900">キャンセル確認</h2>
-              </div>
-              <p className="text-[14px] text-gray-600 leading-relaxed">
-                サブスクリプションをキャンセルしますか？<br />
-                期間終了まで引き続きご利用いただけます。
-              </p>
-              <div className="mt-6 flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCancelConfirm(false)}
-                  disabled={billingLoading}
-                  className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all"
-                >
-                  戻る
-                </button>
-                <button
-                  type="button"
-                  onClick={cancelSubscription}
-                  disabled={billingLoading}
-                  className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all"
-                >
-                  {billingLoading ? "処理中..." : "キャンセルする"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <Section header="アカウント">
+          <NavRow label="パスワード変更" onClick={() => router.push("/home/store/mypage/password")} />
+          <NavRow label="ログアウト" onClick={() => setConfirmReq({ title: "ログアウト", message: "この端末からログアウトします。", action: "ログアウト", run: logout })} />
+        </Section>
 
-        {/* Action Buttons */}
-        <div className="mt-6 space-y-4">
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/mypage/password")}
-            className="h-14 w-full rounded-2xl bg-white border border-gray-200 text-[16px] font-medium text-gray-900 hover:bg-gray-50 shadow-sm transition-all active:scale-98"
-          >
-            パスワード変更
-          </button>
-          <button
-            type="button"
-            onClick={logout}
-            className="h-14 w-full rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 text-[16px] font-semibold text-white shadow-md hover:shadow-lg transition-all active:scale-98"
-          >
-            ログアウト
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="h-12 w-full rounded-2xl bg-red-50 border border-red-200 text-[15px] font-medium text-red-600 hover:bg-red-100 transition-all active:scale-98"
-          >
-            アカウント削除
-          </button>
-        </div>
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
-            <div className="a-dialog w-full max-w-sm p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <CircleAlertIcon className="text-red-600" size={24} />
-                </div>
-                <h2 className="text-[18px] font-semibold text-gray-900">アカウント削除</h2>
-              </div>
-              <p className="text-[14px] text-gray-600 leading-relaxed">
-                本当にアカウントを削除しますか？
-              </p>
-              <div className="mt-4 bg-red-50 rounded-2xl p-4 border border-red-100">
-                <p className="text-[13px] text-red-700 font-medium"><TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> この操作は取り消せません</p>
-                <p className="text-[12px] text-gray-600 mt-2">• 保持チップやレートも失われます</p>
-                <p className="text-[12px] text-gray-600">• すべてのデータが完全に削除されます</p>
-              </div>
-              <div className="mt-6 flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="button"
-                  onClick={deleteAccount}
-                  disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all active:scale-98"
-                >
-                  {isDeleting ? "削除中..." : "削除する"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <Section footer="店舗のアカウントと、保持チップ・レートなどすべてのデータが削除されます。元に戻せません。">
+          <NavRow destructive label={isDeleting ? "削除しています…" : "アカウントを削除"} onClick={() => setConfirmReq({
+            title: "アカウントを削除", message: "すべてのデータが完全に削除されます。この操作は取り消せません。", action: "削除", destructive: true, run: deleteAccount,
+          })} />
+        </Section>
       </div>
 
-      {/* Bottom Navigation */}
+      {/* ── 項目の編集 ── */}
+      <AppleSheet open={sheet === "field" && !!editingField} onClose={closeSheet}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editingField ? FIELD_LABEL[editingField] : ""}</p>{closeBtn(closeSheet)}</div>}
+        footer={<PrimaryButton disabled={saving} onClick={async () => { await saveProfile(); }}>{saving ? "保存しています…" : "保存する"}</PrimaryButton>}>
+        {editingField && (
+          <Section>
+            {editingField === "description" ? (
+              <textarea value={fieldValue(editingField)} onChange={e => { setError(""); setFieldValue(editingField, e.target.value) }} rows={5} placeholder="定休日や、どんなお店なのかなど" aria-label="店舗の説明"
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 17, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+            ) : (
+              <input value={fieldValue(editingField)} onChange={e => { setError(""); setFieldValue(editingField, e.target.value) }} aria-label={FIELD_LABEL[editingField]} autoFocus
+                inputMode={editingField === "postalCode" ? "numeric" : undefined}
+                placeholder={{ name: "例: RR ポーカークラブ", postalCode: "例: 100-0001", addressLine: "例: 東京都千代田区丸の内1丁目", addressDetail: "例: 1-1 ○○ビル 201", description: "" }[editingField]}
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', height: 56, padding: '0 16px', border: 'none', outline: 'none', fontSize: 17, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+            )}
+          </Section>
+        )}
+        {error && sheet === "field" && note(error, '#D70015')}
+      </AppleSheet>
+
+      {/* ── リングゲームのブラインド ── */}
+      <AppleSheet open={sheet === "blind"} onClose={closeSheet}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>リングゲームのブラインド</p>{closeBtn(closeSheet)}</div>}
+        footer={<PrimaryButton onClick={async () => { await saveBlindSettings() }}>保存する</PrimaryButton>}>
+        <Section footer="両方を空欄にすると、設定を消します。">
+          <FieldRow label="SB"><input type="number" inputMode="numeric" value={blindSb} onChange={e => { setBlindError(""); setBlindSuccess(""); setBlindSb(e.target.value) }} placeholder="5" style={fieldInput} className="no-spin" /></FieldRow>
+          <FieldRow label="BB"><input type="number" inputMode="numeric" value={blindBb} onChange={e => { setBlindError(""); setBlindSuccess(""); setBlindBb(e.target.value) }} placeholder="10" style={fieldInput} className="no-spin" /></FieldRow>
+        </Section>
+        {blindError && note(blindError, '#D70015')}
+        {blindSuccess && note(blindSuccess, '#1E7B34')}
+      </AppleSheet>
+
+      {/* ── SNS ── */}
+      <AppleSheet open={sheet === "sns"} onClose={closeSheet}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>SNS・外部リンク</p>{closeBtn(closeSheet)}</div>}
+        footer={<PrimaryButton disabled={snsSaving} onClick={saveSns}>{snsSaving ? "保存しています…" : "保存する"}</PrimaryButton>}>
+        <Section>
+          {([
+            ["Instagram", draftInstagram, setDraftInstagram, "https://www.instagram.com/yourstore"],
+            ["X", draftSnsX, setDraftSnsX, "https://x.com/yourstore"],
+            ["Web サイト", draftSnsWeb, setDraftSnsWeb, "https://yourstore.com"],
+          ] as const).map(([label, value, set, ph]) => (
+            <div key={label} style={{ padding: '8px 16px' }}>
+              <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)' }}>{label}</span>
+              <input type="url" inputMode="url" value={value} onChange={e => { setSnsError(""); setSnsSuccess(""); set(e.target.value) }} placeholder={ph} aria-label={`${label} の URL`}
+                style={{ display: 'block', width: '100%', height: 44, border: 'none', outline: 'none', background: 'transparent', fontSize: 17, color: 'var(--label)', fontFamily: 'inherit', padding: 0 }} />
+            </div>
+          ))}
+        </Section>
+        {snsError && note(snsError, '#D70015')}
+        {snsSuccess && note(snsSuccess, '#1E7B34')}
+      </AppleSheet>
+
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
       <StoreBottomNav />
     </main>
-    </>
+  )
+}
+
+const linkRow: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 56, padding: '8px 16px',
+  fontSize: 17, color: 'var(--label)', textDecoration: 'none',
+}
+
+function InfoRow({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 16px' }}>
+      <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{label}</span>
+      <span style={{ fontSize: 17, color: color ?? 'var(--label2)', fontWeight: color ? 600 : 400, textAlign: 'right' }}>{value}</span>
+    </div>
   )
 }
