@@ -16,6 +16,7 @@ import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { isSubscriptionActive } from "@/lib/subscription-client"
+import { isNativeApp } from "@/lib/platform"
 import TechBackdrop from "@/components/TechBackdrop"
 import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
 import PlayerManageModal from "./PlayerManageModal"
@@ -851,9 +852,15 @@ export default function StorePage() {
   }
 
   const openTimer = async (id: string) => {
-    // iOS/Android: window.open must be called synchronously within the user gesture.
-    // Open first, then do async Firestore update.
-    window.open(`/home/store/timer/${id}`, "_blank")
+    // スマホアプリ(Capacitor)では window.open が新しいタブにならず、アプリの画面そのものが
+    // タイマーに置き換わって戻れなくなる。アプリでは閉じるボタンを持つ全画面表示で開く。
+    if (isNativeApp()) {
+      setExpandCtrlVisible(true)
+      setExpandedTimerId(id)
+    } else {
+      // Web: window.open はタップの処理の中で同期的に呼ぶ必要がある。先に開いてから書き込む。
+      window.open(`/home/store/timer/${id}`, "_blank")
+    }
     if (storeId) {
       try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false }) } catch {}
     }
@@ -1361,6 +1368,29 @@ export default function StorePage() {
                   style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }}
                   allow="autoplay"
                 />
+
+                {/* 閉じるボタン。操作バーを隠していても常に出す(出口を必ず残す)。
+                    この面は90度回しているので、面の左端が画面の上端(ステータスバー側)になる。 */}
+                <button
+                  type="button"
+                  aria-label="全画面表示を閉じる"
+                  onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }}
+                  style={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+                    width: 44, height: 44,
+                    borderRadius: '50%',
+                    background: 'rgba(0,0,0,0.50)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', zIndex: 2,
+                  }}
+                >
+                  <XIcon size={20} style={{ color: '#fff' }} />
+                </button>
 
                 {/* コントロールバー非表示時のトグルボタン */}
                 {!expandCtrlVisible && (

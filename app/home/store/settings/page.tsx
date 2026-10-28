@@ -548,7 +548,7 @@ export default function StoreSettingsPage() {
           {/* ── プライバシー ── */}
           <SectionCard>
             <SectionTitle title={t('common.privacyPolicy')} />
-            <GhostButton onClick={() => window.open('/privacy', '_blank')}>
+            <GhostButton onClick={() => router.push('/privacy')}>
               {t('common.privacyPolicy')}
             </GhostButton>
           </SectionCard>

@@ -179,7 +179,7 @@ export default function UserSettingsPage() {
 
         <button
           type="button"
-          onClick={() => window.open('/privacy', '_blank')}
+          onClick={() => router.push('/privacy')}
           className="mt-4 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-700"
         >
           {t('common.privacyPolicy')}
