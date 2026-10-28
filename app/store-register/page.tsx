@@ -375,7 +375,7 @@ export default function StoreRegisterPage() {
             <span style={{ fontSize: 13, color: 'var(--label2)' }}>既にアカウントをお持ちの方は</span>
             <button type="button" onClick={() => router.push('/login')}
               style={{ fontSize: 13, fontWeight: 700, color: '#F2A900', background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
-            >ログイン <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></button>
+            >Login <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></button>
           </div>
         </div>
 

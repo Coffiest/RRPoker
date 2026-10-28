@@ -239,12 +239,12 @@ export default function TicketsPage() {
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>
           <h2 className="text-[13px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
-            スタンプカード
+            Stamp Card
           </h2>
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>LOADING...</p>
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "32px 24px", textAlign: "center" }}>

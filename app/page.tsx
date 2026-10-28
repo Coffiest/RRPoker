@@ -272,7 +272,7 @@ export default function TopPage() {
             {/* ログインボタン（ヘッダー右） */}
             <button className="header-cta" onClick={() => router.push('/login')}>
               <LogInIcon size={13} color="white" />
-              ログイン
+              Login
             </button>
 
           
@@ -442,7 +442,7 @@ export default function TopPage() {
           バンクロールプレビュー
       ════════════════════════════════ */}
       <section style={{ padding:'0 24px 16px', maxWidth:480, margin:'0 auto' }}>
-        <p className="section-hd d5">バンクロール</p>
+        <p className="section-hd d5">Bank Roll</p>
         <div className="d5" style={{
           borderRadius:22, padding:24, position:'relative', overflow:'hidden',
           background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 60%,#1C1C1E 100%)',
@@ -452,7 +452,7 @@ export default function TopPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>

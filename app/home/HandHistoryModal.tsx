@@ -644,7 +644,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       {(htCards[htSeat]?.[0]||htCards[htSeat]?.[1]) && (
                         <button type="button" onClick={() => setHtCards(prev=>{const n={...prev};delete n[htSeat!];return n})}
                           className="self-center text-[11px] font-medium ml-2 active:scale-[0.97]"
-                          style={{color:CLR.red}}>クリア</button>
+                          style={{color:CLR.red}}>CLEAR</button>
                       )}
                     </div>
 

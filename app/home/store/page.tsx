@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 const QRScanner = dynamic(() => import("@/app/components/QRScanner"), { ssr: false })
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
-import { startTournamentTimer, pauseTournamentTimer, resumeTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
+import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { computeLiveLevelState, type TimerLevel } from "@/lib/timerCompute"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 import { hapticAction, hapticTap, hapticError } from "@/lib/haptics"
@@ -29,6 +29,7 @@ import ChipDisclaimer from "@/components/ChipDisclaimer"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
+  Timestamp,
 } from "firebase/firestore"
 
 type StoreInfo = { name: string; iconUrl?: string; code: string; chipUnitLabel?: string; chipUnitBefore?: boolean; balanceGroupId?: string }
@@ -198,18 +199,27 @@ export default function StorePage() {
       showToast("タイマー開始に失敗しました")
     }
   }
+  // 再生・一時停止は Firestore に直接書く。サーバー関数を経由すると起動待ちで数秒遅れていた。
+  // 直接書けば、この端末の画面には書いた瞬間に反映され(Firestore の手元反映)、他の端末にも
+  // すぐ届く。時刻はサーバー時計に合わせた値(getServerNow)を使い、端末の時計のずれに左右されない。
   async function resumeTimer(id: string) {
     if (!storeId) return
+    const t = activeTournaments.find(x => x.id === id)
+    if (!t) return
+    const remaining = typeof t.timeRemaining === "number" && t.timeRemaining > 0 ? t.timeRemaining : (getLiveLevelState(t).remainingSec || 1200)
+    setTimerRunning(m => ({ ...m, [id]: true }))
     try {
-      await resumeTournamentTimer(storeId, id)
+      await updateDoc(doc(db, "stores", storeId, "tournaments", id), {
+        timerRunning: true,
+        levelStartedAt: Timestamp.fromMillis(getServerNow()),
+        levelStartedRemaining: remaining,
+        timeRemaining: remaining,
+      })
     } catch (error) {
       console.error("Failed to resume timer:", error)
+      setTimerRunning(m => ({ ...m, [id]: false }))
       showToast("タイマー再開に失敗しました")
     }
-  }
-  async function stopTimer(id: string) {
-    if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false })
   }
   async function nextLevel(id: string) {
     if (!storeId) return
@@ -227,10 +237,21 @@ export default function StorePage() {
   }
   async function pauseTimer(id: string) {
     if (!storeId) return
+    const t = activeTournaments.find(x => x.id === id)
+    if (!t) return
+    // 今の画面に出ているレベルと残り時間で止める(途中でレベルが進んでいても正しく止まる)
+    const live = getLiveLevelState(t)
+    setTimerRunning(m => ({ ...m, [id]: false }))
     try {
-      await pauseTournamentTimer(storeId, id)
+      await updateDoc(doc(db, "stores", storeId, "tournaments", id), {
+        timerRunning: false,
+        currentLevelIndex: live.levelIndex,
+        timeRemaining: live.remainingSec,
+        levelStartedRemaining: live.remainingSec,
+      })
     } catch (error) {
       console.error("Failed to pause timer:", error)
+      setTimerRunning(m => ({ ...m, [id]: true }))
       showToast("タイマー一時停止に失敗しました")
     }
   }
@@ -811,9 +832,8 @@ export default function StorePage() {
       // Web: window.open はタップの処理の中で同期的に呼ぶ必要がある。先に開いてから書き込む。
       window.open(`/home/store/timer/${id}`, "_blank")
     }
-    if (storeId) {
-      try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { timerRunning: false }) } catch {}
-    }
+    // タイマーはここでは絶対に止めない。止まるのは、店舗が一時停止ボタンを押した時だけ
+    // (人のお金を預かる大会の時計なので、明確な操作以外で止めてはいけない)。
   }
 
   if (role === null) return (
@@ -1179,7 +1199,7 @@ export default function StorePage() {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
                         <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1E7B34' }}>開催中</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1E7B34' }}>LIVE</span>
                           <span className="tech-status-dot" style={{ background: '#34C759' }} />
                         </span>
                       </div>
@@ -1187,9 +1207,9 @@ export default function StorePage() {
                       {/* Fee / Stack info */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
                         {[
-                          { label: 'エントリー',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
-                          { label: 'リエントリー', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
-                          { label: 'アドオン',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
+                          { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
+                          { label: 'Re-entry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
+                          { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
                         ].map(item => (
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
@@ -1242,13 +1262,13 @@ export default function StorePage() {
                           <ClockIcon size={16}/> タイマー
                         </button>
                         <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
-                          <PenLineIcon size={16}/> 調整
+                          <PenLineIcon size={16}/> ADJUST
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
-                          <UsersIcon size={16}/> 参加者
+                          <UsersIcon size={16}/> PLAYERS
                         </button>
                         <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
-                          <DollarSignIcon size={16}/> 賞金
+                          <DollarSignIcon size={16}/> PAY OUT
                         </button>
                       </div>
 
@@ -1379,7 +1399,7 @@ export default function StorePage() {
                             : <PlayIcon size={20} style={{ color: '#fff', marginLeft: 2 }} />}
                         </div>
                         <span style={{ ...labelStyle, color: 'rgba(242,169,0,0.8)' }}>
-                          {timerRunning[et.id] ? '一時停止' : '再開'}
+                          {timerRunning[et.id] ? 'PAUSE' : 'START'}
                         </span>
                       </button>
                       <button className="timer-btn" onClick={() => nextLevel(et.id)} style={btnBase}>
@@ -1396,19 +1416,19 @@ export default function StorePage() {
                         <div style={iconCircle()}>
                           <PenLineIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>調整</span>
+                        <span style={labelStyle}>ADJUST</span>
                       </button>
                       <button onClick={() => setExpandPlayerOpen(true)} style={btnBase}>
                         <div style={iconCircle()}>
                           <UsersIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>参加者</span>
+                        <span style={labelStyle}>PLAYERS</span>
                       </button>
                       <button onClick={() => setExpandPrizeOpen(true)} style={btnBase}>
                         <div style={iconCircle()}>
                           <DollarSignIcon size={15} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>賞金</span>
+                        <span style={labelStyle}>PAY OUT</span>
                       </button>
                     </div>
                   </div>
@@ -1547,9 +1567,9 @@ export default function StorePage() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {[
                       { label: 'リング', type: 'buyin' as const },
-                      { label: 'エントリー', type: 'tE' as const },
-                      { label: 'リエントリー', type: 'tR' as const },
-                      { label: 'アドオン', type: 'tA' as const },
+                      { label: 'Entry', type: 'tE' as const },
+                      { label: 'Re-entry', type: 'tR' as const },
+                      { label: 'Add-on', type: 'tA' as const },
                       { label: 'その他', type: 'other' as const, special: true },
                       { label: '却下', type: null },
                     ].map((b, i) => (
@@ -1817,7 +1837,7 @@ export default function StorePage() {
                         </div>
                         {/* Player ID: always on its own line to prevent button collision */}
                         {player.playerId && (
-                          <p style={{ fontSize: 11, color: 'var(--label2)', fontFamily: 'var(--stack-system)', fontVariantNumeric: 'tabular-nums', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
+                          <p style={{ fontSize: 11, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
                             ID: {player.playerId}
                           </p>
                         )}

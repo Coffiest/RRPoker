@@ -1166,84 +1166,22 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    デザインルール レイヤー(design-rules スキル準拠)
    Apple HIG を最優先に、全画面へ同じ基準を当てる。上の定義より後に置き、
    ここで上書きする。白基調・金(#F2A900)・灰色3段(--label/2/3)は変えない。
-   - 書体: 端末のシステムフォント(-apple-system / Hiragino Sans)
-   - 文字: 本文 17px、最小 11px
+   - 書体とコンソール風の装飾は上の定義のまま(絶対ルール。CLAUDE.md 参照)。ここでは上書きしない
    - 余白・寸法: 8 の倍数
    - 押せる場所: 44px 以上
-   - 装飾: 意味を持たない飾り(方眼・走査線・// 記号・トンボ等)は出さない
    ========================================================================== */
 :root {
-  --stack-system: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
-                  "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
-  --stack-mono: var(--stack-system);
-  --stack-display: var(--stack-system);
-
   --a-r-sm: 16px;
   --a-r-md: 16px;
   --a-r-lg: 24px;
   --a-r-xl: 32px;
 }
 
-body {
-  font-family: var(--stack-system);
-  font-size: 17px;
-  line-height: 1.47;
-  font-feature-settings: normal;
-  font-variant-ligatures: normal;
-}
-
-.font-display { font-family: var(--stack-system); letter-spacing: -0.01em; }
-.tech-num, .tabular, .con-mono {
-  font-family: var(--stack-system);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-}
-
-/* 飾りを消す(色は意味を伝える時だけ使う) */
-.tech-grid, .tech-dots { background-image: none; }
-.tech-rule { border-top: 1px solid var(--a-sep); }
-.tech-label-bracket::before, .tech-label-bracket::after,
-.term-prompt::before, .term-prompt-arrow::before, .term-comment::before,
-.tech-caret::after, .tech-corners::before, .tech-corners::after,
-.tech-scanline::after, .con-live-panel::after, .con-panel::before,
-.con-hd::before { content: none; display: none; }
-.tech-status-dot { animation: none; box-shadow: none; }
-
-/* 小さな見出し・ラベル(HIG の footnote 相当) */
-.tech-label, .a-section-hd, .a-eyebrow {
-  font-family: var(--stack-system);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  line-height: 1.38;
-  color: var(--label2);
-}
-.uppercase:not([class*="tracking-"]) { letter-spacing: 0.02em; }
-.a-section-hd { padding: 0 8px 8px; }
-
-.con-hd {
-  font-family: var(--stack-system);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--label2);
-  padding: 0 0 8px;
-  margin-bottom: 16px;
-}
-.con-hd::after { background: var(--a-sep); animation: none; }
-.con-panel { border-radius: var(--a-r-lg); box-shadow: var(--a-shadow-sm); }
-.con-btn { font-family: var(--stack-system); letter-spacing: 0; text-transform: none; }
-
 /* ボタン・行(押せる場所 44px 以上、寸法は 8 の倍数) */
 .a-btn {
-  font-family: var(--stack-system);
   min-height: 48px;
   padding: 0 24px;
-  font-size: 17px;
   font-weight: 600;
-  letter-spacing: 0;
 }
 .a-btn-filled {
   background: #F2A900;

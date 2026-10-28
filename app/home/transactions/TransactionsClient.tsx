@@ -381,7 +381,7 @@ export default function TransactionsClient() {
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
-              <span className="tech-label" style={{ color: 'var(--label3)' }}>残高</span>
+              <span className="tech-label" style={{ color: 'var(--label3)' }}>BALANCE</span>
               <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#3C3C43' }}>{fmtChip(balance)}</span>
               {useBb && <span className="tech-num" style={{ fontSize: 12, color: 'var(--label3)' }}>({formatBbValue(balance)}BB)</span>}
             </div>
@@ -416,7 +416,7 @@ export default function TransactionsClient() {
               onClick={clearAmount}
               style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#F2F2F7', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
             >
-              <span className="tech-label">クリア</span>
+              <span className="tech-label">CLEAR</span>
             </button>
           </div>
 

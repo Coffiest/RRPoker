@@ -325,7 +325,7 @@ export default function RegisterPage() {
           {[
             { label:'ログインはこちら', action:() => { setMenuOpen(false); router.push('/login') }, gold:false },
             { label:'新規登録', action:() => setMenuOpen(false), gold:true },
-            { label:'パスワードを忘れた方', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
+            { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
@@ -381,7 +381,7 @@ export default function RegisterPage() {
 
           <div style={{ padding:'24px 24px 24px' }}>
             <div style={{ marginBottom:24 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>アカウント作成</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Create account</p>
               <p style={{ fontSize:12, color:'var(--label2)' }}>無料でアカウントを新規作成</p>
             </div>
 
@@ -517,7 +517,7 @@ export default function RegisterPage() {
               ) : (
                 <>
                   
-                  アカウントを作成
+                  Create account
                 </>
               )}
             </button>
@@ -527,7 +527,7 @@ export default function RegisterPage() {
               <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >ログイン</button>
+              >Login</button>
             </div>
           </div>
         </div>

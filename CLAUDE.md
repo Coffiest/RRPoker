@@ -8,6 +8,14 @@
 - `test/textContrast.test.ts` がこれを検査し、`npm run build` の前(`prebuild`)にも走る。暗い面の上の文字など意図して薄い色を使う行には `contrast-ok` と理由を書く。管理者画面(`app/admin`)は暗い配色なので対象外。
 - **デザイン(配色・意匠)は勝手に変えない(オーナー指示)。** 読みやすさの修正でも、見た目が変わるものは先にオーナーに確認する。ホームの偏差値カード・カレンダーの選択日・金のボタンなど、金の面の上の文字は白、白い面の上の金色の文字はブランドの金(#D4910A など)のまま(オーナー確定)。
 
+## テーマ: コンソール風デザインと書体(絶対ルール・オーナー確定)
+
+- このアプリのテーマは「テック感・プログラマー感・コンソール感」。どんなデザイン改修(apple-design・design-rules など)でも、これを消さない。
+- **書体は JetBrains Mono(本文・数字)と Space Grotesk(見出し・ロゴ)。** `app/layout.tsx` の next/font と `globals.css` の `--stack-mono` / `--stack-display` で読み込む。システムフォントに置き換えない。日本語だけ端末標準へフォールバックさせる。
+- **コンソール風の装飾を残す。** `tech-label`(等幅・大文字)、`tech-label-bracket`([ ])、`term-prompt`($)、`term-prompt-arrow`(›)、`term-comment`(//)、`tech-caret`(点滅カーソル)、`tech-num`、`con-*` などを消したり `content: none` で隠したりしない。
+- **おしゃれに英語で書ける所は英語にする。** 例: Login / Create account / Forgot Password? / Entry / Re-entry / Add-on / PLAYERS / PAY OUT / ADJUST / START / PAUSE / LIVE / RANK / TOURNAMENT HISTORY / BALANCE / LOADING。説明文・注意書き・確認ダイアログの本文など、意味を正確に伝える文章は日本語のまま。
+- 読みやすさ(コントラスト・44px の押せる範囲・8 の倍数の余白)はこの上で守る。
+
 ## 手元での動作確認
 
 - `NEXT_PUBLIC_FIREBASE_EMULATOR=1` で起動すると、本番ではなくローカルの Firebase エミュレーター(Auth: 9099 / Firestore: 8080)につながる(`lib/firebase.ts`)。本番の環境変数には設定しない。

@@ -103,7 +103,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '24px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>読み込み中…</p>
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>LOADING...</p>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>

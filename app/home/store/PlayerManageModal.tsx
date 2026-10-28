@@ -414,7 +414,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
             onClick={onClose}
             style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
           ><XIcon size={20} /></button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>参加者</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>PLAYERS</span>
           <button
             onClick={handleSave}
             disabled={isSaving}
@@ -425,7 +425,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>LOADING...</p>
           ) : error ? (
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
@@ -433,13 +433,13 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤー統計カード */}
               <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '16px 16px', marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ textAlign: 'center', paddingRight: 16, borderRight: '1px solid #D1D1D6' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>参加者</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>PLAYERS</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
                   </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>アドオン</p>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>Add-on</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
                   </p>
@@ -512,7 +512,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           return (
                             <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>残高</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>
@@ -531,9 +531,9 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             行ごとに「項目名 ─ 増減」を置く(iOS のステッパー)。 */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           {[
-                            { label: 'エントリー', field: 'entryCount' },
-                            { label: 'リエントリー', field: 'reentryCount' },
-                            { label: 'アドオン', field: 'addonCount' },
+                            { label: 'Entry', field: 'entryCount' },
+                            { label: 'Re-entry', field: 'reentryCount' },
+                            { label: 'Add-on', field: 'addonCount' },
                           ].map((item, i) => {
                             const n = player[item.field] ?? 0
                             return (

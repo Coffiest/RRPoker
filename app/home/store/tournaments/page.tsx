@@ -4,7 +4,7 @@ import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, Chevro
 import { useEffect, useRef, useState } from "react"
 import {
   collection, onSnapshot, doc, getDoc, getDocs,
-  addDoc, updateDoc, deleteDoc, serverTimestamp
+  addDoc, updateDoc, deleteDoc, serverTimestamp, arrayUnion
 } from "firebase/firestore"
 import { db, auth, storage } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
@@ -131,6 +131,7 @@ export default function TournamentsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [repeatWeekly, setRepeatWeekly] = useState(false)
+  const [autoStart, setAutoStart] = useState(false)
   const [blindPresetId, setBlindPresetId] = useState("")
   const [form, setForm] = useState(emptyForm)
 
@@ -222,8 +223,12 @@ export default function TournamentsPage() {
           flyerUrl: typeof data.flyerUrl === "string" ? data.flyerUrl : "",
           bustCount: data.bustCount ?? 0,
           repeatWeekly: data.repeatWeekly ?? false,
+          autoStart: data.autoStart === true,
+          autoStartedAt: data.autoStartedAt ?? null,
+          timerRunning: data.timerRunning ?? false,
           blindPresetId: typeof data.blindPresetId === "string" ? data.blindPresetId : "",
           templateId: typeof data.templateId === "string" ? data.templateId : undefined,
+          skipDates: Array.isArray(data.skipDates) ? data.skipDates : [],
           createdAt: normalize(data.createdAt)?.toLocaleDateString?.() ?? "",
           startedAt: normalize(data.startedAt)?.toLocaleDateString?.() ?? "",
           payouts: Array.isArray(data.payouts)
@@ -253,10 +258,12 @@ export default function TournamentsPage() {
       const alreadyScheduled = tournaments.some(
         t => t.templateId === template.id && (t.status === "scheduled" || t.status === "active")
       )
-      if (!alreadyScheduled) {
+      // 店舗が消した回は作り直さない(消しても戻ってくる不具合の原因だった)。
+      const nextDate = getNextWeekdayDate(getDOW(template.date))
+      if (!alreadyScheduled && !(template.skipDates ?? []).includes(nextDate)) {
         generatingTemplates.current.add(template.id)
         addDoc(collection(db, "stores", storeId, "tournaments"), {
-          name: template.name, date: getNextWeekdayDate(getDOW(template.date)),
+          name: template.name, date: nextDate,
           startTime: template.startTime ?? "", rcTime: template.rcTime ?? "",
           entryFee: template.entryFee ?? 0, reentryFee: template.reentryFee ?? 0, addonFee: template.addonFee ?? 0,
           entryStack: template.entryStack ?? 0, reentryStack: template.reentryStack ?? 0, addonStack: template.addonStack ?? 0,
@@ -278,12 +285,12 @@ export default function TournamentsPage() {
     return await getDownloadURL(fileRef)
   }
   const openCreate = () => {
-    setEditData(null); setRepeatWeekly(false); setBlindPresetId(""); setImageFile(null); setImagePreview(null)
+    setEditData(null); setRepeatWeekly(false); setAutoStart(false); setBlindPresetId(""); setImageFile(null); setImagePreview(null)
     setForm({ ...emptyForm, date: todayStr() }); setFormError(""); setOpenModal(true)
   }
   const closeModal = () => {
     setOpenModal(false); setEditData(null); setImageFile(null); setImagePreview(null)
-    setRepeatWeekly(false); setBlindPresetId(""); setForm(emptyForm); setFormError("")
+    setRepeatWeekly(false); setAutoStart(false); setBlindPresetId(""); setForm(emptyForm); setFormError("")
   }
   const handleSave = async () => {
     if (!storeId || saving) return
@@ -300,7 +307,9 @@ export default function TournamentsPage() {
         name: form.name.trim(), date: form.date, startTime: form.startTime, rcTime: form.rcTime,
         entryFee: Number(form.entryFee) || 0, reentryFee: Number(form.reentryFee) || 0, addonFee: Number(form.addonFee) || 0,
         entryStack: Number(form.entryStack) || 0, reentryStack: Number(form.reentryStack) || 0, addonStack: Number(form.addonStack) || 0,
-        flyerUrl, repeatWeekly, blindPresetId,
+        flyerUrl, repeatWeekly, blindPresetId, autoStart,
+        // 開始時刻か自動スタートを変えたら、もう一度自動で始められるようにする
+        ...(editData && (editData.startTime !== form.startTime || editData.date !== form.date || !editData.autoStart) ? { autoStartedAt: null } : {}),
         bustCount: editData?.bustCount ?? 0,
         status: editData ? (editData.status ?? "scheduled") : "scheduled",
         createdAt: editData?.createdAt ?? serverTimestamp(),
@@ -318,10 +327,20 @@ export default function TournamentsPage() {
     title: "トーナメントを削除",
     message: `「${t.name || "名称なし"}」を削除します。参加記録も見られなくなります。元に戻せません。`,
     action: "削除", destructive: true,
-    run: async () => { if (storeId) await deleteDoc(doc(db, "stores", storeId, "tournaments", t.id)) },
+    run: async () => {
+      if (!storeId) return
+      // 画面からはすぐ消す(保存の完了を待たない)
+      setTournaments(list => list.filter(x => x.id !== t.id))
+      // 毎週の自動作成で作られた回なら、その日付を「作らない日」として元に記録する。
+      // 記録しないと、元が「この週の回が無い」と判断して、同じ回をすぐ作り直してしまう。
+      if (t.templateId) {
+        await updateDoc(doc(db, "stores", storeId, "tournaments", t.templateId), { skipDates: arrayUnion(t.date) }).catch(() => {})
+      }
+      await deleteDoc(doc(db, "stores", storeId, "tournaments", t.id))
+    },
   })
   const handleEdit = (t: any) => {
-    setEditData(t); setRepeatWeekly(t.repeatWeekly ?? false); setBlindPresetId(t.blindPresetId ?? "")
+    setEditData(t); setRepeatWeekly(t.repeatWeekly ?? false); setAutoStart(t.autoStart === true); setBlindPresetId(t.blindPresetId ?? "")
     setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
     setForm({ name: t.name ?? "", date: typeof t.date === "string" ? t.date : "", startTime: t.startTime ?? "", rcTime: t.rcTime ?? "",
       entryFee: String(t.entryFee ?? ""), reentryFee: String(t.reentryFee ?? ""), addonFee: String(t.addonFee ?? ""),
@@ -329,7 +348,7 @@ export default function TournamentsPage() {
     setOpenModal(true)
   }
   const handleCopy = (t: any) => {
-    setEditData(null); setRepeatWeekly(false); setBlindPresetId(t.blindPresetId ?? ""); setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
+    setEditData(null); setRepeatWeekly(false); setAutoStart(t.autoStart === true); setBlindPresetId(t.blindPresetId ?? ""); setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
     setForm({ name: t.name ?? "", date: todayStr(), startTime: t.startTime ?? "", rcTime: t.rcTime ?? "",
       entryFee: String(t.entryFee ?? ""), reentryFee: String(t.reentryFee ?? ""), addonFee: String(t.addonFee ?? ""),
       entryStack: String(t.entryStack ?? ""), reentryStack: String(t.reentryStack ?? ""), addonStack: String(t.addonStack ?? ""), flyerUrl: t.flyerUrl ?? "" })
@@ -500,9 +519,9 @@ export default function TournamentsPage() {
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
-                      <Stat label="エントリー" value={c.entry} />
-                      <Stat label="リエントリー" value={c.reentry} />
-                      <Stat label="アドオン" value={c.addon} />
+                      <Stat label="Entry" value={c.entry} />
+                      <Stat label="Re-entry" value={c.reentry} />
+                      <Stat label="Add-on" value={c.addon} />
                     </div>
                     {t.blindPresetId && presetName(t.blindPresetId) && (
                       <p style={{ fontSize: 13, color: 'var(--label2)', margin: '16px 0 0' }}>ブラインド: {presetName(t.blindPresetId)}</p>
@@ -674,8 +693,8 @@ export default function TournamentsPage() {
           <FormRow label="開始時刻">
             <input type="time" value={form.startTime} onChange={e => handleChange('startTime', e.target.value)} style={rowInput} />
           </FormRow>
-          <FormRow label="レジスト締切" hint="リエントリーを受け付ける最後の時刻">
-            <input type="time" value={form.rcTime} onChange={e => handleChange('rcTime', e.target.value)} style={rowInput} />
+          <FormRow label="開始時刻にタイマースタート" hint={autoStart ? (form.date && form.startTime ? `${form.date} ${form.startTime} に自動で開催中にし、タイマーを動かします` : "開催日と開始時刻を入れてください") : "オフのときは、手動で開始します"}>
+            <button type="button" role="switch" aria-checked={autoStart} aria-label="開始時刻にタイマースタート" onClick={() => setAutoStart(v => !v)} className="a-switch" />
           </FormRow>
           <FormRow label="毎週繰り返す" hint={repeatWeekly && form.date ? `毎週${DAYS[getDOW(form.date)]}曜日に自動で作成` : "終了後、同じ曜日に次回を自動で作成"} last>
             <button type="button" role="switch" aria-checked={repeatWeekly} aria-label="毎週繰り返す" onClick={() => setRepeatWeekly(v => !v)} className="a-switch" />
@@ -690,9 +709,9 @@ export default function TournamentsPage() {
             <span style={{ textAlign: 'center' }}>スタック</span>
           </div>
           {[
-            { label: 'エントリー', feeKey: 'entryFee', stackKey: 'entryStack' },
-            { label: 'リエントリー', feeKey: 'reentryFee', stackKey: 'reentryStack' },
-            { label: 'アドオン', feeKey: 'addonFee', stackKey: 'addonStack' },
+            { label: 'Entry', feeKey: 'entryFee', stackKey: 'entryStack' },
+            { label: 'Re-entry', feeKey: 'reentryFee', stackKey: 'reentryStack' },
+            { label: 'Add-on', feeKey: 'addonFee', stackKey: 'addonStack' },
           ].map((row, i) => (
             <div key={row.feeKey} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, alignItems: 'center', padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
               <span style={{ fontSize: 15, fontWeight: 600 }}>{row.label}</span>

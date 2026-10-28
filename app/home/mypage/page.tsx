@@ -592,7 +592,7 @@ export default function MyPage() {
             {/* Player ID */}
             <button type="button" onClick={copyPlayerId}
               style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(120,120,128,0.10)', borderRadius: 999, padding: '8px 16px', border: 'none', cursor: 'pointer', marginBottom: 16, width: '100%' }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--label3)', fontFamily: 'var(--stack-system)', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--label3)', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
               {copySuccess
                 ? <CheckIcon size={14} style={{ color: '#34C759', flexShrink: 0 }} />
                 : <CopyIcon size={14} style={{ color: 'var(--label3)', flexShrink: 0 }} />

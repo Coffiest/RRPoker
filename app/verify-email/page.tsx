@@ -218,7 +218,7 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="appear d0">
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>メール認証</p>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
             <h1 className="font-display" style={{ fontSize:24, fontWeight:900, letterSpacing:'-0.5px', color:'var(--label)', lineHeight:1.25, marginBottom:8 }}>
               確認メールを<br/>
               <span className="shimmer-text">送信しました</span>

@@ -278,7 +278,7 @@ export default function TournamentHistoryPage() {
             className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition active:scale-[0.97] shadow-sm">
             <ArrowLeftIcon size={20} />
           </button>
-          <h1 className="text-[20px] font-semibold text-gray-900">トーナメント履歴</h1>
+          <h1 className="text-[20px] font-semibold text-gray-900">Tournament History</h1>
           <div className="w-10" />
         </div>
 
@@ -451,19 +451,19 @@ export default function TournamentHistoryPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>エントリー</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Entry</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{entryFee.toLocaleString()} × {entryCount}回</span>
                     </div>
                   )}
                   {reentryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>リエントリー</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Re-entry</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{reentryFee.toLocaleString()} × {reentryCount}回</span>
                     </div>
                   )}
                   {addonCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>アドオン</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Add-on</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{addonFee.toLocaleString()} × {addonCount}回</span>
                     </div>
                   )}

@@ -441,9 +441,9 @@ export default function LoginPage() {
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
-            { label:'ログイン', action:() => { setMenuOpen(false); document.getElementById('form-anchor')?.scrollIntoView({ behavior:'smooth' }) }, gold:true },
+            { label:'Login', action:() => { setMenuOpen(false); document.getElementById('form-anchor')?.scrollIntoView({ behavior:'smooth' }) }, gold:true },
             { label:'新規登録はこちら', action:() => { setMenuOpen(false); router.push('/register') }, gold:false },
-            { label:'パスワードを忘れた方', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
+            { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
               style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
@@ -490,7 +490,7 @@ export default function LoginPage() {
 
             {/* タイトル */}
             <div style={{ marginBottom:24 }}>
-              <p className="term-prompt tech-caret font-display" style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>ログイン</p>
+              <p className="term-prompt tech-caret font-display" style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Login</p>
               
             </div>
 
@@ -580,7 +580,7 @@ export default function LoginPage() {
             <div style={{ textAlign:'right', marginBottom:16 }}>
               <button type="button" onClick={() => router.push('/forgot-password')}
                 style={{ fontSize:12, fontWeight:600, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'8px 0', opacity:0.85 }}
-              >パスワードを忘れた方</button>
+              >Forgot Password?</button>
             </div>
 
             {/* エラー */}
@@ -604,7 +604,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   <LogInIcon size={16} color="#fff" />
-                  ログイン
+                  Login
                 </>
               )}
             </button>
@@ -637,7 +637,7 @@ export default function LoginPage() {
             <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
+                <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
                 <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
               <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>

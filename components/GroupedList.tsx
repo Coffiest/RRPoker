@@ -24,13 +24,14 @@ export function PageTitleBar({ title, onBack, backLabel = '戻る' }: { title: s
 }
 
 export function LargeTitle({ children }: { children: React.ReactNode }) {
-  return <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: '16px 0 24px', color: 'var(--label)' }}>{children}</h1>
+  // コンソール風(絶対ルール): 見出しは表示用書体+プロンプト記号+点滅カーソル
+  return <h1 className="font-display term-prompt tech-caret" style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: '16px 0 24px', color: 'var(--label)' }}>{children}</h1>
 }
 
 export function Section({ header, footer, children }: { header?: React.ReactNode; footer?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section style={{ marginBottom: 32 }}>
-      {header && <h2 style={{ fontSize: 13, fontWeight: 400, color: 'var(--label2)', margin: '0 16px 8px', letterSpacing: 0 }}>{header}</h2>}
+      {header && <h2 className="tech-label term-comment" style={{ fontSize: 13, color: 'var(--label2)', margin: '0 16px 8px' }}>{header}</h2>}
       <div className="gl-list" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>{children}</div>
       {footer && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 16px 0', lineHeight: 1.4 }}>{footer}</p>}
       <style>{`

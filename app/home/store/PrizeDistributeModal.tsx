@@ -476,7 +476,7 @@ for (const p of payouts) {
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>LOADING...</p>
           ) : (
             <>
               {/* Prize Pool カード */}
