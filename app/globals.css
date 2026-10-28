@@ -1280,3 +1280,10 @@ body {
 }
 /* スイッチは iOS と同じ 51×31 の見た目。押せる範囲は行全体で確保する。 */
 .a-switch { width: 51px; height: 31px; min-height: 31px; min-width: 51px; }
+
+/* 戻るボタンのある画面(一段奥の画面)は右から入る。戻るボタンは左向きなので、来た道と帰る道が一致する。
+   fixed の部品(下のナビなど)がずれないよう、画面全体ではなく中身の箱だけを動かす。 */
+:has(> [data-nav-back]) { animation: pageSlideIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) backwards }
+@media (prefers-reduced-motion: reduce) {
+  :has(> [data-nav-back]) { animation: aFadeOnly 180ms ease both }
+}

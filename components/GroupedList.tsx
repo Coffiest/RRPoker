@@ -11,7 +11,7 @@ import { hapticTap } from '@/lib/haptics'
 
 export function PageTitleBar({ title, onBack, backLabel = '戻る' }: { title: string; onBack?: () => void; backLabel?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', minHeight: 44, margin: '8px 0 0' }}>
+    <div data-nav-back={onBack ? '' : undefined} style={{ display: 'flex', alignItems: 'center', minHeight: 44, margin: '8px 0 0' }}>
       {onBack && (
         <button type="button" onClick={onBack} className="gl-press"
           style={{ display: 'inline-flex', alignItems: 'center', gap: 2, minHeight: 44, padding: '0 8px 0 0', border: 'none', background: 'none', color: '#B57F00', fontSize: 17, fontFamily: 'inherit', cursor: 'pointer' }}>
