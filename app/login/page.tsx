@@ -380,7 +380,7 @@ export default function LoginPage() {
         /* ── Section label ── */
         .section-hd {
           font-family:var(--stack-mono);
-          font-size:11px; font-weight:700; letter-spacing:.16em;
+          font-size:11px; font-weight:700; letter-spacing:0.04em;
           text-transform:uppercase; color:var(--label2);
         }
 

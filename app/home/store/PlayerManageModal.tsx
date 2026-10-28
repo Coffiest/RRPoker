@@ -512,7 +512,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           return (
                             <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0 }}>残高</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>残高</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>

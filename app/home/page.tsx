@@ -1693,7 +1693,7 @@ const medalClass = (rank: number) => {
                   {currentStoreId && currentStore ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34C759', flexShrink: 0 }} />
-                      <p className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
+                      <p className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.04em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
                     <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 2 }}>未入店</p>
@@ -1720,7 +1720,7 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* ラベル */}
-            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.72)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(255,255,255,0.72)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
 
             {/* メイン数値 */}
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, position: 'relative', zIndex: 1 }}>
@@ -1943,7 +1943,7 @@ const medalClass = (rank: number) => {
                     {/* 端末のタイトルバー。カードの「券面」をやめ、出力を読む面にする。 */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
-                        <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                        <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.04em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                           バンクロール
                         </p>
                       </div>
@@ -2645,7 +2645,7 @@ const medalClass = (rank: number) => {
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: "linear-gradient(160deg,#FEFAF4 0%,#F5EDD8 100%)", border: "1px solid rgba(139,90,43,0.18)" }}>
               {/* ヘッダーバー */}
               <div className="px-6 py-4 text-center" style={{ background: "linear-gradient(90deg,#7B1818,#B22222)" }}>
-                <p className="text-white font-bold text-[12px] tracking-[0.2em] uppercase">スタンプカード</p>
+                <p className="text-white font-bold text-[12px] tracking-wide uppercase">スタンプカード</p>
                 {currentStore?.name && <p className="text-white/65 text-[11px] mt-0.5">{currentStore.name}</p>}
               </div>
 
@@ -3160,11 +3160,11 @@ const medalClass = (rank: number) => {
                           )}
                           <div className="grid grid-cols-2 gap-2">
                             <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
-                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">参加者</p>
+                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wide mb-0.5">参加者</p>
                               <p className="text-[16px] font-bold text-gray-900 timer-num">{alivePlayers}/{totalEntry + totalReentry}</p>
                             </div>
                             <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
-                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wider mb-0.5">平均スタック</p>
+                              <p className="text-[11px] font-semibold text-label3 uppercase tracking-wide mb-0.5">平均スタック</p>
                               <p className="text-[16px] font-bold text-gray-900 timer-num">{avgStack.toLocaleString()}</p>
                             </div>
                           </div>

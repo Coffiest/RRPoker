@@ -64,7 +64,7 @@ export default function PlayerLiveTournaments(props: Props) {
       style={{ marginTop: 24, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>
+        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.04em' }}>
           現在進行中のトナメ
         </p>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

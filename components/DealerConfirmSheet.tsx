@@ -83,7 +83,7 @@ export default function DealerConfirmSheet({
         }} />
 
         <div style={{ padding: '16px 24px 24px' }}>
-          <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', letterSpacing: '0.2em', textAlign: 'center' }}>
+          <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', letterSpacing: '0.04em', textAlign: 'center' }}>
             ディーラー確認
           </p>
 

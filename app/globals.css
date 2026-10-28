@@ -140,7 +140,7 @@ body {
 .tech-label {
   font-family: var(--stack-mono);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   font-weight: 600;
   font-size: 11px;
   line-height: 1.4;
@@ -149,7 +149,7 @@ body {
 /* Tailwind の uppercase を使う既存ラベルにも計器相当の字間を与える。
    小さな全大文字は字間を空けないと等幅では詰まって読みにくい。 */
 .uppercase:not([class*="tracking-"]) {
-  letter-spacing: 0.16em;
+  letter-spacing: 0.04em;
 }
 
 /* [ LABEL ] のブラケット囲み */
@@ -468,7 +468,7 @@ body {
   font-family: var(--stack-mono);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--label3);
   padding: 0 0 8px;
@@ -544,7 +544,7 @@ body {
 /* 押せる場所。等幅・字間広め、押すと沈む */
 .con-btn {
   font-family: var(--stack-mono);
-  letter-spacing: 0.10em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
@@ -796,7 +796,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-section-hd {
   font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--a-label-3);
   padding: 0 8px 8px;
@@ -883,7 +883,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-eyebrow {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--a-label-3);
 }

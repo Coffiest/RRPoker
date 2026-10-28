@@ -519,7 +519,7 @@ export default function MyPage() {
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 3 }}>トナメ偏差値</p>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', marginBottom: 3 }}>トナメ偏差値</p>
               <p className="tech-num" style={{
                 fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
                 color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',

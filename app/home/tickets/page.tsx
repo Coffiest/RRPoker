@@ -238,7 +238,7 @@ export default function TicketsPage() {
 
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>
-          <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--label3)" }}>
+          <h2 className="text-[13px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
             スタンプカード
           </h2>
 
@@ -324,7 +324,7 @@ export default function TicketsPage() {
         {/* ── クーポン ────────────────────────────────────────── */}
         {!loading && (
           <section>
-            <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-4" style={{ color: "var(--label3)" }}>
+            <h2 className="text-[13px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
               クーポン
             </h2>
 

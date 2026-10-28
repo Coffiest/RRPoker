@@ -883,7 +883,7 @@ export default function StorePage() {
         .section-hd {
           position:relative;
           font-family:var(--stack-mono);
-          font-size:11px; font-weight:700; letter-spacing:.18em;
+          font-size:11px; font-weight:700; letter-spacing:0.04em;
           text-transform:uppercase; color:var(--label3);
           padding:0 0 8px; margin-bottom:16px;
           display:flex; align-items:center; gap:8px;
@@ -1129,7 +1129,7 @@ export default function StorePage() {
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
               <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {ownedStores.map(s => (
                     <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left' }}>
@@ -2034,7 +2034,7 @@ export default function StorePage() {
 
               {/* 手動調整 */}
               <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 16, marginBottom: 8 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>手動調整</p>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>手動調整</p>
 
                 {/* コメント */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--fill)', borderRadius: 12, padding: '0 16px', marginBottom: 8 }}>

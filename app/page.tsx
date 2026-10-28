@@ -239,7 +239,7 @@ export default function TopPage() {
 
         .section-hd{
           font-family:var(--stack-mono);
-          font-size:11px; font-weight:700; letter-spacing:.16em;
+          font-size:11px; font-weight:700; letter-spacing:0.04em;
           text-transform:uppercase; color:var(--label2); margin-bottom:8px; padding:0 2px;
         }
         /* 見出しの前に付く計器風のインデックス記号 */
@@ -349,7 +349,7 @@ export default function TopPage() {
 
           {/* テキスト */}
           <div className="d1" style={{ textAlign:'center', marginBottom:8 }}>
-            <p className="term-prompt tech-caret" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>
+            <p className="term-prompt tech-caret" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>
               The Poker Management App
             </p>
             <h1 className="font-display" style={{ fontSize:33, fontWeight:900, letterSpacing:'-0.8px', color:'var(--label)', lineHeight:1.22, marginBottom:8 }}>
@@ -454,7 +454,7 @@ export default function TopPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
@@ -475,7 +475,7 @@ export default function TopPage() {
           <div style={{ background:'#F2A900', padding:'24px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:'-40%', right:'-10%', width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(255,255,255,0.16) 0%,transparent 70%)' }}/>
             <div style={{ position:'absolute', bottom:'-20px', left:'-20px', width:100, height:100, borderRadius:'50%', background:'radial-gradient(circle,rgba(0,0,0,0.07) 0%,transparent 70%)' }}/>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:8, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:8, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
             <div style={{ display:'flex', alignItems:'flex-end', gap:8, position:'relative', zIndex:1 }}>
               <p style={{ fontSize:40, fontWeight:900, color:'white', letterSpacing:'-1px', lineHeight:1 }}>65.75</p>
               <div style={{ background:'rgba(255,255,255,0.22)', borderRadius:99, padding:'3px 8px', marginBottom:8 }}>
