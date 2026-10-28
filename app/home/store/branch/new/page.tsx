@@ -1,4 +1,5 @@
 'use client'
+import { ArrowRightIcon, CameraIcon, ChevronLeftIcon, SquarePenIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -154,111 +155,108 @@ export default function BranchStorePage() {
         .bs-field { position:relative; display:flex; align-items:center; background:#FAFAFA; border:1.5px solid var(--sep); border-radius:14px; transition:border-color .18s,box-shadow .18s,background .18s; overflow:hidden; }
         .bs-field:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(242,169,0,0.12); background:white; }
         .bs-field.field-error { border-color:var(--red)!important; box-shadow:0 0 0 3px rgba(255,59,48,0.09)!important; background:#FFF5F5!important; }
-        .bs-input { flex:1; background:transparent; border:none; outline:none; font-size:16px; color:var(--label); padding:0 13px; font-family:inherit; }
+        .bs-input { flex:1; background:transparent; border:none; outline:none; font-size:16px; color:var(--label); padding:0 16px; font-family:inherit; }
         .bs-input::placeholder { color:var(--label3); }
         input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
         input[type=number]{-moz-appearance:textfield;}
-        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%); font-size:16px; font-weight:800; color:#1a1a1a; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(242,169,0,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
+        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:#F2A900; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(242,169,0,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
         .bs-btn:active { transform:scale(0.97); opacity:.88; }
         .bs-btn:disabled { opacity:.55; pointer-events:none; }
       `}</style>
 
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="var(--label)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ChevronLeftIcon size={20} color="var(--label)" />
             <span style={{ fontSize: 14, color: 'var(--label)' }}>戻る</span>
           </button>
-          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', flex: 1, textAlign: 'center', marginRight: 60 }}>系列店を作成</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', flex: 1, textAlign: 'center', marginRight: 64 }}>系列店を作成</span>
         </div>
       </header>
 
-      <div style={{ maxWidth: 440, margin: '0 auto', padding: '16px 20px 64px' }}>
+      <div style={{ maxWidth: 440, margin: '0 auto', padding: '16px 24px 64px' }}>
 
         {/* 説明 */}
-        <div style={{ background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 16px', marginBottom: 20 }}>
+        <div style={{ background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
           <p style={{ fontSize: 13, color: '#D4910A', fontWeight: 600, lineHeight: 1.6 }}>
             系列店は同一ログインアカウントで管理できます。プレイヤーの店内通貨は全系列店で共有されます。
           </p>
         </div>
 
         {/* アイコンピッカー */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()}
             style={{ width: 90, height: 90, borderRadius: 28, background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)', border: 'none', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 0 3px rgba(242,169,0,0.25)' }}>
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
             ) : (
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-                <path d="M7 7L9 5H15L17 7H20C21.1046 7 22 7.89543 22 9V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V9C2 7.89543 2.89543 7 4 7H7Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 16C13.6569 16 15 14.6569 15 13C15 11.3431 13.6569 10 12 10C10.3431 10 9 11.3431 9 13C9 14.6569 10.3431 16 12 16Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <CameraIcon size={30} color="#F2A900" />
             )}
-            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
+              <SquarePenIcon size={12} color="white" />
             </div>
           </button>
-          <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 10, fontWeight: 600 }}>タップしてアイコンを変更（任意）</p>
+          <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8, fontWeight: 600 }}>タップしてアイコンを変更（任意）</p>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }}/>
         </div>
 
         {/* 基本情報 */}
-        <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
+        <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>基本情報</p>
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>店舗名（正式名称）<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>店舗名（正式名称）<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
             <div className={`bs-field${missingFields.name ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="例: KQ直方店" className="bs-input" style={{ paddingLeft: 14 }}/>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="例: KQ直方店" className="bs-input" style={{ paddingLeft: 16 }}/>
             </div>
           </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>郵便番号<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>郵便番号<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
             <div className={`bs-field${missingFields.postalCode ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="例: 800-0000" className="bs-input" style={{ paddingLeft: 14 }}/>
+              <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="例: 800-0000" className="bs-input" style={{ paddingLeft: 16 }}/>
             </div>
           </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>住所、丁目<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>住所、丁目<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
             <div className={`bs-field${missingFields.addressLine ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <input type="text" value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="例: 福岡県直方市○○" className="bs-input" style={{ paddingLeft: 14 }}/>
+              <input type="text" value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="例: 福岡県直方市○○" className="bs-input" style={{ paddingLeft: 16 }}/>
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>番地・マンション名など<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>番地・マンション名など<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span></label>
             <div className={`bs-field${missingFields.addressDetail ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <input type="text" value={addressDetail} onChange={e => setAddressDetail(e.target.value)} placeholder="例: 1-1 ○○ビル 201" className="bs-input" style={{ paddingLeft: 14 }}/>
+              <input type="text" value={addressDetail} onChange={e => setAddressDetail(e.target.value)} placeholder="例: 1-1 ○○ビル 201" className="bs-input" style={{ paddingLeft: 16 }}/>
             </div>
           </div>
         </div>
 
         {/* 詳細情報 */}
-        <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
+        <div style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>詳細情報</p>
 
-          <div style={{ marginBottom: 18 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>店舗の説明</label>
-            <div className="bs-field" style={{ height: 'auto', alignItems: 'flex-start', padding: '12px 14px' }}>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>店舗の説明</label>
+            <div className="bs-field" style={{ height: 'auto', alignItems: 'flex-start', padding: '16px 16px' }}>
               <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="定休日や、どんなお店なのかなど" rows={3}
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 15, color: 'var(--label)', resize: 'none', fontFamily: 'inherit', lineHeight: 1.6 }}/>
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>リングゲームのブラインド <span style={{ fontSize: 10, fontWeight: 500 }}>（任意）</span></label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>リングゲームのブラインド <span style={{ fontSize: 11, fontWeight: 500 }}>（任意）</span></label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>SB</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>SB</div>
                 <div className="bs-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindSb} onChange={e => setRingBlindSb(e.target.value)} placeholder="5" className="bs-input" style={{ textAlign: 'center' }}/>
                 </div>
               </div>
-              <div style={{ color: 'var(--label3)', fontSize: 18, marginTop: 18, flexShrink: 0 }}>—</div>
+              <div style={{ color: 'var(--label3)', fontSize: 18, marginTop: 16, flexShrink: 0 }}>—</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>BB</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>BB</div>
                 <div className="bs-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindBb} onChange={e => setRingBlindBb(e.target.value)} placeholder="10" className="bs-input" style={{ textAlign: 'center' }}/>
                 </div>
@@ -268,22 +266,22 @@ export default function BranchStorePage() {
         </div>
 
         {error && (
-          <div style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 14, padding: '12px 16px', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 16 }}>
             <p style={{ fontSize: 13, color: 'var(--red)', fontWeight: 600, textAlign: 'center' }}>{error}</p>
           </div>
         )}
 
         <button type="button" disabled={loading} onClick={saveProfile} className="bs-btn">
           {loading ? (
-            <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/>
+            <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .8s linear infinite' }}/>
           ) : (
             <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <ArrowRightIcon size={16} color="#fff" />
               系列店を作成する
             </>
           )}
         </button>
-        <p style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginTop: 12 }}>* は必須項目です</p>
+        <p style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginTop: 16 }}>* は必須項目です</p>
       </div>
     </div>
   )

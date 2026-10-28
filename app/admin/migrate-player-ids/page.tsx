@@ -75,7 +75,7 @@ export default function MigrationPage() {
   }, [router])
 
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center px-5">
+    <main className="min-h-screen bg-white flex items-center justify-center px-6">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F2A900] mx-auto"></div>
         <h1 className="mt-6 text-[18px] font-semibold text-gray-900">{status}</h1>

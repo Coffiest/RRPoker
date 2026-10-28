@@ -61,19 +61,19 @@ export default function PlayerLiveTournaments(props: Props) {
   return (
     <div
       className="section-card home-boot"
-      style={{ marginTop: 20, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
+      style={{ marginTop: 24, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <p className="tech-label" style={{ fontSize: 10.5, color: '#1C1C1E', letterSpacing: '0.16em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.04em' }}>
           現在進行中のトナメ
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
-          <span className="tech-label" style={{ fontSize: 9, color: '#34C759' }}>LIVE</span>
+          <span className="tech-label" style={{ fontSize: 11, color: '#34C759' }}>開催中</span>
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {tournaments.map(t => (
           <LiveTournamentRow key={t.id} tournament={t} joined={joined[t.id] === true} {...props} />
         ))}
@@ -137,7 +137,7 @@ function LiveTournamentRow({
         disabled={short}
         style={{
           flex: 1, height: 50, borderRadius: 999, border: 'none',
-          background: short ? '#F2F2F7' : 'linear-gradient(135deg,#F2A900,#D4910A)',
+          background: short ? '#F2F2F7' : '#F2A900',
           color: short ? 'var(--label3)' : '#fff',
           fontSize: 12.5, fontWeight: 800,
           cursor: short ? 'default' : 'pointer',
@@ -146,7 +146,7 @@ function LiveTournamentRow({
         }}
       >
         <span>{KIND_LABEL[kind]}</span>
-        <span className="tech-num" style={{ fontSize: 10, fontWeight: 600, opacity: 0.85, letterSpacing: 0 }}>
+        <span className="tech-num" style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, letterSpacing: 0 }}>
           {unitBefore ? `${unitLabel}${fee.toLocaleString()}` : `${fee.toLocaleString()}${unitLabel}`}
         </span>
       </button>
@@ -165,7 +165,7 @@ function LiveTournamentRow({
       <LiveTournamentTimer tournament={tournament} />
 
       {(reentryBtn || addonBtn) && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
           {reentryBtn}
           {addonBtn}
         </div>

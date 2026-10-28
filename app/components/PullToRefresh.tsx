@@ -1,9 +1,17 @@
 'use client'
+import { ArrowDownIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
+import { hapticTap } from '@/lib/haptics'
 
 const THRESHOLD = 72
 const MAX_PULL = 110
+
+// 引くほど重くなる(端で急に止まらない)。.claude/skills/apple-design §9
+function rubberband(dy: number): number {
+  const c = 0.55
+  return (dy * MAX_PULL * c * 2) / (MAX_PULL + c * dy)
+}
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined') return false
@@ -18,6 +26,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
   const [refreshing, setRefreshing] = useState(false)
   const startYRef = useRef<number | null>(null)
   const pullingRef = useRef(false)
+  const pullRef = useRef(0)
 
   useEffect(() => {
     if (!isStandalone()) return
@@ -31,20 +40,25 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
     const onTouchMove = (e: TouchEvent) => {
       if (!pullingRef.current || startYRef.current === null) return
       const dy = e.touches[0].clientY - startYRef.current
-      if (dy <= 0) { setPullY(0); return }
+      if (dy <= 0) { pullRef.current = 0; setPullY(0); return }
       e.preventDefault()
-      setPullY(Math.min(dy * 0.5, MAX_PULL))
+      const next = rubberband(dy)
+      // 「離せば更新」に変わった瞬間だけ震わせる。
+      if (pullRef.current < THRESHOLD && next >= THRESHOLD) hapticTap()
+      pullRef.current = next
+      setPullY(next)
     }
 
     const onTouchEnd = async () => {
       if (!pullingRef.current) return
       pullingRef.current = false
-      if (pullY >= THRESHOLD) {
+      if (pullRef.current >= THRESHOLD) {
         setRefreshing(true)
         setPullY(THRESHOLD)
         await new Promise<void>(resolve => { onRefresh(); setTimeout(resolve, 800) })
         setRefreshing(false)
       }
+      pullRef.current = 0
       setPullY(0)
       startYRef.current = null
     }
@@ -57,7 +71,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
     }
-  }, [pullY, onRefresh])
+  }, [onRefresh])
 
   if (!isStandalone() || (pullY === 0 && !refreshing)) return null
 
@@ -75,9 +89,9 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
       }}
     >
       <div style={{
-        marginBottom: 12,
+        marginBottom: 16,
         width: 36, height: 36, borderRadius: '50%',
-        background: ready ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'rgba(242,169,0,0.12)',
+        background: ready ? '#F2A900' : 'rgba(242,169,0,0.12)',
         border: `2px solid ${ready ? '#F2A900' : 'rgba(242,169,0,0.25)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s, border-color 0.2s',
@@ -88,18 +102,13 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
             width: 18, height: 18, borderRadius: '50%',
             border: '2.5px solid rgba(255,255,255,0.3)',
             borderTopColor: '#fff',
-            animation: 'spin 0.7s linear infinite',
+            animation: 'spin .8s linear infinite',
           }} />
         ) : (
-          <svg
-            width="16" height="16" viewBox="0 0 16 16" fill="none"
-            style={{
+          <ArrowDownIcon size={16} style={{
               transform: `rotate(${progress * 180}deg) ${ready ? 'scale(1.1)' : ''}`,
               transition: 'transform 0.15s ease',
-            }}
-          >
-            <path d="M8 2v10M4 9l4 4 4-4" stroke={ready ? '#fff' : '#F2A900'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+            }} />
         )}
       </div>
     </div>

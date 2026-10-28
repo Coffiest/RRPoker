@@ -1,4 +1,5 @@
 "use client"
+import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -9,17 +10,10 @@ import { db, auth, storage } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import {
-  FiPlus, FiSettings, FiTrash2, FiX, FiCamera,
-  FiCalendar, FiClock, FiAward, FiCopy, FiRepeat, FiSearch, FiZap, FiMoreHorizontal
-} from "react-icons/fi"
-import TechBackdrop from "@/components/TechBackdrop"
-import { createPortal } from "react-dom"
+import AppleSheet from "@/components/AppleSheet"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
-// ── Level types (shared with TimerClient) ──────────────────────────────────
-type BlindLevel = { type: "level"; smallBlind: number | null; bigBlind: number | null; ante: number | null; duration: number | null; comment?: string | null}
-type BreakLevel  = { type: "break"; duration: number | null; comment?: string | null}
-type Level = BlindLevel | BreakLevel
+import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
 type DayChar = typeof DAYS[number]
@@ -146,23 +140,15 @@ export default function TournamentsPage() {
   const [editingBlindPresetId, setEditingBlindPresetId] = useState<string | null>(null)
   const [blindPresetName, setBlindPresetName] = useState("")
   const [blindLevels, setBlindLevels] = useState<Level[]>([{ ...emptyBlindLevel }])
-  const [blindEditingCommentIdx, setBlindEditingCommentIdx] = useState<number | null>(null)
-  const [blindDragIndex, setBlindDragIndex] = useState<number | null>(null)
-  const [blindDropIndex, setBlindDropIndex] = useState<number | null>(null)
-  const [blindContextMenuIdx, setBlindContextMenuIdx] = useState<number | null>(null)
   const [bulkDuration, setBulkDuration] = useState("")
-  // モーダルの幅の上限。画面がこれより狭ければ、画面いっぱいに広がる。
-  //
-  // 以前はここで transform: scale() を掛けて、決め打ちの寸法で作った面を
-  // 画面に収まるまで縮めていた。iPhone(393px)では ブラインド 0.70倍 /
-  // トーナメント 0.81倍 になり、面が画面幅より内側に収まるうえ、中の文字まで
-  // 一緒に縮んで端末の文字サイズ設定より小さくなっていた。
-  // 縮めるのではなく、幅に合わせて中身が流れるようにする。
-  const BLIND_MODAL_W = 560
-  const BLIND_MODAL_H = 720
-  const TOURN_MODAL_W = 448
-  const AI_MODAL_W = 390
-  const AI_MODAL_H = 580
+  // 保存中・入力エラー・削除の確認
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [blindError, setBlindError] = useState("")
+  const [blindSaving, setBlindSaving] = useState(false)
+  const [confirmState, setConfirmState] = useState<ConfirmRequest | null>(null)
+  /** ブラインド編集を開いた時点の中身。閉じるときに変更があるか比べる。 */
+  const blindSnapshot = useRef("")
 
   // AI struct generator
   const [isAiOpen, setIsAiOpen] = useState(false)
@@ -179,8 +165,6 @@ export default function TournamentsPage() {
   const [historySearch, setHistorySearch] = useState("")
 
   const generatingTemplates = useRef<Set<string>>(new Set())
-
-  const bModalInput = "no-spin rounded-xl px-3 py-1.5 text-[13px] text-center outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all"
 
   // ── Auth ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -283,1066 +267,820 @@ export default function TournamentsPage() {
     }
   }, [storeId, tournaments])
 
-  const handleChange = (key: string, value: string) => setForm(prev => ({ ...prev, [key]: value }))
+
+  // ── フォーム ───────────────────────────────────────────────────────────
+  const handleChange = (key: string, value: string) => { setFormError(""); setForm(prev => ({ ...prev, [key]: value })) }
   const handleImageSelect = (file: File) => { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }
   const uploadImageIfNeeded = async (): Promise<string> => {
-    if (!imageFile || !storeId) return form.flyerUrl || ""
+    if (!imageFile || !storeId) return imagePreview ? (form.flyerUrl || "") : ""
     const fileRef = ref(storage, `tournaments/${storeId}/${Date.now()}_${imageFile.name}`)
     await uploadBytes(fileRef, imageFile)
     return await getDownloadURL(fileRef)
   }
+  const openCreate = () => {
+    setEditData(null); setRepeatWeekly(false); setBlindPresetId(""); setImageFile(null); setImagePreview(null)
+    setForm({ ...emptyForm, date: todayStr() }); setFormError(""); setOpenModal(true)
+  }
   const closeModal = () => {
     setOpenModal(false); setEditData(null); setImageFile(null); setImagePreview(null)
-    setRepeatWeekly(false); setBlindPresetId(""); setForm(emptyForm)
+    setRepeatWeekly(false); setBlindPresetId(""); setForm(emptyForm); setFormError("")
   }
   const handleSave = async () => {
-    if (!storeId) return
-    if (!form.name || !form.date) { alert("名称と日付は必須です"); return }
+    if (!storeId || saving) return
+    // 入力の誤りは送信前に、その場で示す(アラートで止めない)。
+    if (!form.name.trim()) { setFormError("名称を入力してください"); return }
+    if (!form.date) { setFormError("開催日を選んでください"); return }
     if (Number(form.entryFee) === 0 && Number(form.reentryFee) === 0 && Number(form.addonFee) === 0) {
-      alert("エントリー費、リエントリー費、アドオン費のいずれかは1以上必要です"); return
+      setFormError("エントリー・リエントリー・アドオンのどれか1つは、参加費を1以上にしてください"); return
     }
-    const flyerUrl = await uploadImageIfNeeded()
-    const payload = {
-      name: form.name, date: form.date, startTime: form.startTime, rcTime: form.rcTime,
-      entryFee: Number(form.entryFee) || 0, reentryFee: Number(form.reentryFee) || 0, addonFee: Number(form.addonFee) || 0,
-      entryStack: Number(form.entryStack) || 0, reentryStack: Number(form.reentryStack) || 0, addonStack: Number(form.addonStack) || 0,
-      flyerUrl, repeatWeekly, blindPresetId,
-      bustCount: editData?.bustCount ?? 0,
-      status: editData ? (editData.status ?? "scheduled") : "scheduled",
-      createdAt: editData?.createdAt ?? serverTimestamp(),
+    setSaving(true)
+    try {
+      const flyerUrl = await uploadImageIfNeeded()
+      const payload = {
+        name: form.name.trim(), date: form.date, startTime: form.startTime, rcTime: form.rcTime,
+        entryFee: Number(form.entryFee) || 0, reentryFee: Number(form.reentryFee) || 0, addonFee: Number(form.addonFee) || 0,
+        entryStack: Number(form.entryStack) || 0, reentryStack: Number(form.reentryStack) || 0, addonStack: Number(form.addonStack) || 0,
+        flyerUrl, repeatWeekly, blindPresetId,
+        bustCount: editData?.bustCount ?? 0,
+        status: editData ? (editData.status ?? "scheduled") : "scheduled",
+        createdAt: editData?.createdAt ?? serverTimestamp(),
+      }
+      if (editData) await updateDoc(doc(db, "stores", storeId, "tournaments", editData.id), payload)
+      else await addDoc(collection(db, "stores", storeId, "tournaments"), payload)
+      setSaving(false)
+      closeModal()
+    } catch {
+      setFormError("保存できませんでした。通信状態を確かめて、もう一度お試しください")
+      setSaving(false)
     }
-    if (editData) {
-      await updateDoc(doc(db, "stores", storeId, "tournaments", editData.id), payload)
-    } else {
-      await addDoc(collection(db, "stores", storeId, "tournaments"), payload)
-    }
-    closeModal()
   }
-  const handleDelete = async (id: string) => {
-    if (!storeId || !confirm("本当に削除しますか？")) return
-    await deleteDoc(doc(db, "stores", storeId, "tournaments", id))
-  }
+  const askDeleteTournament = (t: any) => setConfirmState({
+    title: "トーナメントを削除",
+    message: `「${t.name || "名称なし"}」を削除します。参加記録も見られなくなります。元に戻せません。`,
+    action: "削除", destructive: true,
+    run: async () => { if (storeId) await deleteDoc(doc(db, "stores", storeId, "tournaments", t.id)) },
+  })
   const handleEdit = (t: any) => {
     setEditData(t); setRepeatWeekly(t.repeatWeekly ?? false); setBlindPresetId(t.blindPresetId ?? "")
-    setImagePreview(t.flyerUrl || null)
+    setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
     setForm({ name: t.name ?? "", date: typeof t.date === "string" ? t.date : "", startTime: t.startTime ?? "", rcTime: t.rcTime ?? "",
       entryFee: String(t.entryFee ?? ""), reentryFee: String(t.reentryFee ?? ""), addonFee: String(t.addonFee ?? ""),
       entryStack: String(t.entryStack ?? ""), reentryStack: String(t.reentryStack ?? ""), addonStack: String(t.addonStack ?? ""), flyerUrl: t.flyerUrl ?? "" })
     setOpenModal(true)
   }
   const handleCopy = (t: any) => {
-    setEditData(null); setRepeatWeekly(false); setBlindPresetId(t.blindPresetId ?? ""); setImagePreview(t.flyerUrl || null)
+    setEditData(null); setRepeatWeekly(false); setBlindPresetId(t.blindPresetId ?? ""); setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
     setForm({ name: t.name ?? "", date: todayStr(), startTime: t.startTime ?? "", rcTime: t.rcTime ?? "",
       entryFee: String(t.entryFee ?? ""), reentryFee: String(t.reentryFee ?? ""), addonFee: String(t.addonFee ?? ""),
       entryStack: String(t.entryStack ?? ""), reentryStack: String(t.reentryStack ?? ""), addonStack: String(t.addonStack ?? ""), flyerUrl: t.flyerUrl ?? "" })
     setOpenModal(true)
   }
-  const handleStartTournament = async (id: string) => {
-    if (!storeId) return
-    setStartingId(id)
-    try { await updateDoc(doc(db, "stores", storeId, "tournaments", id), { status: "active", startedAt: serverTimestamp() }) }
-    finally { setStartingId(null) }
-  }
+  const askStartTournament = (t: any) => setConfirmState({
+    title: "トーナメントを開始",
+    message: `「${t.name || "名称なし"}」を開催中にします。店舗ホームにタイマーが表示されます。`,
+    action: "開始する",
+    run: async () => {
+      if (!storeId) return
+      setStartingId(t.id)
+      try { await updateDoc(doc(db, "stores", storeId, "tournaments", t.id), { status: "active", startedAt: serverTimestamp() }) }
+      finally { setStartingId(null) }
+    },
+  })
 
-  function addBlindLevel() {
-    const last = [...blindLevels].reverse().find(l => l.type === "level") as BlindLevel | undefined
-    if (!last) { setBlindLevels([...blindLevels, { type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]); return }
-    const sb = Math.max(1, Math.round((last.smallBlind ?? 100) * 1.5))
-    const bb = Math.max(1, Math.round((last.bigBlind ?? 200) * 1.5))
-    setBlindLevels([...blindLevels, { type: "level", smallBlind: sb, bigBlind: bb, ante: bb, duration: last.duration ?? 20 }])
-  }
-  function addBlindBreak() { setBlindLevels([...blindLevels, { type: "break", duration: null }]) }
-  function removeBlindLevel(idx: number) { setBlindLevels(ls => ls.filter((_, i) => i !== idx)) }
-  function insertLevelBefore(idx: number) {
-    const nl = [...blindLevels]; nl.splice(idx, 0, { ...emptyBlindLevel }); setBlindLevels(nl); setBlindContextMenuIdx(null)
-  }
-  function insertLevelAfter(idx: number) {
-    const nl = [...blindLevels]; nl.splice(idx + 1, 0, { ...emptyBlindLevel }); setBlindLevels(nl); setBlindContextMenuIdx(null)
-  }
-  function toggleLevelBreak(idx: number) {
-    setBlindLevels(ls => ls.map((lv, i) => {
-      if (i !== idx) return lv
-      if (lv.type === "level") return { type: "break" as const, duration: lv.duration }
-      return { type: "level" as const, smallBlind: null, bigBlind: null, ante: null, duration: lv.duration }
-    }))
-    setBlindContextMenuIdx(null)
-  }
-  function handleBlindBbChange(idx: number, value: number | null) {
-    const v = value !== null ? Math.round(Number(value)) : null
-    setBlindLevels(ls => ls.map((lv, i) => i !== idx || lv.type !== "level" ? lv : { ...lv, bigBlind: v, ante: v }))
-  }
+  // ── ブラインド ─────────────────────────────────────────────────────────
+  const setLevels = (fn: (ls: Level[]) => Level[]) => { setBlindError(""); setBlindLevels(fn) }
+  function addBlindLevel() { setLevels(withNextLevel) }
+  function addBlindBreak() { setLevels(withBreak) }
+  const snapshotOf = (name: string, levels: Level[]) => JSON.stringify({ name, levels })
   function openEditBlindPreset(preset: any) {
-    setEditingBlindPresetId(preset.id); setBlindPresetName(preset.name)
-    setBlindLevels(Array.isArray(preset.levels) && preset.levels.length > 0 ? preset.levels : [{ ...emptyBlindLevel }])
-    setBlindEditingCommentIdx(null); setBlindModalView("edit")
+    const levels = Array.isArray(preset.levels) && preset.levels.length > 0 ? preset.levels : [{ ...emptyBlindLevel }]
+    setEditingBlindPresetId(preset.id); setBlindPresetName(preset.name); setBlindLevels(levels)
+    blindSnapshot.current = snapshotOf(preset.name, levels); setBlindError(""); setBlindModalView("edit")
   }
   function openNewBlindPreset() {
-    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels([{ ...emptyBlindLevel }])
-    setBlindEditingCommentIdx(null); setBlindModalView("edit")
+    const levels: Level[] = [{ type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
+    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels)
+    blindSnapshot.current = snapshotOf("", levels); setBlindError(""); setBlindModalView("edit")
   }
-  function closeBlindModal() {
-    setIsBlindModalOpen(false); setBlindModalView("list"); setEditingBlindPresetId(null)
-    setBlindPresetName(""); setBlindLevels([{ ...emptyBlindLevel }]); setBlindEditingCommentIdx(null)
-  }
-  async function saveBlindPreset() {
-    if (!blindPresetName) { alert("ブラインド名を入力してください"); return }
-    if (!storeId) return
-    if (editingBlindPresetId) {
-      await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), { name: blindPresetName, levels: blindLevels })
-    } else {
-      await addDoc(collection(db, "stores", storeId, "blindPresets"), { name: blindPresetName, levels: blindLevels, createdAt: serverTimestamp() })
-    }
-    await refreshPresets(storeId)
+  const blindDirty = blindModalView === "edit" && snapshotOf(blindPresetName, blindLevels) !== blindSnapshot.current
+  function resetBlindEditor() {
     setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName("")
-    setBlindLevels([{ ...emptyBlindLevel }]); setBlindEditingCommentIdx(null)
+    setBlindLevels([{ ...emptyBlindLevel }]); setBlindError("")
   }
-  async function deleteBlindPreset(id: string) {
-    if (!storeId || !confirm("このプリセットを削除しますか？")) return
-    await deleteDoc(doc(db, "stores", storeId, "blindPresets", id))
-    if (storeId) await refreshPresets(storeId)
+  /** 変更を捨ててよいか確かめてから進む。変更が無ければそのまま進む。 */
+  function guardDiscard(next: () => void) {
+    if (!blindDirty) { next(); return }
+    setConfirmState({ title: "変更を破棄しますか？", message: "保存していない変更は失われます。", action: "破棄", destructive: true, run: next })
+  }
+  function closeBlindModal() { guardDiscard(() => { setIsBlindModalOpen(false); resetBlindEditor() }) }
+  function backToBlindList() { guardDiscard(resetBlindEditor) }
+  async function saveBlindPreset() {
+    if (!storeId || blindSaving) return
+    if (!blindPresetName.trim()) { setBlindError("プリセット名を入力してください"); return }
+    const invalid = validateLevels(blindLevels)
+    if (invalid) { setBlindError(invalid); return }
+    setBlindSaving(true)
+    try {
+      const data = { name: blindPresetName.trim(), levels: blindLevels }
+      if (editingBlindPresetId) await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), data)
+      else await addDoc(collection(db, "stores", storeId, "blindPresets"), { ...data, createdAt: serverTimestamp() })
+      await refreshPresets(storeId)
+      resetBlindEditor()
+    } catch {
+      setBlindError("保存できませんでした。もう一度お試しください")
+    } finally {
+      setBlindSaving(false)
+    }
+  }
+  const askDeletePreset = (preset: any) => setConfirmState({
+    title: "プリセットを削除",
+    message: `「${preset.name}」を削除します。このプリセットを使うトーナメントは「ブラインドなし」になります。`,
+    action: "削除", destructive: true,
+    run: async () => { if (storeId) { await deleteDoc(doc(db, "stores", storeId, "blindPresets", preset.id)); await refreshPresets(storeId) } },
+  })
+  const runAi = () => {
+    setAiError("")
+    const stack = Number(aiStack), rc = Number(aiRcHours)
+    if (!aiChips.length) { setAiError("使うチップを1つ以上選んでください"); return }
+    if (!stack || stack <= 0) { setAiError("スタートスタックを入力してください"); return }
+    if (!rc || rc <= 0) { setAiError("レジスト締切までの時間を入力してください"); return }
+    const result = aiGenerate(aiChips, stack, rc)
+    if (!result.length) { setAiError("この条件では構成を作れませんでした。時間かスタックを変えてください"); return }
+    setAiPreviewLevels(result); setAiView("preview")
   }
 
-  // ── Derived values ─────────────────────────────────────────────────────
-  const currentTournaments = tournaments.filter(t => t.status !== "finished")
+  // ── 表示用の値 ─────────────────────────────────────────────────────────
+  // 開催中を先頭に、残りは開催日・開始時刻の早い順に並べる。
+  const currentTournaments = tournaments
+    .filter(t => t.status !== "finished")
+    .sort((a, b) => (a.status === "active" ? 0 : 1) - (b.status === "active" ? 0 : 1)
+      || `${a.date || "9999"} ${a.startTime}`.localeCompare(`${b.date || "9999"} ${b.startTime}`))
   const tabDayIndex = DAYS.indexOf(activeTab as DayChar)
   const tabTemplates = tabDayIndex >= 0 ? tournaments.filter(t => t.repeatWeekly === true && t.status !== "finished" && getDOW(t.date) === tabDayIndex) : []
   const tabInstances = tabDayIndex >= 0 ? tournaments.filter(t => t.templateId && t.status !== "finished" && getDOW(t.date) === tabDayIndex) : []
   const tabHistory = activeTab === "履歴"
     ? tournaments.filter(t => t.status === "finished" && (!historySearch || t.name.toLowerCase().includes(historySearch.toLowerCase())))
     : []
+  const presetName = (id: string) => blindPresets.find(p => p.id === id)?.name
+  const countsOf = (id: string) => {
+    const entries = entriesMap[id] ?? []
+    return {
+      entry: entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0),
+      reentry: entries.reduce((s: number, e: any) => s + (e.reentryCount ?? 0), 0),
+      addon: entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0),
+    }
+  }
+  const unit = (n: number) => fmtChip(n, chipUnit, chipUnitBefore)
+  const totalMinutes = blindLevels.reduce((s, l) => s + (l.duration ?? 0), 0)
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  // ── 描画 ───────────────────────────────────────────────────────────────
   return (
-    <>
-    {/* 下地(方眼 + 金のにじみ)。プレイヤー側・店舗ホームと同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
-    <main style={{ minHeight: '100dvh', paddingBottom: 112, background: 'transparent', position: 'relative', zIndex: 1, color: 'var(--label)' }}>
+    <main style={{ minHeight: '100dvh', paddingBottom: 128, background: 'var(--t-bg)', color: 'var(--label)' }}>
       <style>{`
         :root {
-          --label:  #1C1C1E;
-          --sep:    rgba(60,60,67,0.12);
-          --fill:   rgba(120,120,128,0.12);
-          --gold:   #F2A900;
-          --gold-dk:#D4910A;
+          --t-bg: #F2F2F7;
+          --sep: rgba(60,60,67,0.12);
+          --fill: rgba(120,120,128,0.12);
+          --gold: #F2A900;
+          --gold-dk: #B57F00;
+          --blue: #0A6CD6;
         }
-        @keyframes suUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes lpulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
-        @keyframes levelIn{ from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
-        @keyframes cIn    { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-        /* 立ち上がり。上から順に点いていくように見せる。 */
-        .su0 { animation: techReveal 0.45s cubic-bezier(.22,1,.36,1) both; }
-        .su1 { animation: techReveal 0.45s 0.07s cubic-bezier(.22,1,.36,1) both; }
-        .su2 { animation: techReveal 0.45s 0.14s cubic-bezier(.22,1,.36,1) both; }
-        /* 紙のカードではなく計器の板に見せる。上端の金の線が読み込み位置を示す。 */
-        .ios-card {
-          position:relative; background:#fff; border-radius:18px;
-          border:1px solid rgba(60,60,67,0.10);
-          box-shadow:0 2px 12px rgba(0,0,0,0.05); overflow:hidden;
-        }
-        .ios-card::before {
-          content:""; position:absolute; top:0; left:0; right:0; height:2px;
-          background:linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
-          opacity:0.55; pointer-events:none;
-        }
-        /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
-        .section-hd {
-          position:relative; font-family:var(--stack-mono);
-          font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.18em;
-          color:var(--label3); padding:0 0 7px; margin-bottom:12px;
-          display:flex; align-items:center; gap:8px;
-        }
-        .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }
-        .section-hd::after {
-          content:""; position:absolute; left:0; bottom:0; width:100%; height:1px;
-          background:linear-gradient(90deg,rgba(242,169,0,0.55),rgba(242,169,0,0.06));
-          transform-origin:left center;
-          animation:techDraw .7s cubic-bezier(.22,1,.36,1) both;
-        }
-        .live-dot { animation: lpulse 1.5s ease-in-out infinite; }
-        /* 開催中の行には走査線を降らせて、動いていることを示す。 */
-        .itm-row { position:relative; overflow:hidden; }
-        .itm-row::after {
-          content:""; position:absolute; inset:0; pointer-events:none;
-          background:linear-gradient(to bottom,transparent 0%,rgba(242,169,0,0.06) 48%,rgba(242,169,0,0.11) 50%,rgba(242,169,0,0.06) 52%,transparent 100%);
-          transform:translateY(-100%);
-          animation:techScan 3.4s linear infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .su0, .su1, .su2 { animation:none; }
-          .section-hd::after { animation:none; }
-          .itm-row::after { animation:none; opacity:.3; }
-        }
-        .itap { transition:opacity 0.15s,transform 0.15s; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-        .itap:active { opacity:0.65; transform:scale(0.97); }
-        .divider { height:1px; background:var(--sep); }
-        .con-mono { font-family:var(--stack-mono); font-variant-numeric:tabular-nums slashed-zero; }
-        .no-spin::-webkit-inner-spin-button,
-        .no-spin::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
-        .no-spin { -moz-appearance:textfield; }
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator { opacity:0.4; }
-        .blind-level-item { animation: levelIn 0.18s ease-out; }
-        .blind-comment-expand { animation: cIn 0.16s ease-out; }
-        .itm-row { background:linear-gradient(135deg,#FFF8E5,#FFFBF0); border:1.5px solid rgba(242,169,0,0.35); border-radius:14px; }
-        .brk-row { background:rgba(0,122,255,0.05); border-radius:14px; }
-        .lvl-row { background:#F9F9F9; border-radius:14px; }
-        button { -webkit-tap-highlight-color:transparent; }
+        .tp-press { transition: transform 100ms ease-out, background-color 100ms ease-out, opacity 100ms ease-out; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+        .tp-press:active { transform: scale(0.97); }
+        .tp-row:active { background: rgba(60,60,67,0.06); }
+        .no-spin::-webkit-inner-spin-button, .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .no-spin { -moz-appearance: textfield; }
+        .tp-input:focus { box-shadow: inset 0 0 0 2px var(--gold); background: #fff; }
+        .tp-live { animation: tpLive 2s ease-in-out infinite; }
+        @keyframes tpLive { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
+        @media (prefers-reduced-motion: reduce) { .tp-live { animation: none } .tp-press:active { transform: none } }
       `}</style>
 
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
 
-        {/* ─ Page header ─ */}
-        <div className="su0" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '20px 0 18px' }}>
-          {/* Title — flex:1 + minWidth:0 ensures it never pushes buttons off screen */}
-          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            <p className="section-hd" style={{ marginBottom: 2 }}>Store</p>
-            <h1 className="font-display" style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px', margin: 0, color: 'var(--label)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Tournaments</h1>
-          </div>
-          {/* Buttons — flex-shrink:0 ensures they always fully appear */}
-          <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
-            {/* + Blind: outlined pill */}
-            <button onClick={() => setIsBlindModalOpen(true)} className="itap" style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              height: 34, padding: '0 12px',
-              borderRadius: 99, border: '1.5px solid var(--gold)',
-              background: 'rgba(242,169,0,0.06)',
-              color: 'var(--gold-dk)', fontSize: 12, fontWeight: 700,
-              whiteSpace: 'nowrap',
-            }}>
-              <FiPlus size={11} strokeWidth={2.5}/> Blind
+        {/* 大見出し + 主な操作 */}
+        <header style={{ padding: '16px 0 24px' }}>
+          <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }}>トーナメント</h1>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button type="button" onClick={openCreate} className="tp-press" style={{ ...btn.primary, flex: 1, minWidth: 0, padding: '0 16px' }}>
+              <PlusIcon size={20} strokeWidth={2.5} /> トーナメントを作成
             </button>
-            {/* + New: filled gold pill */}
-            <button onClick={() => { setEditData(null); setOpenModal(true) }} className="itap" style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              height: 34, padding: '0 14px',
-              borderRadius: 99, background: 'var(--gold)',
-              border: 'none', color: '#fff', fontSize: 12, fontWeight: 700,
-              whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(242,169,0,0.35)',
-            }}>
-              <FiPlus size={11} strokeWidth={2.5}/> New
+            <button type="button" onClick={() => { resetBlindEditor(); setIsBlindModalOpen(true) }} className="tp-press" style={{ ...btn.secondary, padding: '0 16px' }}>
+              <ZapIcon size={20} /> ブラインド
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* ─ Current / active tournaments ─ */}
-        {currentTournaments.length > 0 && (
-          <div className="su1" style={{ marginBottom: 20 }}>
-            <p className="section-hd">開催中・予定</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {currentTournaments.map((t, index) => {
-                const entries      = entriesMap[t.id] ?? []
-                const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
-                const totalReentry = entries.reduce((s: number, e: any) => s + (e.reentryCount ?? 0), 0)
-                const totalAddon   = entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0)
-                const isActive     = t.status === "active"
-                return (
-                  <div key={t.id} className="ios-card" style={{
-                    border: isActive ? '1.5px solid rgba(242,169,0,0.35)' : 'none',
-                    background: isActive ? 'linear-gradient(135deg,#FFFBF0,#FFF9F0)' : '#fff',
-                  }}>
-                    <div style={{ padding: '14px 16px' }}>
-                      {isActive && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
-                          <span className="live-dot" style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: 'var(--gold)' }}/>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-dk)', letterSpacing: '0.05em' }}>LIVE</span>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                            <p style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--label)', letterSpacing: '-0.2px' }}>{t.name}</p>
-                            {t.repeatWeekly && (
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 8px', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                                <FiRepeat size={9}/> 毎週
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--label2)' }}>
-                              <FiCalendar size={11} style={{ color: 'var(--gold)' }}/> {t.date}
-                            </span>
-                            {t.startTime && (
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--label2)' }}>
-                                <FiClock size={11} style={{ color: 'var(--gold)' }}/> {t.startTime}
-                              </span>
-                            )}
-                            <span style={{ fontSize: 11, color: 'var(--label2)' }}>E:{totalEntry} R:{totalReentry} A:{totalAddon}</span>
-                          </div>
-                        </div>
-                        {t.status === "scheduled" && (
-                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                            <button onClick={() => handleEdit(t)} className="itap"
-                              style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                              <FiSettings size={14}/>
-                            </button>
-                            <button onClick={() => handleDelete(t.id)} className="itap"
-                              style={{ width: 32, height: 32, borderRadius: 10, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
-                              <FiTrash2 size={14}/>
-                            </button>
-                          </div>
-                        )}
-                      </div>
+        {/* 開催中・予定 */}
+        <GroupLabel>開催中・予定</GroupLabel>
+        {currentTournaments.length === 0 ? (
+          <EmptyCard
+            icon={<TrophyIcon size={32} />}
+            title="予定のトーナメントはありません"
+            body="「トーナメントを作成」から追加できます。"
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+            {currentTournaments.map(t => {
+              const c = countsOf(t.id)
+              const isActive = t.status === "active"
+              return (
+                <article key={t.id} style={{ ...card, boxShadow: isActive ? 'inset 0 0 0 2px rgba(242,169,0,0.6)' : card.boxShadow }}>
+                  <div style={{ padding: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <StatusBadge status={t.status} />
+                      {t.repeatWeekly && <Chip icon={<RepeatIcon size={12} />}>毎週</Chip>}
                     </div>
-                    {t.status === "scheduled" && (
-                      <>
-                        <div className="divider"/>
-                        <button onClick={() => handleStartTournament(t.id)} disabled={!!startingId} className="itap"
-                          style={{ width: '100%', height: 44, background: 'none', border: 'none', color: 'var(--gold-dk)', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: startingId ? 0.6 : 1 }}>
-                          {startingId === t.id ? "Starting…" : "スタートする"}
-                        </button>
-                      </>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 15, color: 'var(--label2)' }}>
+                      <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
+                      {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
+                      {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
+                      <Stat label="エントリー" value={c.entry} />
+                      <Stat label="リエントリー" value={c.reentry} />
+                      <Stat label="アドオン" value={c.addon} />
+                    </div>
+                    {t.blindPresetId && presetName(t.blindPresetId) && (
+                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: '16px 0 0' }}>ブラインド: {presetName(t.blindPresetId)}</p>
                     )}
                   </div>
-                )
-              })}
-            </div>
+                  {t.status === "scheduled" && (
+                    <div style={{ display: 'flex', gap: 8, padding: '0 16px 16px' }}>
+                      <button type="button" onClick={() => askStartTournament(t)} disabled={!!startingId} className="tp-press" style={{ ...btn.primary, flex: 1, opacity: startingId ? 0.5 : 1 }}>
+                        <PlayIcon size={20} fill="currentColor" /> {startingId === t.id ? "開始しています…" : "開始する"}
+                      </button>
+                      <button type="button" onClick={() => handleEdit(t)} className="tp-press" style={btn.icon} aria-label="編集">
+                        <PencilIcon size={20} />
+                      </button>
+                      <button type="button" onClick={() => askDeleteTournament(t)} className="tp-press" style={{ ...btn.icon, color: '#D70015' }} aria-label="削除">
+                        <Trash2Icon size={20} />
+                      </button>
+                    </div>
+                  )}
+                </article>
+              )
+            })}
           </div>
         )}
 
-        {/* ─ Weekly schedule ─ */}
-        <div className="su2">
-          <p className="section-hd">週間スケジュール</p>
-          {/* Tab bar */}
-          {/* 縮小して詰め込むと、44px の丸が 39px まで小さくなり、指で外しやすくなる。
-              大きさは変えず、入りきらないときは横に送れるようにする。 */}
-          <div style={{ marginBottom: 14, overflowX: 'auto', overflowY: 'hidden', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
-            <div style={{ display: 'flex', gap: 8, width: 'max-content', paddingRight: 4 }}>
-              {([...DAYS, "履歴"] as string[]).map(tab => {
-                const isAct   = activeTab === tab
-                const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
+        {/* 週間スケジュール */}
+        <GroupLabel>週間スケジュール</GroupLabel>
+        <div role="tablist" aria-label="曜日" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 4, padding: 4, background: 'rgba(118,118,128,0.12)', borderRadius: 16, marginBottom: 16 }}>
+          {([...DAYS, "履歴"] as string[]).map(tab => {
+            const isAct = activeTab === tab
+            const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
+            return (
+              <button key={tab} type="button" role="tab" aria-selected={isAct} onClick={() => setActiveTab(tab)} className="tp-press"
+                style={{
+                  minHeight: 44, borderRadius: 12, border: 'none', position: 'relative',
+                  background: isAct ? '#fff' : 'transparent',
+                  boxShadow: isAct ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
+                  color: 'var(--label)', fontSize: tab === "履歴" ? 13 : 15, fontWeight: isAct ? 700 : 500,
+                }}>
+                {tab}
+                {isToday && <span aria-label="今日" style={{ position: 'absolute', bottom: 4, left: '50%', width: 4, height: 4, marginLeft: -2, borderRadius: 2, background: 'var(--gold)' }} />}
+              </button>
+            )
+          })}
+        </div>
+
+        {activeTab === "履歴" ? (
+          <>
+            <SearchField value={historySearch} onChange={setHistorySearch} placeholder="トーナメント名で検索" />
+            {tabHistory.length === 0 ? (
+              <EmptyCard icon={<SearchIcon size={32} />} title={historySearch ? "見つかりませんでした" : "終了したトーナメントはまだありません"} />
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {tabHistory.map(t => {
+                  const c = countsOf(t.id)
+                  const players = (entriesMap[t.id] ?? []).filter((e: any) => (e.entryCount ?? 0) > 0 || (e.reentryCount ?? 0) > 0 || (e.addonCount ?? 0) > 0)
+                  return (
+                    <article key={t.id} style={card}>
+                      <div style={{ padding: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
+                          <p style={{ fontSize: 13, color: 'var(--label2)', margin: '4px 0 0' }}>
+                            {t.startedAt || t.createdAt} ・ エントリー {c.entry} / リエントリー {c.reentry} / アドオン {c.addon}
+                          </p>
+                        </div>
+                        <button type="button" onClick={() => handleCopy(t)} className="tp-press" style={btn.icon} aria-label="この内容で新しく作成">
+                          <CopyIcon size={20} />
+                        </button>
+                        <button type="button" onClick={() => askDeleteTournament(t)} className="tp-press" style={{ ...btn.icon, color: '#D70015' }} aria-label="削除">
+                          <Trash2Icon size={20} />
+                        </button>
+                      </div>
+                      {players.length > 0 && (
+                        <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '1px solid var(--sep)' }}>
+                          {players.map((e: any, i: number) => {
+                            const payout = t.payouts?.find((p: any) => p.playerId === e.id)
+                            return (
+                              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+                                {payout && typeof payout.rank === "number"
+                                  ? <span style={rankBadge}>{payout.rank}</span>
+                                  : <span style={{ width: 24, flexShrink: 0 }} />}
+                                <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: payout ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {typeof e.name === "string" && e.name ? e.name : e.id}
+                                </span>
+                                <span style={{ fontSize: 13, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums' }}>
+                                  E{e.entryCount ?? 0} R{e.reentryCount ?? 0} A{e.addonCount ?? 0}
+                                </span>
+                                {payout && (
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 15, fontWeight: 700, color: 'var(--gold-dk)' }}>
+                                    <AwardIcon size={16} /> {unit(typeof payout.amount === "number" ? payout.amount : 0)}
+                                  </span>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        ) : tabTemplates.length === 0 && tabInstances.length === 0 ? (
+          <EmptyCard icon={<CalendarIcon size={32} />} title={`${activeTab}曜日のトーナメントはありません`} body="作成時に「毎週繰り返す」をオンにすると、ここに並びます。" />
+        ) : (
+          <>
+            {tabTemplates.length > 0 && (
+              <>
+                <GroupLabel small>毎週の設定</GroupLabel>
+                <div style={{ ...list, marginBottom: 24 }}>
+                  {tabTemplates.map((t, i) => (
+                    <button key={t.id} type="button" onClick={() => handleEdit(t)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+                      <RepeatIcon size={20} style={{ color: 'var(--gold-dk)', flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600 }}>{t.name}</span>
+                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>次回 {t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                      </span>
+                      <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            {tabInstances.length > 0 && (
+              <>
+                <GroupLabel small>今後の予定</GroupLabel>
+                <div style={list}>
+                  {tabInstances.map((t, i) => (
+                    <div key={t.id} style={{ ...listRow, cursor: 'default', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600 }}>{t.name}</span>
+                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                      </span>
+                      <StatusBadge status={t.status} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── トーナメントの作成・編集 ── */}
+      <AppleSheet
+        open={openModal}
+        onClose={closeModal}
+        maxWidth={560}
+        maxHeightVh={92}
+        zIndex={200}
+        title={<SheetTitle title={editData ? "トーナメントを編集" : "新しいトーナメント"} onClose={closeModal} />}
+        footer={
+          <>
+            {formError && <InlineError>{formError}</InlineError>}
+            <button type="button" onClick={handleSave} disabled={saving} className="tp-press" style={{ ...btn.primary, width: '100%', opacity: saving ? 0.6 : 1 }}>
+              {saving ? "保存しています…" : editData ? "変更を保存" : "作成する"}
+            </button>
+          </>
+        }
+      >
+        <GroupLabel small>基本情報</GroupLabel>
+        <div style={{ ...list, marginBottom: 24 }}>
+          <FormRow label="名称">
+            <input type="text" value={form.name} onChange={e => handleChange('name', e.target.value)} placeholder="例: デイリートーナメント" style={rowInput} enterKeyHint="next" />
+          </FormRow>
+          <FormRow label="開催日">
+            <input type="date" value={form.date} onChange={e => handleChange('date', e.target.value)} style={rowInput} />
+          </FormRow>
+          <FormRow label="開始時刻">
+            <input type="time" value={form.startTime} onChange={e => handleChange('startTime', e.target.value)} style={rowInput} />
+          </FormRow>
+          <FormRow label="レジスト締切" hint="リエントリーを受け付ける最後の時刻">
+            <input type="time" value={form.rcTime} onChange={e => handleChange('rcTime', e.target.value)} style={rowInput} />
+          </FormRow>
+          <FormRow label="毎週繰り返す" hint={repeatWeekly && form.date ? `毎週${DAYS[getDOW(form.date)]}曜日に自動で作成` : "終了後、同じ曜日に次回を自動で作成"} last>
+            <button type="button" role="switch" aria-checked={repeatWeekly} aria-label="毎週繰り返す" onClick={() => setRepeatWeekly(v => !v)} className="a-switch" />
+          </FormRow>
+        </div>
+
+        <GroupLabel small>参加費とスタック</GroupLabel>
+        <div style={{ ...list, marginBottom: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '8px 16px 0', fontSize: 13, color: 'var(--label2)', fontWeight: 600 }}>
+            <span />
+            <span style={{ textAlign: 'center' }}>参加費{chipUnit ? `(${chipUnit})` : ""}</span>
+            <span style={{ textAlign: 'center' }}>スタック</span>
+          </div>
+          {[
+            { label: 'エントリー', feeKey: 'entryFee', stackKey: 'entryStack' },
+            { label: 'リエントリー', feeKey: 'reentryFee', stackKey: 'reentryStack' },
+            { label: 'アドオン', feeKey: 'addonFee', stackKey: 'addonStack' },
+          ].map((row, i) => (
+            <div key={row.feeKey} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, alignItems: 'center', padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+              <span style={{ fontSize: 15, fontWeight: 600 }}>{row.label}</span>
+              {[row.feeKey, row.stackKey].map(key => (
+                <input key={key} type="number" inputMode="numeric" min={0} value={(form as any)[key]} onChange={e => handleChange(key, e.target.value)} placeholder="0"
+                  aria-label={`${row.label} ${key.endsWith('Fee') ? '参加費' : 'スタック'}`}
+                  className="no-spin tp-input" style={numInput} />
+              ))}
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 8px 24px' }}>使わない項目は 0 のままにします。</p>
+
+        <GroupLabel small>ブラインド</GroupLabel>
+        <div style={{ ...list, marginBottom: 24 }}>
+          {[{ id: '', name: 'ブラインドなし', levels: [] as any[] }, ...blindPresets].map((p, i) => {
+            const sel = blindPresetId === p.id
+            const lv = Array.isArray(p.levels) ? p.levels.filter((l: any) => l.type === "level").length : 0
+            return (
+              <button key={p.id || 'none'} type="button" role="radio" aria-checked={sel} onClick={() => setBlindPresetId(p.id)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 17 }}>{p.name}</span>
+                  {p.id && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{lv} レベル</span>}
+                </span>
+                {sel && <CheckMark />}
+              </button>
+            )
+          })}
+          <button type="button" onClick={() => { setIsBlindModalOpen(true); openNewBlindPreset() }} className="tp-row" style={{ ...listRow, borderTop: '1px solid var(--sep)', color: 'var(--gold-dk)', fontWeight: 600 }}>
+            <PlusIcon size={20} /> 新しいブラインドを作る
+          </button>
+        </div>
+
+        <GroupLabel small>チラシ画像</GroupLabel>
+        <div style={{ marginBottom: 24 }}>
+          {imagePreview ? (
+            <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- 選んだ画像のプレビュー */}
+              <img src={imagePreview} alt="チラシのプレビュー" style={{ width: '100%', maxHeight: 240, objectFit: 'cover', display: 'block' }} />
+              <button type="button" onClick={() => { setImagePreview(null); setImageFile(null); handleChange('flyerUrl', '') }} className="tp-press" aria-label="画像を外す"
+                style={{ position: 'absolute', top: 8, right: 8, ...btn.icon, background: 'rgba(0,0,0,0.55)', color: '#fff' }}>
+                <XIcon size={20} />
+              </button>
+            </div>
+          ) : (
+            <label className="tp-press" style={{ ...list, display: 'flex', alignItems: 'center', gap: 16, padding: 16, minHeight: 56 }}>
+              <CameraIcon size={24} style={{ color: 'var(--label2)', flexShrink: 0 }} />
+              <span style={{ flex: 1 }}>
+                <span style={{ display: 'block', fontSize: 17 }}>画像を選ぶ</span>
+                <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)</span>
+              </span>
+              <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+              <input type="file" accept="image/*" hidden onChange={e => { if (e.target.files?.[0]) handleImageSelect(e.target.files[0]) }} />
+            </label>
+          )}
+        </div>
+      </AppleSheet>
+
+      {/* ── ブラインド(一覧・編集) ── */}
+      <AppleSheet
+        open={isBlindModalOpen}
+        onClose={closeBlindModal}
+        maxWidth={640}
+        maxHeightVh={94}
+        zIndex={300}
+        title={
+          blindModalView === "list"
+            ? <SheetTitle title="ブラインド" onClose={closeBlindModal} />
+            : <SheetTitle
+                title={editingBlindPresetId ? "ブラインドを編集" : "新しいブラインド"}
+                onBack={backToBlindList}
+                onClose={closeBlindModal}
+                sub={`${blindLevels.filter(l => l.type === "level").length} レベル ・ 合計 ${fmtMinutes(totalMinutes)}`}
+              />
+        }
+        footer={
+          blindModalView === "list" ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={openNewBlindPreset} className="tp-press" style={{ ...btn.primary, flex: 1 }}>
+                <PlusIcon size={20} strokeWidth={2.5} /> 新しく作る
+              </button>
+              <button type="button" onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+                <ZapIcon size={20} /> 自動で作る
+              </button>
+            </div>
+          ) : (
+            <>
+              {blindError && <InlineError>{blindError}</InlineError>}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <button type="button" onClick={addBlindLevel} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+                  <PlusIcon size={20} /> レベル
+                </button>
+                <button type="button" onClick={addBlindBreak} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+                  <CoffeeIcon size={20} /> 休憩
+                </button>
+              </div>
+              <button type="button" onClick={saveBlindPreset} disabled={blindSaving} className="tp-press" style={{ ...btn.primary, width: '100%', opacity: blindSaving ? 0.6 : 1 }}>
+                {blindSaving ? "保存しています…" : "保存する"}
+              </button>
+            </>
+          )
+        }
+      >
+        {blindModalView === "list" ? (
+          blindPresets.length === 0 ? (
+            <EmptyCard icon={<ZapIcon size={32} />} title="ブラインドがまだありません" body="「新しく作る」で1から作るか、「自動で作る」でスタックと時間から作れます。" flat />
+          ) : (
+            <div style={{ ...list, marginBottom: 16 }}>
+              {blindPresets.map((preset, i) => {
+                const lvs: Level[] = Array.isArray(preset.levels) ? preset.levels : []
+                const lvCount = lvs.filter(l => l.type === "level").length
+                const brkCount = lvs.filter(l => l.type === "break").length
+                const mins = lvs.reduce((s, l) => s + (l.duration ?? 0), 0)
                 return (
-                  <button key={tab} onClick={() => setActiveTab(tab)} className="itap"
-                    style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', padding: 0 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: '50%',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 15, fontWeight: 700,
-                      background: isAct ? 'var(--gold)' : '#fff',
-                      color: isAct ? '#fff' : 'var(--label2)',
-                      boxShadow: isAct ? '0 3px 10px rgba(242,169,0,0.35)' : '0 1px 4px rgba(0,0,0,0.07)',
-                    }}>{tab}</div>
-                    {isToday && (
-                      <div style={{ width: 5, height: 5, borderRadius: '50%', background: isAct ? 'var(--gold)' : 'var(--label3)' }}/>
-                    )}
+                  <div key={preset.id} style={{ display: 'flex', alignItems: 'center', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
+                    <button type="button" onClick={() => openEditBlindPreset(preset)} className="tp-row" style={{ ...listRow, flex: 1 }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
+                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                          {lvCount} レベル ・ 休憩 {brkCount} 回 ・ {fmtMinutes(mins)}
+                        </span>
+                      </span>
+                      <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+                    </button>
+                    <button type="button" onClick={() => askDeletePreset(preset)} className="tp-press" aria-label={`${preset.name}を削除`} style={{ ...btn.icon, background: 'transparent', color: '#D70015', marginRight: 8 }}>
+                      <Trash2Icon size={20} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        ) : (
+          <>
+            <div style={{ ...list, marginBottom: 16 }}>
+              <FormRow label="名前" last>
+                <input value={blindPresetName} onChange={e => { setBlindError(""); setBlindPresetName(e.target.value) }} placeholder="例: 通常トーナメント" style={rowInput} />
+              </FormRow>
+            </div>
+
+            <div style={{ ...list, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 16px' }}>
+              <span style={{ fontSize: 15, flex: 1 }}>時間を一括変更</span>
+              <input type="number" inputMode="numeric" value={bulkDuration} onChange={e => setBulkDuration(e.target.value)} placeholder="20" aria-label="分"
+                className="no-spin tp-input" style={{ ...numInput, width: 64 }} />
+              <span style={{ fontSize: 15, color: 'var(--label2)' }}>分</span>
+              <button type="button" onClick={() => {
+                const d = Math.round(Number(bulkDuration))
+                if (!bulkDuration || isNaN(d) || d <= 0) return
+                setLevels(ls => ls.map(l => l.type === "level" ? { ...l, duration: d } : l)); setBulkDuration("")
+              }} disabled={!bulkDuration} className="tp-press" style={{ ...btn.small, opacity: bulkDuration ? 1 : 0.4 }}>
+                適用
+              </button>
+            </div>
+
+            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }} />
+          </>
+        )}
+      </AppleSheet>
+
+      {/* ── 自動で作る ── */}
+      <AppleSheet
+        open={isAiOpen}
+        onClose={() => setIsAiOpen(false)}
+        maxWidth={560}
+        zIndex={400}
+        title={aiView === "input"
+          ? <SheetTitle title="ブラインドを自動で作る" sub="スタックと締切までの時間から、レベルと休憩を決めます" onClose={() => setIsAiOpen(false)} />
+          : <SheetTitle title="この構成で作りますか？" sub={`${aiPreviewLevels.filter(l => l.type === "level").length} レベル ・ 休憩 ${aiPreviewLevels.filter(l => l.type === "break").length} 回`} onBack={() => setAiView("input")} onClose={() => setIsAiOpen(false)} />}
+        footer={aiView === "input" ? (
+          <>
+            {aiError && <InlineError>{aiError}</InlineError>}
+            <button type="button" onClick={runAi} className="tp-press" style={{ ...btn.primary, width: '100%' }}>
+              <ZapIcon size={20} /> 構成を作る
+            </button>
+          </>
+        ) : (
+          <button type="button" onClick={() => {
+            const name = aiPresetName.trim() || "自動作成のブラインド"
+            setBlindPresetName(name); setBlindLevels(aiPreviewLevels); setEditingBlindPresetId(null)
+            blindSnapshot.current = ""   // 未保存として扱う
+            setBlindError(""); setBlindModalView("edit"); setIsAiOpen(false); setAiView("input")
+          }} className="tp-press" style={{ ...btn.primary, width: '100%' }}>
+            この構成で編集に進む
+          </button>
+        )}
+      >
+        {aiView === "input" ? (
+          <>
+            <div style={{ ...list, marginBottom: 24 }}>
+              <FormRow label="名前">
+                <input value={aiPresetName} onChange={e => setAiPresetName(e.target.value)} placeholder="例: 3時間締切" style={rowInput} />
+              </FormRow>
+              <FormRow label="スタートスタック">
+                <input type="number" inputMode="numeric" value={aiStack} onChange={e => { setAiError(""); setAiStack(e.target.value) }} placeholder="30000" className="no-spin" style={rowInput} />
+              </FormRow>
+              <FormRow label="締切まで" hint="開始からレジスト締切までの時間" last>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
+                  <input type="number" inputMode="decimal" step="0.5" min="0.5" value={aiRcHours} onChange={e => { setAiError(""); setAiRcHours(e.target.value) }} placeholder="3" className="no-spin" style={{ ...rowInput, width: 64 }} />
+                  <span style={{ fontSize: 17, color: 'var(--label2)' }}>時間</span>
+                </span>
+              </FormRow>
+            </div>
+            <GroupLabel small>使うチップ</GroupLabel>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+              {AI_CHIP_OPTIONS.map(chip => {
+                const on = aiChips.includes(chip)
+                return (
+                  <button key={chip} type="button" role="checkbox" aria-checked={on} onClick={() => { setAiError(""); setAiChips(prev => on ? prev.filter(c => c !== chip) : [...prev, chip]) }} className="tp-press"
+                    style={{ minWidth: 64, minHeight: 44, padding: '0 16px', borderRadius: 999, fontSize: 15, fontWeight: 600, border: 'none',
+                      background: on ? 'var(--label)' : 'var(--fill)', color: on ? '#fff' : 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
+                    {chip.toLocaleString()}
                   </button>
                 )
               })}
             </div>
-          </div>
-
-          {/* Tab content */}
-          {activeTab === "履歴" ? (
-            <>
-              {/* Search */}
-              <div style={{ position: 'relative', marginBottom: 12 }}>
-                <FiSearch size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
-                <input placeholder="トーナメント名で検索…" value={historySearch} onChange={e => setHistorySearch(e.target.value)}
-                  style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', paddingLeft: 34, paddingRight: historySearch ? 34 : 14, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}
-                />
-                {historySearch && (
-                  <button onClick={() => setHistorySearch("")} className="itap"
-                    style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', width: 20, height: 20, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <FiX size={10} style={{ color: 'var(--label2)' }}/>
-                  </button>
-                )}
-              </div>
-              {tabHistory.length === 0 ? (
-                <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
-                  <p style={{ fontSize: 13, color: 'var(--label2)' }}>
-                    {historySearch ? "該当する履歴がありません" : "履歴はまだありません"}
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {tabHistory.map((t) => {
-                    const entries      = entriesMap[t.id] ?? []
-                    const totalEntry   = entries.reduce((s: number, e: any) => s + (e.entryCount ?? 0) + (e.reentryCount ?? 0), 0)
-                    const totalReentry = entries.reduce((s: number, e: any) => s + (e.reentryCount ?? 0), 0)
-                    const totalAddon   = entries.reduce((s: number, e: any) => s + (e.addonCount ?? 0), 0)
-                    return (
-                      <div key={t.id} className="ios-card">
-                        <div style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
-                              <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: 11, color: 'var(--label2)', display: 'flex', alignItems: 'center', gap: 3 }}>
-                                  <FiClock size={10}/> {t.startedAt || t.createdAt}
-                                </span>
-                                <span style={{ fontSize: 11, color: 'var(--label2)' }}>E:{totalEntry} R:{totalReentry} A:{totalAddon}</span>
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                              <button onClick={() => handleCopy(t)} className="itap"
-                                style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                                <FiCopy size={13}/>
-                              </button>
-                              <button onClick={() => handleDelete(t.id)} className="itap"
-                                style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,59,48,0.08)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30' }}>
-                                <FiTrash2 size={13}/>
-                              </button>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {(entriesMap[t.id] ?? []).filter((e: any) => (e.entryCount ?? 0) > 0 || (e.reentryCount ?? 0) > 0 || (e.addonCount ?? 0) > 0)
-                              .map((e: any, i: number) => {
-                                const payout = t.payouts?.find((p: any) => p.playerId === e.id)
-                                const isITM  = !!payout
-                                return (
-                                  <div key={i} className={isITM ? "itm-row" : "lvl-row"} style={{ padding: '9px 12px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: isITM ? 'var(--gold-dk)' : 'var(--label)' }}>
-                                        {isITM && typeof payout.rank === "number" && (
-                                          <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--gold)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{payout.rank}</span>
-                                        )}
-                                        {typeof e.name === "string" ? e.name : typeof e.id === "string" ? e.id : ""}
-                                      </div>
-                                      {isITM && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                          <FiAward size={12} style={{ color: 'var(--gold)' }}/>
-                                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-dk)' }}>{fmtChip(typeof payout.amount === "number" ? payout.amount : 0, chipUnit, chipUnitBefore)}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'var(--label2)' }}>
-                                      <span>E:{e.entryCount ?? 0}</span>
-                                      <span>R:{e.reentryCount ?? 0}</span>
-                                      <span>A:{e.addonCount ?? 0}</span>
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </>
-          ) : (
-            tabTemplates.length === 0 && tabInstances.length === 0 ? (
-              <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: 'var(--label2)' }}>{activeTab}曜日のトーナメントはありません</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {tabTemplates.length > 0 && (
-                  <div>
-                    <p className="section-hd" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <FiRepeat size={10} style={{ color: 'var(--gold)' }}/> 定期テンプレート
-                    </p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {tabTemplates.map(t => (
-                        <div key={t.id} className="ios-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
-                            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '3px 0 0' }}>次回: {t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
-                          </div>
-                          <button onClick={() => handleEdit(t)} className="itap"
-                            style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                            <FiSettings size={13}/>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {tabInstances.length > 0 && (
-                  <div>
-                    <p className="section-hd">今後の予定</p>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {tabInstances.map(t => (
-                        <div key={t.id} className="ios-card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{t.name}</p>
-                            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '3px 0 0' }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</p>
-                          </div>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)', background: 'var(--fill)', borderRadius: 99, padding: '4px 10px', flexShrink: 0 }}>{t.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      </div>
-
-      {/* ── Tournament create/edit modal ─────────────────────────────────────── */}
-      {openModal && (
-        <div onClick={closeModal} style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: '100%', maxWidth: TOURN_MODAL_W,
-            maxHeight: '92dvh', background: '#F2F2F7',
-            borderRadius: '28px 28px 0 0', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-            paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
-          }}>
-            {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-              <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(60,60,67,0.2)' }}/>
-            </div>
-            {/* Title row */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 14px', flexShrink: 0 }}>
-              <p style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: '-0.4px', color: 'var(--label)' }}>
-                {editData ? "編集" : "新規トーナメント"}
-              </p>
-              <button onClick={closeModal} className="itap" style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={14}/>
-              </button>
-            </div>
-            {/* Scrollable body */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
-
-              {/* ── 基本情報 group ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>基本情報</p>
-              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
-                {/* Name row */}
-                <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>名称</span>
-                  <input type="text" value={form.name} onChange={e => handleChange('name', e.target.value)} placeholder="例: Daily Tournament"
-                    style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
-                  />
-                </div>
-                {/* Date row */}
-                <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>開催日</span>
-                  <input type="date" value={form.date} onChange={e => handleChange('date', e.target.value)}
-                    style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
-                  />
-                </div>
-                {/* Start time row */}
-                <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>開始時刻</span>
-                  <input type="time" value={form.startTime} onChange={e => handleChange('startTime', e.target.value)}
-                    style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
-                  />
-                </div>
-                {/* RC time row */}
-                <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', minHeight: 50, borderBottom: '1px solid var(--sep)' }}>
-                  <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 90 }}>RC時間</span>
-                  <input type="time" value={form.rcTime} onChange={e => handleChange('rcTime', e.target.value)}
-                    style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
-                  />
-                </div>
-                {/* Repeat toggle row */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', minHeight: 52 }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 500, margin: 0, color: 'var(--label)' }}>毎週繰り返す</p>
-                    <p style={{ fontSize: 11, color: 'var(--label2)', margin: '1px 0 0' }}>同じ曜日に毎週自動生成</p>
-                  </div>
-                  <button type="button" role="switch" aria-checked={repeatWeekly}
-                    onClick={() => setRepeatWeekly(v => !v)} className="a-switch" />
-                </div>
-              </div>
-
-              {/* ── 費用・スタック group ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>費用・スタック設定</p>
-              <div style={{ background: 'rgba(255,255,255,0.66)', backdropFilter: 'blur(26px) saturate(190%)', WebkitBackdropFilter: 'blur(26px) saturate(190%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(255,255,255,0.42), 0 2px 10px rgba(0,0,0,0.05)', borderRadius: 22, overflow: 'hidden', marginBottom: 20 }}>
-                {[
-                  { label: 'エントリー', feeKey: 'entryFee', stackKey: 'entryStack' },
-                  { label: 'リエントリー', feeKey: 'reentryFee', stackKey: 'reentryStack' },
-                  { label: 'アドオン', feeKey: 'addonFee', stackKey: 'addonStack' },
-                ].map((row, i) => (
-                  <div key={row.feeKey} style={{ borderBottom: i < 2 ? '1px solid var(--sep)' : 'none' }}>
-                    <div style={{ padding: '10px 16px 0', display: 'flex', alignItems: 'center' }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>{row.label}</span>
-                    </div>
-                    <div style={{ display: 'flex', padding: '4px 16px 10px', gap: 10 }}>
-                      {[[row.feeKey, '費用', '0'], [row.stackKey, 'スタック', '0']].map(([key, placeholder, defVal]) => (
-                        <div key={key} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <span style={{ fontSize: 10, color: 'var(--label2)', fontWeight: 600 }}>{placeholder}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', background: '#F9F9F9', borderRadius: 10, padding: '0 10px', height: 36 }}>
-                            <input type="number" value={(form as any)[key]} onChange={e => handleChange(key, e.target.value)} placeholder={defVal}
-                              className="no-spin"
-                              style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right', width: '100%' }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* ── ブラインドプリセット ── */}
-              {blindPresets.length > 0 && (
-                <>
-                  <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>ブラインドプリセット</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-                    {[{ id: '', name: 'なし' }, ...blindPresets].map(p => {
-                      const sel = blindPresetId === p.id
-                      return (
-                        <button key={p.id} type="button" onClick={() => setBlindPresetId(p.id)} className="itap" style={{
-                          padding: '7px 14px', borderRadius: 99,
-                          border: sel ? 'none' : '1.5px solid var(--sep)',
-                          background: sel ? 'var(--gold)' : '#fff',
-                          color: sel ? '#fff' : 'var(--label)',
-                          fontSize: 13, fontWeight: 600,
-                          boxShadow: sel ? '0 3px 10px rgba(242,169,0,0.3)' : 'none',
-                        }}>
-                          {p.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </>
-              )}
-
-              {/* ── チラシ画像 ── */}
-              <p className="section-hd" style={{ paddingLeft: 4, marginBottom: 8 }}>チラシ画像</p>
-              <div style={{ marginBottom: 24 }}>
-                {imagePreview ? (
-                  <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
-                    <img src={imagePreview} alt="preview" style={{ width: '100%', maxHeight: 160, objectFit: 'cover', display: 'block' }}/>
-                    <button onClick={() => { setImagePreview(null); setImageFile(null) }} className="itap"
-                      style={{ position: 'absolute', top: 10, right: 10, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      <FiX size={13}/>
-                    </button>
-                  </div>
+            <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
+          </>
+        ) : (
+          <ol style={{ ...list, listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
+            {aiPreviewLevels.map((lv, i) => (
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none', fontVariantNumeric: 'tabular-nums',
+                color: lv.type === "break" ? 'var(--blue)' : 'var(--label)', background: lv.type === "break" ? 'rgba(10,108,214,0.06)' : 'transparent' }}>
+                {lv.type === "break" ? (
+                  <><CoffeeIcon size={20} /><span style={{ flex: 1, fontWeight: 600 }}>{lv.duration === 10 ? "締切前の休憩" : "休憩"}</span><span>{lv.duration}分</span></>
                 ) : (
-                  <label className="itap" style={{ display: 'flex', alignItems: 'center', gap: 12, border: '2px dashed var(--sep)', borderRadius: 16, padding: '14px 16px', cursor: 'pointer', background: 'rgba(255,255,255,0.6)' }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <FiCamera size={17} style={{ color: 'var(--label2)' }}/>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--label)', margin: 0 }}>画像を選択</p>
-                      <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>JPG / PNG / HEIC 対応</p>
-                    </div>
-                    <input type="file" accept="image/*" hidden onChange={e => { if (e.target.files?.[0]) handleImageSelect(e.target.files[0]) }}/>
-                  </label>
+                  <>
+                    <span style={{ width: 24, textAlign: 'center', fontWeight: 700, color: 'var(--gold-dk)' }}>{aiPreviewLevels.slice(0, i + 1).filter(l => l.type === "level").length}</span>
+                    <span style={{ flex: 1, fontSize: 17 }}>{lv.smallBlind?.toLocaleString()} / {lv.bigBlind?.toLocaleString()}</span>
+                    <span style={{ color: 'var(--label2)' }}>{lv.duration}分</span>
+                  </>
                 )}
-              </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </AppleSheet>
 
-              {/* ── Save button ── */}
-              <button onClick={handleSave} className="itap" style={{
-                width: '100%', height: 54, borderRadius: 999,
-                background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
-                border: 'none', color: '#1C1C1E', fontSize: 16, fontWeight: 800,
-                letterSpacing: '-0.2px',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
-                marginBottom: 4,
-              }}>
-                {editData ? "変更を保存" : "作成する"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Blind Preset modal ────────────────────────────────────────────────── */}
-      {isBlindModalOpen && typeof window !== "undefined" && createPortal(
-        <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 9999, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-          <div style={{
-            width: '100%', maxWidth: BLIND_MODAL_W,
-            maxHeight: `min(${BLIND_MODAL_H}px, 92dvh)`,
-            display: 'flex', flexDirection: 'column',
-            borderRadius: '28px 28px 0 0',
-            background: blindModalView === "edit" ? '#F2F2F7' : '#fff',
-            overflow: 'hidden',
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-            paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))',
-          }}>
-            {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px', flexShrink: 0 }}>
-              <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(60,60,67,0.2)' }}/>
-            </div>
-
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px 14px', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {blindModalView === "edit" && (
-                  <button onClick={() => setBlindModalView("list")} className="itap"
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, height: 30, padding: '0 10px', borderRadius: 99, background: 'rgba(120,120,128,0.14)', border: 'none', color: 'var(--label)', fontSize: 13, fontWeight: 600 }}>
-                    ← 一覧
-                  </button>
-                )}
-                <p style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: '-0.4px', color: 'var(--label)' }}>
-                  {blindModalView === "list" ? "Blind Presets" : editingBlindPresetId ? "プリセット編集" : "新規プリセット"}
-                </p>
-              </div>
-              <button onClick={closeBlindModal} className="itap"
-                style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(120,120,128,0.18)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={14}/>
-              </button>
-            </div>
-
-            {blindModalView === "list" ? (
-              /* ─ List view ─ */
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
-                {blindPresets.length === 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 10 }}>
-                    <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <FiZap size={22} style={{ color: 'var(--label2)' }}/>
-                    </div>
-                    <p className="term-comment" style={{ fontSize: 14, color: 'var(--label2)', margin: 0, fontWeight: 500 }}>プリセットがまだありません</p>
-                    <p style={{ fontSize: 12, color: 'var(--label2)', margin: 0 }}>下のボタンから作成してください</p>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {blindPresets.map((preset, i) => {
-                      const lvCount  = Array.isArray(preset.levels) ? preset.levels.filter((l: any) => l.type === "level").length : 0
-                      const brkCount = Array.isArray(preset.levels) ? preset.levels.filter((l: any) => l.type === "break").length : 0
-                      return (
-                        <div key={preset.id} className="itap" onClick={() => openEditBlindPreset(preset)}
-                          style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', borderRadius: 18, padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', border: '1px solid var(--sep)', cursor: 'pointer' }}>
-                          {/* Left accent circle */}
-                          <div style={{ width: 42, height: 42, borderRadius: 13, background: `linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{i + 1}</span>
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</p>
-                            <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gold-dk)', background: 'rgba(242,169,0,0.1)', borderRadius: 99, padding: '2px 7px' }}>Lv {lvCount}</span>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: '#007AFF', background: 'rgba(0,122,255,0.08)', borderRadius: 99, padding: '2px 7px' }}>Break {brkCount}</span>
-                            </div>
-                          </div>
-                          <button onClick={e => { e.stopPropagation(); deleteBlindPreset(preset.id) }} className="itap"
-                            style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,59,48,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
-                            <FiTrash2 size={13}/>
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* ─ Edit view ─ */
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                {/* Name field */}
-                <div style={{ padding: '0 16px 12px', flexShrink: 0 }}>
-                  <div style={{ background: '#fff', borderRadius: 14, padding: '0 14px', display: 'flex', alignItems: 'center', height: 50, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--label)', flexShrink: 0, width: 72 }}>名称</span>
-                    <input value={blindPresetName} onChange={e => setBlindPresetName(e.target.value)}
-                      style={{ flex: 1, height: 50, background: 'none', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', textAlign: 'right' }}
-                      placeholder="例: 通常トーナメント" autoFocus
-                    />
-                  </div>
-                </div>
-                {/* Bulk change */}
-                <div style={{ padding: '0 16px 12px', flexShrink: 0 }}>
-                  <div style={{ background: '#fff', borderRadius: 14, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)', flexShrink: 0 }}>一括時間変更</span>
-                    <input type="number" value={bulkDuration} onChange={e => setBulkDuration(e.target.value)} placeholder="分"
-                      className="no-spin"
-                      style={{ width: 52, height: 32, borderRadius: 9, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 8px', fontSize: 13, color: 'var(--label)', outline: 'none', textAlign: 'center', boxSizing: 'border-box' }}
-                    />
-                    <span style={{ fontSize: 11, color: 'var(--label2)' }}>分</span>
-                    <button type="button" onClick={() => {
-                      const d = Math.round(Number(bulkDuration))
-                      if (!bulkDuration || isNaN(d) || d <= 0) return
-                      setBlindLevels(ls => ls.map(l => ({ ...l, duration: d }))); setBulkDuration("")
-                    }} className="itap"
-                      style={{ marginLeft: 'auto', height: 30, padding: '0 12px', borderRadius: 9, background: 'var(--gold)', border: 'none', color: '#fff', fontSize: 12, fontWeight: 700 }}>
-                      変更
-                    </button>
-                  </div>
-                </div>
-                {/* Level list */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 8px' }}>
-                  <p className="section-hd" style={{ paddingLeft: 2 }}>レベルリスト</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {blindLevels.map((lv, idx) => (
-                      <div key={idx} style={{ position: 'relative' }}>
-                        <div className="blind-level-item"
-                          draggable onDragStart={() => setBlindDragIndex(idx)} onDragEnter={() => setBlindDropIndex(idx)}
-                          onDragEnd={() => {
-                            if (blindDragIndex === null || blindDropIndex === null || blindDragIndex === blindDropIndex) { setBlindDragIndex(null); setBlindDropIndex(null); return }
-                            const nl = [...blindLevels]; const [m] = nl.splice(blindDragIndex, 1); nl.splice(blindDropIndex, 0, m)
-                            setBlindLevels(nl); setBlindDragIndex(null); setBlindDropIndex(null)
-                          }}
-                          style={{
-                            background: lv.type === "break" ? 'rgba(0,122,255,0.04)' : '#fff',
-                            borderRadius: 14, overflow: 'hidden', opacity: blindDragIndex === idx ? 0.5 : 1,
-                            border: lv.type === "break" ? '1.5px solid rgba(0,122,255,0.15)' : '1px solid var(--sep)',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                          }}
-                        >
-                          {/* Row header */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px 5px' }}>
-                            <span style={{ cursor: 'move', color: 'var(--label3)', fontSize: 14, userSelect: 'none', flexShrink: 0, lineHeight: 1 }}>⠿</span>
-                            <span style={{ fontSize: 11, fontWeight: 700, minWidth: 38, color: lv.type === "level" ? 'var(--gold-dk)' : '#007AFF' }}>
-                              {lv.type === "level" ? `Lv ${blindLevels.slice(0, idx).filter(l => l.type === "level").length + 1}` : "Break"}
-                            </span>
-                            <button type="button" onClick={() => setBlindEditingCommentIdx(blindEditingCommentIdx === idx ? null : idx)} className="itap"
-                              style={{ flex: 1, padding: '3px 8px', borderRadius: 7, fontSize: 11, fontWeight: 500, background: lv.comment ? 'rgba(242,169,0,0.1)' : 'var(--fill)', color: lv.comment ? 'var(--gold-dk)' : 'var(--label2)', border: 'none', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {lv.comment || "コメント追加"}
-                            </button>
-                            <button type="button" onClick={() => setBlindContextMenuIdx(blindContextMenuIdx === idx ? null : idx)} className="itap"
-                              style={{ width: 26, height: 26, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                              <FiMoreHorizontal size={13}/>
-                            </button>
-                            <button onClick={() => removeBlindLevel(idx)} className="itap"
-                              style={{ width: 26, height: 26, borderRadius: 7, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FF3B30', flexShrink: 0 }}>
-                              <FiTrash2 size={12}/>
-                            </button>
-                          </div>
-                          {/* Inputs */}
-                          {lv.type === "level" ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 5, padding: '0 10px 10px' }}>
-                              {([["SB", "smallBlind", (e: any) => {
-                                  const raw = e.target.value
-                                  if (raw === "" || raw === "-") { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: null })); return }
-                                  const v = Math.round(Number(raw))
-                                  setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: Math.round(v*2), ante: Math.round(v*2) }))
-                                }],
-                                ["BB", "bigBlind", (e: any) => handleBlindBbChange(idx, e.target.value === "" ? null : Number(e.target.value))],
-                                ["ANTE", "ante", (e: any) => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: e.target.value === "" ? null : Math.round(Number(e.target.value)) }))],
-                                ["MIN", "duration", (e: any) => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))],
-                              ] as [string, string, (e: any) => void][]).map(([lbl, key, handler]) => (
-                                <div key={lbl} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                  <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--label2)', textAlign: 'center', letterSpacing: '0.04em' }}>{lbl}</span>
-                                  <input type="number" value={(lv as any)[key] ?? ""} placeholder="—"
-                                    onChange={handler} className="no-spin"
-                                    style={{ width: '100%', height: 34, borderRadius: 9, border: '1.5px solid var(--sep)', background: '#F9F9F9', fontSize: 13, color: 'var(--label)', outline: 'none', textAlign: 'center', boxSizing: 'border-box', padding: 0 }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div style={{ padding: '0 10px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <span style={{ fontSize: 11, color: '#007AFF', fontWeight: 600 }}>時間</span>
-                              <input type="number" value={lv.duration ?? ""} placeholder="10"
-                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
-                                className="no-spin"
-                                style={{ width: 70, height: 34, borderRadius: 9, border: '1.5px solid rgba(0,122,255,0.2)', background: 'rgba(0,122,255,0.04)', fontSize: 13, color: '#007AFF', outline: 'none', textAlign: 'center', boxSizing: 'border-box', padding: 0 }}
-                              />
-                              <span style={{ fontSize: 11, color: '#007AFF' }}>分</span>
-                            </div>
-                          )}
-                          {/* Comment row */}
-                          {(blindEditingCommentIdx === idx || lv.comment) && (
-                            <div className="blind-comment-expand" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 10px 10px' }}>
-                              <input type="text" placeholder="コメントを入力…" value={lv.comment ?? ""}
-                                onChange={e => setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                                style={{ flex: 1, height: 30, borderRadius: 8, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 10px', fontSize: 12, color: 'var(--label)', outline: 'none' }}
-                                autoFocus={blindEditingCommentIdx === idx}
-                              />
-                              <button type="button" onClick={() => { setBlindLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: null })); setBlindEditingCommentIdx(null) }} className="itap"
-                                style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)', flexShrink: 0 }}>
-                                <FiX size={9}/>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        {/* Context menu */}
-                        {blindContextMenuIdx === idx && (
-                          <>
-                            <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setBlindContextMenuIdx(null)}/>
-                            <div className="a-dialog" style={{ position: 'absolute', right: 40, top: 4, zIndex: 200, overflow: 'hidden', minWidth: 170, transformOrigin: 'top right' }}>
-                              {([["この前にレベルを追加", () => insertLevelBefore(idx)], ["この後にレベルを追加", () => insertLevelAfter(idx)]] as [string, () => void][]).map(([label, action]) => (
-                                <button key={label} type="button" onClick={action} className="itap"
-                                  style={{ width: '100%', padding: '12px 16px', textAlign: 'left', fontSize: 13, color: 'var(--label)', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
-                                  {label}
-                                </button>
-                              ))}
-                              <div style={{ height: 1, background: 'var(--sep)' }}/>
-                              <button type="button" onClick={() => toggleLevelBreak(idx)} className="itap"
-                                style={{ width: '100%', padding: '12px 16px', textAlign: 'left', fontSize: 13, color: '#007AFF', background: 'none', border: 'none', cursor: 'pointer', display: 'block' }}>
-                                {lv.type === "level" ? "ブレイクに変更" : "レベルに変更"}
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* Add level/break */}
-                <div style={{ padding: '10px 16px', borderTop: '1px solid var(--sep)', flexShrink: 0, display: 'flex', gap: 8 }}>
-                  <button onClick={addBlindLevel} className="itap"
-                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(242,169,0,0.14)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.20)', color: '#B57F00', fontSize: 13, fontWeight: 700 }}>
-                    ＋ レベル
-                  </button>
-                  <button onClick={addBlindBreak} className="itap"
-                    style={{ flex: 1, height: 42, borderRadius: 999, background: 'rgba(0,122,255,0.10)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(0,122,255,0.18)', color: '#007AFF', fontSize: 13, fontWeight: 700 }}>
-                    ＋ ブレイク
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Footer */}
-            <div style={{ padding: '10px 16px 0', flexShrink: 0 }}>
-              {blindModalView === "list" ? (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={openNewBlindPreset} className="itap" style={{
-                    flex: 1, height: 52, borderRadius: 999,
-                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
-                    border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  }}>
-                    <FiPlus size={16}/> 新規作成
-                  </button>
-                  <button onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="itap" style={{
-                    flex: 1, height: 52, borderRadius: 999,
-                    background: 'var(--label)',
-                    border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-                  }}>
-                    <FiZap size={14}/> AI生成
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={saveBlindPreset} className="itap" style={{
-                    flex: 2, height: 52, borderRadius: 999,
-                    background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)',
-                    border: 'none', color: '#1C1C1E', fontSize: 15, fontWeight: 800,
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.62), inset 0 -1px 0 rgba(120,80,0,0.18), 0 6px 18px rgba(242,169,0,0.30)',
-                  }}>
-                    保存する
-                  </button>
-                  <button onClick={() => setBlindModalView("list")} className="itap" style={{
-                    flex: 1, height: 52, borderRadius: 999,
-                    background: 'rgba(120,120,128,0.14)', border: 'none',
-                    color: 'var(--label)', fontSize: 14, fontWeight: 600,
-                  }}>
-                    戻る
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* ── AI modal ─────────────────────────────────────────────────────────── */}
-      {isAiOpen && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
-          <div style={{
-            width: '100%', maxWidth: AI_MODAL_W, maxHeight: `min(${AI_MODAL_H}px, 90dvh)`,
-            borderRadius: '20px 20px 0 0', background: '#fff', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.1)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
-              <div style={{ width: 36, height: 4, borderRadius: 99, background: 'var(--sep)' }}/>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <FiZap size={14} style={{ color: 'var(--gold)' }}/>
-                <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: 'var(--label)' }}>
-                  {aiView === "input" ? "AIストラクチャー生成" : "プレビュー"}
-                </p>
-              </div>
-              <button onClick={() => setIsAiOpen(false)} className="itap"
-                style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
-                <FiX size={12}/>
-              </button>
-            </div>
-            {aiView === "input" ? (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div>
-                  <p className="section-hd">プリセット名</p>
-                  <input value={aiPresetName} onChange={e => setAiPresetName(e.target.value)} placeholder="例: 3時間RC構成"
-                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
-                </div>
-                <div>
-                  <p className="section-hd">使用チップ</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {AI_CHIP_OPTIONS.map(chip => (
-                      <button key={chip} type="button" onClick={() => setAiChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip])} className="itap"
-                        style={{ height: 34, padding: '0 12px', borderRadius: 99, fontSize: 12, fontWeight: 600, border: '1px solid var(--sep)', background: aiChips.includes(chip) ? 'var(--gold)' : '#fff', color: aiChips.includes(chip) ? '#fff' : 'var(--label)', boxShadow: aiChips.includes(chip) ? '0 2px 6px rgba(242,169,0,0.25)' : 'none' }}>
-                        {chip.toLocaleString()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <p className="section-hd">スタートスタック（チップ合計）</p>
-                  <input type="number" value={aiStack} onChange={e => setAiStack(e.target.value)} placeholder="例: 30000"
-                    style={{ width: '100%', height: 42, borderRadius: 999, border: 'none', background: 'rgba(120,120,128,0.10)', padding: '0 14px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
-                </div>
-                <div>
-                  <p className="section-hd">RC時間（スタートから何時間）</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input type="number" step="0.5" min="0.5" value={aiRcHours} onChange={e => setAiRcHours(e.target.value)} placeholder="例: 3"
-                      style={{ width: 90, height: 40, borderRadius: 11, border: '1.5px solid var(--sep)', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: 'var(--label)', outline: 'none', boxSizing: 'border-box' }}/>
-                    <span style={{ fontSize: 12, color: 'var(--label2)' }}>時間</span>
-                  </div>
-                  <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 5 }}>RC直前10分ブレイク終了=RC時刻になるよう自動調整されます</p>
-                </div>
-                {aiError && <p style={{ fontSize: 11, color: 'var(--gold-dk)', fontWeight: 600, textAlign: 'center' }}>{aiError}</p>}
-              </div>
-            ) : (
-              <div style={{ flex: 1, overflowY: 'auto', padding: '14px 18px' }}>
-                <p style={{ fontSize: 11, color: 'var(--label2)', marginBottom: 10 }}>
-                  レベル数: {aiPreviewLevels.filter(l => l.type === "level").length} / ブレイク: {aiPreviewLevels.filter(l => l.type === "break").length}
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {aiPreviewLevels.map((lv, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 10,
-                      background: lv.type === "break" ? 'rgba(242,169,0,0.07)' : '#F9F9F9',
-                      fontSize: 12, color: lv.type === "break" ? 'var(--gold-dk)' : 'var(--label)', fontWeight: lv.type === "break" ? 600 : 400,
-                    }}>
-                      {lv.type === "break" ? (
-                        <><span>☕</span><span>{lv.duration === 10 ? "RC直前ブレイク" : "ブレイク"} {lv.duration}分</span></>
-                      ) : (
-                        <>
-                          <span style={{ width: 20, textAlign: 'center', fontWeight: 700, color: 'var(--label2)', fontSize: 11 }}>
-                            {aiPreviewLevels.slice(0, i).filter(l => l.type === "level").length + 1}
-                          </span>
-                          <span style={{ flex: 1 }}>{lv.smallBlind}/{lv.bigBlind}</span>
-                          <span style={{ color: 'var(--label2)' }}>{lv.duration}min</span>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{ padding: '14px 18px', borderTop: '1px solid var(--sep)', flexShrink: 0 }}>
-              {aiView === "input" ? (
-                <button onClick={() => {
-                  setAiError("")
-                  const stack = Number(aiStack), rc = Number(aiRcHours)
-                  if (!aiChips.length) { setAiError("チップを1つ以上選択してください"); return }
-                  if (!stack || stack <= 0) { setAiError("スタートスタックを入力してください"); return }
-                  if (!rc || rc <= 0) { setAiError("RC時間を入力してください"); return }
-                  const result = aiGenerate(aiChips, stack, rc)
-                  if (!result.length) { setAiError("有効な構成を生成できませんでした"); return }
-                  setAiPreviewLevels(result); setAiView("preview")
-                }} className="itap"
-                  style={{ width: '100%', height: 44, borderRadius: 12, background: 'var(--label)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                  <FiZap size={14}/> プレビューを生成
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setAiView("input")} className="itap"
-                    style={{ flex: 1, height: 44, borderRadius: 12, background: 'var(--fill)', border: 'none', fontSize: 13, fontWeight: 600, color: 'var(--label)' }}>
-                    戻る
-                  </button>
-                  <button onClick={() => {
-                    setBlindPresetName(aiPresetName || "AIプリセット")
-                    setBlindLevels(aiPreviewLevels)
-                    setEditingBlindPresetId(null)
-                    setBlindModalView("edit")
-                    setIsAiOpen(false)
-                    setAiView("input")
-                  }} className="itap"
-                    style={{ flex: 1, height: 44, borderRadius: 12, background: 'var(--gold)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, boxShadow: '0 2px 8px rgba(242,169,0,0.28)' }}>
-                    適用する
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <ConfirmDialog request={confirmState} onClose={() => setConfirmState(null)} />
 
       <StoreBottomNav />
     </main>
-    </>
+  )
+}
+
+// ── 見た目の部品 ───────────────────────────────────────────────────────────
+
+
+const card: React.CSSProperties = {
+  background: '#fff', borderRadius: 16, overflow: 'hidden',
+  boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)',
+}
+const list: React.CSSProperties = { background: '#fff', borderRadius: 16, overflow: 'hidden' }
+const listRow: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56,
+  padding: '8px 16px', background: 'transparent', border: 'none', textAlign: 'left',
+  color: 'var(--label)', fontFamily: 'inherit', fontSize: 17, cursor: 'pointer',
+  transition: 'background-color 100ms ease-out',
+}
+const metaItem: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4 }
+const rowInput: React.CSSProperties = {
+  flex: 1, minWidth: 0, width: '100%', height: 44, background: 'none', border: 'none', outline: 'none',
+  fontSize: 17, color: 'var(--label)', textAlign: 'right', fontFamily: 'inherit',
+}
+const numInput: React.CSSProperties = {
+  height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)',
+  fontSize: 17, fontWeight: 600, color: 'var(--label)', outline: 'none', textAlign: 'center',
+  boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit', width: '100%',
+}
+const rankBadge: React.CSSProperties = {
+  width: 24, height: 24, borderRadius: 12, background: 'var(--gold)', color: '#fff',
+  fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+}
+const btnBase: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+  minHeight: 48, padding: '0 24px', borderRadius: 999, border: 'none',
+  fontSize: 17, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+}
+const btn = {
+  // 金の面の上の文字は白(CLAUDE.md・オーナー確定)。
+  primary: { ...btnBase, background: 'var(--gold)', color: '#fff' } as React.CSSProperties,
+  secondary: { ...btnBase, background: '#fff', color: 'var(--label)', boxShadow: 'inset 0 0 0 1px var(--sep)' } as React.CSSProperties,
+  small: { ...btnBase, minHeight: 44, padding: '0 16px', fontSize: 15, background: 'var(--label)', color: '#fff' } as React.CSSProperties,
+  icon: { ...btnBase, width: 48, minHeight: 48, padding: 0, background: 'var(--fill)', color: 'var(--label)', flexShrink: 0 } as React.CSSProperties,
+}
+
+function GroupLabel({ children, small }: { children: React.ReactNode; small?: boolean }) {
+  return (
+    <h2 style={{ fontSize: small ? 13 : 20, fontWeight: small ? 600 : 700, color: small ? 'var(--label2)' : 'var(--label)', letterSpacing: small ? 0 : '-0.01em', margin: small ? '0 8px 8px' : '0 0 16px' }}>
+      {children}
+    </h2>
+  )
+}
+
+function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: string; onClose: () => void; onBack?: () => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {onBack && (
+        <button type="button" onClick={onBack} className="tp-press" aria-label="戻る" style={{ ...btn.icon, width: 44, minHeight: 44, marginLeft: -8 }}>
+          <ChevronLeftIcon size={24} />
+        </button>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
+        {sub && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
+      </div>
+      <button type="button" onClick={onClose} className="tp-press" aria-label="閉じる" style={{ ...btn.icon, width: 44, minHeight: 44, marginRight: -8 }}>
+        <XIcon size={20} />
+      </button>
+    </div>
+  )
+}
+
+function FormRow({ label, hint, children, last }: { label: string; hint?: string; children: React.ReactNode; last?: boolean }) {
+  return (
+    <label style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '4px 16px', borderBottom: last ? 'none' : '1px solid var(--sep)' }}>
+      <span style={{ flexShrink: 0, maxWidth: '55%' }}>
+        <span style={{ display: 'block', fontSize: 17, color: 'var(--label)' }}>{label}</span>
+        {hint && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{hint}</span>}
+      </span>
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'flex-end' }}>{children}</span>
+    </label>
+  )
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, [string, string, string]> = {
+    active: ['開催中', 'rgba(242,169,0,0.16)', '#8A5F00'],
+    scheduled: ['予定', 'rgba(118,118,128,0.12)', 'var(--label2)'],
+    finished: ['終了', 'rgba(118,118,128,0.12)', 'var(--label2)'],
+  }
+  const [label, bg, fg] = map[status] ?? [status, 'rgba(118,118,128,0.12)', 'var(--label2)']
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: bg, color: fg, flexShrink: 0 }}>
+      {status === 'active' && <span className="tp-live" style={{ width: 8, height: 8, borderRadius: 4, background: '#F2A900' }} />}
+      {label}
+    </span>
+  )
+}
+
+function Chip({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: 'rgba(118,118,128,0.12)', color: 'var(--label2)' }}>
+      {icon}{children}
+    </span>
+  )
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div style={{ background: 'rgba(118,118,128,0.08)', borderRadius: 12, padding: 8, textAlign: 'center' }}>
+      <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.27 }}>{value}</div>
+      <div style={{ fontSize: 13, color: 'var(--label2)' }}>{label}</div>
+    </div>
+  )
+}
+
+function EmptyCard({ icon, title, body, flat }: { icon: React.ReactNode; title: string; body?: string; flat?: boolean }) {
+  return (
+    <div style={{ ...(flat ? {} : card), padding: '32px 24px', textAlign: 'center', marginBottom: 32 }}>
+      <div style={{ color: 'var(--label3)', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>{icon}</div>
+      <p style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>{title}</p>
+      {body && <p style={{ fontSize: 15, color: 'var(--label2)', margin: '8px 0 0' }}>{body}</p>}
+    </div>
+  )
+}
+
+function SearchField({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div style={{ position: 'relative', marginBottom: 16 }}>
+      <SearchIcon size={20} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }} />
+      <input type="search" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
+        style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 48px 0 40px', fontSize: 17, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+      {value && (
+        <button type="button" onClick={() => onChange("")} aria-label="検索語を消す" className="tp-press"
+          style={{ position: 'absolute', right: 0, top: 0, width: 44, height: 44, border: 'none', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
+          <XIcon size={20} />
+        </button>
+      )}
+    </div>
+  )
+}
+
+function InlineError({ children }: { children: React.ReactNode }) {
+  return <p role="alert" style={{ fontSize: 15, color: '#D70015', margin: '0 8px 8px', fontWeight: 500 }}>{children}</p>
+}
+
+function CheckMark() {
+  return (
+    <CheckIcon size={20} style={{ color: 'var(--gold-dk)', flexShrink: 0 }} aria-hidden="true" />
   )
 }

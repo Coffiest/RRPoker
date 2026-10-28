@@ -1,8 +1,8 @@
 'use client'
+import { HouseIcon, PlusIcon, UserIcon } from 'lucide-react'
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { FiHome, FiUser, FiPlus } from 'react-icons/fi'
 import { hapticTap } from '@/lib/haptics'
 
 type ActiveTab = 'home' | 'action' | 'mypage'
@@ -63,7 +63,7 @@ export default function StoreBottomNav() {
     <nav className="fixed bottom-5 left-4 right-4 z-[80]">
       <div
         className="mx-auto max-w-sm relative grid grid-cols-3 items-center"
-        style={{ ...GLASS, padding: '12px 28px' }}
+        style={{ ...GLASS, padding: '16px 32px' }}
       >
         {/* Sliding indicator */}
         <div style={{
@@ -86,11 +86,11 @@ export default function StoreBottomNav() {
         <button
           type="button"
           onClick={() => { hapticTap(); router.push('/home/store') }}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-2"
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <FiHome size={22} />
-          <span style={{ fontSize: 10, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
+          <HouseIcon size={22} />
+          <span style={{ fontSize: 11, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
         </button>
 
         {/* Center */}
@@ -98,12 +98,12 @@ export default function StoreBottomNav() {
           <button
             type="button"
             onClick={() => { hapticTap(); router.push('/home/store/tournaments') }}
-            className="flex items-center justify-center active:scale-95 transition-all"
+            className="flex items-center justify-center active:scale-[0.97] transition"
             style={{
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg,#F2A900,#D4910A)',
+              background: '#F2A900',
               border: 'none',
               cursor: 'pointer',
               boxShadow: activeTab === 'action'
@@ -112,7 +112,7 @@ export default function StoreBottomNav() {
               transition: 'box-shadow 0.35s ease',
             }}
           >
-            <FiPlus size={24} style={{ color: '#fff' }} />
+            <PlusIcon size={24} style={{ color: '#fff' }} />
           </button>
         </div>
 
@@ -120,11 +120,11 @@ export default function StoreBottomNav() {
         <button
           type="button"
           onClick={() => { hapticTap(); router.push('/home/store/mypage') }}
-          className="flex flex-col items-center gap-1"
+          className="flex flex-col items-center gap-2"
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <FiUser size={22} />
-          <span style={{ fontSize: 10, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
+          <UserIcon size={22} />
+          <span style={{ fontSize: 11, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
         </button>
       </div>
     </nav>

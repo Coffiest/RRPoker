@@ -1,9 +1,10 @@
 "use client"
+import { ArrowLeftIcon, AwardIcon, ChevronRightIcon, Share2Icon, TrendingUpIcon } from 'lucide-react'
+import AppleSheet from "@/components/AppleSheet"
 
 import { useEffect, useState } from "react"
 import { auth, db } from "@/lib/firebase"
 import { collection, doc, getDoc, getDocs } from "firebase/firestore"
-import { FiArrowLeft, FiAward, FiShare2, FiTrendingUp } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 
 // ── Canvas helpers ────────────────────────────────────────────
@@ -116,7 +117,7 @@ async function generateTournamentCard(opts: {
     {
       label: '出費合計',
       value: opts.buyin.toLocaleString(),
-      color: 'rgba(255,255,255,0.06)',
+      color: 'rgba(255,255,255,0.72)',
       valueColor: '#FFFFFF',
     },
     {
@@ -274,21 +275,21 @@ export default function TournamentHistoryPage() {
         {/* Header */}
         <div className="flex items-center justify-between pt-6 mb-6">
           <button onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition-all active:scale-95 shadow-sm">
-            <FiArrowLeft size={20} />
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition active:scale-[0.97] shadow-sm">
+            <ArrowLeftIcon size={20} />
           </button>
-          <h1 className="text-[20px] font-semibold text-gray-900">Tournament History</h1>
+          <h1 className="text-[20px] font-semibold text-gray-900">トーナメント履歴</h1>
           <div className="w-10" />
         </div>
 
         {/* Stats Summary */}
         {history.length > 0 && (
-          <div className="history-card rounded-3xl p-5 mb-6 animate-slideUp">
-            <div className="flex items-center gap-2 mb-3">
-              <FiTrendingUp className="text-[#F2A900]" size={18} />
+          <div className="history-card rounded-3xl p-6 mb-6 animate-slideUp">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUpIcon className="text-[#F2A900]" size={18} />
               <p className="text-[14px] font-semibold text-gray-900">サマリー</p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
                 <p className="text-[11px] text-gray-500">参加数</p>
                 <p className="text-[20px] font-bold text-gray-900">{history.length}</p>
@@ -312,20 +313,20 @@ export default function TournamentHistoryPage() {
         )}
 
         {/* History List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {history.map((item, index) => {
             const { entryCount, reentryCount, addonCount, entryFee, reentryFee, addonFee, prize, rank, buyin, cost, reward, roi } = computeStats(item)
 
             return (
               <div key={item.id}
-                className="history-card rounded-2xl p-4 hover:shadow-lg transition-all animate-fadeIn tour-card-tap"
+                className="history-card rounded-2xl p-4 hover:shadow-lg transition animate-fadeIn tour-card-tap"
                 style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => setSelectedItem(item)}>
 
                 {/* Tournament Header */}
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <p className="text-[14px] font-semibold text-gray-900 leading-tight mb-1">
+                    <p className="text-[14px] font-semibold text-gray-900 leading-tight mb-2">
                       {item.tournamentName ?? ""}
                     </p>
                     <p className="text-[11px] text-gray-500">
@@ -333,39 +334,39 @@ export default function TournamentHistoryPage() {
                     </p>
                   </div>
                   {rank !== "-" && (
-                    <div className="ml-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm flex-shrink-0">
+                    <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-sm flex-shrink-0">
                       <span className="text-[13px] font-bold text-white">{rank}位</span>
                     </div>
                   )}
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="col-span-2 rounded-xl bg-gray-50 p-3">
-                    <div className="flex items-center gap-1.5 mb-2">
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="col-span-2 rounded-xl bg-gray-50 p-4">
+                    <div className="flex items-center gap-2 mb-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#F2A900]"></div>
-                      <p className="text-[11px] font-semibold text-gray-600">Buy-in</p>
+                      <p className="text-[11px] font-semibold text-gray-600">参加費の内訳</p>
                     </div>
-                    <div className="space-y-1 text-[12px] text-gray-600">
+                    <div className="space-y-2 text-[12px] text-gray-600">
                       {entryCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Entry:</span>
+                          <span>エントリー:</span>
                           <span className="font-medium">{entryFee} × {entryCount}回</span>
                         </p>
                       )}
                       {reentryCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Re-entry:</span>
+                          <span>リエントリー:</span>
                           <span className="font-medium">{reentryFee} × {reentryCount}回</span>
                         </p>
                       )}
                       {addonCount > 0 && (
                         <p className="flex justify-between">
-                          <span>Add-on:</span>
+                          <span>アドオン:</span>
                           <span className="font-medium">{addonFee} × {addonCount}回</span>
                         </p>
                       )}
-                      <div className="h-px bg-gray-200 my-1.5"></div>
+                      <div className="h-px bg-gray-200 my-2"></div>
                       <p className="flex justify-between text-[13px] font-semibold text-gray-900">
                         <span>合計出費:</span>
                         <span>{buyin.toLocaleString()}</span>
@@ -373,8 +374,8 @@ export default function TournamentHistoryPage() {
                     </div>
                   </div>
 
-                  <div className={`rounded-xl p-3 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#FFFBF5] border border-[#F2A900]/20" : "bg-gray-50"}`}>
-                    <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className={`rounded-xl p-4 ${rank !== "-" ? "bg-gradient-to-br from-[#FFF6E5] to-[#FFFBF5] border border-[#F2A900]/20" : "bg-gray-50"}`}>
+                    <div className="flex items-center gap-2 mb-2">
                       <div className={`h-1.5 w-1.5 rounded-full ${rank !== "-" ? "bg-[#F2A900]" : "bg-gray-400"}`}></div>
                       <p className="text-[11px] font-semibold text-gray-600">獲得チップ</p>
                     </div>
@@ -385,25 +386,25 @@ export default function TournamentHistoryPage() {
                     )}
                   </div>
 
-                  <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-[11px] font-semibold text-gray-600 mb-1.5">ROI</p>
+                  <div className="rounded-xl bg-gray-50 p-4">
+                    <p className="text-[11px] font-semibold text-gray-600 mb-2">ROI</p>
                     <p className={`text-[16px] font-bold ${reward > cost ? "text-green-600" : reward < cost ? "text-red-600" : "text-gray-600"}`}>
                       {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <span className="text-gray-500">Cost:</span>
+                <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="text-gray-500">支払い:</span>
                     <span className="font-semibold text-gray-700">{cost.toFixed(1)}</span>
                   </div>
                   <div className="h-3 w-px bg-gray-200"></div>
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <span className="text-gray-500">Reward:</span>
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <span className="text-gray-500">獲得:</span>
                     <span className="font-semibold text-gray-700">{reward.toFixed(1)}</span>
                   </div>
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--label3)' }}>タップで詳細 →</div>
+                  <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--label3)' }}>タップで詳細 <ChevronRightIcon size={12} style={{ display: 'inline', verticalAlign: '-0.1em' }} /></div>
                 </div>
               </div>
             )
@@ -412,9 +413,9 @@ export default function TournamentHistoryPage() {
           {history.length === 0 && (
             <div className="text-center py-16 animate-fadeIn">
               <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <FiAward className="text-label3" size={36} />
+                <AwardIcon className="text-label3" size={36} />
               </div>
-              <p className="term-comment text-[16px] font-semibold text-gray-900 mb-1">トーナメント履歴がありません</p>
+              <p className="term-comment text-[16px] font-semibold text-gray-900 mb-2">トーナメント履歴がありません</p>
               <p className="text-[14px] text-gray-500">トーナメントに参加すると履歴が表示されます</p>
             </div>
           )}
@@ -427,48 +428,46 @@ export default function TournamentHistoryPage() {
         const roi = cost > 0 ? ((reward - cost) / cost * 100) : 0
         const isITM = rank !== '-' && rank !== ''
         return (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-            onClick={() => setSelectedItem(null)}>
-            <div className="tour-sheet" style={{ background: '#fff', borderRadius: '28px 28px 0 0', width: '100%', maxWidth: 480, padding: '12px 20px 48px', maxHeight: '88dvh', overflowY: 'auto' }}
-              onClick={e => e.stopPropagation()}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
+          <AppleSheet open onClose={() => setSelectedItem(null)} bare maxWidth={480} maxHeightVh={88} zIndex={300}>
+            <div className="tour-sheet" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 24px 48px', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}>
+
 
               {/* Sheet header */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3, marginBottom: 4 }}>{selectedItem.tournamentName ?? ""}</p>
+                  <p style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3, marginBottom: 8 }}>{selectedItem.tournamentName ?? ""}</p>
                   <p style={{ fontSize: 12, color: 'var(--label3)' }}>{formatDateTime(selectedItem.startedAt?.seconds)} · {selectedItem.storeName ?? ""}</p>
                 </div>
                 {isITM && (
-                  <div style={{ marginLeft: 12, width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(242,169,0,0.4)' }}>
+                  <div style={{ marginLeft: 16, width: 52, height: 52, borderRadius: '50%', background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 16px rgba(242,169,0,0.4)' }}>
                     <span style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{rank}位</span>
                   </div>
                 )}
               </div>
 
               {/* Buy-in breakdown */}
-              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '14px 16px', marginBottom: 12 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 10 }}>Buy-in 内訳</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', marginBottom: 16 }}>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>Buy-in 内訳</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Entry</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>エントリー</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{entryFee.toLocaleString()} × {entryCount}回</span>
                     </div>
                   )}
                   {reentryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Re-entry</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>リエントリー</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{reentryFee.toLocaleString()} × {reentryCount}回</span>
                     </div>
                   )}
                   {addonCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 13, color: '#3C3C43' }}>Add-on</span>
+                      <span style={{ fontSize: 13, color: '#3C3C43' }}>アドオン</span>
                       <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>{addonFee.toLocaleString()} × {addonCount}回</span>
                     </div>
                   )}
-                  <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '4px 0' }} />
+                  <div style={{ height: 1, background: 'rgba(0,0,0,0.08)', margin: '8px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E' }}>合計出費</span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E' }}>{buyin.toLocaleString()}</span>
@@ -477,12 +476,12 @@ export default function TournamentHistoryPage() {
               </div>
 
               {/* Result stats row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-                <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                <div style={{ background: isITM ? 'rgba(242,169,0,0.08)' : '#F2F2F7', borderRadius: 16, padding: '16px 16px', border: isITM ? '1px solid rgba(242,169,0,0.2)' : 'none' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得チップ</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#D4910A' : 'var(--label3)' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
-                <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '14px 16px' }}>
+                <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#F2F2F7', borderRadius: 16, padding: '16px 16px' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>ROI</p>
                   <p style={{ fontSize: 22, fontWeight: 800, color: roi > 0 ? '#34C759' : roi < 0 ? '#FF3B30' : 'var(--label3)' }}>
                     {cost > 0 ? `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%` : '-'}
@@ -490,29 +489,29 @@ export default function TournamentHistoryPage() {
                 </div>
               </div>
 
-              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '12px 16px', display: 'flex', gap: 20, marginBottom: 24 }}>
+              <div style={{ background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', display: 'flex', gap: 24, marginBottom: 24 }}>
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 4 }}>Cost</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>支払い</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{cost.toFixed(2)}</p>
                 </div>
                 <div style={{ width: 1, background: 'rgba(0,0,0,0.08)' }} />
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 4 }}>Reward</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{reward.toFixed(2)}</p>
                 </div>
               </div>
 
               {/* Share button */}
               <button type="button" onClick={() => shareTournamentCard(selectedItem)} disabled={sharingCard}
-                style={{ width: '100%', height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
+                style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
                 {sharingCard
-                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .7s linear infinite' }} />
-                  : <FiShare2 size={17} />
+                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .8s linear infinite' }} />
+                  : <Share2Icon size={17} />
                 }
                 {sharingCard ? '生成中...' : 'この結果をシェア'}
               </button>
             </div>
-          </div>
+          </AppleSheet>
         )
       })()}
     </main>

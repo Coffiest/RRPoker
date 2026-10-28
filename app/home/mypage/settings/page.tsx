@@ -8,6 +8,8 @@ import { resizeImageToDataUrl } from "@/lib/image"
 import HomeHeader from "@/components/HomeHeader"
 import { useLanguage, type Language } from "@/lib/i18n"
 import { loadGeoConsent, saveGeoConsent } from "@/lib/geoConsent"
+import { ChevronRightIcon } from "lucide-react"
+import { ChoiceRow, FieldRow, LargeTitle, NavRow, PageTitleBar, PrimaryButton, Section, SwitchRow, fieldInput } from "@/components/GroupedList"
 
 export default function UserSettingsPage() {
   const router = useRouter()
@@ -87,113 +89,52 @@ export default function UserSettingsPage() {
     }
   }
 
+  const [saving, setSaving] = useState(false)
+  const iconPreview = file ? URL.createObjectURL(file) : null
+
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 48 }}>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
-      <div className="mx-auto max-w-sm">
-        <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">プロフィール編集</h1>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
+        <PageTitleBar title="" onBack={() => router.back()} />
+        <LargeTitle>設定</LargeTitle>
+
+        <Section header="プロフィール" footer="名前とアイコンは、店舗やほかのプレイヤーに表示されます。">
+          <FieldRow label="名前">
+            <input type="text" value={name} onChange={e => { setSuccess(""); setName(e.target.value) }} placeholder="名前" className="gl-input" style={fieldInput} autoComplete="nickname" />
+          </FieldRow>
+          <label className="gl-row" style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 16px', cursor: 'pointer' }}>
+            <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>アイコン画像</span>
+            {iconPreview
+              ? /* eslint-disable-next-line @next/next/no-img-element -- 選んだ画像のプレビュー */
+                <img src={iconPreview} alt="選んだアイコン" style={{ width: 40, height: 40, borderRadius: 20, objectFit: 'cover' }} />
+              : <span style={{ fontSize: 17, color: 'var(--label2)' }}>選ぶ</span>}
+            <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+            <input type="file" accept="image/*" hidden onChange={e => { setSuccess(""); setFile(e.target.files?.[0] ?? null) }} />
+          </label>
+        </Section>
+        {error && <p role="alert" style={{ fontSize: 15, color: '#D70015', margin: '-16px 16px 16px' }}>{error}</p>}
+        {success && <p role="status" style={{ fontSize: 15, color: '#1E7B34', margin: '-16px 16px 16px' }}>{success}</p>}
+        <div style={{ marginBottom: 32 }}>
+          <PrimaryButton disabled={saving} onClick={async () => { setSaving(true); try { await saveProfile() } finally { setSaving(false) } }}>
+            {saving ? "保存しています…" : "プロフィールを保存"}
+          </PrimaryButton>
         </div>
 
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">ユーザー名</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="mt-2 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px]"
-          />
+        <Section header={t('settings.language')} footer={t('settings.languageNote')}>
+          {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
+            <ChoiceRow key={opt.v} label={opt.label} selected={language === opt.v} onSelect={() => setLanguage(opt.v)} />
+          ))}
+        </Section>
 
-          <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">アイコン画像</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => setFile(e.target.files?.[0] ?? null)}
-            className="mt-2 w-full text-[14px]"
-          />
+        <Section header="位置情報" footer="近くの店舗を距離の近い順に並べるために、現在地を一度だけ使います。保存はしません。">
+          <SwitchRow label="現在地を使う" checked={geoConsent === "granted"} onChange={v => updateGeoConsent(v ? "granted" : "declined")} />
+        </Section>
 
-          <button
-            type="button"
-            onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-          >
-            プロフィールを保存
-          </button>
-        </div>
-
-        {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
-        {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
-
-        <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">{t('settings.language')}</label>
-          <p className="mt-0.5 text-[11px] text-label3">{t('settings.languageNote')}</p>
-          <div className="mt-3 flex gap-2">
-            {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
-              <button
-                key={opt.v}
-                type="button"
-                onClick={() => setLanguage(opt.v)}
-                className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-                style={{
-                  background: language === opt.v ? '#F2A900' : '#F3F4F6',
-                  color: language === opt.v ? '#1a1a1a' : '#6b7280',
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">位置情報の利用</label>
-          <p className="mt-0.5 text-[11px] text-label3">近くの店舗を距離順に表示するために使用します</p>
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={() => updateGeoConsent("granted")}
-              className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-              style={{ background: geoConsent === "granted" ? '#F2A900' : '#F3F4F6', color: geoConsent === "granted" ? '#1a1a1a' : '#6b7280' }}
-            >
-              使う
-            </button>
-            <button
-              type="button"
-              onClick={() => updateGeoConsent("declined")}
-              className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-              style={{ background: geoConsent === "declined" ? '#F2A900' : '#F3F4F6', color: geoConsent === "declined" ? '#1a1a1a' : '#6b7280' }}
-            >
-              使わない
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => router.push('/home/mypage/password')}
-          className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-        >
-          パスワード変更
-        </button>
-
-        <button
-          type="button"
-          onClick={() => window.open('/privacy', '_blank')}
-          className="mt-3 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-700"
-        >
-          {t('common.privacyPolicy')}
-        </button>
-
-        {/* アカウント連携ボタン削除済み */}
-
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-4 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <Section header="アカウント">
+          <NavRow label="パスワード変更" onClick={() => router.push('/home/mypage/password')} />
+          <NavRow label={t('common.privacyPolicy')} onClick={() => router.push('/privacy')} />
+        </Section>
       </div>
     </main>
   )

@@ -82,14 +82,10 @@ function PairPageInner() {
         myPagePath="/home/mypage"
         menuItems={getCommonMenuItems(router, 'user')}
       />
-      <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-            <span className="tech-status-dot" />
-            <span className="tech-label" style={{ color: 'var(--label3)' }}>DEVICE LINK</span>
-          </div>
-          <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
-            TVと連携
+      <div style={{ flex: 1, padding: '24px 24px 104px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 420, marginTop: 24 }}>
+          <p className="font-display" style={{ fontSize: 28, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
+            テレビと連携
           </p>
           <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>
             Fire TV / Fire Stick 端末の画面に表示されているQRコードを読み込むと自動で連携されます。{'\n'}
@@ -107,8 +103,8 @@ function PairPageInner() {
             </div>
           ) : (
             <>
-              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 6 }}>
-                PAIRING CODE
+              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 8 }}>
+                連携コード(6桁)
               </label>
               <input
                 className="tech-num"
@@ -123,11 +119,11 @@ function PairPageInner() {
                   letterSpacing: 8,
                   textAlign: 'center',
                   fontWeight: 700,
-                  padding: '16px 12px',
+                  padding: '16px 16px',
                   borderRadius: 12,
                   border: `2px solid ${COLORS.border}`,
                   color: COLORS.dark,
-                  marginBottom: 20,
+                  marginBottom: 24,
                   boxSizing: 'border-box',
                 }}
               />

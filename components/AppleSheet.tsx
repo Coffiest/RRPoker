@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { hapticTap } from '@/lib/haptics'
+import { createPortal } from 'react-dom'
 
 /**
  * 下から出る面。指で掴んで下げられ、投げれば飛び、途中で掴み返せる。
@@ -47,6 +49,13 @@ type Props = {
   maxWidth?: number
   /** 重なり順。呼び出し側で必要なら上げる。 */
   zIndex?: number
+  /**
+   * 中身をそのまま入れる(見出し・本文の枠を付けない)。見出しと、自分でスクロールする本文を
+   * すでに持っている画面を、作りを変えずにこの面へ載せ替えるときに使う。
+   */
+  bare?: boolean
+  /** 面の背景。既定は白。 */
+  background?: string
 }
 
 export default function AppleSheet({
@@ -58,6 +67,8 @@ export default function AppleSheet({
   maxHeightVh = 88,
   maxWidth = 420,
   zIndex = 100,
+  bare = false,
+  background,
 }: Props) {
   const sheetRef = useRef<HTMLDivElement | null>(null)
   const scrimRef = useRef<HTMLDivElement | null>(null)
@@ -80,6 +91,8 @@ export default function AppleSheet({
 
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
+  const openRef = useRef(open)
+  openRef.current = open
 
   /** 位置を DOM に書く。スクリムの濃さも位置に連れて薄くする。 */
   const paint = useCallback(() => {
@@ -151,7 +164,14 @@ export default function AppleSheet({
   const dismiss = useCallback(
     (velocity = 0) => {
       const h = height.current || window.innerHeight
-      springTo(h, { velocity, onRest: () => onCloseRef.current() })
+      springTo(h, {
+        velocity,
+        onRest: () => {
+          // 閉じきったら DOM から外す(残すと透明な幕が画面を覆い、何も押せなくなる)。
+          setMounted(false)
+          if (openRef.current) onCloseRef.current()
+        },
+      })
     },
     [springTo],
   )
@@ -195,13 +215,21 @@ export default function AppleSheet({
 
   /* ---- ジェスチャー -------------------------------------------------- */
 
+  /** 指を置いた位置。10px 動くまでは「押しただけ」として扱う(ボタンや入力欄を押せるように)。 */
+  const pending = useRef<{ x: number; y: number; id: number } | null>(null)
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return
-    // 本文を上に送っている途中は、面ではなく本文を動かす。
-    const body = bodyRef.current
-    const fromBody = body?.contains(e.target as Node)
-    if (fromBody && body && body.scrollTop > 0) return
+    // 入力欄の中は文字の選択・カーソル移動に使うので、面は掴まない。
+    if ((e.target as HTMLElement).closest?.('input, textarea, select, [data-no-drag]')) return
+    // 本文を上に送っている途中は、面ではなく本文を動かす(指の下にある、スクロールできる箱を見る)。
+    for (let n = e.target as HTMLElement | null; n && n !== sheetRef.current; n = n.parentElement) {
+      if (n.scrollTop > 0) return
+    }
+    pending.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+  }
 
+  const beginDrag = (e: React.PointerEvent) => {
     // 動いている最中でも掴める。今の位置をそのまま引き継ぐ。
     stop()
     dragging.current = true
@@ -211,6 +239,15 @@ export default function AppleSheet({
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
+    const p = pending.current
+    if (!dragging.current && p && p.id === e.pointerId) {
+      const dy = e.clientY - p.y
+      const dx = e.clientX - p.x
+      // 下向きに 10px 動いて初めて面を掴む。横や上なら本文のスクロールに任せる。
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) { pending.current = null; return }
+      if (dy < -10) { pending.current = null; return }
+      if (dy > 10) { pending.current = null; beginDrag(e) }
+    }
     if (!dragging.current) return
     let next = e.clientY - grabOffset.current
 
@@ -227,6 +264,7 @@ export default function AppleSheet({
   }
 
   const endDrag = (e: React.PointerEvent) => {
+    pending.current = null
     if (!dragging.current) return
     dragging.current = false
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId) } catch {}
@@ -242,13 +280,14 @@ export default function AppleSheet({
     const projected = y.current + project(velocity)
     const sheetH = height.current || window.innerHeight
 
-    if (projected > sheetH * 0.42) dismiss(velocity)
+    if (projected > sheetH * 0.42) { hapticTap(); dismiss(velocity) }
     else springTo(0, { velocity, bounce: Math.abs(velocity) > 320 })
   }
 
   if (!mounted) return null
 
-  return (
+  // 親の重なり順(z-index)に閉じ込められないよう、body の直下に出す。
+  return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex }}>
       <div
         ref={scrimRef}
@@ -279,6 +318,7 @@ export default function AppleSheet({
             willChange: 'transform',
             touchAction: 'none',
             animation: 'none',   // 位置はスプリングが持つ
+            ...(background ? { background } : {}),
           }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -286,8 +326,9 @@ export default function AppleSheet({
           onPointerCancel={endDrag}
         >
           <div className="a-grabber" />
+          {bare ? children : <>
           {title != null && (
-            <div style={{ flexShrink: 0, padding: '16px 20px 12px' }}>{title}</div>
+            <div style={{ flexShrink: 0, padding: '16px 24px 16px' }}>{title}</div>
           )}
           <div
             ref={bodyRef}
@@ -297,7 +338,7 @@ export default function AppleSheet({
               flex: 1,
               overflowY: 'auto',
               overscrollBehavior: 'contain',
-              padding: '0 20px',
+              padding: '0 24px',
               touchAction: 'pan-y',
             }}
           >
@@ -307,7 +348,7 @@ export default function AppleSheet({
             <div
               style={{
                 flexShrink: 0,
-                padding: '12px 20px calc(14px + max(0px, env(safe-area-inset-bottom)))',
+                padding: '16px 24px calc(16px + max(0px, env(safe-area-inset-bottom)))',
                 borderTop: '1px solid var(--a-sep)',
                 background: 'var(--a-surface)',
               }}
@@ -315,8 +356,10 @@ export default function AppleSheet({
               {footer}
             </div>
           )}
+          </>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

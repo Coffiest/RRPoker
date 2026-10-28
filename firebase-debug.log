@@ -1,0 +1,9 @@
+[debug] [2026-10-28T04:23:01.235Z] ----------------------------------------------------------------------
+[debug] [2026-10-28T04:23:01.237Z] Command:       /opt/node22/bin/node /root/.npm/_npx/872b751b2f16d338/node_modules/.bin/firebase emulators:start --only auth,firestore --project demo-rrpoker
+[debug] [2026-10-28T04:23:01.237Z] CLI Version:   13.35.1
+[debug] [2026-10-28T04:23:01.238Z] Platform:      linux
+[debug] [2026-10-28T04:23:01.238Z] Node Version:  v22.22.0
+[debug] [2026-10-28T04:23:01.238Z] Time:          Wed Oct 28 2026 04:23:01 GMT+0000 (Coordinated Universal Time)
+[debug] [2026-10-28T04:23:01.238Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-10-28T04:23:01.445Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]

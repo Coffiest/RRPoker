@@ -1,12 +1,11 @@
 'use client'
+import { Grid3x3Icon, HouseIcon, PlusIcon, QrCodeIcon, UserIcon, XIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, onSnapshot } from 'firebase/firestore'
-import { FiHome, FiUser } from 'react-icons/fi'
-import { MdQrCode2, MdDialpad } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
 import { EDGE_PADDING, computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
@@ -118,7 +117,7 @@ export default function PlayerBottomNav() {
   }
 
   /** アイコン+ラベルの列(ホーム / マイページ)。 */
-  const sideTab = (key: TabKey, label: string, href: string, Icon: typeof FiHome) => {
+  const sideTab = (key: TabKey, label: string, href: string, Icon: typeof HouseIcon) => {
     const isActive = activeTab === key
     return (
       <button
@@ -214,7 +213,7 @@ export default function PlayerBottomNav() {
               pointerEvents: 'none',
             }} />
 
-            {sideTab('home', 'ホーム', '/home', FiHome)}
+            {sideTab('home', 'ホーム', '/home', HouseIcon)}
 
             {/* 中央。
                  入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
@@ -236,7 +235,7 @@ export default function PlayerBottomNav() {
             >
               <div style={{
                 width: L.circleSize, height: L.circleSize, borderRadius: '50%',
-                background: 'linear-gradient(135deg,#F2A900,#D4910A)',
+                background: '#F2A900',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
                 boxShadow: activeTab === 'action'
@@ -245,12 +244,12 @@ export default function PlayerBottomNav() {
                 transition: 'box-shadow 0.35s ease',
               }}>
                 {checkedIn
-                  ? <MdDialpad size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
-                  : <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
+                  ? <Grid3x3Icon size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
+                  : <QrCodeIcon size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
               </div>
             </button>
 
-            {sideTab('mypage', 'マイページ', '/home/mypage', FiUser)}
+            {sideTab('mypage', 'マイページ', '/home/mypage', UserIcon)}
           </div>
 
           {/* ── ツール(正方形、メインピルと高さ一致) ── */}
@@ -279,7 +278,7 @@ export default function PlayerBottomNav() {
                       animationDelay: `${i * 0.06}s`,
                     }}
                   >
-                    <span style={{ fontSize: Math.max(10, Math.round(12 * L.scale)), fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
+                    <span style={{ fontSize: Math.max(11, Math.round(12 * L.scale)), fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -302,9 +301,9 @@ export default function PlayerBottomNav() {
               }}
             >
               <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F2A900', lineHeight: 1 }}>
-                {toolsOpen ? '×' : '+'}
+                {toolsOpen ? <XIcon size={Math.max(16, Math.round(20 * L.scale))} /> : <PlusIcon size={Math.max(16, Math.round(20 * L.scale))} strokeWidth={2.5} />}
               </span>
-              <span style={{ fontSize: Math.max(7, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>ツール</span>
+              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>ツール</span>
             </button>
           </div>
         </div>

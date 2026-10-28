@@ -94,7 +94,7 @@ body {
   color: var(--foreground);
   font-family: var(--stack-mono);
   /* zero: スラッシュ付きゼロ。コンソール書体らしい字形を有効化 */
-  font-feature-settings: "zero" 1, "calt" 1;
+  font-feature-settings: "calt" 1;
   font-variant-ligatures: contextual;
 }
 
@@ -108,8 +108,8 @@ body {
 .tech-num,
 .tabular {
   font-family: var(--stack-mono);
-  font-variant-numeric: tabular-nums slashed-zero;
-  font-feature-settings: "zero" 1, "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* --------------------------------------------------------------------------
@@ -140,16 +140,16 @@ body {
 .tech-label {
   font-family: var(--stack-mono);
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   font-weight: 600;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
 /* Tailwind の uppercase を使う既存ラベルにも計器相当の字間を与える。
    小さな全大文字は字間を空けないと等幅では詰まって読みにくい。 */
 .uppercase:not([class*="tracking-"]) {
-  letter-spacing: 0.16em;
+  letter-spacing: 0.04em;
 }
 
 /* [ LABEL ] のブラケット囲み */
@@ -466,13 +466,13 @@ body {
 .con-hd {
   position: relative;
   font-family: var(--stack-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--label3);
-  padding: 0 0 7px;
-  margin-bottom: 12px;
+  padding: 0 0 8px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -544,18 +544,18 @@ body {
 /* 押せる場所。等幅・字間広め、押すと沈む */
 .con-btn {
   font-family: var(--stack-mono);
-  letter-spacing: 0.10em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 /* 離してからではなく、押した瞬間に沈む */
 .con-btn { transition: transform var(--a-press), box-shadow var(--a-press), filter var(--a-press); }
-.con-btn:active { transform: scale(0.965); filter: brightness(0.95); }
+.con-btn:active { transform: scale(0.97); filter: brightness(0.95); }
 
 /* 数値・コードは等幅で桁を揃える */
 .con-mono {
   font-family: var(--stack-mono);
-  font-variant-numeric: tabular-nums slashed-zero;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -647,7 +647,7 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 52px;
-  padding: 0 22px;
+  padding: 0 24px;
   border: none;
   border-radius: var(--a-capsule);
   font-family: var(--stack-mono);
@@ -661,7 +661,7 @@ body {
   transition: transform var(--a-press), filter var(--a-press),
               box-shadow 240ms var(--a-spring), background-color 240ms var(--a-spring);
 }
-.a-btn:active { transform: scale(0.965); }
+.a-btn:active { transform: scale(0.97); }
 .a-btn:disabled { opacity: 0.34; cursor: not-allowed; transform: none; filter: saturate(0.5) }
 
 /* 塗り。テーマの金。上端の光でカプセルに丸みを出す。 */
@@ -777,10 +777,10 @@ body {
 .a-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   min-height: 54px;
-  padding: 13px 18px;
+  padding: 16px 16px;
   background: transparent;
   border: none;
   text-align: left;
@@ -796,10 +796,10 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-section-hd {
   font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--a-label-3);
-  padding: 0 6px 8px;
+  padding: 0 8px 8px;
 }
 
 /* --------------------------------------------------------------------------
@@ -848,7 +848,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   height: 5px;
   border-radius: var(--a-capsule);
   background: rgba(60, 60, 67, 0.20);
-  margin: 9px auto 0;
+  margin: 8px auto 0;
   flex-shrink: 0;
 }
 
@@ -883,7 +883,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-eyebrow {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--a-label-3);
 }
@@ -946,7 +946,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
     0 2px 8px rgba(0, 0, 0, 0.03),
     0 14px 38px rgba(0, 0, 0, 0.07);
   border-radius: 30px;
-  padding: 20px;
+  padding: 24px;
 }
 
 /* 主の操作。カプセルにして、押した瞬間に沈む */
@@ -960,7 +960,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   transition: transform var(--a-press), box-shadow 240ms var(--a-spring), filter var(--a-press);
 }
 .gold-btn:active {
-  transform: scale(0.965);
+  transform: scale(0.97);
   filter: brightness(0.94);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(242,169,0,0.24);
 }
@@ -978,7 +978,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   transition: transform var(--a-press), background-color 240ms var(--a-spring);
 }
 .outline-gold-btn:hover { background: rgba(255, 255, 255, 0.72) }
-.outline-gold-btn:active { transform: scale(0.965); background: rgba(255, 255, 255, 0.8) }
+.outline-gold-btn:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.8) }
 
 @media (prefers-reduced-motion: reduce) {
   .gold-btn, .outline-gold-btn { transition-duration: 1ms }
@@ -1010,6 +1010,22 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .section-card    { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(28px) saturate(190%) }
   .outline-gold-btn{ background: rgba(255, 255, 255, 0.58); backdrop-filter: blur(22px) saturate(190%) }
   .con-panel       { background: rgba(255, 255, 255, 0.66); backdrop-filter: blur(26px) saturate(190%) }
+}
+
+/* 「透明度を下げる」「コントラストを上げる」は、上のガラスより後ろに書く(先に書くと上書きされて効かない)。
+   画面ごとに style で直接ぼかしている面も、ぼかしだけは外す。 */
+@media (prefers-reduced-transparency: reduce) {
+  .a-glass, .a-glass-thick, .a-btn-glass, .a-sheet, .a-dialog,
+  .section-card, .outline-gold-btn, .con-panel { background: #fff; backdrop-filter: none }
+  .a-scrim { backdrop-filter: none }
+  [style*="backdrop-filter"] { backdrop-filter: none !important }
+}
+@media (prefers-contrast: more) {
+  .a-glass, .a-glass-thick, .a-btn-glass, .a-sheet, .a-dialog,
+  .section-card, .outline-gold-btn, .con-panel {
+    background: #fff; backdrop-filter: none; box-shadow: inset 0 0 0 1px rgba(60,60,67,0.32)
+  }
+  [style*="backdrop-filter"] { backdrop-filter: none !important }
 }
 
 /* ==========================================================================
@@ -1103,8 +1119,8 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    -------------------------------------------------------------------------- */
 .a-kinetic {
   display: inline-flex;
-  font-variant-numeric: tabular-nums slashed-zero;
-  font-feature-settings: "zero" 1, "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 .a-kinetic-col {
   display: inline-block;
@@ -1145,3 +1161,138 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .a-kinetic-col > span { transition: none }
   .a-rise { opacity: 1; transform: none; transition: none }
 }
+
+/* ==========================================================================
+   デザインルール レイヤー(design-rules スキル準拠)
+   Apple HIG を最優先に、全画面へ同じ基準を当てる。上の定義より後に置き、
+   ここで上書きする。白基調・金(#F2A900)・灰色3段(--label/2/3)は変えない。
+   - 書体: 端末のシステムフォント(-apple-system / Hiragino Sans)
+   - 文字: 本文 17px、最小 11px
+   - 余白・寸法: 8 の倍数
+   - 押せる場所: 44px 以上
+   - 装飾: 意味を持たない飾り(方眼・走査線・// 記号・トンボ等)は出さない
+   ========================================================================== */
+:root {
+  --stack-system: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+                  "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  --stack-mono: var(--stack-system);
+  --stack-display: var(--stack-system);
+
+  --a-r-sm: 16px;
+  --a-r-md: 16px;
+  --a-r-lg: 24px;
+  --a-r-xl: 32px;
+}
+
+body {
+  font-family: var(--stack-system);
+  font-size: 17px;
+  line-height: 1.47;
+  font-feature-settings: normal;
+  font-variant-ligatures: normal;
+}
+
+.font-display { font-family: var(--stack-system); letter-spacing: -0.01em; }
+.tech-num, .tabular, .con-mono {
+  font-family: var(--stack-system);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 飾りを消す(色は意味を伝える時だけ使う) */
+.tech-grid, .tech-dots { background-image: none; }
+.tech-rule { border-top: 1px solid var(--a-sep); }
+.tech-label-bracket::before, .tech-label-bracket::after,
+.term-prompt::before, .term-prompt-arrow::before, .term-comment::before,
+.tech-caret::after, .tech-corners::before, .tech-corners::after,
+.tech-scanline::after, .con-live-panel::after, .con-panel::before,
+.con-hd::before { content: none; display: none; }
+.tech-status-dot { animation: none; box-shadow: none; }
+
+/* 小さな見出し・ラベル(HIG の footnote 相当) */
+.tech-label, .a-section-hd, .a-eyebrow {
+  font-family: var(--stack-system);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.38;
+  color: var(--label2);
+}
+.uppercase:not([class*="tracking-"]) { letter-spacing: 0.02em; }
+.a-section-hd { padding: 0 8px 8px; }
+
+.con-hd {
+  font-family: var(--stack-system);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--label2);
+  padding: 0 0 8px;
+  margin-bottom: 16px;
+}
+.con-hd::after { background: var(--a-sep); animation: none; }
+.con-panel { border-radius: var(--a-r-lg); box-shadow: var(--a-shadow-sm); }
+.con-btn { font-family: var(--stack-system); letter-spacing: 0; text-transform: none; }
+
+/* ボタン・行(押せる場所 44px 以上、寸法は 8 の倍数) */
+.a-btn {
+  font-family: var(--stack-system);
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.a-btn-filled {
+  background: #F2A900;
+  box-shadow: none;
+}
+.a-btn-sm { min-height: 44px; padding: 0 16px; font-size: 15px; }
+.a-btn-icon { min-height: 44px; width: 44px; padding: 0; }
+.a-row { min-height: 56px; padding: 16px; gap: 16px; }
+.a-grabber { margin: 8px auto 0; }
+.a-switch { min-width: 51px; }
+
+/* 文字の階層(HIG Dynamic Type の既定値) */
+.a-display { font-size: 34px; line-height: 1.2; letter-spacing: -0.02em; }
+.a-title-lg{ font-size: 28px; line-height: 1.21; letter-spacing: -0.015em; }
+.a-title   { font-size: 22px; line-height: 1.27; letter-spacing: -0.01em; }
+.a-heading { font-size: 17px; line-height: 1.29; letter-spacing: 0; font-weight: 600; }
+.a-body    { font-size: 17px; line-height: 1.29; }
+.a-caption { font-size: 13px; line-height: 1.38; letter-spacing: 0; }
+
+/* 主の操作は金の単色。グラデーション・光沢は使わない */
+.gold-btn, .gold-btn:active { background: #F2A900; box-shadow: none; }
+.a-kinetic { font-feature-settings: "tnum" 1; }
+.confirm-btn { -webkit-tap-highlight-color: transparent; transition: background-color 100ms ease-out; }
+.confirm-btn:active { background: rgba(60, 60, 67, 0.08) !important; }
+
+/* 押せる場所は必ず 44×44 以上(Apple HIG)。見た目が小さい文字ボタンも、押せる範囲はここで確保する。
+   スイッチ(.a-switch)は iOS と同じ 51×31 の見た目を保ち、行全体を押せる範囲にする。 */
+:where(button, [role="button"], [role="tab"], select):not(.a-switch) {
+  min-height: 44px;
+  min-width: 44px;
+}
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), textarea) {
+  min-height: 44px;
+}
+/* スイッチは iOS と同じ 51×31 の見た目。押せる範囲は行全体で確保する。 */
+.a-switch { width: 51px; height: 31px; min-height: 31px; min-width: 51px; }
+
+/* 戻るボタンのある画面(一段奥の画面)は右から入る。戻るボタンは左向きなので、来た道と帰る道が一致する。
+   fixed の部品(下のナビなど)がずれないよう、画面全体ではなく中身の箱だけを動かす。 */
+:has(> [data-nav-back]) { animation: pageSlideIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) backwards }
+@media (prefers-reduced-motion: reduce) {
+  :has(> [data-nav-back]) { animation: aFadeOnly 180ms ease both }
+}
+
+/* くるくる回る読み込み表示は、どの画面でも同じ速さで回す。 */
+.animate-spin { animation-duration: .8s }
+
+/* 見た目は小さいまま、押せる範囲だけ 44px 以上に広げる(HIG)。
+   スイッチは iOS 標準の 51x31 を保ち、文中のリンクは行の高さを変えない。 */
+.a-switch::before { content: ''; position: absolute; inset: -7px -4px }
+.hit-44 { position: relative }
+.hit-44::after { content: ''; position: absolute; inset: -15px -4px }

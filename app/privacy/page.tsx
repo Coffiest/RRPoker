@@ -1,5 +1,4 @@
-import Link from "next/link"
-import { FiChevronLeft } from "react-icons/fi"
+import BackLink from "@/components/BackLink"
 
 export const metadata = {
   title: "プライバシーポリシー | RRPoker",
@@ -9,13 +8,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="tech-grid min-h-screen bg-[#FAFAFA] px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-1 transition-colors"
-        >
-          <FiChevronLeft size={18} />
-          戻る
-        </Link>
+        <BackLink />
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">プライバシーポリシー</h1>
         <p className="text-xs text-label3 mb-8">最終更新日: 2026年8月31日</p>
@@ -29,20 +22,20 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">1. 取得する情報</h2>
-            <p className="font-semibold text-gray-800 mb-1">プレイヤー</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <p className="font-semibold text-gray-800 mb-2">プレイヤー</p>
+            <ul className="list-disc pl-6 space-y-2">
               <li>メールアドレス（ログイン認証用）</li>
               <li>ポーカーネーム・Player ID（店舗があなたを識別するための表示名で、本名である必要はありません）</li>
               <li>誕生日（任意。入力しない場合でも登録・利用できます。店舗の誕生日クーポン等にのみ利用されます）</li>
               <li>プロフィール画像（任意）</li>
             </ul>
-            <p className="font-semibold text-gray-800 mt-3 mb-1">店舗</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <p className="font-semibold text-gray-800 mt-4 mb-2">店舗</p>
+            <ul className="list-disc pl-6 space-y-2">
               <li>メールアドレス（ログイン認証用）、店舗名</li>
               <li>住所情報（任意。入力するとプレイヤーの近い順検索に利用されますが、未入力でも登録・運営できます）</li>
             </ul>
-            <p className="font-semibold text-gray-800 mt-3 mb-1">共通</p>
-            <ul className="list-disc pl-5 space-y-1">
+            <p className="font-semibold text-gray-800 mt-4 mb-2">共通</p>
+            <ul className="list-disc pl-6 space-y-2">
               <li>トーナメント・チップ管理に関する利用データ</li>
               <li>決済処理に必要な情報（Stripe または Apple In-App Purchase 経由で処理され、カード番号等は当サービスのサーバーには保存されません）</li>
               <li>アプリの利用状況・アクセスログ</li>
@@ -59,7 +52,7 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">3. 利用目的</h2>
-            <ul className="list-disc pl-5 space-y-1">
+            <ul className="list-disc pl-6 space-y-2">
               <li>本人確認およびログイン認証（Firebase Authentication）</li>
               <li>サービスの提供・運営・改善</li>
               <li>サブスクリプション決済の処理および管理</li>
@@ -80,7 +73,7 @@ export default function PrivacyPolicyPage() {
             <p>
               当サービスは、以下の外部サービスを利用してデータを処理しています。各サービスのプライバシーポリシーが適用されます。
             </p>
-            <ul className="list-disc pl-5 space-y-1 mt-2">
+            <ul className="list-disc pl-6 space-y-2 mt-2">
               <li>Google Firebase（認証・データベース・ホスティング）</li>
               <li>Stripe, Inc.（Web版の決済処理）</li>
               <li>Apple Inc.（iOS版のApp内課金処理）</li>

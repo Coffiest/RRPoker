@@ -18,12 +18,12 @@ export default function StoreLiveTournamentsPreview({ storeId }: { storeId: stri
   if (tournaments.length === 0) return null
 
   return (
-    <div className="mb-5">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <p className="tech-label" style={{ fontSize: 10.5, color: '#1C1C1E', letterSpacing: '0.16em' }}>
+    <div className="mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.04em' }}>
           実施中のトナメ
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
           <span className="tech-num" style={{ fontSize: 11, fontWeight: 700, color: '#34C759' }}>
             {tournaments.length}
@@ -31,7 +31,7 @@ export default function StoreLiveTournamentsPreview({ storeId }: { storeId: stri
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {tournaments.map(t => (
           <LiveTournamentTimer key={t.id} tournament={t} />
         ))}

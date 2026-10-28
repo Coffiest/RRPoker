@@ -100,16 +100,16 @@ export default function TournamentPurchaseLog({
   }
 
   return (
-    <div style={{ marginTop: 12 }}>
+    <div style={{ marginTop: 16 }}>
       <p className="section-hd" style={{ marginBottom: 8 }}>リエントリー / アドオン</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {rows.map(row => (
           <div
             key={row.id}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '11px 13px', borderRadius: 16,
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 16px', borderRadius: 16,
               background: row.revoked ? 'transparent' : '#F2F2F7',
               border: row.revoked ? '1px dashed rgba(60,60,67,0.18)' : '1px solid transparent',
               opacity: row.revoked ? 0.5 : 1,
@@ -123,7 +123,7 @@ export default function TournamentPurchaseLog({
               }}>
                 {row.playerName || 'プレイヤー'}
               </p>
-              <p className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)', marginTop: 2 }}>
+              <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>
                 {LABEL[row.type] ?? row.type}
                 {row.createdAtMs
                   ? ` · ${new Date(row.createdAtMs).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`
@@ -145,9 +145,9 @@ export default function TournamentPurchaseLog({
                 disabled={busyId === row.id}
                 className="con-btn"
                 style={{
-                  flexShrink: 0, height: 32, padding: '0 14px', borderRadius: 999,
+                  flexShrink: 0, height: 44, padding: '0 16px', borderRadius: 999,
                   background: 'rgba(255,59,48,0.11)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,59,48,0.16)',
-                  color: '#FF3B30', fontSize: 10, fontWeight: 700, cursor: 'pointer',
+                  color: '#FF3B30', fontSize: 11, fontWeight: 700, cursor: 'pointer',
                   opacity: busyId === row.id ? 0.5 : 1,
                 }}
               >
@@ -159,7 +159,7 @@ export default function TournamentPurchaseLog({
       </div>
 
       {error && (
-        <p style={{ fontSize: 11, color: '#FF3B30', marginTop: 6 }}>{error}</p>
+        <p style={{ fontSize: 11, color: '#FF3B30', marginTop: 8 }}>{error}</p>
       )}
     </div>
   )

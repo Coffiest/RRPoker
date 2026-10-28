@@ -1,7 +1,7 @@
 "use client"
+import { RefreshCwIcon, SearchIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
-import { FiRefreshCw, FiSearch } from "react-icons/fi"
 import { filterAndSortPlayers, rankByRating, type AdminPlayer, type PlayerSort } from "@/lib/adminPlayers"
 
 type ApiFn = (path: string, method: string, body?: object) => Promise<Response>
@@ -90,26 +90,26 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
           {players.length} 人{bannedCount > 0 && <span className="text-red-400"> (BAN中 {bannedCount})</span>}
         </p>
         <div className="flex gap-2">
-          <button onClick={recomputeAll} disabled={recomputing} className="px-3 py-1.5 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
+          <button onClick={recomputeAll} disabled={recomputing} className="px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
             {recomputing ? "計算中..." : "偏差値を再計算"}
           </button>
-          <button onClick={fetchPlayers} disabled={loading} className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
-            <FiRefreshCw size={13} className={loading ? "animate-spin" : ""} /> 更新
+          <button onClick={fetchPlayers} disabled={loading} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50">
+            <RefreshCwIcon size={13} className={loading ? "animate-spin" : ""} /> 更新
           </button>
         </div>
       </div>
 
-      {error && <div className="mb-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>}
-      {notice && <div className="mb-3 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-sm text-green-400">{notice}</div>}
+      {error && <div className="mb-4 px-4 py-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>}
+      {notice && <div className="mb-4 px-4 py-4 rounded-xl bg-green-500/10 border border-green-500/20 text-sm text-green-400">{notice}</div>}
 
-      <div className="relative mb-3">
-        <FiSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <div className="relative mb-4">
+        <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="名前・プレイヤーID・メールで検索"
-          className="w-full bg-gray-800 rounded-xl pl-9 pr-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40"
+          className="w-full bg-gray-800 rounded-xl pl-10 pr-4 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-[#F2A900]/40"
         />
       </div>
 
@@ -118,7 +118,7 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
           <button
             key={s}
             onClick={() => setSort(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${sort === s ? "bg-[#F2A900] text-black" : "bg-gray-800 text-gray-300"}`}
+            className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${sort === s ? "bg-[#F2A900] text-black" : "bg-gray-800 text-gray-300"}`}
           >
             {SORT_LABEL[s]}
           </button>
@@ -131,7 +131,7 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
         {visible.map(p => {
           const rank = ranks.get(p.uid)
           return (
-            <div key={p.uid} className={`flex items-center gap-3 rounded-xl px-4 py-3 ${p.banned ? "bg-red-950/40 ring-1 ring-red-500/20" : "bg-gray-900"}`}>
+            <div key={p.uid} className={`flex items-center gap-4 rounded-xl px-4 py-4 ${p.banned ? "bg-red-950/40 ring-1 ring-red-500/20" : "bg-gray-900"}`}>
               <div className="w-8 shrink-0 text-center text-xs font-bold text-gray-400 tabular-nums">
                 {rank ?? "--"}
               </div>
@@ -144,7 +144,7 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">
                   {p.name || "(名前未設定)"}
-                  {p.banned && <span className="ml-2 text-[10px] font-bold text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded-full">BAN中</span>}
+                  {p.banned && <span className="ml-2 text-[11px] font-bold text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">BAN中</span>}
                 </p>
                 <p className="text-xs text-gray-400 truncate">
                   {p.playerId ?? "ID未設定"}{p.email ? ` ・ ${p.email}` : ""}
@@ -156,13 +156,13 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-[10px] text-gray-400">偏差値</p>
+                <p className="text-[11px] text-gray-400">偏差値</p>
                 <p className="text-sm font-bold tabular-nums">{p.rrRating !== null ? p.rrRating.toFixed(2) : "--"}</p>
               </div>
               <button
                 onClick={() => p.banned ? setBanned(p, false) : (setBanTarget(p), setBanReason(""))}
                 disabled={savingUid === p.uid}
-                className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 ${
+                className={`shrink-0 text-xs font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 ${
                   p.banned ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-red-600 text-white hover:bg-red-500"
                 }`}
               >
@@ -176,9 +176,9 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
       {banTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-gray-900 p-6 shadow-2xl">
-            <h2 className="text-base font-bold mb-1">このプレイヤーをBANしますか?</h2>
-            <p className="text-xs text-gray-400 mb-3 truncate">{banTarget.name || banTarget.playerId || banTarget.uid}</p>
-            <ul className="text-xs text-gray-400 mb-4 space-y-1 list-disc pl-4">
+            <h2 className="text-base font-bold mb-2">このプレイヤーをBANしますか?</h2>
+            <p className="text-xs text-gray-400 mb-4 truncate">{banTarget.name || banTarget.playerId || banTarget.uid}</p>
+            <ul className="text-xs text-gray-400 mb-4 space-y-2 list-disc pl-4">
               <li>ログインできなくなります(ログイン中の端末も締め出されます)</li>
               <li>入店中なら退店になり、店舗に入店できなくなります</li>
               <li>偏差値・ランキング・検索・プロフィールから外れ、全員の偏差値を計算し直します</li>
@@ -190,16 +190,16 @@ export default function AdminPlayersTab({ api, onUnauthorized }: { api: ApiFn; o
               placeholder="理由(任意・管理者画面にだけ表示)"
               maxLength={500}
               rows={3}
-              className="w-full bg-gray-800 rounded-xl px-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-red-500/40 mb-4"
+              className="w-full bg-gray-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-red-500/40 mb-4"
             />
             <div className="flex gap-2">
-              <button onClick={() => setBanTarget(null)} className="flex-1 h-10 rounded-xl bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
+              <button onClick={() => setBanTarget(null)} className="flex-1 h-11 rounded-xl bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700">
                 キャンセル
               </button>
               <button
                 onClick={() => setBanned(banTarget, true, banReason)}
                 disabled={savingUid === banTarget.uid}
-                className="flex-1 h-10 rounded-xl bg-red-600 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
+                className="flex-1 h-11 rounded-xl bg-red-600 text-sm font-bold text-white hover:bg-red-500 disabled:opacity-50"
               >
                 {savingUid === banTarget.uid ? "..." : "BANする"}
               </button>

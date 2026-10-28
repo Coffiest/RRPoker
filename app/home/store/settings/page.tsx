@@ -1,4 +1,5 @@
 "use client"
+import { ChevronLeftIcon, ChevronRightIcon, MinusIcon, PlusIcon, SearchIcon, Trash2Icon, UserIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -7,6 +8,9 @@ import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useLanguage, type Language } from "@/lib/i18n"
+import AppleSheet from "@/components/AppleSheet"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
+import { ChoiceRow, FieldRow, LargeTitle, NavRow, PageTitleBar, PrimaryButton, Section, SwitchRow, fieldInput } from "@/components/GroupedList"
 
 import {
   addDoc,
@@ -24,7 +28,6 @@ import {
   where,
 } from "firebase/firestore"
 
-import { FiArrowLeft, FiTrash2, FiSearch, FiX, FiMinus, FiPlus, FiUser } from "react-icons/fi"
 
 type StoreInfo = {
   name: string
@@ -46,86 +49,9 @@ type StampPlayer = {
   lastStampAt: Date | null
 }
 
-const CLR = {
-  bg:      "#FFFBF5",
-  white:   "#FFFFFF",
-  surface: "#F5F3EF",
-  border:  "#E8E3DB",
-  gold:    "#F2A900",
-  goldDk:  "#D4910A",
-  ink:     "#1D1D1F",
-  gray2:   "#545458",
-  gray3:   "#6E6E73",
-  red:     "#E53E3A",
-}
-
-function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
-  // 見た目と手応えは globals.css の .a-switch が持つ。押している間だけ
-  // つまみが横に伸び、離すと縮んで収まる。
-  return <button type="button" role="switch" aria-checked={on} onClick={onToggle} className="a-switch" />
-}
-
-function SectionCard({ children }: { children: React.ReactNode }) {
-  return <div className="section-card" style={{ padding: 20 }}>{children}</div>
-}
-
-function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
-  return (
-    <div className="mb-4">
-      <p className="text-[15px] font-bold" style={{ color: CLR.ink }}>{title}</p>
-      {subtitle && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{subtitle}</p>}
-    </div>
-  )
-}
-
-function FieldInput({ value, onChange, placeholder, type = "text", disabled }: {
-  value: string; onChange: (v: string) => void; placeholder?: string; type?: string; disabled?: boolean
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      disabled={disabled}
-      className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none transition-all disabled:opacity-40"
-      style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
-      onFocus={e => (e.target.style.borderColor = CLR.gold)}
-      onBlur={e => (e.target.style.borderColor = CLR.border)}
-    />
-  )
-}
-
-function PrimaryButton({ onClick, disabled, children }: {
-  onClick: () => void; disabled?: boolean; children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="a-btn a-btn-filled a-btn-block"
-    >
-      {children}
-    </button>
-  )
-}
-
-function GhostButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="a-btn a-btn-glass a-btn-block"
-    >
-      {children}
-    </button>
-  )
-}
-
 function FeedbackText({ text, color }: { text: string; color: "green" | "red" }) {
   return (
-    <p className="text-[12px] mt-1.5 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
+    <p role={color === "red" ? "alert" : "status"} style={{ fontSize: 15, margin: '-16px 16px 16px', color: color === "green" ? "#1E7B34" : "#D70015" }}>
       {text}
     </p>
   )
@@ -139,7 +65,6 @@ export default function StoreSettingsPage() {
   const [chipExpiryInput, setChipExpiryInput] = useState("")
   const [chipExpiryError, setChipExpiryError] = useState("")
   const [chipExpirySuccess, setChipExpirySuccess] = useState("")
-  const [isChipExpiryModalOpen, setIsChipExpiryModalOpen] = useState(false)
   const [rakeEntries, setRakeEntries] = useState<RakeEntry[]>([])
   const [isRakeModalOpen, setIsRakeModalOpen] = useState(false)
   const [rakeView, setRakeView] = useState<"menu" | "add" | "history">("menu")
@@ -179,6 +104,7 @@ export default function StoreSettingsPage() {
   const [editStampPlayer, setEditStampPlayer] = useState<StampPlayer | null>(null)
   const [editStampCount, setEditStampCount] = useState("")
   const [editSaving, setEditSaving] = useState(false)
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async user => {
@@ -499,8 +425,24 @@ export default function StoreSettingsPage() {
     }
   }
 
+  const [sheet, setSheet] = useState<null | "coupon" | "birthday" | "notice" | "unit" | "expiry" | "postal">(null)
+  const closeSheet = () => setSheet(null)
+  const unitPreview = chipUnitLabel ? (chipUnitBefore ? `${chipUnitLabel}500` : `500${chipUnitLabel}`) : "500"
+  const sheetTitle = (title: string, sub?: string) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: '-0.01em', color: 'var(--label)' }}>{title}</p>
+        {sub && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
+      </div>
+      <button type="button" onClick={closeSheet} aria-label="閉じる"
+        style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
+        <XIcon size={20} />
+      </button>
+    </div>
+  )
+
   return (
-    <main className="min-h-screen pb-28" style={{ background: "transparent" }}>
+    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -508,563 +450,336 @@ export default function StoreSettingsPage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="mx-auto max-w-sm px-5">
-        <button
-          type="button"
-          onClick={() => router.push("/home/store")}
-          className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold active:scale-95 transition-all"
-          style={{ color: CLR.gray2 }}
-        >
-          <FiArrowLeft size={14} />
-          戻る
-        </button>
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
+        <PageTitleBar title="" onBack={() => router.push("/home/store")} />
+        <LargeTitle>設定</LargeTitle>
 
-        <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
+        <Section header="入店" footer="オフにすると、プレイヤーは申請するとすぐ入店できます。">
+          <SwitchRow label="入店に承認を必要にする" checked={isApprovalRequired} onChange={() => void toggleApprovalRequired()} />
+        </Section>
 
-        <div className="mt-6 space-y-4">
+        <Section header="入店ボーナス" footer="入店するたびにスタンプが 1 つ付き、一定数でクーポンを配ります。">
+          <SwitchRow label="入店ボーナス" checked={checkinBonusEnabled} onChange={() => void toggleCheckinBonus()} />
+          {checkinBonusEnabled && (
+            <>
+              <NavRow label="クーポン名" detail={couponName || "未設定"} onClick={() => { setCouponError(""); setCouponSuccess(""); setSheet("coupon") }} />
+              <NavRow label="スタンプ数の管理" onClick={() => { setStampSearch(""); setStampSort("recent"); setStampModalOpen(true); void loadStampPlayers() }} />
+            </>
+          )}
+        </Section>
 
-          {/* ── 表示言語 ── */}
-          <SectionCard>
-            <SectionTitle title={t('settings.language')} subtitle={t('settings.languageNote')} />
-            <div className="flex gap-2">
-              {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
-                <button
-                  key={opt.v}
-                  type="button"
-                  onClick={() => setLanguage(opt.v)}
-                  className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-                  style={{
-                    background: language === opt.v ? CLR.gold : CLR.surface,
-                    color: language === opt.v ? CLR.ink : CLR.gray2,
-                    border: `1.5px solid ${language === opt.v ? CLR.goldDk : CLR.border}`,
-                  }}
-                >
+        <Section header="誕生日クーポン" footer="誕生日を登録したプレイヤーに、誕生日にクーポンを自動で配ります。">
+          <SwitchRow label="誕生日クーポン" checked={birthdayCouponEnabled} onChange={() => void toggleBirthdayCoupon()} />
+          {birthdayCouponEnabled && (
+            <NavRow label="内容" detail={birthdayCouponName || "未設定"} onClick={() => { setBirthdayCouponError(""); setBirthdayCouponSuccess(""); setSheet("birthday") }} />
+          )}
+        </Section>
+
+        <Section header="お知らせ">
+          <NavRow label="お知らせを送る" onClick={() => { setNoticeError(""); setNoticeSuccess(""); setSheet("notice") }} />
+        </Section>
+
+        <Section header="チップ">
+          <NavRow label="通貨の単位" detail={unitPreview} onClick={() => { setChipUnitError(""); setChipUnitSuccess(""); setSheet("unit") }} />
+          <NavRow label="有効期限" detail={store?.chipExpiryMonths ? `${store.chipExpiryMonths}ヶ月` : "期限なし"} onClick={() => {
+            setChipExpiryError(""); setChipExpirySuccess(""); setChipExpiryInput(store?.chipExpiryMonths?.toString() ?? ""); setSheet("expiry")
+          }} />
+          <NavRow label="レーキ" detail={rakeTotal.toLocaleString()} onClick={() => { setRakeView("menu"); setRakeError(""); setIsRakeModalOpen(true) }} />
+        </Section>
+
+        <Section header="店舗の場所" footer="プレイヤーの予定画面で、近い店舗から順に並べるために使います。">
+          <NavRow label="郵便番号" detail={postalCode || "未設定"} onClick={() => { setPostalCodeError(""); setPostalCodeSuccess(""); setSheet("postal") }} />
+        </Section>
+
+        <Section header={t('settings.language')} footer={t('settings.languageNote')}>
+          {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
+            <ChoiceRow key={opt.v} label={opt.label} selected={language === opt.v} onSelect={() => setLanguage(opt.v)} />
+          ))}
+        </Section>
+
+        <Section>
+          <NavRow label={t('common.privacyPolicy')} onClick={() => router.push('/privacy')} />
+        </Section>
+      </div>
+
+      {/* ── 入店ボーナスのクーポン名 ── */}
+      <AppleSheet open={sheet === "coupon"} onClose={closeSheet} title={sheetTitle("クーポン名", "スタンプが貯まったときに配るクーポン")}
+        footer={<PrimaryButton onClick={async () => { await saveCouponName(); }}>保存する</PrimaryButton>}>
+        <Section footer="20 文字まで">
+          <FieldRow label="名前">
+            <input value={couponName} onChange={e => { setCouponError(""); setCouponName(e.target.value) }} placeholder="例: 入店無料クーポン" maxLength={20} style={fieldInput} />
+          </FieldRow>
+        </Section>
+        {couponError && <FeedbackText text={couponError} color="red" />}
+        {couponSuccess && <FeedbackText text={couponSuccess} color="green" />}
+      </AppleSheet>
+
+      {/* ── 誕生日クーポン ── */}
+      <AppleSheet open={sheet === "birthday"} onClose={closeSheet} title={sheetTitle("誕生日クーポン")}
+        footer={<PrimaryButton onClick={saveBirthdayCoupon}>保存する</PrimaryButton>}>
+        <Section>
+          <FieldRow label="クーポン名">
+            <input value={birthdayCouponName} onChange={e => setBirthdayCouponName(e.target.value)} placeholder="例: 誕生日ドリンク" style={fieldInput} />
+          </FieldRow>
+        </Section>
+        <Section header="有効期限">
+          <SwitchRow label="無期限" checked={birthdayCouponUnlimited} onChange={setBirthdayCouponUnlimited} />
+          {!birthdayCouponUnlimited && (
+            <FieldRow label="期間">
+              <input type="number" inputMode="numeric" value={birthdayCouponExpiryValue} onChange={e => setBirthdayCouponExpiryValue(e.target.value)} placeholder="7" style={{ ...fieldInput, width: 64 }} className="no-spin" />
+              <select value={birthdayCouponExpiryUnit} onChange={e => setBirthdayCouponExpiryUnit(e.target.value as "day" | "month")}
+                style={{ height: 44, border: 'none', background: 'none', fontSize: 17, color: 'var(--label2)', fontFamily: 'inherit' }}>
+                <option value="day">日</option>
+                <option value="month">ヶ月</option>
+              </select>
+            </FieldRow>
+          )}
+        </Section>
+        {birthdayCouponError && <FeedbackText text={birthdayCouponError} color="red" />}
+        {birthdayCouponSuccess && <FeedbackText text={birthdayCouponSuccess} color="green" />}
+      </AppleSheet>
+
+      {/* ── お知らせ ── */}
+      <AppleSheet open={sheet === "notice"} onClose={closeSheet} title={sheetTitle("お知らせを送る", "お気に入りに登録しているプレイヤーに届きます")}
+        footer={<PrimaryButton onClick={sendNotice} disabled={noticeSending || !noticeMessage.trim()}>{noticeSending ? "送信しています…" : "送信する"}</PrimaryButton>}>
+        <Section>
+          <textarea value={noticeMessage} onChange={e => { setNoticeError(""); setNoticeSuccess(""); setNoticeMessage(e.target.value) }} placeholder="メッセージ" rows={5} aria-label="メッセージ"
+            style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 17, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+        </Section>
+        {noticeError && <FeedbackText text={noticeError} color="red" />}
+        {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
+      </AppleSheet>
+
+      {/* ── 通貨の単位 ── */}
+      <AppleSheet open={sheet === "unit"} onClose={closeSheet} title={sheetTitle("通貨の単位", "チップの数の横に表示されます")}
+        footer={<PrimaryButton onClick={saveChipUnit}>保存する</PrimaryButton>}>
+        <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
+          <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0 }}>表示の例</p>
+          <p style={{ fontSize: 34, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{unitPreview}</p>
+        </div>
+        <Section footer="例: $、pt.、chips。単位を付けないときは空欄にします。">
+          <FieldRow label="単位">
+            <input value={chipUnitLabel} onChange={e => setChipUnitLabel(e.target.value)} placeholder="なし" style={fieldInput} />
+          </FieldRow>
+        </Section>
+        <Section header="表示する位置">
+          <ChoiceRow label="数の前" detail="例: $500" selected={chipUnitBefore} onSelect={() => setChipUnitBefore(true)} />
+          <ChoiceRow label="数の後" detail="例: 500pt." selected={!chipUnitBefore} onSelect={() => setChipUnitBefore(false)} />
+        </Section>
+        {chipUnitError && <FeedbackText text={chipUnitError} color="red" />}
+        {chipUnitSuccess && <FeedbackText text={chipUnitSuccess} color="green" />}
+      </AppleSheet>
+
+      {/* ── チップの有効期限 ── */}
+      <AppleSheet open={sheet === "expiry"} onClose={closeSheet} title={sheetTitle("チップの有効期限")}
+        footer={<PrimaryButton onClick={saveChipExpiry}>保存する</PrimaryButton>}>
+        <Section footer="0 にすると期限なしになります。変更すると、チップを持っているプレイヤーに通知が届きます。">
+          <FieldRow label="期限">
+            <input type="number" inputMode="numeric" value={chipExpiryInput} onChange={e => setChipExpiryInput(e.target.value)} placeholder="0" style={{ ...fieldInput, width: 80 }} className="no-spin" />
+            <span style={{ fontSize: 17, color: 'var(--label2)' }}>ヶ月</span>
+          </FieldRow>
+        </Section>
+        {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
+        {chipExpirySuccess && <FeedbackText text={`${chipExpirySuccess}。通知を送信しました`} color="green" />}
+      </AppleSheet>
+
+      {/* ── 郵便番号 ── */}
+      <AppleSheet open={sheet === "postal"} onClose={closeSheet} title={sheetTitle("店舗の場所")}
+        footer={<PrimaryButton onClick={savePostalCode}>保存する</PrimaryButton>}>
+        <Section footer="7 桁の数字(ハイフンなし)。住所から地図上の位置を調べて保存します。">
+          <FieldRow label="郵便番号">
+            <input inputMode="numeric" value={postalCode} onChange={e => { setPostalCode(e.target.value); setPostalCodeError(""); setPostalCodeSuccess("") }} placeholder="1500001" maxLength={8} style={fieldInput} autoComplete="postal-code" />
+          </FieldRow>
+        </Section>
+        {postalCodeError && <FeedbackText text={postalCodeError} color="red" />}
+        {postalCodeSuccess && <FeedbackText text={postalCodeSuccess} color="green" />}
+      </AppleSheet>
+
+      {/* ── レーキ ── */}
+      <AppleSheet open={isRakeModalOpen} onClose={() => setIsRakeModalOpen(false)}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {rakeView !== "menu" && (
+              <button type="button" onClick={() => setRakeView("menu")} aria-label="戻る"
+                style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginLeft: -8, cursor: 'pointer' }}>
+                <ChevronLeftIcon size={24} />
+              </button>
+            )}
+            <p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{rakeView === "add" ? "レーキを記録" : rakeView === "history" ? "レーキの履歴" : "レーキ"}</p>
+            <button type="button" onClick={() => setIsRakeModalOpen(false)} aria-label="閉じる"
+              style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
+              <XIcon size={20} />
+            </button>
+          </div>
+        }
+        footer={rakeView === "add" ? (
+          <PrimaryButton onClick={async () => {
+            if (!storeId) return
+            const amount = Number(rakeAmount)
+            if (!amount || amount < 1) { setRakeError("金額は 1 以上で入力してください"); return }
+            setRakeError("")
+            try {
+              await addDoc(collection(db, "stores", storeId, "rakeEntries"), { amount, memo: rakeMemo.trim() || null, createdAt: serverTimestamp() })
+              setRakeAmount(""); setRakeMemo(""); setRakeView("menu")
+            } catch (error) {
+              console.error("Failed to add rake entry:", error)
+              setRakeError("記録できませんでした。権限を確認してください")
+            }
+          }}>記録する</PrimaryButton>
+        ) : undefined}
+      >
+        {rakeView === "menu" && (
+          <>
+            <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
+              <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0 }}>レーキの合計</p>
+              <p style={{ fontSize: 34, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{rakeTotal.toLocaleString()}</p>
+            </div>
+            <Section>
+              <NavRow icon={<PlusIcon size={20} style={{ color: '#B57F00' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
+              <NavRow label="履歴" detail={`${sortedRakeEntries.length} 件`} onClick={() => setRakeView("history")} />
+            </Section>
+          </>
+        )}
+        {rakeView === "add" && (
+          <>
+            <Section>
+              <FieldRow label="金額">
+                <input type="number" inputMode="numeric" value={rakeAmount} onChange={e => { setRakeError(""); setRakeAmount(e.target.value) }} placeholder="0" style={fieldInput} className="no-spin" />
+              </FieldRow>
+              <FieldRow label="メモ">
+                <input value={rakeMemo} onChange={e => setRakeMemo(e.target.value)} placeholder="任意" style={fieldInput} />
+              </FieldRow>
+            </Section>
+            {rakeError && <FeedbackText text={rakeError} color="red" />}
+          </>
+        )}
+        {rakeView === "history" && (
+          sortedRakeEntries.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>まだ記録がありません</p>
+          ) : (
+            <Section>
+              {sortedRakeEntries.map(entry => (
+                <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 8px 8px 16px' }}>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 17, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>+{entry.amount.toLocaleString()}</span>
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                      {formatDateTime(entry.createdAt?.seconds)}{entry.memo ? ` ・ ${entry.memo}` : ""}
+                    </span>
+                  </span>
+                  <button type="button" aria-label="この記録を削除"
+                    onClick={() => setConfirmReq({
+                      title: "レーキの記録を削除", message: `+${entry.amount.toLocaleString()} の記録を削除します。元に戻せません。`, action: "削除", destructive: true,
+                      run: async () => {
+                        if (!storeId) return
+                        try { await deleteDoc(doc(db, "stores", storeId, "rakeEntries", entry.id)) }
+                        catch (error) { console.error("Failed to delete rake entry:", error); setRakeError("削除できませんでした。権限を確認してください") }
+                      },
+                    })}
+                    style={{ width: 44, height: 44, border: 'none', background: 'none', color: '#D70015', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <Trash2Icon size={20} />
+                  </button>
+                </div>
+              ))}
+            </Section>
+          )
+        )}
+      </AppleSheet>
+
+      {/* ── スタンプ数の管理 ── */}
+      <AppleSheet open={stampModalOpen} onClose={() => setStampModalOpen(false)} maxHeightVh={92}
+        title={
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>スタンプ数の管理</p>
+              <button type="button" onClick={() => setStampModalOpen(false)} aria-label="閉じる"
+                style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
+                <XIcon size={20} />
+              </button>
+            </div>
+            <div style={{ position: 'relative', marginTop: 16 }}>
+              <SearchIcon size={20} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }} />
+              <input type="search" value={stampSearch} onChange={e => setStampSearch(e.target.value)} placeholder="名前で検索" aria-label="名前で検索"
+                style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 16px 0 40px', fontSize: 17, outline: 'none', boxSizing: 'border-box', color: 'var(--label)', fontFamily: 'inherit' }} />
+            </div>
+            <div role="tablist" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, padding: 4, marginTop: 8, background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
+              {([{ key: "recent", label: "最近の入店" }, { key: "name", label: "名前" }, { key: "count", label: "スタンプ数" }] as const).map(opt => (
+                <button key={opt.key} type="button" role="tab" aria-selected={stampSort === opt.key} onClick={() => setStampSort(opt.key)}
+                  style={{ minHeight: 44, borderRadius: 8, border: 'none', fontSize: 15, fontWeight: stampSort === opt.key ? 600 : 500, color: 'var(--label)', fontFamily: 'inherit', cursor: 'pointer',
+                    background: stampSort === opt.key ? '#fff' : 'transparent', boxShadow: stampSort === opt.key ? '0 1px 3px rgba(0,0,0,0.12)' : 'none' }}>
                   {opt.label}
                 </button>
               ))}
             </div>
-          </SectionCard>
-
-          {/* ── プライバシー ── */}
-          <SectionCard>
-            <SectionTitle title={t('common.privacyPolicy')} />
-            <GhostButton onClick={() => window.open('/privacy', '_blank')}>
-              {t('common.privacyPolicy')}
-            </GhostButton>
-          </SectionCard>
-
-          {/* ── 入店ボーナス ── */}
-          <SectionCard>
-            <SectionTitle title="入店ボーナス" subtitle="入店時にスタンプを付与し、一定数でクーポンを配布します" />
-            <div className="flex items-center justify-between">
-              <span className="text-[14px]" style={{ color: CLR.ink }}>機能を有効にする</span>
-              <Toggle on={checkinBonusEnabled} onToggle={toggleCheckinBonus} />
-            </div>
-            {checkinBonusEnabled && (
-              <div className="mt-4 space-y-3">
-                <div>
-                  <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>クーポン名</p>
-                  <FieldInput
-                    value={couponName}
-                    onChange={setCouponName}
-                    placeholder="例：入店無料クーポン"
-                  />
-                  {couponError && <FeedbackText text={couponError} color="red" />}
-                  {couponSuccess && <FeedbackText text={couponSuccess} color="green" />}
-                </div>
-                <PrimaryButton onClick={saveCouponName}>保存する</PrimaryButton>
-                <GhostButton onClick={() => {
-                  setStampSearch("")
-                  setStampSort("recent")
-                  setStampModalOpen(true)
-                  void loadStampPlayers()
-                }}>
-                  スタンプ数を管理
-                </GhostButton>
-              </div>
-            )}
-          </SectionCard>
-
-          {/* ── 入店制限 ── */}
-          <SectionCard>
-            <SectionTitle title="入店制限" subtitle="ON：承認必要 / OFF：即入店" />
-            <div className="flex items-center justify-between">
-              <span className="text-[14px]" style={{ color: CLR.ink }}>承認を必要にする</span>
-              <Toggle on={isApprovalRequired} onToggle={toggleApprovalRequired} />
-            </div>
-          </SectionCard>
-
-          {/* ── 誕生日クーポン ── */}
-          <SectionCard>
-            <SectionTitle title="誕生日クーポン" subtitle="誕生日にクーポンを自動配布" />
-            <div className="flex items-center justify-between">
-              <span className="text-[14px]" style={{ color: CLR.ink }}>有効にする</span>
-              <Toggle on={birthdayCouponEnabled} onToggle={toggleBirthdayCoupon} />
-            </div>
-            {birthdayCouponEnabled && (
-              <div className="mt-4 space-y-3">
-                <FieldInput
-                  value={birthdayCouponName}
-                  onChange={setBirthdayCouponName}
-                  placeholder="クーポン名"
-                />
-                <div className="flex items-center gap-2">
-                  <div className="w-24 shrink-0">
-                    <FieldInput
-                      type="number"
-                      value={birthdayCouponExpiryValue}
-                      onChange={setBirthdayCouponExpiryValue}
-                      placeholder="7"
-                      disabled={birthdayCouponUnlimited}
-                    />
-                  </div>
-                  <select
-                    value={birthdayCouponExpiryUnit}
-                    onChange={e => setBirthdayCouponExpiryUnit(e.target.value as any)}
-                    disabled={birthdayCouponUnlimited}
-                    className="h-11 rounded-2xl px-3 text-[14px] outline-none disabled:opacity-40"
-                    style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
-                  >
-                    <option value="day">日</option>
-                    <option value="month">ヶ月</option>
-                  </select>
-                  <label className="flex items-center gap-1.5 shrink-0 text-[13px] cursor-pointer" style={{ color: CLR.gray2 }}>
-                    <input
-                      type="checkbox"
-                      checked={birthdayCouponUnlimited}
-                      onChange={e => setBirthdayCouponUnlimited(e.target.checked)}
-                      className="w-4 h-4 accent-[#F2A900]"
-                    />
-                    無期限
-                  </label>
-                </div>
-                {birthdayCouponError && <FeedbackText text={birthdayCouponError} color="red" />}
-                {birthdayCouponSuccess && <FeedbackText text={birthdayCouponSuccess} color="green" />}
-                <PrimaryButton onClick={saveBirthdayCoupon}>保存する</PrimaryButton>
-              </div>
-            )}
-          </SectionCard>
-
-          {/* ── お知らせ配信 ── */}
-          <SectionCard>
-            <SectionTitle title="お知らせ配信" subtitle="お気に入り登録しているプレイヤーに通知が届きます" />
-            <textarea
-              value={noticeMessage}
-              onChange={e => setNoticeMessage(e.target.value)}
-              placeholder="メッセージを入力..."
-              rows={3}
-              className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
-              style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
-              onFocus={e => (e.target.style.borderColor = CLR.gold)}
-              onBlur={e => (e.target.style.borderColor = CLR.border)}
-            />
-            {noticeError && <FeedbackText text={noticeError} color="red" />}
-            {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
-            <div className="mt-3">
-              <PrimaryButton onClick={sendNotice} disabled={noticeSending}>
-                {noticeSending ? "送信中..." : "送信する"}
-              </PrimaryButton>
-            </div>
-          </SectionCard>
-
-          {/* ── 店内通貨単位 ── */}
-          <SectionCard>
-            <SectionTitle title="店内通貨の単位" subtitle="全画面でチップ量の横に表示されます" />
-            <div className="space-y-4">
-              <div>
-                <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
-                <FieldInput
-                  value={chipUnitLabel}
-                  onChange={setChipUnitLabel}
-                  placeholder="単位なしの場合は空欄"
-                />
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>表示位置</p>
-                <div className="flex gap-3">
-                  {([{ v: true, label: "前（例: $500）" }, { v: false, label: "後（例: 500pt.）" }] as const).map(opt => (
-                    <button
-                      key={String(opt.v)}
-                      type="button"
-                      onClick={() => setChipUnitBefore(opt.v)}
-                      className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-                      style={{
-                        background: chipUnitBefore === opt.v ? CLR.gold : CLR.surface,
-                        color: chipUnitBefore === opt.v ? CLR.ink : CLR.gray2,
-                        border: `1.5px solid ${chipUnitBefore === opt.v ? CLR.goldDk : CLR.border}`,
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-2xl p-4 text-center" style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}>
-                <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>プレビュー</p>
-                <p className="text-[24px] font-bold" style={{ color: CLR.ink }}>
-                  {chipUnitLabel
-                    ? chipUnitBefore ? `${chipUnitLabel}500` : `500${chipUnitLabel}`
-                    : "500"}
-                </p>
-              </div>
-              {chipUnitError && <FeedbackText text={chipUnitError} color="red" />}
-              {chipUnitSuccess && <FeedbackText text={chipUnitSuccess} color="green" />}
-              <PrimaryButton onClick={saveChipUnit}>保存する</PrimaryButton>
-            </div>
-          </SectionCard>
-
-          {/* ── チップ有効期限 ── */}
-          <SectionCard>
-            <SectionTitle title="チップの有効期限設定" />
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[13px]" style={{ color: CLR.gray2 }}>現在の設定</span>
-              <span className="text-[14px] font-bold" style={{ color: CLR.ink }}>
-                {store?.chipExpiryMonths ? `${store.chipExpiryMonths}ヶ月` : "期限なし"}
-              </span>
-            </div>
-            <PrimaryButton onClick={() => {
-              setChipExpiryError("")
-              setChipExpirySuccess("")
-              setChipExpiryInput(store?.chipExpiryMonths?.toString() ?? "")
-              setIsChipExpiryModalOpen(true)
-            }}>
-              有効期限を変更する
-            </PrimaryButton>
-          </SectionCard>
-
-          {/* ── 店舗の場所 ── */}
-          <SectionCard>
-            <SectionTitle title="店舗の場所" subtitle="プレイヤーのスケジュール画面で近い順に表示するために使用します" />
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
-            <FieldInput
-              value={postalCode}
-              onChange={v => { setPostalCode(v); setPostalCodeError(""); setPostalCodeSuccess("") }}
-              placeholder="例: 1500001"
-              type="text"
-            />
-            {postalCodeError && <FeedbackText text={postalCodeError} color="red" />}
-            {postalCodeSuccess && <FeedbackText text={postalCodeSuccess} color="green" />}
-            <div className="mt-3">
-              <PrimaryButton onClick={savePostalCode}>保存する</PrimaryButton>
-            </div>
-          </SectionCard>
-
-          {/* ── レーキ ── */}
-          <SectionCard>
-            <SectionTitle title="レーキ" />
-            <GhostButton onClick={() => { setRakeView("menu"); setRakeError(""); setIsRakeModalOpen(true) }}>
-              レーキを記録する
-            </GhostButton>
-          </SectionCard>
-
-        </div>
-      </div>
-
-      {/* ── チップ有効期限モーダル ── */}
-      {isChipExpiryModalOpen && (
-        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
-          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
-            <div className="flex items-center justify-between mb-5">
-              <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
-              <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
-                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
-            </div>
-
-            <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>有効期限（ヶ月）　0で期限なし</p>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-28">
-                <FieldInput
-                  type="number"
-                  value={chipExpiryInput}
-                  onChange={setChipExpiryInput}
-                  placeholder="0"
-                />
-              </div>
-              <span className="text-[13px]" style={{ color: CLR.gray2 }}>ヶ月</span>
-            </div>
-
-            {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
-            {chipExpirySuccess && (
-              <div className="mb-3 rounded-2xl p-3" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                <p className="text-[12px] font-bold" style={{ color: "#15803D" }}>{chipExpirySuccess}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "#16A34A" }}>通知を送信しました</p>
-              </div>
-            )}
-            <PrimaryButton onClick={saveChipExpiry}>保存する</PrimaryButton>
           </div>
-        </div>
-      )}
-
-      {/* ── レーキモーダル ── */}
-      {isRakeModalOpen && (
-        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
-          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
-              <button type="button" onClick={() => setIsRakeModalOpen(false)}
-                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
-            </div>
-
-            {/* Total */}
-            <div className="rounded-2xl p-4 mb-4 text-center" style={{ background: CLR.surface }}>
-              <p className="text-[11px] font-semibold mb-1" style={{ color: CLR.gray2 }}>レーキ総数</p>
-              <p className="text-[28px] font-bold" style={{ color: CLR.ink }}>{rakeTotal.toLocaleString()}</p>
-            </div>
-
-            {rakeView === "menu" && (
-              <div className="space-y-2">
-                <PrimaryButton onClick={() => setRakeView("add")}>レーキを追加する</PrimaryButton>
-                <GhostButton onClick={() => setRakeView("history")}>レーキ履歴を見る</GhostButton>
-              </div>
-            )}
-
-            {rakeView === "add" && (
-              <div className="space-y-3">
-                <FieldInput type="number" value={rakeAmount} onChange={setRakeAmount} placeholder="レーキ額" />
-                <textarea
-                  value={rakeMemo}
-                  onChange={e => setRakeMemo(e.target.value)}
-                  placeholder="メモ（任意）"
-                  rows={3}
-                  className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
-                  style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
-                  onFocus={e => (e.target.style.borderColor = CLR.gold)}
-                  onBlur={e => (e.target.style.borderColor = CLR.border)}
-                />
-                {rakeError && <FeedbackText text={rakeError} color="red" />}
-                <div className="flex gap-2 pt-1">
-                  <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!storeId) return
-                      const amount = Number(rakeAmount)
-                      if (!amount || amount < 1) { setRakeError("金額は1以上で入力してください"); return }
-                      setRakeError("")
-                      try {
-                        await addDoc(collection(db, "stores", storeId, "rakeEntries"), {
-                          amount, memo: rakeMemo.trim() || null, createdAt: serverTimestamp(),
-                        })
-                        setRakeAmount("")
-                        setRakeMemo("")
-                        setRakeView("menu")
-                      } catch (error) {
-                        console.error("Failed to add rake entry:", error)
-                        setRakeError("記録に失敗しました。権限を確認してください")
-                      }
-                    }}
-                    className="flex-1 h-11 rounded-2xl text-[14px] font-bold text-white active:scale-95 transition-all"
-                    style={{ background: "#15803D" }}
-                  >
-                    記録する
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {rakeView === "history" && (
-              <div>
-                {sortedRakeEntries.length === 0 ? (
-                  <p className="term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
-                ) : (
-                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-3">
-                    {sortedRakeEntries.map(entry => (
-                      <div
-                        key={entry.id}
-                        className="flex items-center justify-between rounded-2xl px-4 py-3"
-                        style={{ background: CLR.surface }}
-                      >
-                        <div>
-                          <p className="text-[11px]" style={{ color: CLR.gray3 }}>{formatDateTime(entry.createdAt?.seconds)}</p>
-                          {entry.memo && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{entry.memo}</p>}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>+{entry.amount.toLocaleString()}</p>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!storeId) return
-                              try {
-                                await deleteDoc(doc(db, "stores", storeId, "rakeEntries", entry.id))
-                              } catch (error) {
-                                console.error("Failed to delete rake entry:", error)
-                                setRakeError("削除に失敗しました。権限を確認してください")
-                              }
-                            }}
-                            className="active:scale-90 transition-all"
-                            style={{ color: CLR.gray3 }}
-                            aria-label="削除"
-                          >
-                            <FiTrash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <GhostButton onClick={() => setRakeView("menu")}>戻る</GhostButton>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── スタンプ管理モーダル ── */}
-      {stampModalOpen && (
-        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
-          <div className="a-sheet w-full max-w-sm flex flex-col" style={{ maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
-            {/* ハンドル + ヘッダー */}
-            <div className="shrink-0 px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${CLR.border}` }}>
-              <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>スタンプ管理</p>
-                <button type="button" onClick={() => setStampModalOpen(false)}>
-                  <FiX size={20} color={CLR.gray2} />
-                </button>
-              </div>
-              {/* 検索 */}
-              <div className="relative mb-3">
-                <FiSearch size={14} color={CLR.gray3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
-                <input
-                  type="text"
-                  value={stampSearch}
-                  onChange={e => setStampSearch(e.target.value)}
-                  placeholder="名前で検索"
-                  className="w-full h-10 rounded-2xl pl-9 pr-4 text-[13px] outline-none"
-                  style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
-                />
-              </div>
-              {/* ソート */}
-              <div className="flex gap-2">
-                {([
-                  { key: "recent", label: "最近入店" },
-                  { key: "name",   label: "名前順" },
-                  { key: "count",  label: "スタンプ数" },
-                ] as const).map(opt => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => setStampSort(opt.key)}
-                    className="flex-1 h-8 rounded-xl text-[11px] font-semibold transition-all"
-                    style={{
-                      background: stampSort === opt.key ? CLR.gold : CLR.surface,
-                      color: stampSort === opt.key ? CLR.ink : CLR.gray2,
-                      border: `1px solid ${stampSort === opt.key ? CLR.goldDk : CLR.border}`,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* プレイヤーリスト */}
-            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
-              {stampLoading ? (
-                <p className="term-comment text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
-              ) : filteredStampPlayers.length === 0 ? (
-                <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>
-                  {stampSearch ? "該当するプレイヤーがいません" : "入店したことのあるプレイヤーがいません"}
-                </p>
-              ) : filteredStampPlayers.map(player => (
-                <button
-                  key={player.uid}
-                  type="button"
-                  onClick={() => { setEditStampPlayer(player); setEditStampCount(String(player.stampCount)) }}
-                  className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-all"
-                  style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}
-                >
-                  <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ background: CLR.border }}>
-                    {player.iconUrl
-                      ? <img src={player.iconUrl} alt={player.name} className="w-full h-full object-cover" />
-                      : <FiUser size={16} color={CLR.gray3} />
-                    }
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold truncate" style={{ color: CLR.ink }}>{player.name}</p>
-                    {player.lastStampAt && (
-                      <p className="text-[11px] mt-0.5" style={{ color: CLR.gray3 }}>
-                        最終入店 {player.lastStampAt.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
-                      </p>
-                    )}
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1.5">
-                    <span className="text-[20px] font-bold" style={{ color: CLR.ink }}>{player.stampCount}</span>
-                    <span className="text-[11px]" style={{ color: CLR.gray3 }}>個</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── スタンプ編集モーダル ── */}
-      {editStampPlayer && (
-        <div className="a-scrim flex items-end justify-center" style={{ zIndex: 130 }}
-          onClick={() => setEditStampPlayer(null)}>
-          <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
-            onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
-
-            {/* プレイヤー情報 */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: CLR.surface }}>
-                {editStampPlayer.iconUrl
-                  ? <img src={editStampPlayer.iconUrl} alt={editStampPlayer.name} className="w-full h-full object-cover" />
-                  : <FiUser size={20} color={CLR.gray3} />
-                }
-              </div>
-              <div>
-                <p className="text-[16px] font-bold" style={{ color: CLR.ink }}>{editStampPlayer.name}</p>
-                <p className="text-[12px]" style={{ color: CLR.gray2 }}>スタンプ数を変更</p>
-              </div>
-            </div>
-
-            {/* スタンプ数コントロール */}
-            <div className="flex items-center justify-center gap-6 mb-5">
-              <button
-                type="button"
-                onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))}
-                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}` }}
-              >
-                <FiMinus size={18} color={CLR.ink} />
+        }
+      >
+        {stampLoading ? (
+          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>読み込んでいます…</p>
+        ) : filteredStampPlayers.length === 0 ? (
+          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>
+            {stampSearch ? "見つかりませんでした" : "入店したことのあるプレイヤーがいません"}
+          </p>
+        ) : (
+          <Section>
+            {filteredStampPlayers.map(player => (
+              <button key={player.uid} type="button" className="gl-row"
+                onClick={() => { setEditStampPlayer(player); setEditStampCount(String(player.stampCount)) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 64, padding: '8px 16px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <span style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {player.iconUrl
+                    /* eslint-disable-next-line @next/next/no-img-element -- 小さなアイコン */
+                    ? <img src={player.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <UserIcon size={20} style={{ color: 'var(--label3)' }} />}
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 17, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
+                  {player.lastStampAt && (
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                      最後の入店 {player.lastStampAt.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
+                    </span>
+                  )}
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>{player.stampCount} 個</span>
+                <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
               </button>
+            ))}
+          </Section>
+        )}
+      </AppleSheet>
 
-              <input
-                type="number"
-                value={editStampCount}
-                onChange={e => setEditStampCount(e.target.value)}
-                min={0}
-                className="w-24 h-16 rounded-2xl text-center text-[32px] font-bold outline-none"
-                style={{ background: CLR.surface, border: `2px solid ${CLR.gold}`, color: CLR.ink }}
-              />
-
-              <button
-                type="button"
-                onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))}
-                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                style={{ background: CLR.gold, border: `1.5px solid ${CLR.goldDk}` }}
-              >
-                <FiPlus size={18} color={CLR.ink} />
-              </button>
-            </div>
-
-            {/* 保存 / キャンセル */}
-            <div className="space-y-2">
-              <PrimaryButton onClick={saveStampCount} disabled={editSaving}>
-                {editSaving ? "保存中…" : "保存する"}
-              </PrimaryButton>
-              <GhostButton onClick={() => setEditStampPlayer(null)}>キャンセル</GhostButton>
+      {/* ── スタンプ数の変更 ── */}
+      <AppleSheet open={!!editStampPlayer} onClose={() => setEditStampPlayer(null)} zIndex={150}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <span style={{ width: 48, height: 48, borderRadius: 24, overflow: 'hidden', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {editStampPlayer?.iconUrl
+                /* eslint-disable-next-line @next/next/no-img-element -- 小さなアイコン */
+                ? <img src={editStampPlayer.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <UserIcon size={24} style={{ color: 'var(--label3)' }} />}
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editStampPlayer?.name}</p>
+              <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>スタンプ数を変更</p>
             </div>
           </div>
+        }
+        footer={<PrimaryButton onClick={saveStampCount} disabled={editSaving}>{editSaving ? "保存しています…" : "保存する"}</PrimaryButton>}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '16px 0 24px' }}>
+          <button type="button" aria-label="1 つ減らす" onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))}
+            style={{ width: 56, height: 56, borderRadius: 28, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', cursor: 'pointer' }}>
+            <MinusIcon size={24} />
+          </button>
+          <input type="number" inputMode="numeric" value={editStampCount} onChange={e => setEditStampCount(e.target.value)} min={0} aria-label="スタンプ数" className="no-spin"
+            style={{ width: 96, height: 64, borderRadius: 16, border: 'none', background: 'rgba(118,118,128,0.12)', textAlign: 'center', fontSize: 34, fontWeight: 700, color: 'var(--label)', outline: 'none', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit' }} />
+          <button type="button" aria-label="1 つ増やす" onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))}
+            style={{ width: 56, height: 56, borderRadius: 28, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', cursor: 'pointer' }}>
+            <PlusIcon size={24} />
+          </button>
         </div>
-      )}
+      </AppleSheet>
 
-      {/* ── Bottom Nav ── */}
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
       <StoreBottomNav />
     </main>
   )
