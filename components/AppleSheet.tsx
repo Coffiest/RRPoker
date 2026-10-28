@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * 下から出る面。指で掴んで下げられ、投げれば飛び、途中で掴み返せる。
@@ -80,6 +81,8 @@ export default function AppleSheet({
 
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
+  const openRef = useRef(open)
+  openRef.current = open
 
   /** 位置を DOM に書く。スクリムの濃さも位置に連れて薄くする。 */
   const paint = useCallback(() => {
@@ -151,7 +154,14 @@ export default function AppleSheet({
   const dismiss = useCallback(
     (velocity = 0) => {
       const h = height.current || window.innerHeight
-      springTo(h, { velocity, onRest: () => onCloseRef.current() })
+      springTo(h, {
+        velocity,
+        onRest: () => {
+          // 閉じきったら DOM から外す(残すと透明な幕が画面を覆い、何も押せなくなる)。
+          setMounted(false)
+          if (openRef.current) onCloseRef.current()
+        },
+      })
     },
     [springTo],
   )
@@ -195,13 +205,21 @@ export default function AppleSheet({
 
   /* ---- ジェスチャー -------------------------------------------------- */
 
+  /** 指を置いた位置。10px 動くまでは「押しただけ」として扱う(ボタンや入力欄を押せるように)。 */
+  const pending = useRef<{ x: number; y: number; id: number } | null>(null)
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return
+    // 入力欄の中は文字の選択・カーソル移動に使うので、面は掴まない。
+    if ((e.target as HTMLElement).closest?.('input, textarea, select, [data-no-drag]')) return
     // 本文を上に送っている途中は、面ではなく本文を動かす。
     const body = bodyRef.current
     const fromBody = body?.contains(e.target as Node)
     if (fromBody && body && body.scrollTop > 0) return
+    pending.current = { x: e.clientX, y: e.clientY, id: e.pointerId }
+  }
 
+  const beginDrag = (e: React.PointerEvent) => {
     // 動いている最中でも掴める。今の位置をそのまま引き継ぐ。
     stop()
     dragging.current = true
@@ -211,6 +229,15 @@ export default function AppleSheet({
   }
 
   const onPointerMove = (e: React.PointerEvent) => {
+    const p = pending.current
+    if (!dragging.current && p && p.id === e.pointerId) {
+      const dy = e.clientY - p.y
+      const dx = e.clientX - p.x
+      // 下向きに 10px 動いて初めて面を掴む。横や上なら本文のスクロールに任せる。
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) { pending.current = null; return }
+      if (dy < -10) { pending.current = null; return }
+      if (dy > 10) { pending.current = null; beginDrag(e) }
+    }
     if (!dragging.current) return
     let next = e.clientY - grabOffset.current
 
@@ -227,6 +254,7 @@ export default function AppleSheet({
   }
 
   const endDrag = (e: React.PointerEvent) => {
+    pending.current = null
     if (!dragging.current) return
     dragging.current = false
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId) } catch {}
@@ -248,7 +276,8 @@ export default function AppleSheet({
 
   if (!mounted) return null
 
-  return (
+  // 親の重なり順(z-index)に閉じ込められないよう、body の直下に出す。
+  return createPortal(
     <div style={{ position: 'fixed', inset: 0, zIndex }}>
       <div
         ref={scrimRef}
@@ -317,6 +346,7 @@ export default function AppleSheet({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
