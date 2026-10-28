@@ -432,12 +432,20 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     return "40px"
   }, [level, nextLevel])
 
-  // ── 閉じる(単独表示のときだけ) ─────────────────────────────────────────
+  // ── 閉じる(単独表示のとき、Esc キーで) ─────────────────────────────────────────
   const router = useRouter()
   const [isStandalone, setIsStandalone] = useState(false)
   useEffect(() => {
     try { setIsStandalone(window.self === window.top) } catch { setIsStandalone(false) }
   }, [])
+  // 表示用の画面なので閉じるボタンは置かない。キーボードの Esc で閉じる。
+  useEffect(() => {
+    if (!isStandalone) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeTimer() }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStandalone])
   const closeTimer = () => {
     // Web で別タブとして開いたときはタブを閉じる。閉じられない(アプリ内・直接開いた)ときは店舗ホームへ戻す。
     if (window.opener) { window.close(); return }
@@ -451,31 +459,6 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   // ════════════════════════════════════════════════════════════════════════
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#fff" }} onClick={unlockAudio} onTouchStart={unlockAudio}>
-      {/* 単独で開いたとき(スマホアプリでは同じ画面に開く)の出口。
-          埋め込み(店舗ホームのプレビュー・全画面表示)では親が閉じるボタンを持つので出さない。 */}
-      {isStandalone && (
-        <button
-          type="button"
-          onClick={closeTimer}
-          aria-label="タイマーを閉じる"
-          className="timer-close-btn"
-          style={{
-            position: "fixed",
-            top: "calc(env(safe-area-inset-top, 0px) + 8px)",
-            left: "calc(env(safe-area-inset-left, 0px) + 8px)",
-            zIndex: 10000,
-            width: 44, height: 44, borderRadius: 999,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,255,255,0.72)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.10)",
-            border: "none", cursor: "pointer", color: "#1C1C1E",
-          }}
-        >
-          <XIcon size={20} />
-        </button>
-      )}
       <div style={{ width: DESIGN_W, height: DESIGN_H, marginLeft: scaleOffset.x, marginTop: scaleOffset.y, transform: `scale(${scale})`, transformOrigin: "top left" }}>
       <main className="overflow-hidden relative" style={{ background: "#fff", width: DESIGN_W, height: DESIGN_H }}>
         {/* 方眼の下地。投影時に計器盤らしい奥行きを与える */}

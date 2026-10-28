@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MenuIcon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { AwardIcon, CheckIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
@@ -139,6 +139,14 @@ export default function StorePage() {
   const [adjustBlindLevels, setAdjustBlindLevels] = useState<Record<string, AdjLevel[]>>({})
   const [expandedTimerId, setExpandedTimerId] = useState<string | null>(null)
   const [expandCtrlVisible, setExpandCtrlVisible] = useState(false)
+  /** 操作バーに触れた回数。触るたびに「5 秒で隠す」を数え直す。 */
+  const [expandCtrlTouch, setExpandCtrlTouch] = useState(0)
+  // 全画面タイマーの操作バーは、最後に触ってから 5 秒で自動的に隠す(表示用の画面にボタンを残さない)。
+  useEffect(() => {
+    if (!expandCtrlVisible) return
+    const id = window.setTimeout(() => setExpandCtrlVisible(false), 5000)
+    return () => window.clearTimeout(id)
+  }, [expandCtrlVisible, expandCtrlTouch])
   const [expandPlayerOpen, setExpandPlayerOpen] = useState(false)
   const [expandPrizeOpen, setExpandPrizeOpen] = useState(false)
 
@@ -796,6 +804,7 @@ export default function StorePage() {
     // スマホアプリ(Capacitor)では window.open が新しいタブにならず、アプリの画面そのものが
     // タイマーに置き換わって戻れなくなる。アプリでは閉じるボタンを持つ全画面表示で開く。
     if (isNativeApp()) {
+      // 開いた直後だけ操作バーを出し、閉じ方が分かるようにする(5 秒で消える)。
       setExpandCtrlVisible(true)
       setExpandedTimerId(id)
     } else {
@@ -1312,53 +1321,20 @@ export default function StorePage() {
                   allow="autoplay"
                 />
 
-                {/* 閉じるボタン。操作バーを隠していても常に出す(出口を必ず残す)。
-                    この面は90度回しているので、面の左端が画面の上端(ステータスバー側)になる。 */}
-                <button
-                  type="button"
-                  aria-label="全画面表示を閉じる"
-                  onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }}
-                  style={{
-                    position: 'absolute',
-                    top: 16,
-                    left: 'calc(env(safe-area-inset-top, 0px) + 8px)',
-                    width: 44, height: 44,
-                    borderRadius: '50%',
-                    background: 'rgba(0,0,0,0.50)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255,255,255,0.18)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: 'pointer', zIndex: 2,
-                  }}
-                >
-                  <XIcon size={20} style={{ color: '#fff' }} />
-                </button>
-
-                {/* コントロールバー非表示時のトグルボタン */}
+                {/* 表示用の画面なのでボタンは常には出さない。画面のどこかをタップすると操作バーが出て、
+                    5 秒触らなければ消える(iPhone の動画再生と同じ)。閉じるは操作バーの中にある。 */}
                 {!expandCtrlVisible && (
                   <button
+                    type="button"
+                    aria-label="操作を表示"
                     onClick={() => setExpandCtrlVisible(true)}
-                    style={{
-                      position: 'absolute',
-                      bottom: 12, right: 12,
-                      width: 44, height: 44,
-                      borderRadius: '50%',
-                      background: 'rgba(0,0,0,0.50)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255,255,255,0.18)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <MenuIcon size={18} style={{ color: 'rgba(255,255,255,0.75)' }} />
-                  </button>
+                    style={{ position: 'absolute', inset: 0, background: 'transparent', border: 'none', cursor: 'pointer', zIndex: 1 }}
+                  />
                 )}
 
                 {/* コントロールバー */}
                 {et && expandCtrlVisible && (
-                  <div style={{
+                  <div onPointerDown={() => setExpandCtrlTouch(n => n + 1)} style={{
                     position: 'absolute',
                     bottom: 0, left: 0, right: 0,
                     background: 'rgba(0,0,0,0.72)',
