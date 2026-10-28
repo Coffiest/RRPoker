@@ -3009,6 +3009,11 @@ const medalClass = (rank: number) => {
                   <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 16 }}>読み込み中</p>
                   <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
                 </div>
+              ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).length === 0 ? (
+                <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--label)', margin: 0 }}>まだランキングがありません</p>
+                  <p style={{ fontSize: 15, color: 'var(--label2)', margin: '8px 0 0', lineHeight: 1.4 }}>トーナメントの結果が集まると、偏差値が 50 を超えたプレイヤーがここに並びます。</p>
+                </div>
               ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
                 const isMe = player.id === userId
                 return (
