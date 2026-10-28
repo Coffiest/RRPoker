@@ -278,7 +278,7 @@ export default function UserWelcomePage() {
               <path d="M12 8v4M12 16h.01" stroke="#F2A900" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <p
-              className={`text-[12px] text-[#8a6200] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
+              className={`text-[13px] text-[#7A5600] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
             >
               {TIPS[tipIndex]}
             </p>
@@ -293,10 +293,10 @@ export default function UserWelcomePage() {
             { label: 'トナメ参加', value: '0', unit: '回' },
           ].map((s, i) => (
             <div key={i} className="profile-card rounded-2xl p-4 text-center">
-              <p className="text-[11px] text-label3 mb-2">{s.label}</p>
+              <p className="text-[13px] text-label2 mb-2">{s.label}</p>
               <p className="text-[18px] font-bold text-gray-900">
                 {s.value}
-                <span className="text-[11px] font-medium text-label3 ml-0.5">{s.unit}</span>
+                <span className="text-[13px] font-medium text-label2 ml-0.5">{s.unit}</span>
               </p>
             </div>
           ))}
@@ -311,14 +311,14 @@ export default function UserWelcomePage() {
               if (user) await setDoc(doc(db, 'users', user.uid), { profileCompleted: true }, { merge: true })
               router.replace('/home')
             }}
-            className="btn-primary flex h-[54px] w-full items-center justify-center gap-2 rounded-[20px] text-[16px] font-semibold text-gray-900"
+            className="btn-primary flex h-[54px] w-full items-center justify-center gap-2 rounded-[20px] text-[17px] font-semibold text-white"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12h14M13 6l6 6-6 6" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             はじめる
           </button>
-          <p className="mt-4 text-center text-[12px] text-label3">
+          <p className="mt-4 text-center text-[13px] text-label2">
             いつでもプロフィールは編集できます
           </p>
         </div>

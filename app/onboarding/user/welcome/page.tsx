@@ -25,12 +25,12 @@ export default function UserWelcomePage() {
     <main className="min-h-screen bg-white px-6">
       <div className="mx-auto max-w-sm text-center">
         <div className="pt-[96px]">
-          <h1 className="text-[24px] font-semibold text-gray-900">はじめまして、{name}さん</h1>
-          <p className="mt-2 text-[14px] text-gray-500">準備が整いました</p>
+          <h1 className="text-[28px] font-bold leading-tight tracking-[-0.01em] text-[color:var(--label)]">{name ? `はじめまして、${name}さん` : 'はじめまして'}</h1>
+          <p className="mt-2 text-[17px] text-label2">準備が整いました</p>
           <button
             type="button"
             onClick={() => router.replace('/home')}
-            className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-gray-900 shadow-sm transition-transform active:scale-[0.99]"
+            className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[17px] font-semibold text-white shadow-sm transition-transform active:scale-[0.97]"
           >
             はじめる
           </button>

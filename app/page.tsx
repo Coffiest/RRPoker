@@ -199,7 +199,7 @@ export default function TopPage() {
 
         .cta-primary{
           background:#F2A900;
-          animation:pulse-glow 2.4s ease-in-out 1.4s infinite;
+          animation:pulse-glow 2.4s ease-in-out 1.4s 2;
           transition:transform .13s ease, opacity .13s ease;
           border:none; cursor:pointer;
         }
@@ -364,7 +364,7 @@ export default function TopPage() {
           {/* CTA */}
           <div className="d2" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginTop:24 }}>
             <button className="cta-primary" onClick={() => router.push('/login')}
-              style={{ width:'100%', maxWidth:320, height:56, borderRadius:18, fontSize:17, fontWeight:800, color:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', gap:8, letterSpacing:'-0.2px' }}
+              style={{ width:'100%', maxWidth:320, height:56, borderRadius:18, fontSize:17, fontWeight:700, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', gap:8, letterSpacing:'-0.2px' }}
             >
               今すぐはじめる
               <ArrowRightIcon size={20} className="arrow-bounce" />
@@ -522,7 +522,7 @@ export default function TopPage() {
             店舗チェックイン・バンクロール管理・RR Rating・<br/>ランキングをすべて無料で。
           </p>
           <button className="cta-primary" onClick={() => router.push('/login')}
-            style={{ width:'100%', height:52, borderRadius:16, fontSize:16, fontWeight:800, color:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
+            style={{ width:'100%', height:52, borderRadius:16, fontSize:17, fontWeight:700, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}
           >
             ログイン / 新規登録
             <ArrowRightIcon size={20} className="arrow-bounce" />

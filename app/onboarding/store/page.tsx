@@ -270,7 +270,7 @@ export default function StoreOnboardingPage() {
         .so-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
           background: #F2A900;
-          font-size: 16px; font-weight: 800; color: #1a1a1a;
+          font-size: 17px; font-weight: 700; color: #fff;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           box-shadow: 0 4px 18px rgba(242,169,0,0.32);
           transition: transform .13s, opacity .13s;
@@ -279,8 +279,8 @@ export default function StoreOnboardingPage() {
         .so-btn:active { transform: scale(0.97); opacity: .88; }
         .so-btn:disabled { opacity: .55; pointer-events: none; }
         .so-spinner {
-          width: 20px; height: 20px; border: 2.5px solid rgba(0,0,0,0.15);
-          border-top-color: #1a1a1a; border-radius: 50%;
+          width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.35);
+          border-top-color: #fff; border-radius: 50%;
           animation: spin .8s linear infinite;
         }
       `}</style>
@@ -490,7 +490,7 @@ export default function StoreOnboardingPage() {
             ) : (
               <>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12h14M12 5l7 7-7 7" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 次へ進む
               </>

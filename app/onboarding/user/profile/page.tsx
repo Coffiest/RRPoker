@@ -1,4 +1,6 @@
 'use client'
+
+import { InfoIcon } from 'lucide-react'
 import { CheckIcon, XIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
@@ -319,12 +321,12 @@ export default function UserProfileOnboardingPage() {
           border-radius: 20px;
           height: 54px;
           width: 100%;
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: #fff;
         }
         .btn-primary:active { transform: scale(0.97); opacity: 0.88; }
-        .btn-primary:disabled { opacity: 0.45; pointer-events: none; }
+        .btn-primary:disabled { background: #E5E5EA; color: var(--label3); box-shadow: none; pointer-events: none; }
         .icon-ring {
           position: relative;
           width: 96px;
@@ -424,7 +426,6 @@ export default function UserProfileOnboardingPage() {
                   <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                   <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                 </svg>
-                <span className="text-[11px] font-semibold text-[#F2A900] tracking-wide">タップして変更</span>
               </div>
             )}
 
@@ -447,7 +448,7 @@ export default function UserProfileOnboardingPage() {
             </div>
           </button>
 
-          <p className="text-[12px] text-label3">
+          <p className="text-[13px] text-label2">
             {previewUrl ? 'タップして画像を変更' : 'タップしてアイコンを設定'}
           </p>
 
@@ -462,8 +463,8 @@ export default function UserProfileOnboardingPage() {
           {/* Poker name */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">ポーカーネーム</label>
-              <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
+              <label className="text-[15px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
+              <span className="text-[13px] font-semibold text-[#D4910A]">必須</span>
             </div>
             <input
               type="text"
@@ -479,26 +480,25 @@ export default function UserProfileOnboardingPage() {
             {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <label className="text-[14px] font-medium text-gray-700">Player ID</label>
+                <label className="text-[15px] font-semibold text-[color:var(--label)]">Player ID</label>
 
                 
                 <button
                   type="button"
                   onClick={() => setShowIdInfo(v => !v)}
                   aria-label="Player IDの説明"
+                  aria-expanded={showIdInfo}
                   style={{
-                    width: 18, height: 18, borderRadius: '50%',
-                    border: `1.5px solid ${showIdInfo ? '#F2A900' : '#d1d5db'}`,
-                    background: showIdInfo ? 'rgba(242,169,0,0.08)' : '#f3f4f6',
+                    width: 44, height: 44, minHeight: 44, margin: '-12px -8px', borderRadius: '50%',
+                    border: 'none', background: 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 11, fontWeight: 700,
-                    color: showIdInfo ? '#D4910A' : '#6b7280',
+                    color: showIdInfo ? '#D4910A' : 'var(--label3)',
                     cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                     flexShrink: 0,
                   }}
-                >?</button>
+                ><InfoIcon size={18} /></button>
               </div>
-              <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
+              <span className="text-[13px] font-semibold text-[#D4910A]">必須</span>
             </div>
 
             {/* ? 説明パネル */}
@@ -557,13 +557,13 @@ export default function UserProfileOnboardingPage() {
             {/* おすすめ + 自動取得 */}
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>おすすめ</span>
+                <span style={{ fontSize: 13, color: 'var(--label2)', fontWeight: 500 }}>おすすめ</span>
                 <button
                   type="button"
                   onClick={handleAutoGet}
                   disabled={autoGetLoading}
                   className="flex items-center gap-2 transition-opacity"
-                  style={{ fontSize: 11, fontWeight: 600, color: '#F2A900', opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  style={{ fontSize: 13, fontWeight: 600, color: '#D4910A', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
                     <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
@@ -584,7 +584,7 @@ export default function UserProfileOnboardingPage() {
               <div className="flex gap-2 flex-wrap">
                 
                 {suggestionsLoading ? (
-                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>候補を検索中…</span>
+                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>候補を検索中…</span>
                 ) : suggestions.length > 0 ? (
                   suggestions.map(s => (
                     <button
@@ -605,7 +605,7 @@ export default function UserProfileOnboardingPage() {
                     </button>
                   ))
                 ) : (
-                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
+                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
                 )}
               </div>
             </div>
@@ -615,7 +615,7 @@ export default function UserProfileOnboardingPage() {
           {/* Birthday */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">誕生日</label>
+              <label className="text-[15px] font-semibold text-[color:var(--label)]">誕生日</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input
