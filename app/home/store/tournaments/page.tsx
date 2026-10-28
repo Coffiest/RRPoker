@@ -706,7 +706,7 @@ export default function TournamentsPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '8px 16px 0', fontSize: 13, color: 'var(--label2)', fontWeight: 600 }}>
             <span />
             <span style={{ textAlign: 'center' }}>参加費{chipUnit ? `(${chipUnit})` : ""}</span>
-            <span style={{ textAlign: 'center' }}>スタック</span>
+            <span style={{ textAlign: 'center' }}>Stack</span>
           </div>
           {[
             { label: 'Entry', feeKey: 'entryFee', stackKey: 'entryStack' },
@@ -1009,7 +1009,7 @@ function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: stri
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       {onBack && (
-        <button type="button" onClick={onBack} className="tp-press" aria-label="戻る" style={{ ...btn.icon, width: 44, minHeight: 44, marginLeft: -8 }}>
+        <button type="button" onClick={onBack} className="tp-press" aria-label="Back" style={{ ...btn.icon, width: 44, minHeight: 44, marginLeft: -8 }}>
           <ChevronLeftIcon size={24} />
         </button>
       )}

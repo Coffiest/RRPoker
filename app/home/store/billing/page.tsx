@@ -263,7 +263,7 @@ function BillingContent() {
           className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-2 transition-colors"
         >
           <ChevronLeftIcon size={18} />
-          戻る
+          Back
         </button>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">プランを選択</h1>

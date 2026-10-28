@@ -379,7 +379,7 @@ export default function TopPage() {
         <div className="d3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
           {[
             { icon:<ZapIcon size={24} />, label:'残高管理', sub:'リアルタイム' },
-            { icon:<MedalIcon size={24} />, label:'ランキング', sub:'自動更新' },
+            { icon:<MedalIcon size={24} />, label:'RANKING', sub:'自動更新' },
             { icon:<NotebookPenIcon size={24} />, label:'トナメ記録', sub:'自動保存' },
           ].map((s, i) => (
             <div key={i} className="ios-card tech-corners" style={{ padding:'16px 8px', textAlign:'center' }}>

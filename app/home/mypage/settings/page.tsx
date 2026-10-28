@@ -97,7 +97,7 @@ export default function UserSettingsPage() {
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
         <PageTitleBar title="" onBack={() => router.back()} />
-        <LargeTitle>設定</LargeTitle>
+        <LargeTitle>Settings</LargeTitle>
 
         <Section header="プロフィール" footer="名前とアイコンは、店舗やほかのプレイヤーに表示されます。">
           <FieldRow label="名前">

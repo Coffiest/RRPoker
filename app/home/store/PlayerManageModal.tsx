@@ -593,7 +593,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 <button
                   onClick={() => setInsufficientAlert(null)}
                   style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-                >キャンセル</button>
+                >Cancel</button>
                 <button
                   onClick={confirmInsufficientPurchase}
                   style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2A900', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}

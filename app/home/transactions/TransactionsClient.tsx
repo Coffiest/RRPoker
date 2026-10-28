@@ -358,7 +358,7 @@ export default function TransactionsClient() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              {m === 'deposit' ? <><CircleArrowDownIcon size={14} />あずける</> : <><CircleArrowUpIcon size={14} />ひきだす</>}
+              {m === 'deposit' ? <><CircleArrowDownIcon size={14} />DEPOSIT</> : <><CircleArrowUpIcon size={14} />WITHDRAW</>}
             </button>
           ))}
         </div>
@@ -472,7 +472,7 @@ export default function TransactionsClient() {
                 onClick={() => setIsWithdrawModalOpen(false)}
                 style={{ flex: 1, height: 52, borderRadius: 16, background: '#F2F2F7', border: 'none', fontSize: 15, fontWeight: 600, color: '#3C3C43', cursor: 'pointer' }}
               >
-                キャンセル
+                Cancel
               </button>
               <button
                 onClick={confirmWithdraw}

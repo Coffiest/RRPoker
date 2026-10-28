@@ -197,7 +197,7 @@ export default function StoreRegisterPage() {
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900', fontSize: 14, fontWeight: 700, padding: '8px 0' }}
           >
             <ChevronLeftIcon size={18} />
-            戻る
+            Back
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />

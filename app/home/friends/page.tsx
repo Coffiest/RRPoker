@@ -329,7 +329,7 @@ export default function FriendsPage() {
                 }}
                 className="mt-2 w-full h-[52px] rounded-[24px] border border-gray-200 text-[15px] font-semibold text-gray-900"
               >
-                キャンセル
+                Cancel
               </button>
             </div>
           </div>

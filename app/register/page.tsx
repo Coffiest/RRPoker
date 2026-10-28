@@ -324,7 +324,7 @@ export default function RegisterPage() {
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
             { label:'ログインはこちら', action:() => { setMenuOpen(false); router.push('/login') }, gold:false },
-            { label:'新規登録', action:() => setMenuOpen(false), gold:true },
+            { label:'Sign Up', action:() => setMenuOpen(false), gold:true },
             { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}

@@ -179,7 +179,7 @@ export default function HistoryPage() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

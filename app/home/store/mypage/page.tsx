@@ -423,7 +423,7 @@ export default function StoreMyPage() {
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
-        <LargeTitle>マイページ</LargeTitle>
+        <LargeTitle>MY PAGE</LargeTitle>
 
         {/* 店舗の顔(アイコン・名前・メール)。押すとアイコンを変える。 */}
         <Section>
@@ -515,7 +515,7 @@ export default function StoreMyPage() {
 
         <Section header="アカウント">
           <NavRow label="パスワード変更" onClick={() => router.push("/home/store/mypage/password")} />
-          <NavRow label="ログアウト" onClick={() => setConfirmReq({ title: "ログアウト", message: "この端末からログアウトします。", action: "ログアウト", run: logout })} />
+          <NavRow label="Logout" onClick={() => setConfirmReq({ title: "ログアウト", message: "この端末からログアウトします。", action: "ログアウト", run: logout })} />
         </Section>
 
         <Section footer="店舗のアカウントと、保持チップ・レートなどすべてのデータが削除されます。元に戻せません。">

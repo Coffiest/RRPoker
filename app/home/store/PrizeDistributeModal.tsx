@@ -585,7 +585,7 @@ for (const p of payouts) {
                 onClick={() => setConfirmOpen(false)}
                 disabled={submitting}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-              >キャンセル</button>
+              >Cancel</button>
               <button
                 type="button"
                 onClick={async () => { setConfirmOpen(false); await submitFinish() }}

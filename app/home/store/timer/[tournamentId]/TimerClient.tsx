@@ -924,12 +924,12 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   className="flex-1 py-4 rounded-2xl text-[14px] font-bold text-white transition"
                   style={{ background: "linear-gradient(135deg,#C8820A,#D4910A)", boxShadow: "0 4px 14px rgba(200,130,10,0.28)" }}
                 >
-                  保存
+                  Save
                 </button>
                 <button onClick={() => setIsPresetModalOpen(false)}
                   className="flex-1 py-4 rounded-2xl text-[14px] font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
-                  キャンセル
+                  Cancel
                 </button>
               </div>
             </div>

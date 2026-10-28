@@ -12,6 +12,7 @@ import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { computeLiveLevelState, type TimerLevel } from "@/lib/timerCompute"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
+import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import { hapticAction, hapticTap, hapticError } from "@/lib/haptics"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
@@ -132,6 +133,7 @@ export default function StorePage() {
   }
 
   useEffect(() => { ensureClockCalibrated() }, [])
+
 
   const [timerRunning, setTimerRunning] = useState<Record<string, boolean>>({})
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
@@ -289,6 +291,19 @@ export default function StorePage() {
   const [activeTab, setActiveTab] = useState<"in" | "out">("in")
   const [storePlayersPage, setStorePlayersPage] = useState(1)
   const pageSize = 10
+
+  // 「開始時刻にタイマースタート」の大会を見張り、時刻になったら始める(lib/autoStart.ts)
+  useEffect(() => {
+    if (!storeId) return
+    let pending: any[] = []
+    const q = query(collection(db, "stores", storeId, "tournaments"), where("autoStart", "==", true))
+    const unsub = onSnapshot(q, snap => { pending = snap.docs.map(d => ({ id: d.id, ...d.data() })) })
+    const tick = setInterval(() => {
+      const now = getServerNow()
+      for (const t of pending) if (isAutoStartDue(t, now)) void autoStartTournament(storeId, t.id)
+    }, 1000)
+    return () => { unsub(); clearInterval(tick) }
+  }, [storeId])
 
   useEffect(() => {
     if (!storeId) return
@@ -1089,7 +1104,7 @@ export default function StorePage() {
                   aria-label={copiedCode ? "コピーしました" : "店舗コードをコピー"}
                   style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--label2)', whiteSpace: 'nowrap' }}>コード</span>
+                  <span style={{ fontSize: 13, color: 'var(--label2)', whiteSpace: 'nowrap' }}>CODE</span>
                   <span className="con-mono" style={{ fontSize: 15, fontWeight: 700, color: copiedCode ? '#1E7B34' : 'var(--label)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
                   {copiedCode ? <CheckIcon size={12} style={{ color: '#28A745' }}/> : <CopyIcon size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
@@ -1171,7 +1186,7 @@ export default function StorePage() {
         {/* ── Tournaments ── */}
         <div className="su d1" style={{ marginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
-            <p className="section-hd" style={{ marginBottom: 0 }}>開催中のトーナメント</p>
+            <p className="section-hd" style={{ marginBottom: 0 }}>LIVE TOURNAMENTS</p>
             {activeTournaments.length > 0 && (
               <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 8px' }}>
                 <span className="tech-status-dot" style={{ background: '#34C759' }} />
@@ -1214,13 +1229,13 @@ export default function StorePage() {
                           <div key={item.label} style={{ textAlign: 'center' }}>
                             <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>参加費</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Fee</span>
                               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                                 {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>スタック</span>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Stack</span>
                               <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)' }}>
                                 {item.stack > 0 ? item.stack.toLocaleString() : '—'}
                               </span>
@@ -1259,7 +1274,7 @@ export default function StorePage() {
                       {/* Action buttons */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                         <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
-                          <ClockIcon size={16}/> タイマー
+                          <ClockIcon size={16}/> TIMER
                         </button>
                         <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
                           <PenLineIcon size={16}/> ADJUST
@@ -1406,7 +1421,7 @@ export default function StorePage() {
                         <div style={iconCircle()}>
                           <SkipForwardIcon size={17} style={{ color: '#fff' }} />
                         </div>
-                        <span style={labelStyle}>次へ</span>
+                        <span style={labelStyle}>Next</span>
                       </button>
                     </div>
 
@@ -2094,7 +2109,7 @@ export default function StorePage() {
               <button
                 onClick={() => setNegativeConfirmAction(null)}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: 'var(--fill)', color: 'var(--label)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
-              >キャンセル</button>
+              >Cancel</button>
               <button
                 onClick={() => { const action = negativeConfirmAction; setNegativeConfirmAction(null); action?.run() }}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.3)' }}

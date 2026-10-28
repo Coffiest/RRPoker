@@ -692,7 +692,7 @@ export default function LoginPage() {
               <button
                 onClick={() => setAdminModalOpen(false)}
                 style={{ flex:1, padding:'8px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:14, cursor:'pointer' }}
-              >キャンセル</button>
+              >Cancel</button>
               <button
                 onClick={handleAdminLogin}
                 disabled={adminLoading || !adminPw.trim()}

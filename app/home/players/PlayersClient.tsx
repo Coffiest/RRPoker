@@ -57,7 +57,7 @@ export default function Page() {
             onClick={() => router.back()}
             className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
           >
-            戻る
+            Back
           </button>
         </div>
       </main>
@@ -100,7 +100,7 @@ export default function Page() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

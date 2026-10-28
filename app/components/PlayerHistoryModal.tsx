@@ -249,7 +249,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                 onClick={() => setWipeConfirmOpen(false)}
                 disabled={wiping}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: 'rgba(120,120,128,0.12)', color: 'rgba(28,28,30,1)', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: wiping ? 0.6 : 1 }}
-              >キャンセル</button>
+              >Cancel</button>
               <button
                 onClick={wipeHistoryAndBalance}
                 disabled={wiping}

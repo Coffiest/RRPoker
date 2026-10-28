@@ -17,7 +17,7 @@ export default function BackLink({ fallback = '/' }: { fallback?: string }) {
       style={{ background: 'none', border: 'none', cursor: 'pointer' }}
     >
       <ChevronLeftIcon size={24} />
-      戻る
+      Back
     </button>
   )
 }

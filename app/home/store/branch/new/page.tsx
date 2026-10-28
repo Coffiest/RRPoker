@@ -168,7 +168,7 @@ export default function BranchStorePage() {
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 16 }}>
           <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
             <ChevronLeftIcon size={20} color="var(--label)" />
-            <span style={{ fontSize: 14, color: 'var(--label)' }}>戻る</span>
+            <span style={{ fontSize: 14, color: 'var(--label)' }}>Back</span>
           </button>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', flex: 1, textAlign: 'center', marginRight: 64 }}>系列店を作成</span>
         </div>

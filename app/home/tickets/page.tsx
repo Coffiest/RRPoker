@@ -445,7 +445,7 @@ export default function TicketsPage() {
               onClick={() => setSelectedCoupon(null)}
               style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 15, color: "var(--label3)", marginTop: 8, cursor: "pointer" }}
             >
-              キャンセル
+              Cancel
             </button>
           </div>
         </div>

@@ -452,7 +452,7 @@ export default function StoreSettingsPage() {
 
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
         <PageTitleBar title="" onBack={() => router.push("/home/store")} />
-        <LargeTitle>設定</LargeTitle>
+        <LargeTitle>Settings</LargeTitle>
 
         <Section header="入店" footer="オフにすると、プレイヤーは申請するとすぐ入店できます。">
           <SwitchRow label="入店に承認を必要にする" checked={isApprovalRequired} onChange={() => void toggleApprovalRequired()} />
@@ -600,7 +600,7 @@ export default function StoreSettingsPage() {
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {rakeView !== "menu" && (
-              <button type="button" onClick={() => setRakeView("menu")} aria-label="戻る"
+              <button type="button" onClick={() => setRakeView("menu")} aria-label="Back"
                 style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginLeft: -8, cursor: 'pointer' }}>
                 <ChevronLeftIcon size={24} />
               </button>
@@ -636,7 +636,7 @@ export default function StoreSettingsPage() {
             </div>
             <Section>
               <NavRow icon={<PlusIcon size={20} style={{ color: '#B57F00' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
-              <NavRow label="履歴" detail={`${sortedRakeEntries.length} 件`} onClick={() => setRakeView("history")} />
+              <NavRow label="HISTORY" detail={`${sortedRakeEntries.length} 件`} onClick={() => setRakeView("history")} />
             </Section>
           </>
         )}

@@ -1950,7 +1950,7 @@ const medalClass = (rank: number) => {
                       <button type="button" onClick={() => setIsHistoryFlipped(true)}
                         style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer', flexShrink:0 }}>
                         <ClockIcon style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }} />
-                        <span className="tech-label" style={{ fontSize:13, color:'rgba(255,255,255,0.8)' }}>履歴</span>
+                        <span className="tech-label" style={{ fontSize:13, color:'rgba(255,255,255,0.8)' }}>HISTORY</span>
                       </button>
                     </div>
 
@@ -2003,11 +2003,11 @@ const medalClass = (rank: number) => {
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <ClockIcon style={{ color:'rgba(255,255,255,0.72)', fontSize:13 }} />
-                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>履歴</span>
+                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>HISTORY</span>
                       </div>
                       <button type="button" onClick={() => setIsHistoryFlipped(false)}
                         style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', cursor:'pointer' }}>
-                        <ArrowLeftIcon style={{ fontSize:11 }} />戻る
+                        <ArrowLeftIcon style={{ fontSize:11 }} />Back
                       </button>
                     </div>
 
@@ -2446,7 +2446,7 @@ const medalClass = (rank: number) => {
             >退店する</button>
             <button type="button" onClick={() => setIsLeaveConfirmOpen(false)}
               style={{ height: 46, borderRadius: 14, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-            >キャンセル</button>
+            >Cancel</button>
           </div>
         }
       >
@@ -2596,7 +2596,7 @@ const medalClass = (rank: number) => {
             <p className="text-[11px] text-label3 mb-6">この画面を閉じると入店申請は取り下げられます</p>
             <button onClick={async () => { if (!userId) return; await updateDoc(doc(db, "users", userId), { checkinStatus: "none", pendingStoreId: null }); setIsPendingModalOpen(false) }}
               className="a-btn a-btn-bare a-btn-block"
-            >戻る</button>
+            >Back</button>
           </div>
         </div>
       )}

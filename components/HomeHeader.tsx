@@ -376,7 +376,7 @@ export default function HomeHeader({
 							onClick={() => goTo(myPagePath)}
 							className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[14px] font-semibold text-gray-900"
 						>
-							マイページ
+							MY PAGE
 						</button>
 					</div>
 				</aside>
@@ -397,7 +397,7 @@ export default function HomeHeader({
 
 							{/* ヘッダー */}
 							<div className="flex items-center justify-between px-4 pt-4 pb-4 border-b border-gray-100">
-								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">お知らせ</p>
+								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">NEWS</p>
 								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-label3 font-medium">閉じる</button>
 							</div>
 

@@ -189,7 +189,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                 </button>
               </div>
               <button type="button" onClick={() => setMenuIdx(null)} className="ble-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 17, fontWeight: 600, color: '#0A6CD6', fontFamily: 'inherit', cursor: 'pointer' }}>
-                キャンセル
+                Cancel
               </button>
             </div>
           </div>

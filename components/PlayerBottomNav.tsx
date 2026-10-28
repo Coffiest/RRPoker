@@ -213,7 +213,7 @@ export default function PlayerBottomNav() {
               pointerEvents: 'none',
             }} />
 
-            {sideTab('home', 'ホーム', '/home', HouseIcon)}
+            {sideTab('home', 'HOME', '/home', HouseIcon)}
 
             {/* 中央。
                  入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
@@ -249,7 +249,7 @@ export default function PlayerBottomNav() {
               </div>
             </button>
 
-            {sideTab('mypage', 'マイページ', '/home/mypage', UserIcon)}
+            {sideTab('mypage', 'MY PAGE', '/home/mypage', UserIcon)}
           </div>
 
           {/* ── ツール(正方形、メインピルと高さ一致) ── */}
@@ -287,7 +287,7 @@ export default function PlayerBottomNav() {
             <button
               type="button"
               onClick={() => { hapticTap(); setToolsOpen(v => !v) }}
-              aria-label="ツール"
+              aria-label="TOOLS"
               style={{
                 ...GLASS,
                 width: L.navH, height: L.navH,
@@ -303,7 +303,7 @@ export default function PlayerBottomNav() {
               <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F2A900', lineHeight: 1 }}>
                 {toolsOpen ? <XIcon size={Math.max(16, Math.round(20 * L.scale))} /> : <PlusIcon size={Math.max(16, Math.round(20 * L.scale))} strokeWidth={2.5} />}
               </span>
-              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>ツール</span>
+              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>TOOLS</span>
             </button>
           </div>
         </div>

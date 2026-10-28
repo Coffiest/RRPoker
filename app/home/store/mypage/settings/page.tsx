@@ -114,7 +114,7 @@ export default function StoreSettingsPage() {
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">設定</h1>
+          <h1 className="text-[24px] font-semibold text-gray-900">Settings</h1>
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
@@ -223,7 +223,7 @@ export default function StoreSettingsPage() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

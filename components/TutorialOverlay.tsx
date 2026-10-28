@@ -222,7 +222,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                   letterSpacing: '-0.1px',
                 }}
               >
-                {isLast ? 'はじめる' : <>次へ <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></>}
+                {isLast ? 'はじめる' : <>Next <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></>}
               </button>
             </div>
           </div>

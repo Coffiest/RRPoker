@@ -390,10 +390,10 @@ export default function UserProfileOnboardingPage() {
             type="button"
             onClick={() => router.push('/onboarding')}
             className="flex items-center gap-2 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            aria-label="戻る"
+            aria-label="Back"
           >
             <ChevronLeftIcon size={18} />
-            戻る
+            Back
           </button>
         </div>
 

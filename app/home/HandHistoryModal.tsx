@@ -901,7 +901,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       onClick={() => { setShowTitlePopup(false); save() }}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-[0.97]"
                       style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
-                      保存
+                      Save
                     </button>
                   </div>
                 </div>
@@ -919,7 +919,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <button type="button" onClick={() => setDelConfirmId(null)}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-semibold active:scale-[0.97]"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}>
-                      キャンセル
+                      Cancel
                     </button>
                     <button type="button" onClick={() => delHand(delConfirmId)}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-bold text-white active:scale-[0.97]"

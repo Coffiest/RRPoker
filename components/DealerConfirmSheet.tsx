@@ -133,7 +133,7 @@ export default function DealerConfirmSheet({
                 opacity: busy ? 0.5 : 1,
               }}
             >
-              キャンセル
+              Cancel
             </button>
             <button
               type="button"

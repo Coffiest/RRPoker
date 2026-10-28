@@ -637,7 +637,7 @@ export default function MyPage() {
                   style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
                   style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F2A900', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
-                  保存
+                  Save
                 </button>
               </div>
             ) : (
@@ -687,7 +687,7 @@ export default function MyPage() {
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <LogOutIcon size={15} style={{ color: '#fff' }} />
             </div>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>ログアウト</span>
+            <span style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>Logout</span>
             <ChevronRightIcon size={16} style={{ color: 'var(--label3)', marginLeft: 'auto' }} />
           </button>
           <button type="button" onClick={() => setShowDeleteConfirm(true)}
@@ -767,7 +767,7 @@ export default function MyPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting}
                 style={{ flex: 1, height: 50, borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 15, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
-                キャンセル
+                Cancel
               </button>
               <button type="button" onClick={deleteAccount} disabled={isDeleting}
                 style={{ flex: 1, height: 50, borderRadius: 14, border: 'none', background: '#4A1010', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
