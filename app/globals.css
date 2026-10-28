@@ -1290,3 +1290,9 @@ body {
 
 /* くるくる回る読み込み表示は、どの画面でも同じ速さで回す。 */
 .animate-spin { animation-duration: .8s }
+
+/* 見た目は小さいまま、押せる範囲だけ 44px 以上に広げる(HIG)。
+   スイッチは iOS 標準の 51x31 を保ち、文中のリンクは行の高さを変えない。 */
+.a-switch::before { content: ''; position: absolute; inset: -7px -4px }
+.hit-44 { position: relative }
+.hit-44::after { content: ''; position: absolute; inset: -15px -4px }

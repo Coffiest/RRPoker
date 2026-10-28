@@ -506,7 +506,7 @@ export default function RegisterPage() {
 
             {/* プライバシー注記 */}
             <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:16, textAlign:'center' }}>
-              {t('register.privacyNotice')}<a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
+              {t('register.privacyNotice')}<a href="/privacy" className="hit-44" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
             </p>
 
             {/* 登録ボタン */}

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
+import AppleSheet from '@/components/AppleSheet'
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
 import TechBackdrop from "@/components/TechBackdrop"
@@ -450,21 +451,8 @@ export default function TransactionsClient() {
       <PlayerBottomNav />
 
       {/* Withdraw bottom-sheet modal */}
-      {isWithdrawModalOpen && (
-        <>
-          <div
-            onClick={() => setIsWithdrawModalOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.42)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', zIndex: 998 }}
-          />
-          <div
-            className="tx-sheet"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 999, background: '#fff', borderRadius: '24px 24px 0 0', padding: '8px 24px 48px' }}
-          >
-            {/* Handle bar */}
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D1D6', margin: '8px auto 24px' }} />
-
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', textAlign: 'center', marginBottom: 24 }}>引き出し確認</h2>
-
+      <AppleSheet open={isWithdrawModalOpen} onClose={() => setIsWithdrawModalOpen(false)} title="引き出し確認" zIndex={998}>
+        <div style={{ padding: '0 8px 8px' }}>
             <div style={{ background: '#F9F9FB', borderRadius: 18, padding: '24px', textAlign: 'center', marginBottom: 24 }}>
               <p style={{ fontSize: 12, color: 'var(--label3)', marginBottom: 8, fontWeight: 500 }}>ディーラーに見せてください</p>
               <p style={{ fontSize: 52, fontWeight: 800, color: '#F2A900', letterSpacing: '-1.5px', lineHeight: 1.1 }}>
@@ -493,9 +481,8 @@ export default function TransactionsClient() {
                 確認完了
               </button>
             </div>
-          </div>
-        </>
-      )}
+        </div>
+      </AppleSheet>
     </main>
     </>
   )
