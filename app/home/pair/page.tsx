@@ -84,12 +84,8 @@ function PairPageInner() {
       />
       <div style={{ flex: 1, padding: '24px 24px 104px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ width: '100%', maxWidth: 420, marginTop: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span className="tech-status-dot" />
-            <span className="tech-label" style={{ color: 'var(--label3)' }}>テレビと連携</span>
-          </div>
-          <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
-            TVと連携
+          <p className="font-display" style={{ fontSize: 28, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
+            テレビと連携
           </p>
           <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>
             Fire TV / Fire Stick 端末の画面に表示されているQRコードを読み込むと自動で連携されます。{'\n'}
@@ -108,7 +104,7 @@ function PairPageInner() {
           ) : (
             <>
               <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 8 }}>
-                PAIRING CODE
+                連携コード(6桁)
               </label>
               <input
                 className="tech-num"

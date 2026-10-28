@@ -49,7 +49,7 @@ const CSS = `
     border-radius: 14px;
     height: 58px;
     font-family: var(--stack-mono);
-    font-variant-numeric: tabular-nums slashed-zero;
+    font-variant-numeric: tabular-nums;
     font-size: 22px;
     font-weight: 600;
     color: #111;
@@ -248,7 +248,7 @@ export default function TransactionsClient() {
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
       <TechBackdrop base="#F2F2F7" />
-      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 104 }}>
+      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 24px' }}>
@@ -321,7 +321,7 @@ export default function TransactionsClient() {
     <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
       <TechBackdrop base="#F2F2F7" />
-      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 104 }}>
+      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 

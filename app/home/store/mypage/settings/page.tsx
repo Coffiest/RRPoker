@@ -127,13 +127,16 @@ export default function StoreSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">店舗アイコン</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={e => setFile(e.target.files?.[0] ?? null)}
-            className="mt-2 w-full text-[14px]"
-          />
+          <label className="mt-2 flex min-h-[44px] cursor-pointer items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[17px] text-gray-900">
+            <span>店舗アイコン</span>
+            <span className="text-[15px] text-label2">{file ? file.name : "画像を選ぶ"}</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setFile(e.target.files?.[0] ?? null)}
+              hidden
+            />
+          </label>
 
           <div className="mt-4" />
           <label className="text-[12px] text-gray-500">住所</label>

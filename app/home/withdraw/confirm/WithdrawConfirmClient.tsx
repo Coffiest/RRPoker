@@ -1,7 +1,7 @@
 'use client'
-import { CreditCardIcon, HouseIcon, UserIcon } from 'lucide-react'
 
 import { useEffect, useState } from "react"
+import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import {
@@ -99,35 +99,7 @@ export default function WithdrawConfirmClient() {
             ホームへ戻る
           </button>
         </div>
-        <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-          <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-4">
-            <button
-              type="button"
-              onClick={() => router.push("/home")}
-              className="flex flex-col items-center text-label3"
-            >
-              <HouseIcon className="text-[18px]" />
-              <span className="mt-2 text-[11px]">ホーム</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/home/transactions")}
-              className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-              aria-label="チップ移動"
-            >
-              <CreditCardIcon className="text-[22px]" />
-              <span className="mt-2 text-[11px] font-semibold">チップ移動</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/home/mypage")}
-              className="flex flex-col items-center text-label3"
-            >
-              <UserIcon className="text-[18px]" />
-              <span className="mt-2 text-[11px]">マイページ</span>
-            </button>
-          </div>
-        </nav>
+        <PlayerBottomNav />
       </main>
     )
   }
@@ -158,36 +130,7 @@ export default function WithdrawConfirmClient() {
         </button>
         <ChipDisclaimer className="mt-4 text-center" />
       </div>
-      <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-4">
-          <button
-            type="button"
-            onClick={() => router.push("/home")}
-            className="flex flex-col items-center text-label3"
-          >
-            <HouseIcon className="text-[18px]" />
-            <span className="mt-2 text-[11px]">ホーム</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/transactions")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
-            aria-label="チップ移動"
-          >
-          
-            <CreditCardIcon className="text-[22px]" />
-            <span className="mt-2 text-[11px] font-semibold">チップ移動</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => router.push("/home/mypage")}
-            className="flex flex-col items-center text-label3"
-          >
-            <UserIcon className="text-[18px]" />
-            <span className="mt-2 text-[11px]">マイページ</span>
-          </button>
-        </div>
-      </nav>
+        <PlayerBottomNav />
     </main>
   )
 }

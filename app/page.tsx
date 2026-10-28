@@ -274,7 +274,7 @@ export default function TopPage() {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Login
+              ログイン
             </button>
 
           
@@ -454,7 +454,7 @@ export default function TopPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>

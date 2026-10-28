@@ -381,7 +381,7 @@ export default function RegisterPage() {
 
           <div style={{ padding:'24px 24px 24px' }}>
             <div style={{ marginBottom:24 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Create account</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>アカウント作成</p>
               <p style={{ fontSize:12, color:'var(--label2)' }}>無料でアカウントを新規作成</p>
             </div>
 
@@ -416,13 +416,13 @@ export default function RegisterPage() {
             {/* or 区切り */}
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
               <div className="divider-line" style={{ flex:1 }}/>
-              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>or</span>
+              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
               <div className="divider-line" style={{ flex:1 }}/>
             </div>
 
             {/* メール */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Email</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>メールアドレス</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -445,7 +445,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Password</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -479,7 +479,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>Password (Confirm)</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード(確認)</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -530,7 +530,7 @@ export default function RegisterPage() {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Create account !
+                  アカウントを作成
                 </>
               )}
             </button>
@@ -540,7 +540,7 @@ export default function RegisterPage() {
               <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
                 style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >Login</button>
+              >ログイン</button>
             </div>
           </div>
         </div>

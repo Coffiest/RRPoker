@@ -1664,14 +1664,6 @@ const medalClass = (rank: number) => {
             <div style={{ position: 'absolute', top: -40, right: -30, width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
-            {/* 端末のタイトル行 */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-              <span className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)', letterSpacing: '0.20em' }}>トナメ偏差値</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="tech-status-dot" style={{ background: '#fff', boxShadow: '0 0 0 0 rgba(255,255,255,0.55)' }} />
-                <span className="tech-label" style={{ fontSize: 11, color: 'rgba(255,255,255,0.62)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
-              </span>
-            </div>
 
             {/* アイデンティティ行 + ? */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
@@ -1971,11 +1963,6 @@ const medalClass = (rank: number) => {
                     {/* 端末のタイトルバー。カードの「券面」をやめ、出力を読む面にする。 */}
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
-                        <svg width="38" height="8" viewBox="0 0 38 8" aria-hidden="true" style={{ flexShrink:0 }}>
-                          <circle cx="4" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
-                          <circle cx="17" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
-                          <circle cx="30" cy="4" r="4" fill="#F2A900" />
-                        </svg>
                         <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                           バンクロール
                         </p>
