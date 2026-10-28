@@ -294,7 +294,7 @@ export default function LoginPage() {
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
           background:#F2A900;
-          color:#1a1a1a; font-size:16px; font-weight:800; letter-spacing:-.2px;
+          color:#fff; font-size:17px; font-weight:700; letter-spacing:-.2px;
           box-shadow:0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
@@ -348,8 +348,8 @@ export default function LoginPage() {
         /* ── Spinner ── */
         .spinner {
           width:20px; height:20px; border-radius:50%;
-          border:2.5px solid rgba(26,26,26,0.18);
-          border-top-color:#1a1a1a;
+          border:2.5px solid rgba(255,255,255,0.35);
+          border-top-color:#fff;
           animation:spin .8s linear infinite;
         }
         .spinner-white {
@@ -603,7 +603,7 @@ export default function LoginPage() {
                 <CheckIcon size={22} color="#fff" />
               ) : (
                 <>
-                  <LogInIcon size={16} color="#1a1a1a" />
+                  <LogInIcon size={16} color="#fff" />
                   ログイン
                 </>
               )}

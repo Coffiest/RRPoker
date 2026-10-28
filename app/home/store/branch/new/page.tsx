@@ -159,7 +159,7 @@ export default function BranchStorePage() {
         .bs-input::placeholder { color:var(--label3); }
         input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
         input[type=number]{-moz-appearance:textfield;}
-        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:#F2A900; font-size:16px; font-weight:800; color:#1a1a1a; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(242,169,0,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
+        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:#F2A900; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(242,169,0,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
         .bs-btn:active { transform:scale(0.97); opacity:.88; }
         .bs-btn:disabled { opacity:.55; pointer-events:none; }
       `}</style>
@@ -276,7 +276,7 @@ export default function BranchStorePage() {
             <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .8s linear infinite' }}/>
           ) : (
             <>
-              <ArrowRightIcon size={16} color="#1a1a1a" />
+              <ArrowRightIcon size={16} color="#fff" />
               系列店を作成する
             </>
           )}

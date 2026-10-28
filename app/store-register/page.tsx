@@ -121,7 +121,7 @@ export default function StoreRegisterPage() {
             </p>
           </div>
           <button onClick={() => router.push('/login')}
-            style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 16, fontWeight: 700, color: '#1a1a1a', cursor: 'pointer', boxShadow: '0 0 32px rgba(242,169,0,0.35)' }}
+            style={{ width: '100%', height: 52, borderRadius: 16, background: '#F2A900', border: 'none', fontSize: 16, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 0 32px rgba(242,169,0,0.35)' }}
           >ログイン画面へ</button>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function StoreRegisterPage() {
         .sr-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
           background: #F2A900;
-          font-size: 16px; font-weight: 800; color: #0A0A14;
+          font-size: 16px; font-weight: 800; color: #fff;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           box-shadow: 0 4px 24px rgba(242,169,0,0.4), 0 0 48px rgba(242,169,0,0.12);
           transition: transform .13s, opacity .13s, box-shadow .13s;
@@ -241,7 +241,7 @@ export default function StoreRegisterPage() {
         <div className="sr-appear sr-d1" style={{ textAlign: 'center', padding: '40px 0 32px' }}>
           {/* ストアバッジ */}
           <div className="sr-badge-anim" style={{ width: 76, height: 76, borderRadius: 24, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 0 0 12px rgba(242,169,0,0.08), 0 0 48px rgba(242,169,0,0.3)' }}>
-            <HouseIcon size={34} color="#0A0A14" />
+            <HouseIcon size={34} color="#fff" />
           </div>
 
           {/* 店舗専用ラベル */}

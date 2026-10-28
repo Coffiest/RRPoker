@@ -596,7 +596,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 >キャンセル</button>
                 <button
                   onClick={confirmInsufficientPurchase}
-                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2A900', color: '#1C1C1E', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2A900', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
                 >確認</button>
               </div>
             </div>

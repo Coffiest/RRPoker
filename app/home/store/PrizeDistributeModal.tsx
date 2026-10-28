@@ -565,7 +565,7 @@ for (const p of payouts) {
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
-            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F2A900', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
+            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F2A900', color: '#fff', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
           >賞金の分配</button>
         </div>
       </div>

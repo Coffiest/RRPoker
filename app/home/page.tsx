@@ -210,7 +210,7 @@ function GraphShelf({
         <div className="flex gap-2">
           {(["7", "1m", "all"] as const).map(tab => (
             <button key={tab} type="button" onClick={() => { onPeriodChange(tab); closeTooltip() }}
-              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition ${periodTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
+              className={`px-2 py-2 rounded-full text-[11px] font-semibold transition ${periodTab === tab ? "bg-[#F2A900] text-white" : "bg-gray-100 text-gray-500"}`}>
               {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
             </button>
           ))}
@@ -2105,7 +2105,7 @@ const medalClass = (rank: number) => {
                           return next
                         })
                       }}
-                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition ${rankingMultiSelectMode ? "bg-[#F2A900] text-gray-900" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
+                      className={`rounded-full px-2 py-2 text-[11px] font-semibold transition ${rankingMultiSelectMode ? "bg-[#F2A900] text-white" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
                     >
                       {rankingMultiSelectMode ? "完了" : "複数月を選択"}
                     </button>
@@ -3016,7 +3016,7 @@ const medalClass = (rank: number) => {
             {withdrawNotice.type === "pending" && (<><p className="text-[18px] font-bold text-gray-900 mb-2">引き出し申請中</p><p className="text-[13px] text-gray-500">この画面をスタッフに見せてください</p></>)}
             {withdrawNotice.type === "approved" && (<><p className="text-[18px] font-bold text-gray-900 mb-2">引き出し承認</p><p className="text-[13px] text-gray-500">{withdrawNotice.amount} が引き出されました</p></>)}
             {withdrawNotice.type === "rejected" && (<><p className="text-[18px] font-bold text-gray-900 mb-2">引き出し却下</p><p className="text-[13px] text-gray-500">引き出しが却下されました</p></>)}
-            <button onClick={() => setWithdrawNotice(null)} className="mt-6 w-full h-11 rounded-2xl gold-btn text-gray-900 font-semibold text-[14px]">OK</button>
+            <button onClick={() => setWithdrawNotice(null)} className="mt-6 w-full h-11 rounded-2xl gold-btn text-white font-semibold text-[14px]">OK</button>
           </div>
         </div>
       )}

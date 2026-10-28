@@ -987,7 +987,7 @@ export default function StorePage() {
         }
         .adj-btn:active { transform:scale(0.97); opacity:.85; }
         .adj-btn-dark { background:#1C1C1E; color:#fff; }
-        .adj-btn-gold { background:#F2A900; color:#1a1a1a; box-shadow:0 2px 8px rgba(242,169,0,0.25); }
+        .adj-btn-gold { background:#F2A900; color:#fff; box-shadow:0 2px 8px rgba(242,169,0,0.25); }
         .adj-btn-add  { background:linear-gradient(135deg,#007AFF,#0066DD); color:#fff; }
         .adj-btn-sub  { background:rgba(255,59,48,0.1); color:#FF3B30; border:1.5px solid rgba(255,59,48,0.2); }
 
@@ -1576,7 +1576,7 @@ export default function StorePage() {
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveWithdrawWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
                       >確定する</button>
                     </div>
                   )}
@@ -1638,7 +1638,7 @@ export default function StorePage() {
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveDepositWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F2A900', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
                       >確定する</button>
                     </div>
                   )}

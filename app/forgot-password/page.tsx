@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
             type="button"
             onClick={handleResetPassword}
             disabled={isLoading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-gray-900 shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[16px] font-semibold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
           >
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </button>

@@ -177,7 +177,7 @@ export default function StoreSettingsPage() {
           <button
             type="button"
             onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
           >
             保存する
           </button>

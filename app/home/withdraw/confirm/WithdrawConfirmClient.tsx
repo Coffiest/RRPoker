@@ -94,7 +94,7 @@ export default function WithdrawConfirmClient() {
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
           >
             ホームへ戻る
           </button>
@@ -124,7 +124,7 @@ export default function WithdrawConfirmClient() {
         <button
           type="button"
           onClick={confirm}
-          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900"
+          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-white"
         >
           確認してもらった
         </button>

@@ -135,7 +135,7 @@ export default function VerifyEmailPage() {
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
           background:#F2A900;
-          color:#1a1a1a; font-size:15px; font-weight:800; letter-spacing:-.1px;
+          color:#fff; font-size:17px; font-weight:700; letter-spacing:-.1px;
           box-shadow:0 4px 18px rgba(242,169,0,0.32);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease;
@@ -251,7 +251,7 @@ export default function VerifyEmailPage() {
                 </div>
               ) : (
                 <>
-                  <BadgeCheckIcon size={16} color="#1a1a1a" />
+                  <BadgeCheckIcon size={16} color="#fff" />
                   認証完了後はこちら
                 </>
               )}

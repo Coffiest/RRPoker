@@ -636,7 +636,7 @@ export default function MyPage() {
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
                   style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
-                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F2A900', border: 'none', fontSize: 13, fontWeight: 700, color: '#1C1C1E', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
+                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F2A900', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
                   保存
                 </button>
               </div>

@@ -84,7 +84,7 @@ export default function PasswordChangePage() {
             type="button"
             onClick={changePassword}
             disabled={loading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900 disabled:opacity-60"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-white disabled:opacity-60"
           >
             変更する
           </button>
