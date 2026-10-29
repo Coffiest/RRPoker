@@ -481,7 +481,7 @@ export default function TournamentsPage() {
 
         {/* 大見出し + 主な操作 */}
         <header style={{ padding: '16px 0 24px' }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }} className="font-display term-prompt tech-caret">Tournaments</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }} className="font-display term-prompt tech-caret">cd tournaments</h1>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button type="button" onClick={openCreate} className="tp-press" style={{ ...btn.primary, flex: 1, minWidth: 0, padding: '0 16px' }}>
               <PlusIcon size={20} strokeWidth={2.5} /> トーナメントを作成
@@ -999,7 +999,7 @@ const btn = {
 
 function GroupLabel({ children, small }: { children: React.ReactNode; small?: boolean }) {
   return (
-    <h2 className={small ? "tech-label term-comment" : "tech-label"} style={{ fontSize: small ? 13 : 20, fontWeight: small ? 600 : 700, color: small ? 'var(--label2)' : 'var(--label)', letterSpacing: small ? 0 : '-0.01em', margin: small ? '0 8px 8px' : '0 0 16px' }}>
+    <h2 className={small ? "tech-label term-comment" : "tech-label term-prompt"} style={{ fontSize: small ? 13 : 20, fontWeight: small ? 600 : 700, color: small ? 'var(--label2)' : 'var(--label)', letterSpacing: small ? 0 : '-0.01em', margin: small ? '0 8px 8px' : '0 0 16px' }}>
       {children}
     </h2>
   )

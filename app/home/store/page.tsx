@@ -21,6 +21,7 @@ import { isSubscriptionActive } from "@/lib/subscription-client"
 import { isNativeApp } from "@/lib/platform"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 import AppleSheet from "@/components/AppleSheet"
+import { BootLog, TermBar } from "@/components/Terminal"
 import { createPortal } from "react-dom"
 import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
 import TechBackdrop from "@/components/TechBackdrop"
@@ -927,6 +928,7 @@ export default function StorePage() {
           opacity:0.55; pointer-events:none;
         }
         /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
+        .section-hd::before { content:"//"; color:#1546D9; margin-right:2px; }
         .section-hd {
           position:relative;
           font-family:var(--stack-mono);
@@ -1088,6 +1090,7 @@ export default function StorePage() {
       </AppleSheet>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+        <BootLog storageKey="boot-store" lines={[{ text: 'rrpoker --store' }, { text: 'auth session', ok: true }, { text: 'sync tournaments', ok: true }, { text: 'timer clock calibrated', ok: true }]} />
 
         {/* ── Store Header Card ── */}
         <div ref={headerCardRef} className="su d0" style={{ marginTop: 16, position: 'relative' }}>
@@ -1113,6 +1116,7 @@ export default function StorePage() {
             }}
           >
             <div className="gold-line"/>
+            <TermBar path={`~/store/${(store?.name || 'home').toString().toLowerCase().replace(/\s+/g, '-')}`} />
             <div style={{ padding: '16px 16px 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
               {/* Store icon — double-tap to toggle switcher, long-press to show picker */}
               {store?.iconUrl ? (
@@ -1260,6 +1264,7 @@ export default function StorePage() {
                 return (
                   <div key={t.id} className="ios-card su con-live-panel" style={{ overflow: 'hidden' }}>
                     <div className="gold-line"/>
+                    <TermBar path={`~/tournaments/${t.id.slice(0, 6)} --live`} />
                     <div style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
 
                       {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}

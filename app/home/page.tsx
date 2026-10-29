@@ -1,5 +1,6 @@
 "use client"
 import { ArrowLeftIcon, AwardIcon, CalendarIcon, ChartNoAxesColumnIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CircleHelpIcon, ClockIcon, CreditCardIcon, FileTextIcon, GlobeIcon, HouseIcon, InstagramIcon, LogOutIcon, PenIcon, ScanQrCodeIcon, SearchIcon, Share2Icon, StarIcon, StoreIcon, TwitterIcon, UserIcon, XIcon } from 'lucide-react'
+import { BootLog, TermBar } from "@/components/Terminal"
 
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -1659,6 +1660,7 @@ const medalClass = (rank: number) => {
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
       <div className="mx-auto max-w-sm px-4 space-y-6">
+        <BootLog storageKey="boot-player" lines={[{ text: 'rrpoker --player' }, { text: 'auth session', ok: true }, { text: 'load bankroll', ok: true }, { text: 'compute rr_rating', ok: true }]} />
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
@@ -1666,6 +1668,7 @@ const medalClass = (rank: number) => {
               いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
           {/* 面の色は元のテーマ(金)のまま。変えたのは意匠だけ:
               方眼と基板のドットを薄く重ね、端末のタイトル行を足している。 */}
+          <div style={{ background: '#F9B318' }}><TermBar path="~/player/stats --rr-rating" onDark /></div>
           <div data-tutorial="rr-card-hero" style={{ background: '#F9B318', padding: '16px 24px 24px', position: 'relative', overflow: 'hidden' }}>
             {/* 金の面に、方眼と基板のドットを黒で薄く敷く(色は足さない) */}
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />

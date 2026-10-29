@@ -24,8 +24,10 @@ export function PageTitleBar({ title, onBack, backLabel = 'Back' }: { title: str
 }
 
 export function LargeTitle({ children }: { children: React.ReactNode }) {
+  // 見出しはコマンド風に: "Settings" → "$ cd settings"
+  const label = typeof children === 'string' ? `cd ${children.toLowerCase().replace(/\s+/g, '-')}` : children
   // コンソール風(絶対ルール): 見出しは表示用書体+プロンプト記号+点滅カーソル
-  return <h1 className="font-display term-prompt tech-caret" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: '16px 0 24px', color: 'var(--label)' }}>{children}</h1>
+  return <h1 className="font-display term-prompt tech-caret" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: '16px 0 24px', color: 'var(--label)' }}>{label}</h1>
 }
 
 export function Section({ header, footer, children }: { header?: React.ReactNode; footer?: React.ReactNode; children: React.ReactNode }) {
