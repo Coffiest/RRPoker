@@ -10,15 +10,15 @@ const FEATURES = [
     emoji: <StoreIcon size={24} />,
     title: '店舗チェックイン',
     desc: '店舗コードを入力するだけで即入店。チップ残高をリアルタイム管理。',
-    accent: '#F2A900',
-    bg: 'rgba(242,169,0,0.08)',
+    accent: '#F9B318',
+    bg: 'rgba(249,179,24,0.08)',
   },
   {
     emoji: <CreditCardIcon size={24} />,
     title: 'バンクロール管理',
     desc: 'チップの購入・引き出し履歴を自動記録。BB表示にも対応。',
-    accent: '#007AFF',
-    bg: 'rgba(0,122,255,0.07)',
+    accent: '#1546D9',
+    bg: 'rgba(21,70,217,0.07)',
   },
   {
     emoji: <ChartColumnIcon size={24} />,
@@ -97,10 +97,10 @@ export default function TopPage() {
   const headerElevated = scrollY > 10
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold: #F2A900; --gold-dk: #D4910A;
+          --gold: #F9B318; --gold-dk: #995C00;
           --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --fill: rgba(120,120,128,0.12);
         }
@@ -135,8 +135,8 @@ export default function TopPage() {
           50%    { transform:translateY(-8px) rotate(-3deg); }
         }
         @keyframes pulse-glow {
-          0%,100%{ box-shadow:0 4px 20px rgba(242,169,0,0.35), 0 1px 4px rgba(0,0,0,0.1); }
-          50%    { box-shadow:0 4px 28px rgba(242,169,0,0.55), 0 1px 4px rgba(0,0,0,0.1); }
+          0%,100%{ box-shadow:0 4px 20px rgba(249,179,24,0.35), 0 1px 4px rgba(0,0,0,0.1); }
+          50%    { box-shadow:0 4px 28px rgba(249,179,24,0.55), 0 1px 4px rgba(0,0,0,0.1); }
         }
         @keyframes card-in {
           from{ opacity:0; transform:translateY(10px) scale(0.95); }
@@ -176,7 +176,7 @@ export default function TopPage() {
         .pop{ animation:pop-in .5s cubic-bezier(.22,1,.36,1) .1s both; }
 
         .shimmer-text{
-          background:#F2A900;
+          background:#F9B318;
           background-size:200% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 2.6s linear infinite;
@@ -198,7 +198,7 @@ export default function TopPage() {
         }
 
         .cta-primary{
-          background:#F2A900;
+          background:#F9B318;
           animation:pulse-glow 2.4s ease-in-out 1.4s 2;
           transition:transform .13s ease, opacity .13s ease;
           border:none; cursor:pointer;
@@ -206,10 +206,10 @@ export default function TopPage() {
         .cta-primary:active{ transform:scale(0.97); opacity:.88; }
 
         .header-cta{
-          background:#F2A900;
+          background:#F9B318;
           border:none; border-radius:20px; padding:8px 16px;
           color:white; font-size:13px; font-weight:700;
-          cursor:pointer; box-shadow:0 2px 8px rgba(242,169,0,0.3);
+          cursor:pointer; box-shadow:0 2px 8px rgba(249,179,24,0.3);
           white-space:nowrap; transition:transform .12s, opacity .12s;
           display:flex; align-items:center; gap:8px;
         }
@@ -226,7 +226,7 @@ export default function TopPage() {
           padding:16px 16px; background:#fff; transition:background .12s;
         }
         .stat-row:not(:last-child){ border-bottom:1px solid var(--sep); }
-        .stat-row:active{ background:#F2F2F7; }
+        .stat-row:active{ background:#EDECE6; }
 
         .dot-ind{
           width:6px; height:6px; border-radius:50%;
@@ -272,7 +272,7 @@ export default function TopPage() {
             {/* ログインボタン（ヘッダー右） */}
             <button className="header-cta" onClick={() => router.push('/login')}>
               <LogInIcon size={13} color="white" />
-              ログイン
+              Login
             </button>
 
           
@@ -306,9 +306,9 @@ export default function TopPage() {
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           <button onClick={() => { setMenuOpen(false); router.push('/login') }}
-            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(242,169,0,0.4)', background:'rgba(242,169,0,0.06)', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#D4910A', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
+            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(249,179,24,0.4)', background:'rgba(249,179,24,0.06)', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#995C00', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
           >
-            <LogInIcon size={15} color="#D4910A" />
+            <LogInIcon size={15} color="#995C00" />
             ログイン / 新規登録
           </button>
           {['このアプリについて', 'RR Ratingとは？', 'よくある質問'].map(label => (
@@ -325,14 +325,14 @@ export default function TopPage() {
       <section style={{
         paddingTop:32, paddingBottom:40, paddingLeft:24, paddingRight:24,
         position:'relative', overflow:'hidden',
-        background:'linear-gradient(180deg,#FFFBF0 0%,#F2F2F7 100%)',
+        background:'linear-gradient(180deg,#F7F1E3 0%,#EDECE6 100%)',
       }}>
         {/* 方眼オーバーレイ。設計図的な下地を敷く */}
         <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.55, pointerEvents:'none' }}/>
 
         {/* 背景 orb */}
-        <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out infinite', pointerEvents:'none' }}/>
-        <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s infinite', pointerEvents:'none' }}/>
+        <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out infinite', pointerEvents:'none' }}/>
+        <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s infinite', pointerEvents:'none' }}/>
 
         <div style={{ maxWidth:480, margin:'0 auto', position:'relative' }}>
 
@@ -379,7 +379,7 @@ export default function TopPage() {
         <div className="d3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
           {[
             { icon:<ZapIcon size={24} />, label:'残高管理', sub:'リアルタイム' },
-            { icon:<MedalIcon size={24} />, label:'ランキング', sub:'自動更新' },
+            { icon:<MedalIcon size={24} />, label:'RANKING', sub:'自動更新' },
             { icon:<NotebookPenIcon size={24} />, label:'トナメ記録', sub:'自動保存' },
           ].map((s, i) => (
             <div key={i} className="ios-card tech-corners" style={{ padding:'16px 8px', textAlign:'center' }}>
@@ -442,23 +442,23 @@ export default function TopPage() {
           バンクロールプレビュー
       ════════════════════════════════ */}
       <section style={{ padding:'0 24px 16px', maxWidth:480, margin:'0 auto' }}>
-        <p className="section-hd d5">バンクロール</p>
+        <p className="section-hd d5">Bank Roll</p>
         <div className="d5" style={{
           borderRadius:22, padding:24, position:'relative', overflow:'hidden',
           background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 60%,#1C1C1E 100%)',
           boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
         }}>
-          <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.17) 0%,transparent 60%)', pointerEvents:'none' }}/>
-          <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
+          <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(249,179,24,0.17) 0%,transparent 60%)', pointerEvents:'none' }}/>
+          <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>バンクロール</p>
+              <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
             <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>$ 24,500</p>
             <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+$ 4,500</p>
-            <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
+            <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.4),transparent)' }}/>
             <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
           </div>
         </div>
@@ -470,7 +470,7 @@ export default function TopPage() {
       <section style={{ padding:'0 24px 16px', maxWidth:480, margin:'0 auto' }}>
         <p className="section-hd d5">RR Rating（トナメ偏差値）</p>
         <div className="d6 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ background:'#F2A900', padding:'24px', position:'relative', overflow:'hidden' }}>
+          <div style={{ background:'#F9B318', padding:'24px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:'-40%', right:'-10%', width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(255,255,255,0.16) 0%,transparent 70%)' }}/>
             <div style={{ position:'absolute', bottom:'-20px', left:'-20px', width:100, height:100, borderRadius:'50%', background:'radial-gradient(circle,rgba(0,0,0,0.07) 0%,transparent 70%)' }}/>
             <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:8, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
@@ -496,10 +496,10 @@ export default function TopPage() {
       ════════════════════════════════ */}
       <section style={{ padding:'0 24px 16px', maxWidth:480, margin:'0 auto' }}>
         <div className="d6 ios-card" style={{ padding:'16px 16px', display:'flex', alignItems:'flex-start', gap:8 }}>
-          <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(242,169,0,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-            <LightbulbIcon size={16} color="#8a6200" />
+          <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(249,179,24,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+            <LightbulbIcon size={16} color="#804D00" />
           </div>
-          <p className="tip-txt" style={{ fontSize:13, color:'#8a6200', lineHeight:1.65, fontWeight:500 }}>
+          <p className="tip-txt" style={{ fontSize:13, color:'#804D00', lineHeight:1.65, fontWeight:500 }}>
             {TIPS[tipIndex]}
           </p>
         </div>
@@ -511,7 +511,7 @@ export default function TopPage() {
       <section style={{ padding:'0 24px 48px', maxWidth:480, margin:'0 auto' }}>
         <div className="d7 ios-card" style={{ padding:24, textAlign:'center' }}>
           <div style={{ display:'flex', justifyContent:'center', marginBottom:16 }}>
-            <img src="/logo.png" alt="RRPoker" className="pop" style={{ width:64, height:64, borderRadius:18, objectFit:'cover', boxShadow:'0 6px 20px rgba(242,169,0,0.28)' }}/>
+            <img src="/logo.png" alt="RRPoker" className="pop" style={{ width:64, height:64, borderRadius:18, objectFit:'cover', boxShadow:'0 6px 20px rgba(249,179,24,0.28)' }}/>
           </div>
           <h2 style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:8 }}>
             RRPokerをはじめよう

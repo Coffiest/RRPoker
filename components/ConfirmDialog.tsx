@@ -31,12 +31,12 @@ export default function ConfirmDialog({ request, onClose }: { request: ConfirmRe
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid rgba(60,60,67,0.12)' }}>
           <button type="button" onClick={onClose} className="confirm-btn"
-            style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, color: '#0A6CD6', fontFamily: 'inherit', borderRight: '1px solid rgba(60,60,67,0.12)', cursor: 'pointer' }}>
-            キャンセル
+            style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, color: '#1546D9', fontFamily: 'inherit', borderRight: '1px solid rgba(60,60,67,0.12)', cursor: 'pointer' }}>
+            Cancel
           </button>
           <button type="button" autoFocus className="confirm-btn"
             onClick={async () => { hapticAction(); onClose(); await run() }}
-            style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, fontWeight: 600, color: destructive ? '#D70015' : '#0A6CD6', fontFamily: 'inherit', cursor: 'pointer' }}>
+            style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 17, fontWeight: 600, color: destructive ? '#D70015' : '#1546D9', fontFamily: 'inherit', cursor: 'pointer' }}>
             {action}
           </button>
         </div>

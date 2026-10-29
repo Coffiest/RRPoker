@@ -148,18 +148,18 @@ export default function BranchStorePage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
-        :root { --gold:#F2A900; --gold-dk:#D4910A; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
+        :root { --gold:#F9B318; --gold-dk:#995C00; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
         @keyframes spin { to { transform:rotate(360deg); } }
-        .bs-field { position:relative; display:flex; align-items:center; background:#FAFAFA; border:1.5px solid var(--sep); border-radius:14px; transition:border-color .18s,box-shadow .18s,background .18s; overflow:hidden; }
-        .bs-field:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(242,169,0,0.12); background:white; }
+        .bs-field { position:relative; display:flex; align-items:center; background:#EDECE6; border:1.5px solid var(--sep); border-radius:14px; transition:border-color .18s,box-shadow .18s,background .18s; overflow:hidden; }
+        .bs-field:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(249,179,24,0.12); background:white; }
         .bs-field.field-error { border-color:var(--red)!important; box-shadow:0 0 0 3px rgba(255,59,48,0.09)!important; background:#FFF5F5!important; }
         .bs-input { flex:1; background:transparent; border:none; outline:none; font-size:16px; color:var(--label); padding:0 16px; font-family:inherit; }
         .bs-input::placeholder { color:var(--label3); }
         input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
         input[type=number]{-moz-appearance:textfield;}
-        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:#F2A900; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(242,169,0,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
+        .bs-btn { width:100%; height:54px; border-radius:16px; border:none; cursor:pointer; background:#F9B318; font-size:16px; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 18px rgba(249,179,24,0.32); transition:transform .13s,opacity .13s; font-family:inherit; }
         .bs-btn:active { transform:scale(0.97); opacity:.88; }
         .bs-btn:disabled { opacity:.55; pointer-events:none; }
       `}</style>
@@ -168,7 +168,7 @@ export default function BranchStorePage() {
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 16 }}>
           <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
             <ChevronLeftIcon size={20} color="var(--label)" />
-            <span style={{ fontSize: 14, color: 'var(--label)' }}>戻る</span>
+            <span style={{ fontSize: 14, color: 'var(--label)' }}>Back</span>
           </button>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', flex: 1, textAlign: 'center', marginRight: 64 }}>系列店を作成</span>
         </div>
@@ -177,8 +177,8 @@ export default function BranchStorePage() {
       <div style={{ maxWidth: 440, margin: '0 auto', padding: '16px 24px 64px' }}>
 
         {/* 説明 */}
-        <div style={{ background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
-          <p style={{ fontSize: 13, color: '#D4910A', fontWeight: 600, lineHeight: 1.6 }}>
+        <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
+          <p style={{ fontSize: 13, color: '#995C00', fontWeight: 600, lineHeight: 1.6 }}>
             系列店は同一ログインアカウントで管理できます。プレイヤーの店内通貨は全系列店で共有されます。
           </p>
         </div>
@@ -186,13 +186,13 @@ export default function BranchStorePage() {
         {/* アイコンピッカー */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()}
-            style={{ width: 90, height: 90, borderRadius: 28, background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)', border: 'none', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 0 3px rgba(242,169,0,0.25)' }}>
+            style={{ width: 90, height: 90, borderRadius: 28, background: previewUrl ? 'transparent' : 'rgba(249,179,24,0.1)', border: 'none', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 0 3px rgba(249,179,24,0.25)' }}>
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
             ) : (
-              <CameraIcon size={30} color="#F2A900" />
+              <CameraIcon size={30} color="#F9B318" />
             )}
-            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
+            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(249,179,24,0.4)' }}>
               <SquarePenIcon size={12} color="white" />
             </div>
           </button>

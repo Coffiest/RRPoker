@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase-admin/app"
-import { getFirestore, FieldValue } from "firebase-admin/firestore"
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore"
 
 import { onDocumentWritten } from "firebase-functions/v2/firestore"
 import { onSchedule } from "firebase-functions/v2/scheduler"
@@ -497,6 +497,40 @@ export const recoverStuckTournamentTimers = onSchedule(
 
     for (const storeDoc of storesSnap.docs) {
       const storeId = storeDoc.id
+
+      // 「開始時刻にタイマースタート」: 開始時刻を過ぎた大会を始める(店舗の端末が閉じていても始まるように)。
+      // 端末側(lib/autoStart.ts)と同じく、開始時刻を起点にタイマーを進める。二重開始は autoStartedAt で防ぐ。
+      const autoSnap = await db.collection("stores").doc(storeId).collection("tournaments")
+        .where("autoStart", "==", true).get()
+      for (const tDoc of autoSnap.docs) {
+        const d = tDoc.data()
+        if (d.autoStartedAt || d.timerRunning) continue
+        if (d.status !== "scheduled" && d.status !== "active") continue
+        if (typeof d.date !== "string" || typeof d.startTime !== "string" || !d.date || !d.startTime) continue
+        const at = new Date(`${d.date}T${d.startTime}:00+09:00`).getTime()
+        if (!Number.isFinite(at) || Date.now() < at) continue
+        try {
+          const levels = await resolveLevels(d, storeId)
+          const firstDur = typeof levels[0]?.duration === "number" && levels[0].duration > 0 ? levels[0].duration * 60 : 1200
+          await db.runTransaction(async (tx) => {
+            const cur = (await tx.get(tDoc.ref)).data()
+            if (!cur || cur.autoStartedAt || cur.timerRunning || !cur.autoStart) return
+            const startTs = Timestamp.fromMillis(at)
+            tx.update(tDoc.ref, {
+              status: "active",
+              startedAt: cur.startedAt ?? startTs,
+              timerRunning: true,
+              currentLevelIndex: 0,
+              levelStartedAt: startTs,
+              levelStartedRemaining: firstDur,
+              timeRemaining: firstDur,
+              autoStartedAt: startTs,
+            })
+          })
+        } catch (e) {
+          console.error("auto start failed", storeId, tDoc.id, e)
+        }
+      }
       const tournamentQuery = db
         .collection("stores")
         .doc(storeId)

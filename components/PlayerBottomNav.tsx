@@ -127,7 +127,7 @@ export default function PlayerBottomNav() {
           width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: L.itemGap,
           padding: 0, overflow: 'hidden',
-          color: isActive ? '#F2A900' : '#3C3C43',
+          color: isActive ? '#F9B318' : '#3C3C43',
           fontWeight: isActive ? 700 : 400,
         }}
       >
@@ -205,7 +205,7 @@ export default function PlayerBottomNav() {
               width: L.indicatorSize,
               height: L.indicatorSize,
               borderRadius: '50%',
-              background: 'rgba(242,169,0,0.14)',
+              background: 'rgba(249,179,24,0.14)',
               opacity: activeIndex === CENTER_INDEX ? 0 : 1,
               transition: transition
                 ? 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease'
@@ -213,7 +213,7 @@ export default function PlayerBottomNav() {
               pointerEvents: 'none',
             }} />
 
-            {sideTab('home', 'ホーム', '/home', HouseIcon)}
+            {sideTab('home', 'HOME', '/home', HouseIcon)}
 
             {/* 中央。
                  入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
@@ -235,12 +235,12 @@ export default function PlayerBottomNav() {
             >
               <div style={{
                 width: L.circleSize, height: L.circleSize, borderRadius: '50%',
-                background: '#F2A900',
+                background: '#F9B318',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
                 boxShadow: activeTab === 'action'
-                  ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
-                  : '0 4px 14px rgba(242,169,0,0.45)',
+                  ? '0 4px 18px rgba(249,179,24,0.70), 0 0 0 4px rgba(249,179,24,0.18)'
+                  : '0 4px 14px rgba(249,179,24,0.45)',
                 transition: 'box-shadow 0.35s ease',
               }}>
                 {checkedIn
@@ -249,7 +249,7 @@ export default function PlayerBottomNav() {
               </div>
             </button>
 
-            {sideTab('mypage', 'マイページ', '/home/mypage', UserIcon)}
+            {sideTab('mypage', 'MY PAGE', '/home/mypage', UserIcon)}
           </div>
 
           {/* ── ツール(正方形、メインピルと高さ一致) ── */}
@@ -287,7 +287,7 @@ export default function PlayerBottomNav() {
             <button
               type="button"
               onClick={() => { hapticTap(); setToolsOpen(v => !v) }}
-              aria-label="ツール"
+              aria-label="TOOLS"
               style={{
                 ...GLASS,
                 width: L.navH, height: L.navH,
@@ -295,15 +295,15 @@ export default function PlayerBottomNav() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: 1, padding: 0,
                 boxShadow: toolsOpen
-                  ? '0 20px 60px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 3px rgba(242,169,0,0.30)'
+                  ? '0 20px 60px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 3px rgba(249,179,24,0.30)'
                   : GLASS.boxShadow,
                 transition: 'box-shadow 0.2s ease',
               }}
             >
-              <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F2A900', lineHeight: 1 }}>
+              <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F9B318', lineHeight: 1 }}>
                 {toolsOpen ? <XIcon size={Math.max(16, Math.round(20 * L.scale))} /> : <PlusIcon size={Math.max(16, Math.round(20 * L.scale))} strokeWidth={2.5} />}
               </span>
-              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>ツール</span>
+              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>TOOLS</span>
             </button>
           </div>
         </div>

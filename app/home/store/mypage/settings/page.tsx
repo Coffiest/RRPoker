@@ -110,11 +110,11 @@ export default function StoreSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6">
+    <main className="min-h-screen bg-[#EDECE6] px-6">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">設定</h1>
+          <h1 className="text-[24px] font-semibold text-gray-900">Settings</h1>
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
@@ -156,7 +156,7 @@ export default function StoreSettingsPage() {
                 type="button"
                 onClick={() => setUnit(option)}
                 className={`h-11 rounded-2xl border text-[14px] ${
-                  unit === option ? "border-[#F2A900] bg-[#FDF2D0]" : "border-gray-200"
+                  unit === option ? "border-[#F9B318] bg-[#FDF2D0]" : "border-gray-200"
                 }`}
               >
                 {option}
@@ -177,7 +177,7 @@ export default function StoreSettingsPage() {
           <button
             type="button"
             onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
+            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
           >
             保存する
           </button>
@@ -223,7 +223,7 @@ export default function StoreSettingsPage() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

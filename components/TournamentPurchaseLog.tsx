@@ -110,7 +110,7 @@ export default function TournamentPurchaseLog({
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '8px 16px', borderRadius: 16,
-              background: row.revoked ? 'transparent' : '#F2F2F7',
+              background: row.revoked ? 'transparent' : '#EDECE6',
               border: row.revoked ? '1px dashed rgba(60,60,67,0.18)' : '1px solid transparent',
               opacity: row.revoked ? 0.5 : 1,
             }}

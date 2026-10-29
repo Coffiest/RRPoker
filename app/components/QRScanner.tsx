@@ -111,14 +111,14 @@ export default function QRScanner({ onScan, onClose }: Props) {
         <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 0, width: 'calc(50% - 120px)', height: 240, background: 'rgba(0,0,0,0.6)' }} />
         <div style={{ position: 'absolute', top: 'calc(50% - 120px)', right: 0, width: 'calc(50% - 120px)', height: 240, background: 'rgba(0,0,0,0.6)' }} />
         {[
-          { top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderTop: '3px solid #F2A900', borderLeft: '3px solid #F2A900' },
-          { top: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderTop: '3px solid #F2A900', borderRight: '3px solid #F2A900' },
-          { bottom: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderBottom: '3px solid #F2A900', borderLeft: '3px solid #F2A900' },
-          { bottom: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderBottom: '3px solid #F2A900', borderRight: '3px solid #F2A900' },
+          { top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderTop: '3px solid #F9B318', borderLeft: '3px solid #F9B318' },
+          { top: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderTop: '3px solid #F9B318', borderRight: '3px solid #F9B318' },
+          { bottom: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderBottom: '3px solid #F9B318', borderLeft: '3px solid #F9B318' },
+          { bottom: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderBottom: '3px solid #F9B318', borderRight: '3px solid #F9B318' },
         ].map((s, i) => (
           <div key={i} style={{ position: 'absolute', width: 28, height: 28, animation: 'scan-frame-pulse 2s ease-in-out infinite', ...s }} />
         ))}
-        <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', width: 240, height: 2, background: 'linear-gradient(90deg, transparent, #F2A900, transparent)', animation: 'scan-beam 2s ease-in-out infinite', borderRadius: 2 }} />
+        <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', width: 240, height: 2, background: 'linear-gradient(90deg, transparent, #F9B318, transparent)', animation: 'scan-beam 2s ease-in-out infinite', borderRadius: 2 }} />
 
       </div>
 

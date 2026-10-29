@@ -418,12 +418,12 @@ export default function StoreMyPage() {
   const note = (text: string, color: string) => <p role={color === '#D70015' ? 'alert' : 'status'} style={{ fontSize: 15, color, margin: '-16px 16px 16px' }}>{text}</p>
 
   return (
-    <main style={{ minHeight: '100dvh', background: '#F2F2F7', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
+    <main style={{ minHeight: '100dvh', background: '#EDECE6', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
-        <LargeTitle>マイページ</LargeTitle>
+        <LargeTitle>MY PAGE</LargeTitle>
 
         {/* 店舗の顔(アイコン・名前・メール)。押すとアイコンを変える。 */}
         <Section>
@@ -438,7 +438,7 @@ export default function StoreMyPage() {
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name || "店舗名を設定"}</span>
               <span style={{ display: 'block', fontSize: 15, color: 'var(--label2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
-              <span style={{ display: 'block', fontSize: 15, color: '#B57F00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
+              <span style={{ display: 'block', fontSize: 15, color: '#995C00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
             </span>
           </button>
         </Section>
@@ -515,7 +515,7 @@ export default function StoreMyPage() {
 
         <Section header="アカウント">
           <NavRow label="パスワード変更" onClick={() => router.push("/home/store/mypage/password")} />
-          <NavRow label="ログアウト" onClick={() => setConfirmReq({ title: "ログアウト", message: "この端末からログアウトします。", action: "ログアウト", run: logout })} />
+          <NavRow label="Logout" onClick={() => setConfirmReq({ title: "ログアウト", message: "この端末からログアウトします。", action: "ログアウト", run: logout })} />
         </Section>
 
         <Section footer="店舗のアカウントと、保持チップ・レートなどすべてのデータが削除されます。元に戻せません。">

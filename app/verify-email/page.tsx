@@ -68,10 +68,10 @@ export default function VerifyEmailPage() {
   const orb2y = Math.sin(orbPhase * 0.8) * 16
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold:#F2A900; --gold-dk:#D4910A;
+          --gold:#F9B318; --gold-dk:#995C00;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -99,9 +99,9 @@ export default function VerifyEmailPage() {
           to  { stroke-dashoffset:0; }
         }
         @keyframes pulse-ring {
-          0%  { box-shadow:0 0 0 0 rgba(242,169,0,0.4); }
-          70% { box-shadow:0 0 0 14px rgba(242,169,0,0); }
-          100%{ box-shadow:0 0 0 0 rgba(242,169,0,0); }
+          0%  { box-shadow:0 0 0 0 rgba(249,179,24,0.4); }
+          70% { box-shadow:0 0 0 14px rgba(249,179,24,0); }
+          100%{ box-shadow:0 0 0 0 rgba(249,179,24,0); }
         }
         @keyframes msg-in {
           from{ opacity:0; transform:translateY(6px); }
@@ -121,7 +121,7 @@ export default function VerifyEmailPage() {
         .d5{ animation-delay:.44s; }
 
         .shimmer-text {
-          background:#F2A900;
+          background:#F9B318;
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 3s linear infinite;
@@ -134,9 +134,9 @@ export default function VerifyEmailPage() {
         .pop { animation:pop-in .55s cubic-bezier(.22,1,.36,1) .08s both; }
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
-          background:#F2A900;
+          background:#F9B318;
           color:#fff; font-size:17px; font-weight:700; letter-spacing:-.1px;
-          box-shadow:0 4px 18px rgba(242,169,0,0.32);
+          box-shadow:0 4px 18px rgba(249,179,24,0.32);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease;
           animation:pulse-ring 2.6s ease-in-out 1s infinite;
@@ -157,7 +157,7 @@ export default function VerifyEmailPage() {
           box-shadow:0 1px 4px rgba(0,0,0,0.05);
           transition:transform .13s ease, border-color .13s, background .13s;
         }
-        .btn-outline:hover { border-color:rgba(60,60,67,0.28); background:#fafafa; }
+        .btn-outline:hover { border-color:rgba(60,60,67,0.28); background:#EDECE6; }
         .btn-outline:active{ transform:scale(0.97); }
         .btn-outline:disabled{ opacity:.45; pointer-events:none; }
         .spinner {
@@ -179,8 +179,8 @@ export default function VerifyEmailPage() {
 
       {/* ── Ambient Orbs ── */}
       <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
-        <div style={{ position:'absolute', top:`calc(6% + ${orb1y}px)`, right:`calc(4% + ${orb1x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.1) 0%,transparent 70%)' }}/>
-        <div style={{ position:'absolute', bottom:`calc(10% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.07) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', top:`calc(6% + ${orb1y}px)`, right:`calc(4% + ${orb1x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.1) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', bottom:`calc(10% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.07) 0%,transparent 70%)' }}/>
       </div>
 
       {/* ── Header（ロゴのみ・HomeHeader準拠） ── */}
@@ -206,8 +206,8 @@ export default function VerifyEmailPage() {
           {/* アニメーション封筒アイコン */}
           <div className="pop" style={{ display:'inline-block', marginBottom:24 }}>
             <div style={{ position:'relative', display:'inline-block' }}>
-              <div style={{ position:'absolute', inset:-14, borderRadius:9999, background:'radial-gradient(circle,rgba(242,169,0,0.18) 0%,transparent 70%)', filter:'blur(10px)' }}/>
-              <div className="envelope-anim" style={{ position:'relative', zIndex:1, width:80, height:80, borderRadius:24, background:'#F2A900', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 28px rgba(242,169,0,0.32), 0 2px 8px rgba(0,0,0,0.1)' }}>
+              <div style={{ position:'absolute', inset:-14, borderRadius:9999, background:'radial-gradient(circle,rgba(249,179,24,0.18) 0%,transparent 70%)', filter:'blur(10px)' }}/>
+              <div className="envelope-anim" style={{ position:'relative', zIndex:1, width:80, height:80, borderRadius:24, background:'#F9B318', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 8px 28px rgba(249,179,24,0.32), 0 2px 8px rgba(0,0,0,0.1)' }}>
                 <MailIcon size={38} color="white" />
               </div>
               {/* バッジ */}
@@ -218,15 +218,15 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="appear d0">
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>メール認証</p>
+            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
             <h1 className="font-display" style={{ fontSize:24, fontWeight:900, letterSpacing:'-0.5px', color:'var(--label)', lineHeight:1.25, marginBottom:8 }}>
               確認メールを<br/>
               <span className="shimmer-text">送信しました</span>
             </h1>
             {email && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(242,169,0,0.08)', border:'1px solid rgba(242,169,0,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
-                <MailIcon size={12} color="#D4910A" />
-                <span style={{ fontSize:12, fontWeight:600, color:'#D4910A', letterSpacing:'-0.1px' }}>{email}</span>
+              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(249,179,24,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
+                <MailIcon size={12} color="#995C00" />
+                <span style={{ fontSize:12, fontWeight:600, color:'#995C00', letterSpacing:'-0.1px' }}>{email}</span>
               </div>
             )}
           </div>
@@ -234,7 +234,7 @@ export default function VerifyEmailPage() {
 
         {/* ── メインカード ── */}
         <div className="appear d1 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'#F2A900', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
+          <div style={{ height:3, background:'#F9B318', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
           <div style={{ padding:'24px 24px 24px' }}>
 

@@ -126,10 +126,10 @@ export default function RegisterPage() {
   const strengthColor = ['', '#FF3B30', '#FF9500', '#34C759', '#30D158'][pwStrength]
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold:#F2A900; --gold-dk:#D4910A; --gold-lt:#FFE07A;
+          --gold:#F9B318; --gold-dk:#995C00; --gold-lt:#FFD36B;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -168,8 +168,8 @@ export default function RegisterPage() {
           to  { transform:scaleX(1); }
         }
         @keyframes field-focus-in {
-          from{ box-shadow:0 0 0 0 rgba(242,169,0,0); }
-          to  { box-shadow:0 0 0 3.5px rgba(242,169,0,0.15); }
+          from{ box-shadow:0 0 0 0 rgba(249,179,24,0); }
+          to  { box-shadow:0 0 0 3.5px rgba(249,179,24,0.15); }
         }
         @keyframes success-bounce {
           0%  { transform:scale(0.7) rotate(-5deg); opacity:0; }
@@ -193,7 +193,7 @@ export default function RegisterPage() {
         .logo-wrap{ animation:logo-drop .55s cubic-bezier(.22,1,.36,1) .05s both; }
 
         .shimmer-text{
-          background:#F2A900;
+          background:#F9B318;
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 3s linear infinite;
@@ -205,13 +205,13 @@ export default function RegisterPage() {
         }
 
         .field-wrap{
-          position:relative; border-radius:14px; background:#F2F2F7;
+          position:relative; border-radius:14px; background:#EDECE6;
           border:1.5px solid transparent;
           transition:border-color .18s, background .18s, box-shadow .18s; overflow:hidden;
         }
         .field-wrap.focused{
-          border-color:var(--gold); background:#FFFBF5;
-          box-shadow:0 0 0 3.5px rgba(242,169,0,0.15);
+          border-color:var(--gold); background:#EDECE6;
+          box-shadow:0 0 0 3.5px rgba(249,179,24,0.15);
           animation:field-focus-in .18s ease-out;
         }
         .field-wrap.has-error{ border-color:var(--red); background:#FFF5F5; }
@@ -226,9 +226,9 @@ export default function RegisterPage() {
 
         .btn-gold{
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
-          background:#F2A900;
+          background:#F9B318;
           color:#fff; font-size:17px; font-weight:700; letter-spacing:-.2px;
-          box-shadow:0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
+          box-shadow:0 4px 18px rgba(249,179,24,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
           position:relative; overflow:hidden;
@@ -239,7 +239,7 @@ export default function RegisterPage() {
           pointer-events:none;
         }
         .btn-gold:active { transform:scale(0.97); opacity:.88; }
-        .btn-gold:hover  { box-shadow:0 6px 24px rgba(242,169,0,0.42); }
+        .btn-gold:hover  { box-shadow:0 6px 24px rgba(249,179,24,0.42); }
         .btn-gold:disabled{ opacity:.5; pointer-events:none; }
         .btn-gold.success-state{
           background:linear-gradient(135deg,#34C759,#28A745) !important;
@@ -258,10 +258,10 @@ export default function RegisterPage() {
         .btn-google:disabled{ opacity:.5; pointer-events:none; }
 
         .header-cta{
-          background:#F2A900;
+          background:#F9B318;
           border:none; border-radius:20px; padding:8px 16px;
           color:white; font-size:13px; font-weight:700; cursor:pointer;
-          box-shadow:0 2px 8px rgba(242,169,0,0.28); white-space:nowrap;
+          box-shadow:0 2px 8px rgba(249,179,24,0.28); white-space:nowrap;
           display:flex; align-items:center; gap:8px;
           transition:transform .12s, opacity .12s;
         }
@@ -292,9 +292,9 @@ export default function RegisterPage() {
 
       {/* ── Ambient Orbs ── */}
       <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
-        <div style={{ position:'absolute', top:`calc(8% + ${orb1y}px)`, right:`calc(5% + ${orb1x}px)`, width:260, height:260, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.11) 0%,transparent 70%)' }}/>
-        <div style={{ position:'absolute', bottom:`calc(15% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.07) 0%,transparent 70%)' }}/>
-        <div style={{ position:'absolute', top:`calc(50% + ${orb3y}px)`, left:`calc(38% + ${orb3x}px)`, width:150, height:150, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.06) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', top:`calc(8% + ${orb1y}px)`, right:`calc(5% + ${orb1x}px)`, width:260, height:260, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.11) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', bottom:`calc(15% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:200, height:200, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.07) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', top:`calc(50% + ${orb3y}px)`, left:`calc(38% + ${orb3x}px)`, width:150, height:150, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.06) 0%,transparent 70%)' }}/>
       </div>
 
       {/* ── Header ── */}
@@ -324,11 +324,11 @@ export default function RegisterPage() {
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
             { label:'ログインはこちら', action:() => { setMenuOpen(false); router.push('/login') }, gold:false },
-            { label:'新規登録', action:() => setMenuOpen(false), gold:true },
-            { label:'パスワードを忘れた方', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
+            { label:'Sign Up', action:() => setMenuOpen(false), gold:true },
+            { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
-              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
             >{item.label}</button>
           ))}
         </div>
@@ -341,9 +341,9 @@ export default function RegisterPage() {
         <div style={{ paddingTop:40, paddingBottom:24, textAlign:'center' }}>
           <div className="logo-wrap" style={{ display:'inline-block', marginBottom:16 }}>
             <div style={{ position:'relative', display:'inline-block' }}>
-              <div style={{ position:'absolute', inset:-12, borderRadius:30, background:'radial-gradient(circle,rgba(242,169,0,0.2) 0%,transparent 70%)', filter:'blur(8px)' }}/>
+              <div style={{ position:'absolute', inset:-12, borderRadius:30, background:'radial-gradient(circle,rgba(249,179,24,0.2) 0%,transparent 70%)', filter:'blur(8px)' }}/>
               <img src="/logo.png" alt="RRPoker"
-                style={{ width:76, height:76, borderRadius:22, objectFit:'cover', position:'relative', zIndex:1, boxShadow:'0 8px 28px rgba(242,169,0,0.28), 0 2px 8px rgba(0,0,0,0.1)', display:'block' }}
+                style={{ width:76, height:76, borderRadius:22, objectFit:'cover', position:'relative', zIndex:1, boxShadow:'0 8px 28px rgba(249,179,24,0.28), 0 2px 8px rgba(0,0,0,0.1)', display:'block' }}
               />
             </div>
           </div>
@@ -359,16 +359,16 @@ export default function RegisterPage() {
           {/* ステップインジケーター */}
           <div className="appear d1" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:16 }}>
             {[
-              { n:'1', t:'アカウント作成', active:true },
+              { n:'1', t:'ACCOUNT', active:true },
               { n:'', t:'', active:false, arrow:true },
-              { n:'2', t:'メール認証', active:false },
+              { n:'2', t:'VERIFY', active:false },
               { n:'', t:'', active:false, arrow:true },
-              { n:'3', t:'プロフィール設定', active:false },
+              { n:'3', t:'PROFILE', active:false },
             ].map((s, i) => s.arrow ? (
               <ChevronRightIcon key={i} size={12} color="var(--label3)" />
             ) : (
               <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'#F2A900':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(242,169,0,0.35)':'none' }}>{s.n}</div>
+                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'#F9B318':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(249,179,24,0.35)':'none' }}>{s.n}</div>
                 <span style={{ fontSize:11, fontWeight:600, color:s.active?'var(--gold-dk)':'var(--label3)', whiteSpace:'nowrap' }}>{s.t}</span>
               </div>
             ))}
@@ -377,11 +377,11 @@ export default function RegisterPage() {
 
         {/* ── 登録フォーム ── */}
         <div id="form-anchor" className="appear d2 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'#F2A900', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
+          <div style={{ height:3, background:'#F9B318', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
           <div style={{ padding:'24px 24px 24px' }}>
             <div style={{ marginBottom:24 }}>
-              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>アカウント作成</p>
+              <p style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Create account</p>
               <p style={{ fontSize:12, color:'var(--label2)' }}>無料でアカウントを新規作成</p>
             </div>
 
@@ -422,7 +422,7 @@ export default function RegisterPage() {
 
             {/* メール */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>メールアドレス</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>EMAIL</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <MailIcon size={15} />
@@ -442,7 +442,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>PASSWORD</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />
@@ -473,7 +473,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>パスワード(確認)</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>CONFIRM PASSWORD</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />
@@ -517,7 +517,7 @@ export default function RegisterPage() {
               ) : (
                 <>
                   
-                  アカウントを作成
+                  Create account
                 </>
               )}
             </button>
@@ -526,8 +526,8 @@ export default function RegisterPage() {
             <div style={{ marginTop:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
-                style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
-              >ログイン</button>
+                style={{ fontSize:13, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
+              >Login</button>
             </div>
           </div>
         </div>

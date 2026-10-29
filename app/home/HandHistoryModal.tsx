@@ -17,12 +17,12 @@ const ACT_JP: Record<string,string> = {
   fold:"fold", check:"check", call:"call", bet:"bet", raise:"raise", allin:"All-in",
 }
 const CLR = {
-  bg:      "#FFFBF5",
+  bg:      "#EDECE6",
   white:   "#FFFFFF",
-  surface: "#F5F3EF",
+  surface: "#F5F4EF",
   border:  "#E8E3DB",
-  gold:    "#F2A900",
-  goldDk:  "#D4910A",
+  gold:    "#F9B318",
+  goldDk:  "#995C00",
   ink:     "#1D1D1F",
   gray2:   "#545458",
   gray3:   "#6E6E73",
@@ -430,7 +430,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     {/* Ante toggle */}
                     <button type="button" onClick={() => setHtAnte(v=>!v)}
                       className="flex items-center gap-2 h-11 px-4 rounded-full text-[11px] font-semibold transition active:scale-[0.97]"
-                      style={{ background:htAnte?'#FFF8E7':CLR.white, color:htAnte?CLR.goldDk:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
+                      style={{ background:htAnte?'#FEF0D1':CLR.white, color:htAnte?CLR.goldDk:CLR.gray2, border:`1px solid ${htAnte?CLR.gold:CLR.border}` }}>
                       <div style={{ width:26,height:15,borderRadius:99,background:htAnte?CLR.gold:CLR.border,position:'relative',transition:'background 0.2s',flexShrink:0 }}>
                         <div style={{ position:'absolute',width:11,height:11,borderRadius:'50%',background:'#fff',top:2,left:htAnte?13:2,transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
                       </div>
@@ -502,14 +502,14 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     const dx=cx-x,dy=cy-y,dist=Math.sqrt(dx*dx+dy*dy)||1
                     const bx=x+(dx/dist)*28, by=y+(dy/dist)*28
                     let label:string|null=null, bg="#fff", fg=CLR.gray2, bd=CLR.border
-                    if (htStreet==="preflop"&&pos==="SB"){label="SB";fg="#2563EB";bd="#BFDBFE";bg="#EFF6FF"}
-                    if (htStreet==="preflop"&&pos==="BB"){label="BB";fg="#2563EB";bd="#BFDBFE";bg="#EFF6FF"}
+                    if (htStreet==="preflop"&&pos==="SB"){label="SB";fg="#1546D9";bd="#BFDBFE";bg="#EFF6FF"}
+                    if (htStreet==="preflop"&&pos==="BB"){label="BB";fg="#1546D9";bd="#BFDBFE";bg="#EFF6FF"}
                     const sActs=htActions.filter(a=>a.street===htStreet&&a.position===pos)
                     const last=sActs[sActs.length-1]
                     if (last&&last.action!=="fold"){
                       const amtS=last.amount!=null?` ${last.amount}`:""
                       label=`${ACT_JP[last.action]}${amtS}`
-                      if (last.action==="bet"||last.action==="raise"){fg="#B45309";bd="#FDE68A";bg="#FFFBEB"}
+                      if (last.action==="bet"||last.action==="raise"){fg="#995C00";bd="#FDE68A";bg="#FFFBEB"}
                       else if (last.action==="allin"){fg=CLR.red;bd="#FCA5A5";bg="#FFF5F5"}
                       else {fg=CLR.gray2;bd=CLR.border;bg="#fff"}
                     }
@@ -566,11 +566,11 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         {/* Seat circle */}
                         <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center transition"
                           style={{
-                            background: isSel||isTurn ? "#FFF8E7" : CLR.white,
+                            background: isSel||isTurn ? "#FEF0D1" : CLR.white,
                             border: isSel||isTurn ? `2px solid ${CLR.gold}`
                                   : isHero ? `1.5px solid ${CLR.gold}`
                                   : `1.5px solid ${hasActed?"rgba(210,200,185,0.8)":CLR.border}`,
-                            boxShadow: isTurn ? `0 0 0 3px rgba(242,169,0,0.18), 0 2px 8px rgba(0,0,0,0.1)`
+                            boxShadow: isTurn ? `0 0 0 3px rgba(249,179,24,0.18), 0 2px 8px rgba(0,0,0,0.1)`
                                       : `0 1px 4px rgba(0,0,0,0.07)`,
                           }}>
                           <div className="flex gap-[2px]">
@@ -644,7 +644,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       {(htCards[htSeat]?.[0]||htCards[htSeat]?.[1]) && (
                         <button type="button" onClick={() => setHtCards(prev=>{const n={...prev};delete n[htSeat!];return n})}
                           className="self-center text-[11px] font-medium ml-2 active:scale-[0.97]"
-                          style={{color:CLR.red}}>クリア</button>
+                          style={{color:CLR.red}}>CLEAR</button>
                       )}
                     </div>
 
@@ -736,7 +736,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   ) : (
                     <button type="button" disabled={htSaving} onClick={handleSaveClick}
                       className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-[0.97] disabled:opacity-50 transition"
-                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(249,179,24,0.35)'}}>
                       {htSaving ? '保存中...' : <><CheckIcon size={20} /> 保存する</>}
                     </button>
                   )}
@@ -787,7 +787,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                               <p className="text-[13px] font-bold truncate" style={{color:CLR.ink}}>{h.title||"ハンドレビュー"}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[11px] font-bold rounded-full px-2 py-px"
-                                  style={{background:"#FFF8E7",color:CLR.goldDk}}>{h.heroPosition}</span>
+                                  style={{background:"#FEF0D1",color:CLR.goldDk}}>{h.heroPosition}</span>
                                 {(h.heroCards??[]).map((c,i) => <MiniCard key={i} card={c}/>)}
                                 {boardCards.length>0 && <>
                                   <span style={{color:CLR.border,fontSize:11}}>·</span>
@@ -900,8 +900,8 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <button type="button"
                       onClick={() => { setShowTitlePopup(false); save() }}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-[0.97]"
-                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
-                      保存
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(249,179,24,0.35)'}}>
+                      Save
                     </button>
                   </div>
                 </div>
@@ -919,7 +919,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <button type="button" onClick={() => setDelConfirmId(null)}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-semibold active:scale-[0.97]"
                       style={{background:CLR.surface,color:CLR.ink,border:`1px solid ${CLR.border}`}}>
-                      キャンセル
+                      Cancel
                     </button>
                     <button type="button" onClick={() => delHand(delConfirmId)}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-bold text-white active:scale-[0.97]"
@@ -1028,9 +1028,9 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                         )}
                         <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
                           style={{
-                            background: isCur?"#FFF8E7":CLR.white,
+                            background: isCur?"#FEF0D1":CLR.white,
                             border: isCur?`2px solid ${CLR.gold}`:isHero?`1.5px solid ${CLR.gold}`:`1.5px solid ${CLR.border}`,
-                            boxShadow: isCur?`0 0 0 3px rgba(242,169,0,0.18)`:undefined,
+                            boxShadow: isCur?`0 0 0 3px rgba(249,179,24,0.18)`:undefined,
                           }}>
                           <div className="flex gap-[2px]">
                             {[0,1].map(i => {
@@ -1047,7 +1047,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             style={{
                               background:act.action==="bet"||act.action==="raise"?"#FFFBEB":act.action==="allin"?"#FFF5F5":CLR.white,
                               border:`1px solid ${act.action==="bet"||act.action==="raise"?"#FDE68A":act.action==="allin"?"#FCA5A5":CLR.border}`,
-                              color:act.action==="bet"||act.action==="raise"?"#B45309":act.action==="allin"?CLR.red:CLR.gray2,
+                              color:act.action==="bet"||act.action==="raise"?"#995C00":act.action==="allin"?CLR.red:CLR.gray2,
                             }}>
                             {ACT_JP[act.action]}{act.amount!=null?` ${act.amount}`:""}
                           </div>
@@ -1068,7 +1068,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}><ChevronLeftIcon size={20} /></button>
                   <button type="button" onClick={() => setReplayPlaying(p => !p)}
                     className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-                    style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
+                    style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(249,179,24,0.4)'}}>
                     {replayPlaying ? <PauseIcon size={20} fill="currentColor" /> : <PlayIcon size={20} fill="currentColor" />}
                   </button>
                   <button type="button" onClick={() => setReplayStep(s => Math.min(s+1,totalSteps))}
@@ -1097,7 +1097,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             return (
                               <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition"
                                 style={{
-                                  background: isCurrent ? '#FFF8E7' : CLR.white,
+                                  background: isCurrent ? '#FEF0D1' : CLR.white,
                                   border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
                                   opacity: isCurrent ? 1 : isFuture ? 0.28 : 0.65,
                                 }}>
@@ -1105,7 +1105,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                                   style={{color:isHeroAct?CLR.goldDk:CLR.gray2}}>{a.position}</span>
                                 <span className="text-[11px]" style={{color:
                                   a.action==="fold"?CLR.gray3:
-                                  a.action==="bet"||a.action==="raise"?"#B45309":
+                                  a.action==="bet"||a.action==="raise"?"#995C00":
                                   a.action==="allin"?CLR.red:CLR.ink}}>
                                   {ACT_JP[a.action]}{a.amount!=null?` ${a.amount} BB`:""}
                                 </span>
@@ -1132,7 +1132,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
         document.body
       )}
 
-      <AppleSheet open={itmOpen} onClose={() => setItmOpen(false)} bare maxWidth={384} maxHeightVh={94} zIndex={200} background={"#F2F2F7"}>
+      <AppleSheet open={itmOpen} onClose={() => setItmOpen(false)} bare maxWidth={384} maxHeightVh={94} zIndex={200} background={"#EDECE6"}>
 
             <div className="shrink-0 px-6 pt-2 pb-4">
               <div className="flex items-center justify-between">
@@ -1146,7 +1146,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
             </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-10 space-y-4">
-              <div className="rounded-2xl px-4 py-4" style={{ background: "#FFF8E7", border: `1px solid ${CLR.gold}44` }}>
+              <div className="rounded-2xl px-4 py-4" style={{ background: "#FEF0D1", border: `1px solid ${CLR.gold}44` }}>
                 <p className="text-[12px] leading-relaxed" style={{ color: CLR.goldDk }}>
                   あなたの現在のチップ数から、インマネ確率を推定します。あくまで目安であり、スキル差などは考慮していません。
                 </p>
@@ -1164,7 +1164,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <input type="number" value={value} onChange={e => setter(e.target.value)}
                       placeholder={placeholder}
                       className="w-full h-11 rounded-2xl px-4 text-[14px] outline-none transition"
-                      style={{ background: "#F2F2F7", color: CLR.ink, border: "1.5px solid transparent" }}
+                      style={{ background: "#EDECE6", color: CLR.ink, border: "1.5px solid transparent" }}
                       onFocus={e => (e.target.style.borderColor = CLR.gold)}
                       onBlur={e => (e.target.style.borderColor = "transparent")} />
                   </div>
@@ -1183,7 +1183,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       { label: "アベレージ",   value: itmResult.avgStack.toLocaleString() },
                       { label: "アベレージ比", value: `×${itmResult.avgRatio.toFixed(2)}` },
                     ]).map(({ label, value }) => (
-                      <div key={label} className="rounded-2xl px-2 py-4 text-center" style={{ background: "#F2F2F7" }}>
+                      <div key={label} className="rounded-2xl px-2 py-4 text-center" style={{ background: "#EDECE6" }}>
                         <p className="text-[11px] mb-0.5" style={{ color: CLR.gray2 }}>{label}</p>
                         <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>{value}</p>
                       </div>

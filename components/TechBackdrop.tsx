@@ -12,7 +12,7 @@
  * `position: fixed` で画面に貼り付けるので、スクロールしても方眼は動かない。
  * 内容より後ろ(zIndex: 0)に置き、指はすべて素通しにする。
  */
-export default function TechBackdrop({ base = '#FFFBF5' }: { base?: string }) {
+export default function TechBackdrop({ base = '#EDECE6' }: { base?: string }) {
   return (
     <div
       aria-hidden="true"
@@ -34,7 +34,7 @@ export default function TechBackdrop({ base = '#FFFBF5' }: { base?: string }) {
         className="tech-orb"
         style={{
           position: 'absolute', top: '6%', right: '-8%', width: 280, height: 280, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(242,169,0,0.11) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(249,179,24,0.11) 0%, transparent 70%)',
           animation: 'techOrbDrift 14s ease-in-out infinite',
         }}
       />
@@ -42,7 +42,7 @@ export default function TechBackdrop({ base = '#FFFBF5' }: { base?: string }) {
         className="tech-orb"
         style={{
           position: 'absolute', bottom: '12%', left: '-10%', width: 220, height: 220, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(242,169,0,0.07) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(249,179,24,0.07) 0%, transparent 70%)',
           animation: 'techOrbDrift 18s ease-in-out infinite',
           animationDelay: '-6s',
         }}
@@ -51,7 +51,7 @@ export default function TechBackdrop({ base = '#FFFBF5' }: { base?: string }) {
         className="tech-orb"
         style={{
           position: 'absolute', top: '44%', left: '38%', width: 160, height: 160, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(242,169,0,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(249,179,24,0.06) 0%, transparent 70%)',
           animation: 'techOrbDrift 22s ease-in-out infinite',
           animationDelay: '-11s',
         }}

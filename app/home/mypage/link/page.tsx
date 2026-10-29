@@ -7,7 +7,7 @@ export default function AccountLinkPage() {
   const router = useRouter()
 
   return (
-    <main className="min-h-screen bg-white px-6">
+    <main className="min-h-screen bg-[#EDECE6] px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
@@ -23,7 +23,7 @@ export default function AccountLinkPage() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

@@ -185,7 +185,7 @@ function BillingContent() {
   if (success) {
     const isActive = isSubscriptionActive(subscription) || isFree
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-[#EDECE6] flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">
           {isActive ? (
             <>
@@ -198,7 +198,7 @@ function BillingContent() {
           ) : (
             <>
               <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                <div className="w-10 h-10 rounded-full border-4 border-[#F2A900] border-t-transparent animate-spin" />
+                <div className="w-10 h-10 rounded-full border-4 border-[#F9B318] border-t-transparent animate-spin" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
               <p className="text-sm text-gray-500">お支払いを確認しています</p>
@@ -208,7 +208,7 @@ function BillingContent() {
                   <button
                     onClick={handleRecover}
                     disabled={recovering}
-                    className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[15px] disabled:opacity-60"
+                    className="w-full bg-[#F9B318] text-white font-bold rounded-2xl py-4 text-[15px] disabled:opacity-60"
                   >
                     {recovering ? "確認中..." : "お支払いを再確認する"}
                   </button>
@@ -255,7 +255,7 @@ function BillingContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center px-4 py-12">
+    <div className="min-h-screen bg-[#EDECE6] flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-2xl">
         <button
           type="button"
@@ -263,7 +263,7 @@ function BillingContent() {
           className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-2 transition-colors"
         >
           <ChevronLeftIcon size={18} />
-          戻る
+          Back
         </button>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">プランを選択</h1>
@@ -273,13 +273,13 @@ function BillingContent() {
         <div className="flex items-center justify-center gap-4 mb-8">
           <button
             onClick={() => setBillingInterval("monthly")}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingInterval === "monthly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingInterval === "monthly" ? "bg-[#F9B318] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             月払い
           </button>
           <button
             onClick={() => setBillingInterval("yearly")}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingInterval === "yearly" ? "bg-[#F9B318] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             年払い
             <span className="ml-2 text-[11px] font-bold bg-green-500 text-white rounded-full px-2 py-0.5">17%OFF</span>
@@ -291,7 +291,7 @@ function BillingContent() {
             <button
               key={p.id}
               onClick={() => setPlan(p.id)}
-              className={`text-left rounded-2xl border-2 p-6 transition ${plan === p.id ? "border-[#F2A900] bg-amber-50" : "border-gray-200 bg-white"}`}
+              className={`text-left rounded-2xl border-2 p-6 transition ${plan === p.id ? "border-[#F9B318] bg-amber-50" : "border-gray-200 bg-white"}`}
             >
               {p.badge && (
                 <span className="inline-block text-[11px] font-bold bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 mb-4">
@@ -300,7 +300,7 @@ function BillingContent() {
               )}
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-bold text-gray-900 text-[15px]">{p.name}</h3>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${plan === p.id ? "border-[#F2A900] bg-[#F2A900]" : "border-gray-300"}`}>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${plan === p.id ? "border-[#F9B318] bg-[#F9B318]" : "border-gray-300"}`}>
                   {plan === p.id && <CheckIcon size={11} color="#fff" strokeWidth={3} />}
                 </div>
               </div>
@@ -337,7 +337,7 @@ function BillingContent() {
               value={circleCode}
               onChange={e => setCircleCode(e.target.value)}
               placeholder="発行されたシリアルコードを入力"
-              className="w-full rounded-xl px-4 py-4 text-sm text-gray-900 border border-gray-200 outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition"
+              className="w-full rounded-xl px-4 py-4 text-sm text-gray-900 border border-gray-200 outline-none focus:border-[#F9B318] focus:ring-2 focus:ring-[#F9B318]/15 transition"
             />
             <p className="text-xs text-label3 mt-2">管理者から発行されたコードを入力してください</p>
           </div>
@@ -357,7 +357,7 @@ function BillingContent() {
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[16px] disabled:opacity-60 transition-opacity"
+            className="w-full bg-[#F9B318] text-white font-bold rounded-2xl py-4 text-[16px] disabled:opacity-60 transition-opacity"
           >
             {loading ? "処理中..." : "サブスクリプションを開始する"}
           </button>
@@ -394,7 +394,7 @@ function BillingContent() {
 
 export default function BillingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAFAFA]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#EDECE6]" />}>
       <BillingContent />
     </Suspense>
   )

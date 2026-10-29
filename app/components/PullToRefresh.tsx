@@ -91,11 +91,11 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
       <div style={{
         marginBottom: 16,
         width: 36, height: 36, borderRadius: '50%',
-        background: ready ? '#F2A900' : 'rgba(242,169,0,0.12)',
-        border: `2px solid ${ready ? '#F2A900' : 'rgba(242,169,0,0.25)'}`,
+        background: ready ? '#F9B318' : 'rgba(249,179,24,0.12)',
+        border: `2px solid ${ready ? '#F9B318' : 'rgba(249,179,24,0.25)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'background 0.2s, border-color 0.2s',
-        boxShadow: ready ? '0 4px 14px rgba(242,169,0,0.3)' : 'none',
+        boxShadow: ready ? '0 4px 14px rgba(249,179,24,0.3)' : 'none',
       }}>
         {refreshing ? (
           <div style={{

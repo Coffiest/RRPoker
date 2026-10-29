@@ -9,35 +9,35 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 const FEATURES = [
   {
     icon: (
-      <HouseIcon size={22} color="#F2A900" />
+      <HouseIcon size={22} color="#F9B318" />
     ),
     title: '店舗チェックイン',
     desc: '簡単に入店。チップ残高をリアルタイム管理。',
   },
   {
     icon: (
-      <ActivityIcon size={22} color="#F2A900" />
+      <ActivityIcon size={22} color="#F9B318" />
     ),
     title: 'RR Rating',
     desc: 'ROIとインマネ率からあなたの実力を偏差値で可視化。',
   },
   {
     icon: (
-      <UserIcon size={22} color="#F2A900" />
+      <UserIcon size={22} color="#F9B318" />
     ),
     title: 'ランキング',
     desc: '純増ランキングで仲間と競い、モチベーションをキープ。',
   },
   {
     icon: (
-      <CreditCardIcon size={22} color="#F2A900" />
+      <CreditCardIcon size={22} color="#F9B318" />
     ),
     title: 'チップ管理',
     desc: '購入・引き出し履歴を一覧管理。BBでの表示にも対応。',
   },
   {
     icon: (
-      <ListIcon size={22} color="#F2A900" />
+      <ListIcon size={22} color="#F9B318" />
     ),
     title: 'トーナメント履歴',
     desc: '参加したトナメを自動記録。ROI・ITMを統計で確認。',
@@ -89,7 +89,7 @@ export default function UserWelcomePage() {
   }, [])
 
   return (
-    <main style={{ background: '#FFFBF5' }} className="min-h-screen px-6 pb-16">
+    <main style={{ background: '#EDECE6' }} className="min-h-screen px-6 pb-16">
       <style>{`
         @keyframes slideUp {
           from { opacity:0; transform:translateY(12px); }
@@ -113,9 +113,9 @@ export default function UserWelcomePage() {
           to   { opacity:1; transform:translateY(0); }
         }
         @keyframes pulse-ring {
-          0%   { box-shadow: 0 0 0 0 rgba(242,169,0,0.35); }
-          70%  { box-shadow: 0 0 0 14px rgba(242,169,0,0); }
-          100% { box-shadow: 0 0 0 0 rgba(242,169,0,0); }
+          0%   { box-shadow: 0 0 0 0 rgba(249,179,24,0.35); }
+          70%  { box-shadow: 0 0 0 14px rgba(249,179,24,0); }
+          100% { box-shadow: 0 0 0 0 rgba(249,179,24,0); }
         }
         .d1 { opacity:0; animation: slideUp 0.5s ease-out 0.05s forwards; }
         .d2 { opacity:0; animation: slideUp 0.5s ease-out 0.18s forwards; }
@@ -127,10 +127,10 @@ export default function UserWelcomePage() {
 
         .profile-card {
           background: linear-gradient(145deg,#fff 0%,#fefefe 100%);
-          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 8px rgba(249,179,24,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         .shimmer-text {
-          background: #F2A900;
+          background: #F9B318;
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -138,8 +138,8 @@ export default function UserWelcomePage() {
           animation: shimmer 2.4s linear infinite;
         }
         .btn-primary {
-          background: #F2A900;
-          box-shadow: 0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
+          background: #F9B318;
+          box-shadow: 0 4px 18px rgba(249,179,24,0.32), 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.13s ease, box-shadow 0.13s ease;
           animation: pulse-ring 2s ease-out 1.2s 3;
         }
@@ -149,9 +149,9 @@ export default function UserWelcomePage() {
           transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
         }
         .feature-item.active {
-          background: linear-gradient(135deg,#FFF8ED 0%,#FFFBF5 100%);
-          border-color: rgba(242,169,0,0.35);
-          box-shadow: 0 2px 10px rgba(242,169,0,0.1);
+          background: linear-gradient(135deg,#F7F1E3 0%,#EDECE6 100%);
+          border-color: rgba(249,179,24,0.35);
+          box-shadow: 0 2px 10px rgba(249,179,24,0.1);
         }
         .tip-box {
           transition: opacity 0.3s ease, transform 0.3s ease;
@@ -165,14 +165,14 @@ export default function UserWelcomePage() {
         }
         .divider-line {
           height:1px;
-          background: linear-gradient(90deg, transparent, rgba(242,169,0,0.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(249,179,24,0.18), transparent);
         }
         .dot {
           width:6px; height:6px; border-radius:9999px;
-          background: rgba(242,169,0,0.25);
+          background: rgba(249,179,24,0.25);
           transition: background 0.25s, transform 0.25s;
         }
-        .dot.active { background:#F2A900; transform:scale(1.3); }
+        .dot.active { background:#F9B318; transform:scale(1.3); }
       `}</style>
 
       <div className="mx-auto max-w-sm">
@@ -183,15 +183,15 @@ export default function UserWelcomePage() {
           <div
             className="pop mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[28px]"
             style={{
-              background: '#F2A900',
-              boxShadow: '0 8px 28px rgba(242,169,0,0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
+              background: '#F9B318',
+              boxShadow: '0 8px 28px rgba(249,179,24,0.32), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
             <TrophyIcon size={38} color="white" />
           </div>
 
           <div className="d1">
-            <p className="text-[13px] font-semibold uppercase tracking-[1px] text-[#F2A900] mb-2">
+            <p className="text-[13px] font-semibold uppercase tracking-[1px] text-[#F9B318] mb-2">
               Welcome
             </p>
             <h1 className="font-display text-[26px] font-bold tracking-[-0.4px] text-gray-900 leading-tight">
@@ -218,7 +218,7 @@ export default function UserWelcomePage() {
                 key={i}
                 className={`feature-item flex items-start gap-4 rounded-2xl border px-4 py-4 ${
                   i === featureIndex
-                    ? 'active border-[rgba(242,169,0,0.35)]'
+                    ? 'active border-[rgba(249,179,24,0.35)]'
                     : 'border-transparent'
                 }`}
               >
@@ -226,7 +226,7 @@ export default function UserWelcomePage() {
                   className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl"
                   style={{
                     background: i === featureIndex
-                      ? 'linear-gradient(135deg,#FFF0C0,#FFF8E7)'
+                      ? 'linear-gradient(135deg,#FFF0C0,#FEF0D1)'
                       : '#f3f4f6',
                   }}
                 >
@@ -253,13 +253,13 @@ export default function UserWelcomePage() {
           <div
             className="rounded-2xl px-4 py-4 flex items-start gap-2"
             style={{
-              background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)',
-              border: '1px solid rgba(242,169,0,0.2)',
+              background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)',
+              border: '1px solid rgba(249,179,24,0.2)',
             }}
           >
-            <CircleAlertIcon size={15} color="#F2A900" className="mt-0.5 flex-shrink-0" />
+            <CircleAlertIcon size={15} color="#F9B318" className="mt-0.5 flex-shrink-0" />
             <p
-              className={`text-[13px] text-[#7A5600] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
+              className={`text-[13px] text-[#804D00] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
             >
               {TIPS[tipIndex]}
             </p>

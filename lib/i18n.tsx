@@ -45,13 +45,13 @@ const dict = {
     'login.homePreview': 'ログイン後のホーム画面',
     'login.previewNote': '※ ログイン後、実際の残高が表示されます',
 
-    'register.title': '新規登録',
+    'register.title': 'Sign Up',
     'register.email': 'Email',
     'register.password': 'Password',
     'register.confirmPassword': 'Confirm Password',
     'register.submit': '登録する',
     'register.hasAccount': 'すでにアカウントをお持ちの方',
-    'register.login': 'ログイン',
+    'register.login': 'Login',
     'register.privacyNotice': '登録すると、',
     'register.privacyNoticeSuffix': 'に同意したものとみなされます。プレイヤー登録に住所や電話番号などの個人情報は不要です。',
 

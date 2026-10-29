@@ -55,7 +55,7 @@ export default function StoreBottomNav() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const col = (tab: ActiveTab) => ({
-    color: activeTab === tab ? '#F2A900' : '#3C3C43',
+    color: activeTab === tab ? '#F9B318' : '#3C3C43',
     fontWeight: activeTab === tab ? 700 : 400,
   })
 
@@ -74,7 +74,7 @@ export default function StoreBottomNav() {
           width: 44,
           height: 44,
           borderRadius: '50%',
-          background: 'rgba(242,169,0,0.14)',
+          background: 'rgba(249,179,24,0.14)',
           opacity: indVisible ? 1 : 0,
           transition: transition
             ? 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease'
@@ -90,7 +90,7 @@ export default function StoreBottomNav() {
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <HouseIcon size={22} />
-          <span style={{ fontSize: 11, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
+          <span style={{ fontSize: 11, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>HOME</span>
         </button>
 
         {/* Center */}
@@ -103,12 +103,12 @@ export default function StoreBottomNav() {
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: '#F2A900',
+              background: '#F9B318',
               border: 'none',
               cursor: 'pointer',
               boxShadow: activeTab === 'action'
-                ? '0 4px 20px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
-                : '0 4px 16px rgba(242,169,0,0.45)',
+                ? '0 4px 20px rgba(249,179,24,0.70), 0 0 0 4px rgba(249,179,24,0.18)'
+                : '0 4px 16px rgba(249,179,24,0.45)',
               transition: 'box-shadow 0.35s ease',
             }}
           >
@@ -124,7 +124,7 @@ export default function StoreBottomNav() {
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <UserIcon size={22} />
-          <span style={{ fontSize: 11, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
+          <span style={{ fontSize: 11, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>MY PAGE</span>
         </button>
       </div>
     </nav>

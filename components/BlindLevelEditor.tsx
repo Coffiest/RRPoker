@@ -109,7 +109,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, alignItems: 'center' }}>
               {lv.type === 'level' ? (
                 <>
-                  <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#B57F00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
+                  <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#995C00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
                   {(['smallBlind', 'bigBlind', 'ante', 'duration'] as const).map(key => (
                     <input key={key} type="number" inputMode="numeric" min={0} value={lv[key] ?? ''} placeholder="—"
                       aria-label={`レベル${levelNo(idx)} ${{ smallBlind: 'SB', bigBlind: 'BB', ante: 'アンティ', duration: '分' }[key]}`}
@@ -118,8 +118,8 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                 </>
               ) : (
                 <>
-                  <span style={{ display: 'flex', justifyContent: 'center', color: '#0A6CD6' }}><CoffeeIcon size={20} /></span>
-                  <span style={{ gridColumn: '2 / span 3', fontSize: 15, fontWeight: 600, color: '#0A6CD6', paddingLeft: 8 }}>休憩</span>
+                  <span style={{ display: 'flex', justifyContent: 'center', color: '#1546D9' }}><CoffeeIcon size={20} /></span>
+                  <span style={{ gridColumn: '2 / span 3', fontSize: 15, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>休憩</span>
                   <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="休憩の分"
                     onChange={e => setField(idx, 'duration', e.target.value)} className="no-spin ble-input" style={numInput} />
                 </>
@@ -151,7 +151,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
       )}
 
       <style>{`
-        .ble-input:focus { box-shadow: inset 0 0 0 2px #F2A900; background: #fff; }
+        .ble-input:focus { box-shadow: inset 0 0 0 2px #F9B318; background: #fff; }
         .ble-press { -webkit-tap-highlight-color: transparent; transition: transform 100ms ease-out, background-color 100ms ease-out; }
         .ble-press:active { transform: scale(0.97); }
         .ble-row:active { background: rgba(60,60,67,0.06); }
@@ -188,8 +188,8 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                   <span style={{ flex: 1 }}>削除</span><Trash2Icon size={20} />
                 </button>
               </div>
-              <button type="button" onClick={() => setMenuIdx(null)} className="ble-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 17, fontWeight: 600, color: '#0A6CD6', fontFamily: 'inherit', cursor: 'pointer' }}>
-                キャンセル
+              <button type="button" onClick={() => setMenuIdx(null)} className="ble-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 17, fontWeight: 600, color: '#1546D9', fontFamily: 'inherit', cursor: 'pointer' }}>
+                Cancel
               </button>
             </div>
           </div>

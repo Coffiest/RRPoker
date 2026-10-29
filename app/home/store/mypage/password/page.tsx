@@ -47,7 +47,7 @@ export default function StorePasswordChangePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6">
+    <main className="min-h-screen bg-[#EDECE6] px-6">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
@@ -84,7 +84,7 @@ export default function StorePasswordChangePage() {
             type="button"
             onClick={changePassword}
             disabled={loading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-white disabled:opacity-60"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[15px] font-semibold text-white disabled:opacity-60"
           >
             変更する
           </button>
@@ -95,7 +95,7 @@ export default function StorePasswordChangePage() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          戻る
+          Back
         </button>
       </div>
     </main>

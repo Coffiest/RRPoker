@@ -87,14 +87,14 @@ export default function WithdrawConfirmClient() {
 
   if (!amount) {
     return (
-      <main className="min-h-screen bg-white px-6 pb-24">
+      <main className="min-h-screen bg-[#EDECE6] px-6 pb-24">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
           <p className="text-[14px] text-gray-500">金額が指定されていません</p>
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-white"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
           >
             ホームへ戻る
           </button>
@@ -105,7 +105,7 @@ export default function WithdrawConfirmClient() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 pb-24">
+    <main className="min-h-screen bg-[#EDECE6] px-6 pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
@@ -124,7 +124,7 @@ export default function WithdrawConfirmClient() {
         <button
           type="button"
           onClick={confirm}
-          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-white"
+          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[15px] font-semibold text-white"
         >
           確認してもらった
         </button>
