@@ -481,7 +481,7 @@ export default function TournamentsPage() {
 
         {/* 大見出し + 主な操作 */}
         <header style={{ padding: '16px 0 24px' }}>
-          <h1 style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }} className="font-display term-prompt tech-caret">Tournaments</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0 }} className="font-display term-prompt tech-caret">Tournaments</h1>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button type="button" onClick={openCreate} className="tp-press" style={{ ...btn.primary, flex: 1, minWidth: 0, padding: '0 16px' }}>
               <PlusIcon size={20} strokeWidth={2.5} /> トーナメントを作成
@@ -512,8 +512,8 @@ export default function TournamentsPage() {
                       <StatusBadge status={t.status} />
                       {t.repeatWeekly && <Chip icon={<RepeatIcon size={12} />}>毎週</Chip>}
                     </div>
-                    <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
-                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 15, color: 'var(--label2)' }}>
+                    <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
+                    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 13, color: 'var(--label2)' }}>
                       <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
                       {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
@@ -524,7 +524,7 @@ export default function TournamentsPage() {
                       <Stat label="Add-on" value={c.addon} />
                     </div>
                     {t.blindPresetId && presetName(t.blindPresetId) && (
-                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: '16px 0 0' }}>ブラインド: {presetName(t.blindPresetId)}</p>
+                      <p style={{ fontSize: 11, color: 'var(--label2)', margin: '16px 0 0' }}>ブラインド: {presetName(t.blindPresetId)}</p>
                     )}
                   </div>
                   {t.status === "scheduled" && (
@@ -581,8 +581,8 @@ export default function TournamentsPage() {
                     <article key={t.id} style={card}>
                       <div style={{ padding: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
-                          <p style={{ fontSize: 13, color: 'var(--label2)', margin: '4px 0 0' }}>
+                          <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
+                          <p style={{ fontSize: 11, color: 'var(--label2)', margin: '4px 0 0' }}>
                             {t.startedAt || t.createdAt} ・ エントリー {c.entry} / リエントリー {c.reentry} / アドオン {c.addon}
                           </p>
                         </div>
@@ -602,14 +602,14 @@ export default function TournamentsPage() {
                                 {payout && typeof payout.rank === "number"
                                   ? <span style={rankBadge}>{payout.rank}</span>
                                   : <span style={{ width: 24, flexShrink: 0 }} />}
-                                <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: payout ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: payout ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {typeof e.name === "string" && e.name ? e.name : e.id}
                                 </span>
-                                <span style={{ fontSize: 13, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums' }}>
+                                <span style={{ fontSize: 11, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums' }}>
                                   E{e.entryCount ?? 0} R{e.reentryCount ?? 0} A{e.addonCount ?? 0}
                                 </span>
                                 {payout && (
-                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 15, fontWeight: 700, color: 'var(--gold-dk)' }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: 'var(--gold-dk)' }}>
                                     <AwardIcon size={16} /> {unit(typeof payout.amount === "number" ? payout.amount : 0)}
                                   </span>
                                 )}
@@ -636,8 +636,8 @@ export default function TournamentsPage() {
                     <button key={t.id} type="button" onClick={() => handleEdit(t)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                       <RepeatIcon size={20} style={{ color: 'var(--gold-dk)', flexShrink: 0 }} />
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600 }}>{t.name}</span>
-                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>次回 {t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{t.name}</span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>次回 {t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
                       </span>
                       <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                     </button>
@@ -652,8 +652,8 @@ export default function TournamentsPage() {
                   {tabInstances.map((t, i) => (
                     <div key={t.id} style={{ ...listRow, cursor: 'default', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600 }}>{t.name}</span>
-                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{t.name}</span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
                       </span>
                       <StatusBadge status={t.status} />
                     </div>
@@ -703,7 +703,7 @@ export default function TournamentsPage() {
 
         <GroupLabel small>参加費とスタック</GroupLabel>
         <div style={{ ...list, marginBottom: 8 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '8px 16px 0', fontSize: 13, color: 'var(--label2)', fontWeight: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '8px 16px 0', fontSize: 11, color: 'var(--label2)', fontWeight: 600 }}>
             <span />
             <span style={{ textAlign: 'center' }}>参加費{chipUnit ? `(${chipUnit})` : ""}</span>
             <span style={{ textAlign: 'center' }}>Stack</span>
@@ -714,7 +714,7 @@ export default function TournamentsPage() {
             { label: 'Add-on', feeKey: 'addonFee', stackKey: 'addonStack' },
           ].map((row, i) => (
             <div key={row.feeKey} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, alignItems: 'center', padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
-              <span style={{ fontSize: 15, fontWeight: 600 }}>{row.label}</span>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{row.label}</span>
               {[row.feeKey, row.stackKey].map(key => (
                 <input key={key} type="number" inputMode="numeric" min={0} value={(form as any)[key]} onChange={e => handleChange(key, e.target.value)} placeholder="0"
                   aria-label={`${row.label} ${key.endsWith('Fee') ? '参加費' : 'スタック'}`}
@@ -723,7 +723,7 @@ export default function TournamentsPage() {
             </div>
           ))}
         </div>
-        <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 8px 24px' }}>使わない項目は 0 のままにします。</p>
+        <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>使わない項目は 0 のままにします。</p>
 
         <GroupLabel small>BLINDS</GroupLabel>
         <div style={{ ...list, marginBottom: 24 }}>
@@ -733,8 +733,8 @@ export default function TournamentsPage() {
             return (
               <button key={p.id || 'none'} type="button" role="radio" aria-checked={sel} onClick={() => setBlindPresetId(p.id)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 17 }}>{p.name}</span>
-                  {p.id && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{lv} レベル</span>}
+                  <span style={{ display: 'block', fontSize: 14 }}>{p.name}</span>
+                  {p.id && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{lv} レベル</span>}
                 </span>
                 {sel && <CheckMark />}
               </button>
@@ -760,8 +760,8 @@ export default function TournamentsPage() {
             <label className="tp-press" style={{ ...list, display: 'flex', alignItems: 'center', gap: 16, padding: 16, minHeight: 56 }}>
               <CameraIcon size={24} style={{ color: 'var(--label2)', flexShrink: 0 }} />
               <span style={{ flex: 1 }}>
-                <span style={{ display: 'block', fontSize: 17 }}>画像を選ぶ</span>
-                <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)</span>
+                <span style={{ display: 'block', fontSize: 14 }}>画像を選ぶ</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)</span>
               </span>
               <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
               <input type="file" accept="image/*" hidden onChange={e => { if (e.target.files?.[0]) handleImageSelect(e.target.files[0]) }} />
@@ -829,8 +829,8 @@ export default function TournamentsPage() {
                   <div key={preset.id} style={{ display: 'flex', alignItems: 'center', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                     <button type="button" onClick={() => openEditBlindPreset(preset)} className="tp-row" style={{ ...listRow, flex: 1 }}>
                       <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: 17, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
-                        <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                        <span style={{ display: 'block', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
                           {lvCount} レベル ・ 休憩 {brkCount} 回 ・ {fmtMinutes(mins)}
                         </span>
                       </span>
@@ -853,10 +853,10 @@ export default function TournamentsPage() {
             </div>
 
             <div style={{ ...list, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 16px' }}>
-              <span style={{ fontSize: 15, flex: 1 }}>時間を一括変更</span>
+              <span style={{ fontSize: 13, flex: 1 }}>時間を一括変更</span>
               <input type="number" inputMode="numeric" value={bulkDuration} onChange={e => setBulkDuration(e.target.value)} placeholder="20" aria-label="分"
                 className="no-spin tp-input" style={{ ...numInput, width: 64 }} />
-              <span style={{ fontSize: 15, color: 'var(--label2)' }}>分</span>
+              <span style={{ fontSize: 11, color: 'var(--label2)' }}>分</span>
               <button type="button" onClick={() => {
                 const d = Math.round(Number(bulkDuration))
                 if (!bulkDuration || isNaN(d) || d <= 0) return
@@ -910,7 +910,7 @@ export default function TournamentsPage() {
               <FormRow label="締切まで" hint="開始からレジスト締切までの時間" last>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
                   <input type="number" inputMode="decimal" step="0.5" min="0.5" value={aiRcHours} onChange={e => { setAiError(""); setAiRcHours(e.target.value) }} placeholder="3" className="no-spin" style={{ ...rowInput, width: 64 }} />
-                  <span style={{ fontSize: 17, color: 'var(--label2)' }}>時間</span>
+                  <span style={{ fontSize: 14, color: 'var(--label2)' }}>時間</span>
                 </span>
               </FormRow>
             </div>
@@ -920,14 +920,14 @@ export default function TournamentsPage() {
                 const on = aiChips.includes(chip)
                 return (
                   <button key={chip} type="button" role="checkbox" aria-checked={on} onClick={() => { setAiError(""); setAiChips(prev => on ? prev.filter(c => c !== chip) : [...prev, chip]) }} className="tp-press"
-                    style={{ minWidth: 64, minHeight: 44, padding: '0 16px', borderRadius: 999, fontSize: 15, fontWeight: 600, border: 'none',
+                    style={{ minWidth: 64, minHeight: 44, padding: '0 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, border: 'none',
                       background: on ? 'var(--label)' : 'var(--fill)', color: on ? '#fff' : 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
                     {chip.toLocaleString()}
                   </button>
                 )
               })}
             </div>
-            <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
+            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
           </>
         ) : (
           <ol style={{ ...list, listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
@@ -939,7 +939,7 @@ export default function TournamentsPage() {
                 ) : (
                   <>
                     <span style={{ width: 24, textAlign: 'center', fontWeight: 700, color: 'var(--gold-dk)' }}>{aiPreviewLevels.slice(0, i + 1).filter(l => l.type === "level").length}</span>
-                    <span style={{ flex: 1, fontSize: 17 }}>{lv.smallBlind?.toLocaleString()} / {lv.bigBlind?.toLocaleString()}</span>
+                    <span style={{ flex: 1, fontSize: 14 }}>{lv.smallBlind?.toLocaleString()} / {lv.bigBlind?.toLocaleString()}</span>
                     <span style={{ color: 'var(--label2)' }}>{lv.duration}分</span>
                   </>
                 )}
@@ -967,33 +967,33 @@ const list: React.CSSProperties = { background: '#fff', borderRadius: 16, overfl
 const listRow: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56,
   padding: '8px 16px', background: 'transparent', border: 'none', textAlign: 'left',
-  color: 'var(--label)', fontFamily: 'inherit', fontSize: 17, cursor: 'pointer',
+  color: 'var(--label)', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
   transition: 'background-color 100ms ease-out',
 }
 const metaItem: React.CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: 4 }
 const rowInput: React.CSSProperties = {
   flex: 1, minWidth: 0, width: '100%', height: 44, background: 'none', border: 'none', outline: 'none',
-  fontSize: 17, color: 'var(--label)', textAlign: 'right', fontFamily: 'inherit',
+  fontSize: 14, color: 'var(--label)', textAlign: 'right', fontFamily: 'inherit',
 }
 const numInput: React.CSSProperties = {
   height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)',
-  fontSize: 17, fontWeight: 600, color: 'var(--label)', outline: 'none', textAlign: 'center',
+  fontSize: 14, fontWeight: 600, color: 'var(--label)', outline: 'none', textAlign: 'center',
   boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit', width: '100%',
 }
 const rankBadge: React.CSSProperties = {
   width: 24, height: 24, borderRadius: 12, background: 'var(--gold)', color: '#fff',
-  fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
 }
 const btnBase: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   minHeight: 48, padding: '0 24px', borderRadius: 999, border: 'none',
-  fontSize: 17, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
+  fontSize: 14, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap',
 }
 const btn = {
   // 金の面の上の文字は白(CLAUDE.md・オーナー確定)。
   primary: { ...btnBase, background: 'var(--gold)', color: '#fff' } as React.CSSProperties,
   secondary: { ...btnBase, background: '#fff', color: 'var(--label)', boxShadow: 'inset 0 0 0 1px var(--sep)' } as React.CSSProperties,
-  small: { ...btnBase, minHeight: 44, padding: '0 16px', fontSize: 15, background: 'var(--label)', color: '#fff' } as React.CSSProperties,
+  small: { ...btnBase, minHeight: 44, padding: '0 16px', fontSize: 13, background: 'var(--label)', color: '#fff' } as React.CSSProperties,
   icon: { ...btnBase, width: 48, minHeight: 48, padding: 0, background: 'var(--fill)', color: 'var(--label)', flexShrink: 0 } as React.CSSProperties,
 }
 
@@ -1014,8 +1014,8 @@ function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: stri
         </button>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
-        {sub && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
+        <p style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
+        {sub && <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
       </div>
       <button type="button" onClick={onClose} className="tp-press" aria-label="閉じる" style={{ ...btn.icon, width: 44, minHeight: 44, marginRight: -8 }}>
         <XIcon size={20} />
@@ -1028,8 +1028,8 @@ function FormRow({ label, hint, children, last }: { label: string; hint?: string
   return (
     <label style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '4px 16px', borderBottom: last ? 'none' : '1px solid var(--sep)' }}>
       <span style={{ flexShrink: 0, maxWidth: '55%' }}>
-        <span style={{ display: 'block', fontSize: 17, color: 'var(--label)' }}>{label}</span>
-        {hint && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{hint}</span>}
+        <span style={{ display: 'block', fontSize: 14, color: 'var(--label)' }}>{label}</span>
+        {hint && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{hint}</span>}
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'flex-end' }}>{children}</span>
     </label>
@@ -1044,7 +1044,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   const [label, bg, fg] = map[status] ?? [status, 'rgba(118,118,128,0.12)', 'var(--label2)']
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: bg, color: fg, flexShrink: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: bg, color: fg, flexShrink: 0 }}>
       {status === 'active' && <span className="tp-live" style={{ width: 8, height: 8, borderRadius: 4, background: '#F9B318' }} />}
       {label}
     </span>
@@ -1053,7 +1053,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function Chip({ icon, children }: { icon?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: 'rgba(118,118,128,0.12)', color: 'var(--label2)' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 600, padding: '4px 8px', borderRadius: 8, background: 'rgba(118,118,128,0.12)', color: 'var(--label2)' }}>
       {icon}{children}
     </span>
   )
@@ -1062,8 +1062,8 @@ function Chip({ icon, children }: { icon?: React.ReactNode; children: React.Reac
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ background: 'rgba(118,118,128,0.08)', borderRadius: 12, padding: 8, textAlign: 'center' }}>
-      <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.27 }}>{value}</div>
-      <div style={{ fontSize: 13, color: 'var(--label2)' }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.27 }}>{value}</div>
+      <div style={{ fontSize: 11, color: 'var(--label2)' }}>{label}</div>
     </div>
   )
 }
@@ -1072,8 +1072,8 @@ function EmptyCard({ icon, title, body, flat }: { icon: React.ReactNode; title: 
   return (
     <div style={{ ...(flat ? {} : card), padding: '32px 24px', textAlign: 'center', marginBottom: 32 }}>
       <div style={{ color: 'var(--label3)', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>{icon}</div>
-      <p style={{ fontSize: 17, fontWeight: 600, margin: 0 }}>{title}</p>
-      {body && <p style={{ fontSize: 15, color: 'var(--label2)', margin: '8px 0 0' }}>{body}</p>}
+      <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{title}</p>
+      {body && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0 0' }}>{body}</p>}
     </div>
   )
 }
@@ -1083,7 +1083,7 @@ function SearchField({ value, onChange, placeholder }: { value: string; onChange
     <div style={{ position: 'relative', marginBottom: 16 }}>
       <SearchIcon size={20} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }} />
       <input type="search" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
-        style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 48px 0 40px', fontSize: 17, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+        style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 48px 0 40px', fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
       {value && (
         <button type="button" onClick={() => onChange("")} aria-label="検索語を消す" className="tp-press"
           style={{ position: 'absolute', right: 0, top: 0, width: 44, height: 44, border: 'none', background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label2)' }}>
@@ -1095,7 +1095,7 @@ function SearchField({ value, onChange, placeholder }: { value: string; onChange
 }
 
 function InlineError({ children }: { children: React.ReactNode }) {
-  return <p role="alert" style={{ fontSize: 15, color: '#D70015', margin: '0 8px 8px', fontWeight: 500 }}>{children}</p>
+  return <p role="alert" style={{ fontSize: 13, color: '#D70015', margin: '0 8px 8px', fontWeight: 500 }}>{children}</p>
 }
 
 function CheckMark() {

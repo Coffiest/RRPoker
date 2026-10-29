@@ -261,7 +261,7 @@ export default function FriendsPage() {
             disabled={isSearching}
             className="h-12 w-12 rounded-2xl bg-[#F9B318] flex items-center justify-center text-white disabled:opacity-60"
           >
-            <SearchIcon className="text-[16px]" />
+            <SearchIcon className="text-[14px]" />
           </button>
         </div>
 
@@ -308,14 +308,14 @@ export default function FriendsPage() {
               </div>
 
               <h2 className="font-display text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
-              <p className="text-center text-[13px] text-gray-500 mt-2">{selectedPlayer.playerId}</p>
-              <p className="text-center text-[14px] font-semibold text-gray-700 mt-4">{selectedPlayer.rating.toLocaleString()} RR</p>
+              <p className="text-center text-[11px] text-gray-500 mt-2">{selectedPlayer.playerId}</p>
+              <p className="text-center text-[12px] font-semibold text-gray-700 mt-4">{selectedPlayer.rating.toLocaleString()} RR</p>
 
               <button
                 type="button"
                 onClick={() => sendFriendRequest(selectedPlayer)}
                 disabled={loading}
-                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F9B318] text-[15px] font-semibold text-white disabled:opacity-60"
+                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F9B318] text-[13px] font-semibold text-white disabled:opacity-60"
               >
                 フォローする
               </button>
@@ -349,7 +349,7 @@ export default function FriendsPage() {
         {/* Friend Requests */}
         {friendRequests.length > 0 && (
           <div className="mt-6">
-            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-gray-900 mb-4">フォローリクエスト</h3>
+            <h3 className="font-display term-prompt-arrow text-[14px] font-semibold text-gray-900 mb-4">フォローリクエスト</h3>
             <div className="space-y-2">
               {friendRequests.map(request => (
                 <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 flex items-center gap-4">
@@ -372,7 +372,7 @@ export default function FriendsPage() {
                       className="flex h-11 w-11 items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-60"
                       aria-label="承認"
                     >
-                      <CheckIcon className="text-[16px]" />
+                      <CheckIcon className="text-[14px]" />
                     </button>
                     <button
                       type="button"
@@ -381,7 +381,7 @@ export default function FriendsPage() {
                       className="flex h-11 w-11 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-60"
                       aria-label="拒否"
                     >
-                      <XIcon className="text-[16px]" />
+                      <XIcon className="text-[14px]" />
                     </button>
                   </div>
                 </div>

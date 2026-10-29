@@ -104,17 +104,17 @@ export default function UserSettingsPage() {
             <input type="text" value={name} onChange={e => { setSuccess(""); setName(e.target.value) }} placeholder="名前" className="gl-input" style={fieldInput} autoComplete="nickname" />
           </FieldRow>
           <label className="gl-row" style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 16px', cursor: 'pointer' }}>
-            <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>アイコン画像</span>
+            <span style={{ flex: 1, fontSize: 14, color: 'var(--label)' }}>アイコン画像</span>
             {iconPreview
               ? /* eslint-disable-next-line @next/next/no-img-element -- 選んだ画像のプレビュー */
                 <img src={iconPreview} alt="選んだアイコン" style={{ width: 40, height: 40, borderRadius: 20, objectFit: 'cover' }} />
-              : <span style={{ fontSize: 17, color: 'var(--label2)' }}>選ぶ</span>}
+              : <span style={{ fontSize: 14, color: 'var(--label2)' }}>選ぶ</span>}
             <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
             <input type="file" accept="image/*" hidden onChange={e => { setSuccess(""); setFile(e.target.files?.[0] ?? null) }} />
           </label>
         </Section>
-        {error && <p role="alert" style={{ fontSize: 15, color: '#D70015', margin: '-16px 16px 16px' }}>{error}</p>}
-        {success && <p role="status" style={{ fontSize: 15, color: '#1E7B34', margin: '-16px 16px 16px' }}>{success}</p>}
+        {error && <p role="alert" style={{ fontSize: 13, color: '#D70015', margin: '-16px 16px 16px' }}>{error}</p>}
+        {success && <p role="status" style={{ fontSize: 13, color: '#1E7B34', margin: '-16px 16px 16px' }}>{success}</p>}
         <div style={{ marginBottom: 32 }}>
           <PrimaryButton disabled={saving} onClick={async () => { setSaving(true); try { await saveProfile() } finally { setSaving(false) } }}>
             {saving ? "保存しています…" : "プロフィールを保存"}

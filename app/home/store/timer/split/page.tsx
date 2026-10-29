@@ -63,9 +63,9 @@ function SplitTimers() {
       {ctrl && (
         <div onPointerDown={() => setTouch(n => n + 1)}
           style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 16px)", left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 16, padding: "8px 8px 8px 24px", borderRadius: 999, background: "rgba(28,28,30,0.82)", backdropFilter: "blur(20px)", color: "#fff" }}>
-          <span className="tech-label" style={{ fontSize: 13, letterSpacing: "0.14em" }}>SPLIT VIEW · {ids.length}</span>
+          <span className="tech-label" style={{ fontSize: 11, letterSpacing: "0.14em" }}>SPLIT VIEW · {ids.length}</span>
           <button type="button" onClick={close} className="gl-press"
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 44, padding: "0 16px", borderRadius: 999, border: "none", background: "#fff", color: "#1C1C1E", fontSize: 15, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 44, padding: "0 16px", borderRadius: 999, border: "none", background: "#fff", color: "#1C1C1E", fontSize: 13, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
             <XIcon size={18} /> 閉じる
           </button>
         </div>

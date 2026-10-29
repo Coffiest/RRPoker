@@ -208,7 +208,7 @@ function BillingContent() {
                   <button
                     onClick={handleRecover}
                     disabled={recovering}
-                    className="w-full bg-[#F9B318] text-white font-bold rounded-2xl py-4 text-[15px] disabled:opacity-60"
+                    className="w-full bg-[#F9B318] text-white font-bold rounded-2xl py-4 text-[13px] disabled:opacity-60"
                   >
                     {recovering ? "確認中..." : "お支払いを再確認する"}
                   </button>
@@ -282,7 +282,7 @@ function BillingContent() {
             className={`px-6 py-2 rounded-full text-sm font-medium transition ${billingInterval === "yearly" ? "bg-[#F9B318] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
           >
             年払い
-            <span className="ml-2 text-[11px] font-bold bg-green-500 text-white rounded-full px-2 py-0.5">17%OFF</span>
+            <span className="ml-2 text-[9.5px] font-bold bg-green-500 text-white rounded-full px-2 py-0.5">17%OFF</span>
           </button>
         </div>
 
@@ -294,7 +294,7 @@ function BillingContent() {
               className={`text-left rounded-2xl border-2 p-6 transition ${plan === p.id ? "border-[#F9B318] bg-amber-50" : "border-gray-200 bg-white"}`}
             >
               {p.badge && (
-                <span className="inline-block text-[11px] font-bold bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 mb-4">
+                <span className="inline-block text-[9.5px] font-bold bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 mb-4">
                   {p.badge}
                 </span>
               )}
@@ -312,7 +312,7 @@ function BillingContent() {
                     <span className="text-2xl font-bold text-gray-900">¥{p.yearly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/年</span></span>
                     <div className="text-xs text-gray-500 mt-0.5">（¥{p.perMonth.toLocaleString()}/月換算）</div>
                     {iosNative && p.id === "standard" && (
-                      <span className="inline-block mt-2 text-[11px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">App内では取扱なし</span>
+                      <span className="inline-block mt-2 text-[9.5px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">App内では取扱なし</span>
                     )}
                   </div>
                 )}
@@ -350,7 +350,7 @@ function BillingContent() {
         )}
 
         {iosWebOnlyPlan ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-[13px] text-gray-600 leading-relaxed">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-[11px] text-gray-600 leading-relaxed">
             Standardの年額プランはこのAppでは取り扱っていません。月払いをお選びください。
           </div>
         ) : (
@@ -381,7 +381,7 @@ function BillingContent() {
           <button
             onClick={handleRecover}
             disabled={recovering}
-            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-4 text-[14px] hover:bg-gray-50 disabled:opacity-60 transition"
+            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-4 text-[12px] hover:bg-gray-50 disabled:opacity-60 transition"
           >
             {recovering ? "確認中..." : "お支払いを確認して反映する"}
           </button>

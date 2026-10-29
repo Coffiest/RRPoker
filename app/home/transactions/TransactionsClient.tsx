@@ -414,7 +414,7 @@ export default function TransactionsClient() {
             <button
               type="button"
               onClick={clearAmount}
-              style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#EDECE6', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
+              style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#EDECE6', border: 'none', fontSize: 12, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
             >
               <span className="tech-label">CLEAR</span>
             </button>
@@ -439,7 +439,7 @@ export default function TransactionsClient() {
             <button
               type="button"
               onClick={submit}
-              style={{ width: '100%', height: 54, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 16, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.40)', letterSpacing: '0.3px' }}
+              style={{ width: '100%', height: 54, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.40)', letterSpacing: '0.3px' }}
             >
               {mode === 'deposit' ? 'あずける（申請）' : 'ひきだす（申請）'}
             </button>
@@ -476,7 +476,7 @@ export default function TransactionsClient() {
               </button>
               <button
                 onClick={confirmWithdraw}
-                style={{ flex: 1, height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,179,24,0.38)' }}
+                style={{ flex: 1, height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,179,24,0.38)' }}
               >
                 確認完了
               </button>

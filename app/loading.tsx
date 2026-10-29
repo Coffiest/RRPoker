@@ -18,7 +18,7 @@ export default function Loading() {
         <hr className="tech-rule my-4" />
 
         {/* 起動ログ */}
-        <div className="space-y-2 text-[11px] leading-relaxed text-gray-500">
+        <div className="space-y-2 text-[9.5px] leading-relaxed text-gray-500">
           <p className="term-comment">initializing session</p>
           <p className="term-prompt text-gray-700">
             <span className="tech-type">boot --app=rrpoker</span>

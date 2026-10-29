@@ -123,7 +123,7 @@ export default function TournamentPurchaseLog({
               }}>
                 {row.playerName || 'プレイヤー'}
               </p>
-              <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>
+              <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginTop: 2 }}>
                 {LABEL[row.type] ?? row.type}
                 {row.createdAtMs
                   ? ` · ${new Date(row.createdAtMs).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`
@@ -147,7 +147,7 @@ export default function TournamentPurchaseLog({
                 style={{
                   flexShrink: 0, height: 44, padding: '0 16px', borderRadius: 999,
                   background: 'rgba(255,59,48,0.11)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,59,48,0.16)',
-                  color: '#FF3B30', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                  color: '#FF3B30', fontSize: 10, fontWeight: 700, cursor: 'pointer',
                   opacity: busyId === row.id ? 0.5 : 1,
                 }}
               >
@@ -159,7 +159,7 @@ export default function TournamentPurchaseLog({
       </div>
 
       {error && (
-        <p style={{ fontSize: 11, color: '#FF3B30', marginTop: 8 }}>{error}</p>
+        <p style={{ fontSize: 9.5, color: '#FF3B30', marginTop: 8 }}>{error}</p>
       )}
     </div>
   )

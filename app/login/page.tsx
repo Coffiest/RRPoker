@@ -294,7 +294,7 @@ export default function LoginPage() {
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
           background:#F9B318;
-          color:#fff; font-size:17px; font-weight:700; letter-spacing:-.2px;
+          color:#fff; font-size:14px; font-weight:700; letter-spacing:-.2px;
           box-shadow:0 4px 18px rgba(249,179,24,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
@@ -381,7 +381,7 @@ export default function LoginPage() {
         /* ── Section label ── */
         .section-hd {
           font-family:var(--stack-mono);
-          font-size:11px; font-weight:700; letter-spacing:0.04em;
+          font-size:9.5px; font-weight:700; letter-spacing:0.04em;
           text-transform:uppercase; color:var(--label2);
         }
 
@@ -437,7 +437,7 @@ export default function LoginPage() {
       >
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 24px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
           <p style={{ fontSize:14, fontWeight:700, color:'var(--label)' }}>メニュー</p>
-          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
+          <button onClick={() => setMenuOpen(false)} style={{ fontSize:11, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
@@ -446,7 +446,7 @@ export default function LoginPage() {
             { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
-              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:12, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
             >{item.label}</button>
           ))}
         </div>
@@ -470,7 +470,7 @@ export default function LoginPage() {
           </div>
 
           <div className="appear d0">
-            <h1 className="font-display" style={{ fontSize:30, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
+            <h1 className="font-display" style={{ fontSize:22, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p className="term-comment" style={{ fontSize:13, color:'var(--label2)', lineHeight:1.6 }}>
@@ -525,13 +525,13 @@ export default function LoginPage() {
             {/* or 区切り */}
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
               <div className="divider-line" style={{ flex:1 }}/>
-              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
+              <span style={{ fontSize:9.5, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
               <div className="divider-line" style={{ flex:1 }}/>
             </div>
 
             {/* メール */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>
                 Email
               </label>
               <div className={`field-wrap${emailFocus?' focused':''}${error&&!email?' has-error':''}`}>
@@ -553,7 +553,7 @@ export default function LoginPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>
                 Password
               </label>
               <div className={`field-wrap${pwFocus?' focused':''}${error&&!password?' has-error':''}`}>
@@ -571,7 +571,7 @@ export default function LoginPage() {
                   style={{ paddingLeft:40 }}
                 />
                 <button type="button" onClick={() => setShowPw(v => !v)}
-                  style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:pwFocus?'var(--gold-dk)':'var(--label3)', fontSize:11, fontWeight:700, padding:'8px 2px', transition:'color .18s' }}
+                  style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:pwFocus?'var(--gold-dk)':'var(--label3)', fontSize:9.5, fontWeight:700, padding:'8px 2px', transition:'color .18s' }}
                 >{showPw ? '隠す' : '表示'}</button>
               </div>
             </div>
@@ -579,7 +579,7 @@ export default function LoginPage() {
             {/* パスワード忘れ */}
             <div style={{ textAlign:'right', marginBottom:16 }}>
               <button type="button" onClick={() => router.push('/forgot-password')}
-                style={{ fontSize:12, fontWeight:600, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'8px 0', opacity:0.85 }}
+                style={{ fontSize:10, fontWeight:600, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'8px 0', opacity:0.85 }}
               >Forgot Password?</button>
             </div>
 
@@ -613,7 +613,7 @@ export default function LoginPage() {
             <div style={{ marginTop:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'var(--label2)' }}>{t('login.noAccount')}</span>
               <button type="button" onClick={() => router.push('/register')}
-                style={{ fontSize:13, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
+                style={{ fontSize:11, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
               >{t('login.signUp')}</button>
             </div>
           </div>
@@ -622,7 +622,7 @@ export default function LoginPage() {
         {/* 店舗向け(カードの外に控えめに) */}
         <div className="appear d4" style={{ marginTop:16, textAlign:'center' }}>
           <button type="button" onClick={() => router.push('/store-register')}
-            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
+            style={{ fontSize:9.5, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
             <HouseIcon size={10} />
             {t('login.storeOwner')}
@@ -637,14 +637,14 @@ export default function LoginPage() {
             <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p className="tech-label" style={{ fontSize:11, color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
-                <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 8px', fontSize:11, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
+                <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
+                <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 8px', fontSize:9.5, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
-              <p style={{ fontSize:11, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
+              <p style={{ fontSize:9.5, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
               <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
-              <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
+              <p style={{ fontSize:11, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
               <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.38),transparent)' }}/>
-              <p style={{ marginTop:8, fontSize:11, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>{t('login.previewNote')}</p>
+              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>{t('login.previewNote')}</p>
             </div>
           </div>
         </div>
@@ -656,10 +656,10 @@ export default function LoginPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0</p>
-          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
           <p
-            style={{ fontSize:11, color:'var(--label3)', cursor:'pointer', userSelect:'none' }}
+            style={{ fontSize:10, color:'var(--label3)', cursor:'pointer', userSelect:'none' }}
             onClick={() => { setAdminModalOpen(true); setAdminPw(""); setAdminError("") }}
           >製作者 : なおゆき </p>
         </div>
@@ -676,8 +676,8 @@ export default function LoginPage() {
             style={{ background:'#1C1C1E', borderRadius:20, padding:32, width:'100%', maxWidth:320, boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}
             onClick={e => e.stopPropagation()}
           >
-            <p style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:8 }}>管理者認証</p>
-            <p style={{ fontSize:12, color:'#888' /* contrast-ok: 暗いモーダルの上 */, marginBottom:24 }}>パスワードを入力してください</p>
+            <p style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:8 }}>管理者認証</p>
+            <p style={{ fontSize:10, color:'#888' /* contrast-ok: 暗いモーダルの上 */, marginBottom:24 }}>パスワードを入力してください</p>
             <input
               type="password"
               value={adminPw}
@@ -685,18 +685,18 @@ export default function LoginPage() {
               onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
               placeholder="Password"
               autoFocus
-              style={{ width:'100%', background:'#2C2C2E', border:'1px solid #3A3A3C', borderRadius:12, padding:'16px 16px', color:'#fff', fontSize:14, outline:'none', boxSizing:'border-box', marginBottom:8 }}
+              style={{ width:'100%', background:'#2C2C2E', border:'1px solid #3A3A3C', borderRadius:12, padding:'16px 16px', color:'#fff', fontSize:12, outline:'none', boxSizing:'border-box', marginBottom:8 }}
             />
             {adminError && <p style={{ fontSize:12, color:'#FF453A', marginBottom:8 }}>{adminError}</p>}
             <div style={{ display:'flex', gap:8, marginTop:8 }}>
               <button
                 onClick={() => setAdminModalOpen(false)}
-                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:14, cursor:'pointer' }}
+                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:12, cursor:'pointer' }}
               >Cancel</button>
               <button
                 onClick={handleAdminLogin}
                 disabled={adminLoading || !adminPw.trim()}
-                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'none', background:'#F9B318', color:'#000', fontSize:14, fontWeight:700, cursor:'pointer', opacity: adminLoading || !adminPw.trim() ? 0.5 : 1 }}
+                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'none', background:'#F9B318', color:'#000', fontSize:12, fontWeight:700, cursor:'pointer', opacity: adminLoading || !adminPw.trim() ? 0.5 : 1 }}
               >{adminLoading ? "確認中..." : "ログイン"}</button>
             </div>
           </div>

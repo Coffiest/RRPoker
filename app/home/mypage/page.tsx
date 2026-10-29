@@ -484,12 +484,12 @@ export default function MyPage() {
 
       {/* Toast */}
       {error && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#4A1010', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(74,16,16,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#4A1010', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 11, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(74,16,16,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <CircleAlertIcon size={15} />{error}
         </div>
       )}
       {success && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#F9B318', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(249,179,24,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#F9B318', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 11, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(249,179,24,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <CheckIcon size={15} />{success}
         </div>
       )}
@@ -515,11 +515,11 @@ export default function MyPage() {
                 ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .8s linear infinite' }} />
                 : <Share2Icon size={13} style={{ color: '#fff' }} />
               }
-              <span className="tech-label" style={{ fontSize: 11, color: '#fff' }}>SHARE</span>
+              <span className="tech-label" style={{ fontSize: 9.5, color: '#fff' }}>SHARE</span>
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', marginBottom: 3 }}>RR RATING</p>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.04em', marginBottom: 3 }}>RR RATING</p>
               <p className="tech-num" style={{
                 fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
                 color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',
@@ -528,7 +528,7 @@ export default function MyPage() {
                 {tourStats.plays === 0 ? "集計中" : (profile.rrRating ?? 0)}
               </p>
               {tourStats.plays === 0 && (
-                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.72)', marginTop: 8, maxWidth: 170, lineHeight: 1.5 }}>
+                <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.72)', marginTop: 8, maxWidth: 170, lineHeight: 1.5 }}>
                   pending results
                 </p>
               )}
@@ -592,7 +592,7 @@ export default function MyPage() {
             {/* Player ID */}
             <button type="button" onClick={copyPlayerId}
               style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(120,120,128,0.10)', borderRadius: 999, padding: '8px 16px', border: 'none', cursor: 'pointer', marginBottom: 16, width: '100%' }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--label3)', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)', fontVariantNumeric: 'tabular-nums', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
               {copySuccess
                 ? <CheckIcon size={14} style={{ color: '#34C759', flexShrink: 0 }} />
                 : <CopyIcon size={14} style={{ color: 'var(--label3)', flexShrink: 0 }} />
@@ -620,7 +620,7 @@ export default function MyPage() {
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#EDECE6', borderRadius: 10, padding: '8px 16px' }}>
                   <span style={{ fontSize: 14 }}>{item.icon}</span>
                   <div>
-                    <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
+                    <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
                     <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : 'var(--label3)' }}>{item.value || '未設定'}</p>
                   </div>
                 </div>
@@ -634,16 +634,16 @@ export default function MyPage() {
             {!profile.birthday ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
-                  style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
+                  style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 12, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
-                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(249,179,24,0.30)' }}>
+                  style={{ height: 44, padding: '0 24px', borderRadius: 999, background: '#F9B318', border: 'none', fontSize: 11, fontWeight: 700, color: '#fff', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(249,179,24,0.30)' }}>
                   Save
                 </button>
               </div>
             ) : (
               <p className="tech-num" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E' }}>{profile.birthday}</p>
             )}
-            {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 8 }}>※一度設定すると変更できません</p>}
+            {!profile.birthday && <p style={{ fontSize: 9.5, color: '#7A2020', marginTop: 8 }}>※一度設定すると変更できません</p>}
           </div>
         </div>
 
@@ -687,7 +687,7 @@ export default function MyPage() {
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <LogOutIcon size={15} style={{ color: '#fff' }} />
             </div>
-            <span style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>Logout</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: '#1C1C1E' }}>Logout</span>
             <ChevronRightIcon size={16} style={{ color: 'var(--label3)', marginLeft: 'auto' }} />
           </button>
           <button type="button" onClick={() => setShowDeleteConfirm(true)}
@@ -707,31 +707,31 @@ export default function MyPage() {
         <AppleSheet open onClose={() => setIsEditingExtProfile(false)} bare maxWidth={480} maxHeightVh={88} zIndex={300}>
           <div className="mp-sheet a-sheet" style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 24px 48px', paddingBottom: 'calc(32px + env(safe-area-inset-bottom, 0px))' }}>
 
-            <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 24 }}>プロフィール詳細を編集</p>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', marginBottom: 24 }}>プロフィール詳細を編集</p>
 
             {/* 地域 */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><MapPinIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 地域</label>
+              <label style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><MapPinIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 地域</label>
               <input type="text" value={draftRegion} onChange={e => setDraftRegion(e.target.value)}
                 placeholder="例: 東京都" maxLength={30}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 13, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* 好きなハンド */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><SpadeIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 好きなハンド</label>
+              <label style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><SpadeIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 好きなハンド</label>
               <input type="text" value={draftFavoriteHand} onChange={e => setDraftFavoriteHand(e.target.value)}
                 placeholder="例: AA, KK, AKs" maxLength={20}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 13, color: '#1C1C1E', background: '#EDECE6', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* ポーカー歴 */}
             <div style={{ marginBottom: 32 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><ClockIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> ポーカー歴</label>
+              <label style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><ClockIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> ポーカー歴</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
-                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(249,179,24,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(249,179,24,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#995C00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
+                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(249,179,24,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(249,179,24,0.30)' : 'none', fontSize: 11, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#995C00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
                     {opt}
                   </button>
                 ))}
@@ -739,7 +739,7 @@ export default function MyPage() {
             </div>
 
             <button type="button" onClick={saveExtProfile} disabled={savingExtProfile}
-              style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: savingExtProfile ? 0.7 : 1 }}>
+              style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', opacity: savingExtProfile ? 0.7 : 1 }}>
               {savingExtProfile ? '保存中...' : '保存する'}
             </button>
           </div>
@@ -761,7 +761,7 @@ export default function MyPage() {
               </div>
             </div>
             <div style={{ background: 'rgba(74,16,16,0.06)', border: '1px solid rgba(74,16,16,0.15)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: '#7A2020', fontWeight: 600, marginBottom: 8 }}><TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 以下のデータが失われます</p>
+              <p style={{ fontSize: 11, color: '#7A2020', fontWeight: 600, marginBottom: 8 }}><TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 以下のデータが失われます</p>
               <p style={{ fontSize: 12, color: '#3C3C43', lineHeight: 1.7 }}>• 保持チップ・レート・戦績<br/>• すべてのアカウント情報</p>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>

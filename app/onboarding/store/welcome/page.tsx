@@ -40,10 +40,10 @@ export default function StoreWelcomePage() {
           <div style={{ width: 80, height: 80, borderRadius: 24, background: '#F9B318', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(249,179,24,0.3)', marginBottom: 24 }}>
             <CheckIcon size={40} strokeWidth={3} color="#fff" />
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.25, color: 'var(--label)', margin: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', lineHeight: 1.25, color: 'var(--label)', margin: 0 }}>
             {name ? `${name}さん、` : ''}ようこそ
           </h1>
-          <p style={{ fontSize: 17, color: 'var(--label2)', lineHeight: 1.5, margin: '8px 0 0' }}>
+          <p style={{ fontSize: 14, color: 'var(--label2)', lineHeight: 1.5, margin: '8px 0 0' }}>
             店舗の登録が終わりました。<br />次の機能がすぐに使えます。
           </p>
         </div>
@@ -58,8 +58,8 @@ export default function StoreWelcomePage() {
                     <Icon size={18} color="#fff" />
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 17, color: 'var(--label)' }}>{f.title}</span>
-                    <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{f.desc}</span>
+                    <span style={{ display: 'block', fontSize: 14, color: 'var(--label)' }}>{f.title}</span>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{f.desc}</span>
                   </span>
                 </div>
               )
@@ -67,7 +67,7 @@ export default function StoreWelcomePage() {
           </Section>
 
           <Section header="はじめに" footer="チップ単位・店舗情報・リングゲームのブラインドは、設定画面からいつでも変えられます。">
-            <div className="gl-row" style={{ padding: '16px 16px', fontSize: 15, lineHeight: 1.6, color: 'var(--label)' }}>
+            <div className="gl-row" style={{ padding: '16px 16px', fontSize: 13, lineHeight: 1.6, color: 'var(--label)' }}>
               プレイヤーに<strong>6桁の店舗コード</strong>を伝えるだけで、チェックインしてもらえます。コードは店舗の管理画面で確認できます。
             </div>
           </Section>
@@ -75,7 +75,7 @@ export default function StoreWelcomePage() {
 
         <div className="su d2">
           <button type="button" onClick={() => router.replace('/home/store')} className="gl-press"
-            style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+            style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
             <HouseIcon size={20} />
             店舗管理をはじめる
           </button>

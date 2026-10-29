@@ -45,13 +45,13 @@ const GRID = '32px repeat(4, minmax(0, 1fr)) 44px'
 
 const numInput: React.CSSProperties = {
   width: '100%', height: 44, padding: '0 4px', borderRadius: 12, border: 'none',
-  background: 'rgba(118,118,128,0.12)', fontSize: 17, fontWeight: 600, color: 'var(--label)',
+  background: 'rgba(118,118,128,0.12)', fontSize: 14, fontWeight: 600, color: 'var(--label)',
   outline: 'none', textAlign: 'center', boxSizing: 'border-box', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit',
 }
 const menuItem: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 48,
   padding: '0 16px', background: 'transparent', border: 'none', borderTop: '1px solid rgba(60,60,67,0.12)',
-  fontSize: 17, color: 'var(--label)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+  fontSize: 14, color: 'var(--label)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
 }
 
 export default function BlindLevelEditor({ levels, onChange, showAddButtons = false }: {
@@ -95,12 +95,12 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
   return (
     <>
       {/* 列の見出し(行の入力欄と同じ並び) */}
-      <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, padding: '0 8px 8px', fontSize: 13, fontWeight: 600, color: 'var(--label2)', textAlign: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, padding: '0 8px 8px', fontSize: 11, fontWeight: 600, color: 'var(--label2)', textAlign: 'center' }}>
         <span>Lv</span><span>SB</span><span>BB</span><span>Ante</span><span>分</span><span />
       </div>
 
       {levels.length === 0 && (
-        <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--label2)', padding: '24px 0' }}>ブラインドが設定されていません</p>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--label2)', padding: '24px 0' }}>ブラインドが設定されていません</p>
       )}
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
@@ -109,7 +109,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, alignItems: 'center' }}>
               {lv.type === 'level' ? (
                 <>
-                  <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#995C00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
+                  <span style={{ textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#995C00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
                   {(['smallBlind', 'bigBlind', 'ante', 'duration'] as const).map(key => (
                     <input key={key} type="number" inputMode="numeric" min={0} value={lv[key] ?? ''} placeholder="—"
                       aria-label={`レベル${levelNo(idx)} ${{ smallBlind: 'SB', bigBlind: 'BB', ante: 'アンティ', duration: '分' }[key]}`}
@@ -119,7 +119,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
               ) : (
                 <>
                   <span style={{ display: 'flex', justifyContent: 'center', color: '#1546D9' }}><CoffeeIcon size={20} /></span>
-                  <span style={{ gridColumn: '2 / span 3', fontSize: 15, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>休憩</span>
+                  <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>休憩</span>
                   <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="休憩の分"
                     onChange={e => setField(idx, 'duration', e.target.value)} className="no-spin ble-input" style={numInput} />
                 </>
@@ -176,7 +176,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div className="a-scrim" onClick={() => setMenuIdx(null)} style={{ position: 'absolute', inset: 0 }} />
             <div className="a-sheet" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'transparent', boxShadow: 'none', borderRadius: 0 }}>
               <div role="menu" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
-                <p style={{ fontSize: 13, color: 'var(--label2)', textAlign: 'center', margin: 0, padding: '16px 16px 8px' }}>
+                <p style={{ fontSize: 11, color: 'var(--label2)', textAlign: 'center', margin: 0, padding: '16px 16px 8px' }}>
                   {lv.type === 'level' ? `レベル ${levelNo(idx)}` : '休憩'}
                 </p>
                 {items.map(([icon, label, action, disabled]) => (
@@ -188,7 +188,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                   <span style={{ flex: 1 }}>削除</span><Trash2Icon size={20} />
                 </button>
               </div>
-              <button type="button" onClick={() => setMenuIdx(null)} className="ble-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 17, fontWeight: 600, color: '#1546D9', fontFamily: 'inherit', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setMenuIdx(null)} className="ble-press" style={{ width: '100%', minHeight: 56, marginTop: 8, borderRadius: 16, border: 'none', background: '#fff', fontSize: 14, fontWeight: 600, color: '#1546D9', fontFamily: 'inherit', cursor: 'pointer' }}>
                 Cancel
               </button>
             </div>
@@ -202,5 +202,5 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 const addBtn: React.CSSProperties = {
   flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
   minHeight: 48, borderRadius: 999, border: 'none', background: '#fff', color: 'var(--label)',
-  boxShadow: 'inset 0 0 0 1px rgba(60,60,67,0.12)', fontSize: 17, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
+  boxShadow: 'inset 0 0 0 1px rgba(60,60,67,0.12)', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer',
 }

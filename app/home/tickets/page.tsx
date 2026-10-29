@@ -114,7 +114,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       <div style={{ flex: 1, padding: "16px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#995C00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+            <p style={{ fontSize: 9.5, fontWeight: 700, color: isUsed ? "var(--label3)" : "#995C00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
               {isUsed ? "USED" : "COUPON"}
             </p>
             <p style={{
@@ -238,18 +238,18 @@ export default function TicketsPage() {
 
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>
-          <h2 className="text-[13px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
+          <h2 className="text-[11px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
             Stamp Card
           </h2>
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>LOADING...</p>
+              <p className="term-comment" style={{ fontSize: 11, color: "var(--label3)" }}>LOADING...</p>
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "32px 24px", textAlign: "center" }}>
               <div style={{ marginBottom: 8, color: "var(--label3)", display: "flex", justifyContent: "center" }}><TicketIcon size={40} /></div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E", marginBottom: 8 }}>スタンプカードがありません</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: "#1C1C1E", marginBottom: 8 }}>スタンプカードがありません</p>
               <p style={{ fontSize: 12, color: "var(--label3)", lineHeight: 1.5 }}>店舗に入店するとスタンプが貯まります</p>
             </div>
           ) : (
@@ -324,7 +324,7 @@ export default function TicketsPage() {
         {/* ── クーポン ────────────────────────────────────────── */}
         {!loading && (
           <section>
-            <h2 className="text-[13px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
+            <h2 className="text-[11px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
               クーポン
             </h2>
 
@@ -403,7 +403,7 @@ export default function TicketsPage() {
             <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(249,179,24,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
               <CreditCardIcon size={26} color="#995C00" />
             </div>
-            <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
+            <p className="font-display" style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
               {selectedCoupon.name}
             </p>
             <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
@@ -443,7 +443,7 @@ export default function TicketsPage() {
             </button>
             <button
               onClick={() => setSelectedCoupon(null)}
-              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 15, color: "var(--label3)", marginTop: 8, cursor: "pointer" }}
+              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 13, color: "var(--label3)", marginTop: 8, cursor: "pointer" }}
             >
               Cancel
             </button>

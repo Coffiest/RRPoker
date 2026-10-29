@@ -326,7 +326,7 @@ export default function TournamentHistoryPage() {
                 {/* Tournament Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <p className="text-[14px] font-semibold text-gray-900 leading-tight mb-2">
+                    <p className="text-[12px] font-semibold text-gray-900 leading-tight mb-2">
                       {item.tournamentName ?? ""}
                     </p>
                     <p className="text-[11px] text-gray-500">
@@ -345,9 +345,9 @@ export default function TournamentHistoryPage() {
                   <div className="col-span-2 rounded-xl bg-gray-50 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#F9B318]"></div>
-                      <p className="text-[11px] font-semibold text-gray-600">参加費の内訳</p>
+                      <p className="text-[9.5px] font-semibold text-gray-600">参加費の内訳</p>
                     </div>
-                    <div className="space-y-2 text-[12px] text-gray-600">
+                    <div className="space-y-2 text-[10px] text-gray-600">
                       {entryCount > 0 && (
                         <p className="flex justify-between">
                           <span>エントリー:</span>
@@ -387,7 +387,7 @@ export default function TournamentHistoryPage() {
                   </div>
 
                   <div className="rounded-xl bg-gray-50 p-4">
-                    <p className="text-[11px] font-semibold text-gray-600 mb-2">ROI</p>
+                    <p className="text-[9.5px] font-semibold text-gray-600 mb-2">ROI</p>
                     <p className={`text-[16px] font-bold ${reward > cost ? "text-green-600" : reward < cost ? "text-red-600" : "text-gray-600"}`}>
                       {cost > 0 ? `${(((reward - cost) / cost) * 100).toFixed(1)}%` : "-"}
                     </p>
@@ -395,16 +395,16 @@ export default function TournamentHistoryPage() {
                 </div>
 
                 <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
-                  <div className="flex items-center gap-2 text-[11px]">
+                  <div className="flex items-center gap-2 text-[9.5px]">
                     <span className="text-gray-500">支払い:</span>
                     <span className="font-semibold text-gray-700">{cost.toFixed(1)}</span>
                   </div>
                   <div className="h-3 w-px bg-gray-200"></div>
-                  <div className="flex items-center gap-2 text-[11px]">
+                  <div className="flex items-center gap-2 text-[9.5px]">
                     <span className="text-gray-500">獲得:</span>
                     <span className="font-semibold text-gray-700">{reward.toFixed(1)}</span>
                   </div>
-                  <div style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--label3)' }}>タップで詳細 <ChevronRightIcon size={12} style={{ display: 'inline', verticalAlign: '-0.1em' }} /></div>
+                  <div style={{ marginLeft: 'auto', fontSize: 9.5, color: 'var(--label3)' }}>タップで詳細 <ChevronRightIcon size={12} style={{ display: 'inline', verticalAlign: '-0.1em' }} /></div>
                 </div>
               </div>
             )
@@ -415,7 +415,7 @@ export default function TournamentHistoryPage() {
               <div className="h-20 w-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                 <AwardIcon className="text-label3" size={36} />
               </div>
-              <p className="term-comment text-[16px] font-semibold text-gray-900 mb-2">トーナメント履歴がありません</p>
+              <p className="term-comment text-[14px] font-semibold text-gray-900 mb-2">トーナメント履歴がありません</p>
               <p className="text-[14px] text-gray-500">トーナメントに参加すると履歴が表示されます</p>
             </div>
           )}
@@ -435,7 +435,7 @@ export default function TournamentHistoryPage() {
               {/* Sheet header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3, marginBottom: 8 }}>{selectedItem.tournamentName ?? ""}</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3, marginBottom: 8 }}>{selectedItem.tournamentName ?? ""}</p>
                   <p style={{ fontSize: 12, color: 'var(--label3)' }}>{formatDateTime(selectedItem.startedAt?.seconds)} · {selectedItem.storeName ?? ""}</p>
                 </div>
                 {isITM && (
@@ -447,7 +447,7 @@ export default function TournamentHistoryPage() {
 
               {/* Buy-in breakdown */}
               <div style={{ background: '#EDECE6', borderRadius: 16, padding: '16px 16px', marginBottom: 16 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>Buy-in 内訳</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>Buy-in 内訳</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entryCount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -491,19 +491,19 @@ export default function TournamentHistoryPage() {
 
               <div style={{ background: '#EDECE6', borderRadius: 16, padding: '16px 16px', display: 'flex', gap: 24, marginBottom: 24 }}>
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>支払い</p>
+                  <p style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>支払い</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{cost.toFixed(2)}</p>
                 </div>
                 <div style={{ width: 1, background: 'rgba(0,0,0,0.08)' }} />
                 <div>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得</p>
+                  <p style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>獲得</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E' }}>{reward.toFixed(2)}</p>
                 </div>
               </div>
 
               {/* Share button */}
               <button type="button" onClick={() => shareTournamentCard(selectedItem)} disabled={sharingCard}
-                style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
+                style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
                 {sharingCard
                   ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .8s linear infinite' }} />
                   : <Share2Icon size={17} />

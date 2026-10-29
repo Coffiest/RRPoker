@@ -84,7 +84,7 @@ function PairPageInner() {
       />
       <div style={{ flex: 1, padding: '24px 24px 104px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ width: '100%', maxWidth: 420, marginTop: 24 }}>
-          <p className="font-display" style={{ fontSize: 28, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
+          <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
             テレビと連携
           </p>
           <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>

@@ -90,8 +90,8 @@ export default function StoreRegisterPage() {
           <div style={{ width: 76, height: 76, borderRadius: 24, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 0 48px rgba(249,179,24,0.4)' }}>
             <MailIcon size={34} color="white" />
           </div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--label)', marginBottom: 8 }}>確認メールを送信しました</h2>
-          <p style={{ fontSize: 14, color: 'var(--label2)', lineHeight: 1.8, marginBottom: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', marginBottom: 8 }}>確認メールを送信しました</h2>
+          <p style={{ fontSize: 12, color: 'var(--label2)', lineHeight: 1.8, marginBottom: 24 }}>
             <strong style={{ color: 'var(--label)' }}>{email}</strong> 宛に確認メールを送信しました。<br />
             メール内のリンクをクリックしてアカウントを有効化してください。
           </p>
@@ -102,7 +102,7 @@ export default function StoreRegisterPage() {
             </p>
           </div>
           <button onClick={() => router.push('/login')}
-            style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 16, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 0 32px rgba(249,179,24,0.35)' }}
+            style={{ width: '100%', height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 0 32px rgba(249,179,24,0.35)' }}
           >ログイン画面へ</button>
         </div>
       </div>
@@ -164,14 +164,14 @@ export default function StoreRegisterPage() {
         }
         .sr-input {
           flex: 1; background: transparent; border: none; outline: none;
-          font-size: 17px; color: var(--label); padding: 0 16px;
+          font-size: 14px; color: var(--label); padding: 0 16px;
           font-family: inherit;
         }
         .sr-input::placeholder { color: var(--label3); }
         .sr-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
           background: #F9B318;
-          font-size: 17px; font-weight: 700; color: #fff;
+          font-size: 14px; font-weight: 700; color: #fff;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           box-shadow: 0 4px 24px rgba(249,179,24,0.4), 0 0 48px rgba(249,179,24,0.12);
           transition: transform .13s, opacity .13s, box-shadow .13s;
@@ -194,14 +194,14 @@ export default function StoreRegisterPage() {
       <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.18)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button type="button" onClick={() => router.back()}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#1546D9', fontSize: 14, fontWeight: 700, padding: '8px 0' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#1546D9', fontSize: 12, fontWeight: 700, padding: '8px 0' }}
           >
             <ChevronLeftIcon size={18} />
             Back
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label2)' }}>RRPOKER</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)' }}>RRPOKER</span>
           </div>
           <div style={{ width: 52 }} />
         </div>
@@ -220,21 +220,21 @@ export default function StoreRegisterPage() {
           {/* 店舗専用ラベル */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.12)', border: '1px solid rgba(249,179,24,0.3)', borderRadius: 99, padding: '8px 16px', marginBottom: 16 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block', boxShadow: '0 0 6px rgba(249,179,24,0.8)' }} />
-            <span style={{ fontSize: 11, fontWeight: 800, color: '#F9B318', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗専用アカウント登録</span>
+            <span style={{ fontSize: 9.5, fontWeight: 800, color: '#F9B318', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗専用アカウント登録</span>
           </div>
 
-          <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.6px', lineHeight: 1.2, marginBottom: 8 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.6px', lineHeight: 1.2, marginBottom: 8 }}>
             RRPokerで<br />あなたの店舗を登録
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.8 }}>
+          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.8 }}>
             トーナメント管理・チップ残高・ランキングを<br />ひとつのシステムで。
           </p>
 
           {/* プレイヤー向け案内 */}
           <div style={{ marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid rgba(60,60,67,0.18)', borderRadius: 99, padding: '8px 16px' }}>
-            <span style={{ fontSize: 11, color: 'var(--label2)' }}>プレイヤーとして登録する方は</span>
+            <span style={{ fontSize: 9.5, color: 'var(--label2)' }}>プレイヤーとして登録する方は</span>
             <button type="button" onClick={() => router.push('/register')}
-              style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.2)' }}
+              style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.2)' }}
             >こちら <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></button>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function StoreRegisterPage() {
         <div className="sr-appear sr-d2" style={{ background: '#fff', border: '1px solid rgba(60,60,67,0.18)', borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
             <div style={{ width: 3, height: 16, borderRadius: 2, background: '#F9B318' }} />
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)' }}>アカウント情報</p>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)' }}>アカウント情報</p>
           </div>
 
           {/* ソーシャル登録 — 丸アイコン */}
@@ -277,13 +277,13 @@ export default function StoreRegisterPage() {
           {/* or 区切り */}
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
             <div style={{ height:1, background:'rgba(118,118,128,0.12)', flex:1 }}/>
-            <span style={{ fontSize:11, fontWeight:600, color:'var(--label2)', letterSpacing:'0.04em' }}>または</span>
+            <span style={{ fontSize:9.5, fontWeight:600, color:'var(--label2)', letterSpacing:'0.04em' }}>または</span>
             <div style={{ height:1, background:'rgba(118,118,128,0.12)', flex:1 }}/>
           </div>
 
           {/* メール */}
           <div style={{ marginBottom: 16 }}>
-            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>EMAIL</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 9.5, color: 'var(--label2)', marginBottom: 8 }}>EMAIL</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'var(--label2)', flexShrink: 0 }}>
                 <MailIcon size={15} />
@@ -293,7 +293,7 @@ export default function StoreRegisterPage() {
               />
             </div>
             {email.includes('icloud') && (
-              <p style={{ fontSize: 11, color: '#FF9500', fontWeight: 600, marginTop: 8 }}>
+              <p style={{ fontSize: 9.5, color: '#FF9500', fontWeight: 600, marginTop: 8 }}>
                 <TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> iCloudメールは確認メールが届かない場合があります
               </p>
             )}
@@ -301,7 +301,7 @@ export default function StoreRegisterPage() {
 
           {/* パスワード */}
           <div style={{ marginBottom: 16 }}>
-            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>PASSWORD</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 9.5, color: 'var(--label2)', marginBottom: 8 }}>PASSWORD</label>
             <div className="sr-field">
               <div style={{ paddingLeft: 16, color: 'var(--label2)', flexShrink: 0 }}>
                 <LockIcon size={15} />
@@ -310,7 +310,7 @@ export default function StoreRegisterPage() {
                 placeholder="6文字以上" className="sr-input" disabled={isLoading}
               />
               <button type="button" onClick={() => setShowPw(v => !v)}
-                style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label2)', fontSize: 11, fontWeight: 700, transition: 'color .18s' }}
+                style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label2)', fontSize: 9.5, fontWeight: 700, transition: 'color .18s' }}
               >{showPw ? '隠す' : '表示'}</button>
             </div>
             {password.length > 0 && (
@@ -320,14 +320,14 @@ export default function StoreRegisterPage() {
                     <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= pwStrength ? strengthColor : 'rgba(60,60,67,0.18)', transition: 'background .25s' }} />
                   ))}
                 </div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: strengthColor, transition: 'color .25s' }}>パスワード強度: {strengthLabel}</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: strengthColor, transition: 'color .25s' }}>パスワード強度: {strengthLabel}</p>
               </div>
             )}
           </div>
 
           {/* パスワード確認 */}
           <div style={{ marginBottom: 8 }}>
-            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginBottom: 8 }}>CONFIRM PASSWORD</label>
+            <label className="tech-label tech-label-bracket" style={{ display: 'block', fontSize: 9.5, color: 'var(--label2)', marginBottom: 8 }}>CONFIRM PASSWORD</label>
             <div className={`sr-field${pwMismatch ? ' field-error' : ''}${pwMatch ? ' field-ok' : ''}`}>
               <div style={{ paddingLeft: 16, color: pwMatch ? '#34C759' : pwMismatch ? '#FF3B30' : 'var(--label3)', flexShrink: 0, transition: 'color .18s' }}>
                 <LockIcon size={15} />
@@ -340,11 +340,11 @@ export default function StoreRegisterPage() {
                 {pwMismatch && <XIcon size={16} color="#FF3B30" />}
               </div>
               <button type="button" onClick={() => setShowCPw(v => !v)}
-                style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label2)', fontSize: 11, fontWeight: 700 }}
+                style={{ position: 'absolute', right: 13, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label2)', fontSize: 9.5, fontWeight: 700 }}
               >{showCPw ? '隠す' : '表示'}</button>
             </div>
-            {pwMismatch && <p style={{ fontSize: 11, color: '#FF3B30', fontWeight: 600, marginTop: 8 }}>パスワードが一致しません</p>}
-            {pwMatch && <p style={{ fontSize: 11, color: '#34C759', fontWeight: 600, marginTop: 8 }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> パスワードが一致しました</p>}
+            {pwMismatch && <p style={{ fontSize: 9.5, color: '#FF3B30', fontWeight: 600, marginTop: 8 }}>パスワードが一致しません</p>}
+            {pwMatch && <p style={{ fontSize: 9.5, color: '#34C759', fontWeight: 600, marginTop: 8 }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> パスワードが一致しました</p>}
           </div>
 
           <div style={{ height: 18 }} />
@@ -355,7 +355,7 @@ export default function StoreRegisterPage() {
             </div>
           )}
 
-          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, textAlign: 'center' }}>
+          <p style={{ fontSize: 9.5, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, textAlign: 'center' }}>
             {t('storeRegister.privacyNotice')}<a href="/privacy" className="hit-44" target="_blank" rel="noopener noreferrer" style={{ color: '#995C00', fontWeight: 700 }}>{t('common.privacyPolicy')}</a>{t('storeRegister.privacyNoticeSuffix')}
           </p>
 
@@ -372,7 +372,7 @@ export default function StoreRegisterPage() {
           </button>
 
           <div style={{ marginTop: 16, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13, color: 'var(--label2)' }}>既にアカウントをお持ちの方は</span>
+            <span style={{ fontSize: 11, color: 'var(--label2)' }}>既にアカウントをお持ちの方は</span>
             <button type="button" onClick={() => router.push('/login')}
               style={{ fontSize: 13, fontWeight: 700, color: '#1546D9', background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px' }}
             >Login <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></button>
@@ -383,7 +383,7 @@ export default function StoreRegisterPage() {
         <div className="sr-appear sr-d3" style={{ background: '#fff', border: '1px solid rgba(60,60,67,0.18)', borderRadius: 20, padding: '16px 24px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <div style={{ width: 3, height: 14, borderRadius: 2, background: '#F9B318' }} />
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)' }}>店舗向け機能</p>
+            <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)' }}>店舗向け機能</p>
           </div>
           {[
             { icon: <TrophyIcon size={20} color="#F9B318" />, title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計' },
@@ -394,8 +394,8 @@ export default function StoreRegisterPage() {
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 0', borderBottom: i < 3 ? '1px solid rgba(60,60,67,0.18)' : 'none' }}>
               <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
               <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)' }}>{f.title}</p>
-                <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{f.desc}</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>{f.title}</p>
+                <p style={{ fontSize: 9.5, color: 'var(--label2)', marginTop: 2 }}>{f.desc}</p>
               </div>
             </div>
           ))}
@@ -406,11 +406,11 @@ export default function StoreRegisterPage() {
           <div className="sr-divider" style={{ marginBottom: 16 }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width: 20, height: 20, borderRadius: 6, objectFit: 'cover', opacity: 0.6 }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--label2)' }}>RRPOKER</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize: 11, color: 'var(--label2)' }}>プレイヤーとして登録する場合は</p>
+          <p style={{ fontSize: 9.5, color: 'var(--label2)' }}>プレイヤーとして登録する場合は</p>
           <button type="button" onClick={() => router.push('/register')}
-            style={{ fontSize: 11, color: 'var(--label2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(60,60,67,0.18)' }}
+            style={{ fontSize: 9.5, color: 'var(--label2)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(60,60,67,0.18)' }}
           >通常の新規登録はこちら</button>
         </div>
       </div>

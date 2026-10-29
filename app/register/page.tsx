@@ -227,7 +227,7 @@ export default function RegisterPage() {
         .btn-gold{
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
           background:#F9B318;
-          color:#fff; font-size:17px; font-weight:700; letter-spacing:-.2px;
+          color:#fff; font-size:14px; font-weight:700; letter-spacing:-.2px;
           box-shadow:0 4px 18px rgba(249,179,24,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
@@ -319,7 +319,7 @@ export default function RegisterPage() {
       <aside className={menuOpen?'drawer':''} style={{ position:'fixed', right:0, top:0, zIndex:1000, height:'100dvh', width:'80%', maxWidth:340, background:'white', borderLeft:'1px solid rgba(60,60,67,0.1)', boxShadow:'-8px 0 32px rgba(0,0,0,0.12)', transform:menuOpen?'translateX(0)':'translateX(100%)', transition:menuOpen?'none':'transform .25s cubic-bezier(.22,1,.36,1)', display:'flex', flexDirection:'column' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 24px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
           <p style={{ fontSize:14, fontWeight:700, color:'var(--label)' }}>メニュー</p>
-          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
+          <button onClick={() => setMenuOpen(false)} style={{ fontSize:11, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           {[
@@ -328,7 +328,7 @@ export default function RegisterPage() {
             { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
-              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:12, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
             >{item.label}</button>
           ))}
         </div>
@@ -348,7 +348,7 @@ export default function RegisterPage() {
             </div>
           </div>
           <div className="appear d0">
-            <h1 style={{ fontSize:28, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
+            <h1 style={{ fontSize:22, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.65 }}>
@@ -368,8 +368,8 @@ export default function RegisterPage() {
               <ChevronRightIcon key={i} size={12} color="var(--label3)" />
             ) : (
               <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'#F9B318':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(249,179,24,0.35)':'none' }}>{s.n}</div>
-                <span style={{ fontSize:11, fontWeight:600, color:s.active?'var(--gold-dk)':'var(--label3)', whiteSpace:'nowrap' }}>{s.t}</span>
+                <div style={{ width:26, height:26, borderRadius:'50%', background:s.active?'#F9B318':'var(--fill)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:9.5, fontWeight:800, color:s.active?'white':'var(--label3)', boxShadow:s.active?'0 2px 8px rgba(249,179,24,0.35)':'none' }}>{s.n}</div>
+                <span style={{ fontSize:9, fontWeight:600, color:s.active?'var(--gold-dk)':'var(--label3)', whiteSpace:'nowrap' }}>{s.t}</span>
               </div>
             ))}
           </div>
@@ -416,13 +416,13 @@ export default function RegisterPage() {
             {/* or 区切り */}
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
               <div className="divider-line" style={{ flex:1 }}/>
-              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
+              <span style={{ fontSize:9.5, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
               <div className="divider-line" style={{ flex:1 }}/>
             </div>
 
             {/* メール */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>EMAIL</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>EMAIL</label>
               <div className={`field-wrap${emailFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <MailIcon size={15} />
@@ -434,7 +434,7 @@ export default function RegisterPage() {
               </div>
               {/* iCloud警告 */}
               {email.includes('icloud') && (
-                <p style={{ fontSize:11, color:'#FF9500', fontWeight:600, marginTop:8, display:'flex', alignItems:'center', gap:8 }}>
+                <p style={{ fontSize:9.5, color:'#FF9500', fontWeight:600, marginTop:8, display:'flex', alignItems:'center', gap:8 }}>
                   <TriangleAlertIcon size={16} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> iCloudメールは確認メールが届かない場合があります
                 </p>
               )}
@@ -442,7 +442,7 @@ export default function RegisterPage() {
 
             {/* パスワード */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>PASSWORD</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>PASSWORD</label>
               <div className={`field-wrap${pwFocus?' focused':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />
@@ -464,7 +464,7 @@ export default function RegisterPage() {
                       <div key={i} style={{ flex:1, height:3, borderRadius:2, background:i<=pwStrength?strengthColor:'var(--sep)', transition:'background .25s' }}/>
                     ))}
                   </div>
-                  <p style={{ fontSize:11, fontWeight:600, color:strengthColor, transition:'color .25s' }}>
+                  <p style={{ fontSize:10, fontWeight:600, color:strengthColor, transition:'color .25s' }}>
                     パスワード強度: {strengthLabel}
                   </p>
                 </div>
@@ -473,7 +473,7 @@ export default function RegisterPage() {
 
             {/* パスワード確認 */}
             <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:8 }}>CONFIRM PASSWORD</label>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>CONFIRM PASSWORD</label>
               <div className={`field-wrap${cpwFocus?' focused':''}${pwMismatch?' has-error':''}${pwMatch?' has-ok':''}`}>
                 <div style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:cpwFocus?'var(--gold)':pwMatch?'var(--green)':pwMismatch?'var(--red)':'var(--label3)', transition:'color .18s' }}>
                   <LockIcon size={15} />
@@ -491,8 +491,8 @@ export default function RegisterPage() {
                   style={{ position:'absolute', right:13, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:cpwFocus?'var(--gold-dk)':'var(--label3)', fontSize:11, fontWeight:700, transition:'color .18s' }}
                 >{showCPw?'隠す':'表示'}</button>
               </div>
-              {pwMismatch && <p style={{ fontSize:11, color:'var(--red)', fontWeight:600, marginTop:8 }}>パスワードが一致しません</p>}
-              {pwMatch && <p style={{ fontSize:11, color:'var(--green)', fontWeight:600, marginTop:8 }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> パスワードが一致しました</p>}
+              {pwMismatch && <p style={{ fontSize:9.5, color:'var(--red)', fontWeight:600, marginTop:8 }}>パスワードが一致しません</p>}
+              {pwMatch && <p style={{ fontSize:9.5, color:'var(--green)', fontWeight:600, marginTop:8 }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> パスワードが一致しました</p>}
             </div>
 
             <div style={{ height:12 }}/>
@@ -505,7 +505,7 @@ export default function RegisterPage() {
             )}
 
             {/* プライバシー注記 */}
-            <p style={{ fontSize:11, color:'var(--label3)', lineHeight:1.6, marginBottom:16, textAlign:'center' }}>
+            <p style={{ fontSize:9.5, color:'var(--label3)', lineHeight:1.6, marginBottom:16, textAlign:'center' }}>
               {t('register.privacyNotice')}<a href="/privacy" className="hit-44" target="_blank" rel="noopener noreferrer" style={{ color:'var(--gold-dk)', fontWeight:700 }}>{t('common.privacyPolicy')}</a>{t('register.privacyNoticeSuffix')}
             </p>
 
@@ -526,7 +526,7 @@ export default function RegisterPage() {
             <div style={{ marginTop:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'var(--label2)' }}>アカウントをお持ちの方は</span>
               <button type="button" onClick={() => router.push('/login')}
-                style={{ fontSize:13, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
+                style={{ fontSize:11, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
               >Login</button>
             </div>
           </div>
@@ -535,7 +535,7 @@ export default function RegisterPage() {
         {/* 店舗向け(カードの外に控えめに) */}
         <div className="appear d4" style={{ marginTop:16, textAlign:'center' }}>
           <button type="button" onClick={() => router.push('/store-register')}
-            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
+            style={{ fontSize:9.5, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
           >
             <HouseIcon size={10} />
             店舗の方はこちら
@@ -560,9 +560,9 @@ export default function RegisterPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0 </p>
-          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
-          <p style={{ fontSize:11, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0 </p>
+          <p style={{ fontSize:10, color:'var(--label3)', marginBottom:2 }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize:10, color:'var(--label3)' }}>協力者 : ゆうた / まいさん</p>
         </div>
       </div>
     </div>

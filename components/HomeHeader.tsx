@@ -285,7 +285,7 @@ export default function HomeHeader({
 							onClick={() => router.push('/home/tickets')}
 							className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
-							<CreditCardIcon className="text-[18px]" />
+							<CreditCardIcon className="text-[15px]" />
 							{hasStampReady && (
 								<span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
 							)}
@@ -299,7 +299,7 @@ export default function HomeHeader({
 							data-tutorial="header-bell"
 							className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
-							<BellIcon className="text-[18px]" />
+							<BellIcon className="text-[15px]" />
 							{(isUserVariant
 								? storeNoticeItems.some(n => !noticeReadIds.has(n.id)) || userNotifications.some(n => !n.read)
 								: storeNotices.length > 0) && (
@@ -315,7 +315,7 @@ export default function HomeHeader({
 							onClick={() => setIsQROpen(true)}
 							className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
 						>
-							<QrCodeIcon className="text-[22px]" />
+							<QrCodeIcon className="text-[18px]" />
 						</button>
 					) : (
 						/* ハンバーガーメニュー（store のみ） */
@@ -366,7 +366,7 @@ export default function HomeHeader({
 									setIsMenuOpen(false)
 									item.onClick()
 								}}
-								className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[14px] font-semibold text-gray-900"
+								className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[12px] font-semibold text-gray-900"
 							>
 								{item.label}
 							</button>
@@ -374,7 +374,7 @@ export default function HomeHeader({
 
 						<button
 							onClick={() => goTo(myPagePath)}
-							className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[14px] font-semibold text-gray-900"
+							className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[12px] font-semibold text-gray-900"
 						>
 							MY PAGE
 						</button>
@@ -397,7 +397,7 @@ export default function HomeHeader({
 
 							{/* ヘッダー */}
 							<div className="flex items-center justify-between px-4 pt-4 pb-4 border-b border-gray-100">
-								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">NEWS</p>
+								<p className="term-prompt-arrow text-[13px] font-semibold text-gray-900">NEWS</p>
 								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-label3 font-medium">閉じる</button>
 							</div>
 
@@ -407,7 +407,7 @@ export default function HomeHeader({
 									<button
 										type="button"
 										onClick={markAllRead}
-										className="text-[12px] font-semibold text-[#995C00] bg-[#FEF0D1] rounded-full px-4 py-2 active:bg-[#FFE9B0] transition-colors"
+										className="text-[10px] font-semibold text-[#995C00] bg-[#FEF0D1] rounded-full px-4 py-2 active:bg-[#FFE9B0] transition-colors"
 									>
 										すべて既読にする
 									</button>
@@ -431,7 +431,7 @@ export default function HomeHeader({
 													<div className="flex items-center gap-2 mb-2">
 														{isUnread && <span className="h-2 w-2 rounded-full bg-[#995C00] flex-shrink-0" />}
 														<span className="tech-label text-[#995C00] flex-1 truncate">{n.storeName}</span>
-														<span className="tech-num text-[11px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
+														<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 													</div>
 													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 												</div>
@@ -446,7 +446,7 @@ export default function HomeHeader({
 												<div className="flex items-center gap-2 mb-2">
 													{!n.read && <span className="h-2 w-2 rounded-full bg-[#995C00] flex-shrink-0" />}
 													<span className="tech-label text-[#995C00] flex-1 truncate">{n.storeName}</span>
-													<span className="tech-num text-[11px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
+													<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
 												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
 											</div>

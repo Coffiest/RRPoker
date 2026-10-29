@@ -186,12 +186,12 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Title */}
-            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
+            <p className="term-prompt-arrow" style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
               {step.title}
             </p>
 
             {/* Body */}
-            <p style={{ fontSize: 14, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
+            <p style={{ fontSize: 12, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
               {step.body}
             </p>
 

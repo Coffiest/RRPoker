@@ -464,24 +464,24 @@ for (const p of payouts) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #EDECE6' }}>
           <button
             onClick={onClose}
-            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 17, color: '#3C3C43', lineHeight: 1 }}
           ><XIcon size={20} /></button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>賞金の分配</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E' }}>賞金の分配</span>
           <button
             onClick={async () => { await saveDraft(); onClose() }}
-            style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 15, color: '#fff', lineHeight: 1 }}
           ><CheckIcon size={20} /></button>
         </div>
 
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>LOADING...</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 12 }}>LOADING...</p>
           ) : (
             <>
               {/* Prize Pool カード */}
               <div style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF3CC)', border: '1px solid rgba(249,179,24,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#995C00', marginBottom: 8 }}>賞金総額</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#995C00', marginBottom: 8 }}>賞金総額</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
@@ -498,7 +498,7 @@ for (const p of payouts) {
                         value={r.playerId}
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: e.target.value } : x))}
                         aria-label={`${r.rank}位のプレイヤー`}
-                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 8px', fontSize: 15, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 8px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
                       >
                         <option value="">プレイヤーを選択</option>
                         {participants.map(p => <option key={p.id} value={p.id}>{p.name ?? p.id}</option>)}
@@ -512,13 +512,13 @@ for (const p of payouts) {
                         placeholder="金額"
                         inputMode="numeric"
                         aria-label={`${r.rank}位の金額`}
-                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                        style={{ flex: 1, minWidth: 0, height: 44, borderRadius: 10, border: 'none', background: '#fff', padding: '0 16px', fontSize: 12, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
                       />
                       <button
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
                         aria-label={r.showText ? '景品・メモを閉じる' : '景品・メモを追加'}
                         aria-pressed={r.showText}
-                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(249,179,24,0.15)' : '#fff', color: r.showText ? '#804D00' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
+                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(249,179,24,0.15)' : '#fff', color: r.showText ? '#804D00' : 'var(--label2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
                       ><GiftIcon size={16} /> 景品</button>
                     </div>
                     {/* 景品テキスト */}
@@ -528,7 +528,7 @@ for (const p of payouts) {
                           value={r.text}
                           onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
                           placeholder="景品・メモ"
-                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(249,179,24,0.3)', background: '#fff', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(249,179,24,0.3)', background: '#fff', padding: '0 16px', fontSize: 11, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                     )}
@@ -541,7 +541,7 @@ for (const p of payouts) {
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px dashed rgba(60,60,67,0.3)', background: 'transparent', color: 'var(--label2)', fontSize: 15, fontWeight: 500, cursor: 'pointer', marginBottom: 16 }}
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px dashed rgba(60,60,67,0.3)', background: 'transparent', color: 'var(--label2)', fontSize: 13, fontWeight: 500, cursor: 'pointer', marginBottom: 16 }}
               ><span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><PlusIcon size={20} /> 入賞者を追加</span></button>
 
               {/* コメント */}
@@ -550,7 +550,7 @@ for (const p of payouts) {
                 onChange={e => setComment(e.target.value)}
                 placeholder="コメント（タイマー画面に表示）"
                 rows={2}
-                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#EDECE6', padding: '16px 16px', fontSize: 14, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+                style={{ width: '100%', borderRadius: 14, border: '1.5px solid #E5E5EA', background: '#EDECE6', padding: '16px 16px', fontSize: 12, color: '#1C1C1E', resize: 'none', outline: 'none', boxSizing: 'border-box', marginBottom: 8 }}
               />
 
               {error && <p style={{ color: '#FF3B30', fontSize: 13, marginTop: 8, textAlign: 'center' }}>{error}</p>}
@@ -565,7 +565,7 @@ for (const p of payouts) {
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
-            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.35)', opacity: submitting ? 0.6 : 1 }}
+            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: '#F9B318', color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.35)', opacity: submitting ? 0.6 : 1 }}
           >賞金の分配</button>
         </div>
       </div>
@@ -576,7 +576,7 @@ for (const p of payouts) {
           <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}>
             <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#D70015' }}><TriangleAlertIcon size={24} /></div>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>プライズを配布しますか？</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>プライズを配布しますか？</p>
               <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.6 }}>この操作は取り消せません</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>

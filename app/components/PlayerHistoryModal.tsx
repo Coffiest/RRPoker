@@ -182,7 +182,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(28,28,30,1)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {formatType(item.type, item.comment)}
                     </p>
-                    <p style={{ fontSize: 11, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <p style={{ fontSize: 9.5, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '1px 8px', fontWeight: 600 }}>
                         {formatSubtype(item.type)}
                       </span>
@@ -234,14 +234,14 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <TriangleAlertIcon size={24} style={{ color: '#FF3B30' }}/>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 8 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 8 }}>
                 {playerName ?? 'このプレイヤー'}の履歴を全て削除しますか？
               </p>
               <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5, margin: 0 }}>
                 チップ履歴（{history.length}件）と所持チップ・純増値が全て0になります。<br/>この操作は取り消せません。
               </p>
               {wipeError && (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', marginTop: 8 }}>{wipeError}</p>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#FF3B30', marginTop: 8 }}>{wipeError}</p>
               )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
