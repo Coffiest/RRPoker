@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CheckIcon, LayoutGridIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { AwardIcon, CheckIcon, LayoutGridIcon, UnlinkIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
@@ -22,6 +22,7 @@ import { isNativeApp } from "@/lib/platform"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 import AppleSheet from "@/components/AppleSheet"
 import { BootLog, TermBar } from "@/components/Terminal"
+import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
 import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
 import TechBackdrop from "@/components/TechBackdrop"
@@ -141,6 +142,9 @@ export default function StorePage() {
   // 分割表示(2〜4 個のタイマーを 1 画面に)
   const [splitOpen, setSplitOpen] = useState(false)
   const [splitIds, setSplitIds] = useState<string[]>([])
+  // タイマーの合体(店舗の文書 timerGroups に保存。どの端末でも同じ並び)
+  const [mergeEditing, setMergeEditing] = useState(false)
+  const [timerGroups, setTimerGroups] = useState<string[][]>([])
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
   const [adjustTab, setAdjustTab] = useState<Record<string, 'time' | 'blind'>>({})
@@ -864,6 +868,242 @@ export default function StorePage() {
     // (人のお金を預かる大会の時計なので、明確な操作以外で止めてはいけない)。
   }
 
+  useEffect(() => {
+    if (!storeId) return
+    return onSnapshot(doc(db, "stores", storeId), snap => {
+      const g = snap.data()?.timerGroups
+      // Firestore は配列の配列を持てないので [{ ids: [...] }] で保存している
+      setTimerGroups(Array.isArray(g) ? g.map((x: any) => Array.isArray(x?.ids) ? x.ids.filter((i: any) => typeof i === "string") : []).filter((x: string[]) => x.length > 0) : [])
+    })
+  }, [storeId])
+
+  // 画面に並べる単位(合体したものは 1 枚)。開催中でなくなった大会は外す
+  const mergeItems: MergeItem[] = (() => {
+    const live = new Set(activeTournaments.map(t => t.id))
+    const groups = timerGroups.map(g => g.filter(id => live.has(id))).filter(g => g.length >= 2)
+    const inGroup = new Map<string, string[]>()
+    groups.forEach(g => g.forEach(id => inGroup.set(id, g)))
+    const out: MergeItem[] = []
+    const used = new Set<string>()
+    for (const t of activeTournaments) {
+      if (used.has(t.id)) continue
+      const g = inGroup.get(t.id)
+      if (g) { g.forEach(id => used.add(id)); out.push({ key: "g:" + g.join(","), ids: g }) }
+      else { used.add(t.id); out.push({ key: t.id, ids: [t.id] }) }
+    }
+    return out
+  })()
+
+  const saveGroups = async (groups: string[][]) => {
+    setTimerGroups(groups)
+    if (!storeId) return
+    try { await updateDoc(doc(db, "stores", storeId), { timerGroups: groups.map(ids => ({ ids })) }) }
+    catch { showToast("合体を保存できませんでした") }
+  }
+  const mergeTimers = (sourceKey: string, targetKey: string) => {
+    const src = mergeItems.find(i => i.key === sourceKey), dst = mergeItems.find(i => i.key === targetKey)
+    if (!src || !dst) return
+    const merged = [...dst.ids, ...src.ids].slice(0, MAX_MERGE)
+    const rest = timerGroups.filter(g => !g.some(id => merged.includes(id)))
+    void saveGroups([...rest, merged])
+  }
+  const unmergeTimers = (ids: string[]) => {
+    void saveGroups(timerGroups.filter(g => !g.some(id => ids.includes(id))))
+  }
+  const openSplit = (ids: string[]) => {
+    const url = `/home/store/timer/split?ids=${ids.join(",")}`
+    if (isNativeApp()) router.push(url)
+    else window.open(url, "_blank")
+  }
+
+  // ── 開催中トーナメントのカード(単体) ──
+  const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const grip = <MergeGrip gripProps={gripProps} />
+    return (
+    <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
+      <div className="gold-line"/>
+      <TermBar path={`~/tournaments/${t.id.slice(0, 6)} --live`} right={grip} />
+      <div style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
+
+        {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+          <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#1E7B34' }}>LIVE</span>
+            <span className="tech-status-dot" style={{ background: '#34C759' }} />
+          </span>
+        </div>
+
+        {/* Fee / Stack info */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
+          {[
+            { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
+            { label: 'Re-entry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
+            { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
+          ].map(item => (
+            <div key={item.label} style={{ textAlign: 'center' }}>
+              <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Fee</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
+                  {item.fee > 0 ? item.fee.toLocaleString() : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Stack</span>
+                <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
+                  {item.stack > 0 ? item.stack.toLocaleString() : '—'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Timer Display — full TimerClient view scaled to card width */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '224px',
+          overflow: 'hidden',
+          borderRadius: 12,
+          marginBottom: 16,
+          border: '1px solid var(--sep)',
+          background: '#fff',
+        }}>
+          <iframe
+            src={`/home/store/timer/${t.id}`}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '1200px',
+              height: '800px',
+              transform: 'scale(0.28)',
+              transformOrigin: 'top left',
+              border: 'none',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+          <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
+            <ClockIcon size={16}/> TIMER
+          </button>
+          <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
+            <PenLineIcon size={16}/> ADJUST
+          </button>
+          <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
+            <UsersIcon size={16}/> PLAYERS
+          </button>
+          <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
+            <DollarSignIcon size={16}/> PAY OUT
+          </button>
+        </div>
+
+        {/* プレイヤーの端末から確定したリエントリー / アドオン。
+            その場で取り消せるようにしておく(承認に技術的な鍵が無いため)。 */}
+        <TournamentPurchaseLog
+          tournamentId={t.id}
+          storeId={storeId!}
+          canRevoke={t.status === "active"}
+          unitLabel={store?.chipUnitLabel && store.chipUnitLabel !== "単位なし" ? store.chipUnitLabel : ""}
+          unitBefore={store?.chipUnitBefore !== false}
+        />
+
+        {/* Timer controls */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid var(--sep)' }}>
+          <button className="timer-btn" onClick={() => prevLevel(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><SkipBackIcon size={17} style={{ color: 'var(--label)' }}/></button>
+
+          <button className="timer-btn" onClick={() => toggleTimer(t.id)}
+            style={{ width: 56, height: 56, borderRadius: '50%', background: '#F9B318', boxShadow: '0 4px 14px rgba(249,179,24,0.32)' }}
+          >
+            {timerRunning[t.id] ? <PauseIcon size={20} style={{ color: 'white' }}/> : <PlayIcon size={20} style={{ color: 'white', marginLeft: 2 }}/>}
+          </button>
+
+          <button className="timer-btn" onClick={() => nextLevel(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><SkipForwardIcon size={17} style={{ color: 'var(--label)' }}/></button>
+
+          <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><Maximize2Icon size={16} style={{ color: 'var(--label)' }}/></button>
+        </div>
+      </div>
+    </div>
+    )
+  }
+
+  // ── 編集中(ぷるぷる中)の小さいカード。全部が画面に収まり、重ねやすいように ──
+  const renderCompactCard = (ids: string[], gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
+    return (
+      <div className="ios-card" style={{ overflow: 'hidden' }}>
+        <TermBar path={ts.length > 1 ? `~/split --n=${ts.length}` : `~/tournaments/${ts[0]?.id.slice(0, 6)} --live`} right={<MergeGrip gripProps={gripProps} />} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px', minHeight: 64 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {ts.map(t => (
+              <p key={t.id} style={{ fontFamily: 'var(--stack-mono)', fontSize: 13, fontWeight: 800, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+            ))}
+          </div>
+          {ts.length > 1 && (
+            <button type="button" onClick={() => unmergeTimers(ids)} className="gl-press"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid rgba(21,70,217,0.3)', background: '#fff', color: '#1546D9', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+              <UnlinkIcon size={16} /> 分離
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── 合体したタイマーのカード(2〜4 分割) ──
+  const renderGroupCard = (ids: string[], editing: boolean, gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
+    return (
+      <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
+        <div className="gold-line"/>
+        <TermBar path={`~/split --n=${ts.length}`} right={<MergeGrip gripProps={gripProps} />} />
+        <div style={{ padding: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+            <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)' }}>SPLIT · {ts.length}</p>
+            {editing && (
+              <button type="button" onClick={() => unmergeTimers(ids)} className="gl-press"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid rgba(21,70,217,0.3)', background: '#fff', color: '#1546D9', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                <UnlinkIcon size={16} /> 分離
+              </button>
+            )}
+          </div>
+          {/* 分割表示そのものを縮小して見せる */}
+          <div style={{ position: 'relative', width: '100%', height: 224, overflow: 'hidden', borderRadius: 12, marginBottom: 16, border: '1px solid var(--sep)', background: '#000' }}>
+            <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
+              style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
+          </div>
+          <button className="action-btn btn-gold" style={{ width: '100%', marginBottom: 16 }} onClick={() => openSplit(ts.map(t => t.id))}>
+            <ClockIcon size={16}/> TIMER · SPLIT
+          </button>
+          {/* トーナメントごとの操作 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {ts.map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+                <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><SkipBackIcon size={16} style={{ color: 'var(--label)' }}/></button>
+                <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#F9B318' }}>
+                  {timerRunning[t.id] ? <PauseIcon size={18} style={{ color: 'white' }}/> : <PlayIcon size={18} style={{ color: 'white', marginLeft: 2 }}/>}
+                </button>
+                <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><SkipForwardIcon size={16} style={{ color: 'var(--label)' }}/></button>
+                <button className="timer-btn" aria-label="参加者" onClick={() => setShowPlayerModal(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><UsersIcon size={16} style={{ color: '#1546D9' }}/></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (role === null) return (
     <div style={{ minHeight: '100dvh', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(21,70,217,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
@@ -1259,126 +1499,8 @@ export default function StorePage() {
               <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {activeTournaments.map(t => {
-                return (
-                  <div key={t.id} className="ios-card su con-live-panel" style={{ overflow: 'hidden' }}>
-                    <div className="gold-line"/>
-                    <TermBar path={`~/tournaments/${t.id.slice(0, 6)} --live`} />
-                    <div style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
-
-                      {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
-                        <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: '#1E7B34' }}>LIVE</span>
-                          <span className="tech-status-dot" style={{ background: '#34C759' }} />
-                        </span>
-                      </div>
-
-                      {/* Fee / Stack info */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
-                        {[
-                          { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
-                          { label: 'Re-entry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
-                          { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
-                        ].map(item => (
-                          <div key={item.label} style={{ textAlign: 'center' }}>
-                            <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
-                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Fee</span>
-                              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
-                                {item.fee > 0 ? item.fee.toLocaleString() : '—'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                              <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Stack</span>
-                              <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
-                                {item.stack > 0 ? item.stack.toLocaleString() : '—'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Timer Display — full TimerClient view scaled to card width */}
-                      <div style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '224px',
-                        overflow: 'hidden',
-                        borderRadius: 12,
-                        marginBottom: 16,
-                        border: '1px solid var(--sep)',
-                        background: '#fff',
-                      }}>
-                        <iframe
-                          src={`/home/store/timer/${t.id}`}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '1200px',
-                            height: '800px',
-                            transform: 'scale(0.28)',
-                            transformOrigin: 'top left',
-                            border: 'none',
-                            pointerEvents: 'none',
-                          }}
-                        />
-                      </div>
-
-                      {/* Action buttons */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                        <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
-                          <ClockIcon size={16}/> TIMER
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
-                          <PenLineIcon size={16}/> ADJUST
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
-                          <UsersIcon size={16}/> PLAYERS
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
-                          <DollarSignIcon size={16}/> PAY OUT
-                        </button>
-                      </div>
-
-                      {/* プレイヤーの端末から確定したリエントリー / アドオン。
-                          その場で取り消せるようにしておく(承認に技術的な鍵が無いため)。 */}
-                      <TournamentPurchaseLog
-                        tournamentId={t.id}
-                        storeId={storeId!}
-                        canRevoke={t.status === "active"}
-                        unitLabel={store?.chipUnitLabel && store.chipUnitLabel !== "単位なし" ? store.chipUnitLabel : ""}
-                        unitBefore={store?.chipUnitBefore !== false}
-                      />
-
-                      {/* Timer controls */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid var(--sep)' }}>
-                        <button className="timer-btn" onClick={() => prevLevel(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><SkipBackIcon size={17} style={{ color: 'var(--label)' }}/></button>
-
-                        <button className="timer-btn" onClick={() => toggleTimer(t.id)}
-                          style={{ width: 56, height: 56, borderRadius: '50%', background: '#F9B318', boxShadow: '0 4px 14px rgba(249,179,24,0.32)' }}
-                        >
-                          {timerRunning[t.id] ? <PauseIcon size={20} style={{ color: 'white' }}/> : <PlayIcon size={20} style={{ color: 'white', marginLeft: 2 }}/>}
-                        </button>
-
-                        <button className="timer-btn" onClick={() => nextLevel(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><SkipForwardIcon size={17} style={{ color: 'var(--label)' }}/></button>
-
-                        <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><Maximize2Icon size={16} style={{ color: 'var(--label)' }}/></button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <MergeBoard items={mergeItems} editing={mergeEditing} setEditing={setMergeEditing} onMerge={mergeTimers}
+              render={(item, { editing, gripProps }) => editing ? renderCompactCard(item.ids, gripProps) : item.ids.length > 1 ? renderGroupCard(item.ids, editing, gripProps) : renderTournamentCard(activeTournaments.find(x => x.id === item.ids[0])!, gripProps)} />
           )}
         </div>
 

@@ -23,7 +23,9 @@ function SplitTimers() {
   const router = useRouter()
   const params = useSearchParams()
   const ids = (params.get("ids") ?? "").split(",").map(s => s.trim()).filter(Boolean).slice(0, 4)
-  const [ctrl, setCtrl] = useState(true)
+  // preview=1: 店舗ホームの合体カードに埋め込む縮小表示。操作バーは出さない
+  const preview = params.get("preview") === "1"
+  const [ctrl, setCtrl] = useState(!preview)
   const [touch, setTouch] = useState(0)
 
   const close = () => {
@@ -57,8 +59,8 @@ function SplitTimers() {
       </div>
 
       {/* 埋め込みは押せない(誤操作防止)ので、全体を覆う透明なボタンで操作バーを出す */}
-      <button type="button" aria-label="操作を表示" onClick={() => { setCtrl(true); setTouch(n => n + 1) }}
-        style={{ position: "absolute", inset: 0, background: "transparent", border: "none", cursor: "default" }} />
+      {!preview && <button type="button" aria-label="操作を表示" onClick={() => { setCtrl(true); setTouch(n => n + 1) }}
+        style={{ position: "absolute", inset: 0, background: "transparent", border: "none", cursor: "default" }} />}
 
       {ctrl && (
         <div onPointerDown={() => setTouch(n => n + 1)}

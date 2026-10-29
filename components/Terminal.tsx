@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
  * BootLog  … 画面を開いた瞬間だけ流れる短い起動ログ。操作は待たせない(表示しながら押せる)。
  */
 
-export function TermBar({ path, onDark = false }: { path: string; onDark?: boolean }) {
+export function TermBar({ path, onDark = false, right }: { path: string; onDark?: boolean; right?: React.ReactNode }) {
   const dot = (bg: string) => <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: '50%', background: bg, display: 'inline-block' }} />
   return (
     <div className="term-bar" style={{
@@ -21,7 +21,8 @@ export function TermBar({ path, onDark = false }: { path: string; onDark?: boole
         {dot(onDark ? 'rgba(255,255,255,0.65)' : '#F9B318')}
         {dot(onDark ? 'rgba(255,255,255,0.4)' : 'rgba(60,60,67,0.28)')}
       </span>
-      <span className="tech-label" style={{ fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'none', color: onDark ? '#fff' : 'var(--label2)' }}>{path}</span>
+      <span className="tech-label" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'none', color: onDark ? '#fff' : 'var(--label2)' }}>{path}</span>
+      {right}
     </div>
   )
 }
