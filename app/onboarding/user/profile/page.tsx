@@ -321,7 +321,7 @@ export default function UserProfileOnboardingPage() {
           border-radius: 20px;
           height: 54px;
           width: 100%;
-          font-size: 17px;
+          font-size: 16px;
           font-weight: 600;
           color: #fff;
         }
@@ -389,7 +389,7 @@ export default function UserProfileOnboardingPage() {
           <button
             type="button"
             onClick={() => router.push('/onboarding')}
-            className="flex items-center gap-2 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-2 text-[12px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
             aria-label="Back"
           >
             <ChevronLeftIcon size={18} />
@@ -400,7 +400,7 @@ export default function UserProfileOnboardingPage() {
         {/* Header */}
         <div className="mt-6 text-center animate-slideUp-d1">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
-          <p className="mt-2 text-[14px] text-gray-500">あなたの情報を入力してください</p>
+          <p className="mt-2 text-[12px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
             本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#995C00] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
@@ -428,7 +428,7 @@ export default function UserProfileOnboardingPage() {
             {previewUrl && (
               <div className="icon-overlay">
                 <CameraIcon size={22} color="white" />
-                <span className="text-[11px] font-semibold text-white">変更</span>
+                <span className="text-[10px] font-semibold text-white">変更</span>
               </div>
             )}
 
@@ -438,7 +438,7 @@ export default function UserProfileOnboardingPage() {
             </div>
           </button>
 
-          <p className="text-[13px] text-label2">
+          <p className="text-[11px] text-label2">
             {previewUrl ? 'タップして画像を変更' : 'タップしてアイコンを設定'}
           </p>
 
@@ -453,8 +453,8 @@ export default function UserProfileOnboardingPage() {
           {/* Poker name */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[15px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
-              <span className="text-[13px] font-semibold text-[#995C00]">必須</span>
+              <label className="text-[13px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
+              <span className="text-[11px] font-semibold text-[#995C00]">必須</span>
             </div>
             <input
               type="text"
@@ -470,7 +470,7 @@ export default function UserProfileOnboardingPage() {
             {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <label className="text-[15px] font-semibold text-[color:var(--label)]">Player ID</label>
+                <label className="text-[13px] font-semibold text-[color:var(--label)]">Player ID</label>
 
                 
                 <button
@@ -488,12 +488,12 @@ export default function UserProfileOnboardingPage() {
                   }}
                 ><InfoIcon size={18} /></button>
               </div>
-              <span className="text-[13px] font-semibold text-[#995C00]">必須</span>
+              <span className="text-[11px] font-semibold text-[#995C00]">必須</span>
             </div>
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(249,179,24,0.25)' }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(21,70,217,0.25)' }}>
                 <p className="text-[12px] font-semibold mb-2" style={{ color: '#804D00' }}>Player ID とは？</p>
                 <ul className="space-y-2">
                   {[
@@ -534,26 +534,26 @@ export default function UserProfileOnboardingPage() {
                 value={playerId.replace(/^@/, '')}
                 onChange={e => handlePlayerIdChange(e.target.value)}
                 placeholder="例: naoyuki"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 16px', minWidth: 0 }}
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: '#111827', padding: '0 16px', minWidth: 0 }}
               />
               <div className="flex items-center pr-4 flex-shrink-0">
                 {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
-                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#1E7B34' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
-                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#D70015' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
+                {idStatus === 'available' && !idError && <span style={{ fontSize: 10, fontWeight: 600, color: '#1E7B34' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
+                {idStatus === 'unavailable' && <span style={{ fontSize: 10, fontWeight: 600, color: '#D70015' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
               </div>
             </div>
-            {idError && <p className="mt-2 text-[12px] text-red-400">{idError}</p>}
+            {idError && <p className="mt-2 text-[10px] text-red-400">{idError}</p>}
 
             {/* おすすめ + 自動取得 */}
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: 13, color: 'var(--label2)', fontWeight: 500 }}>おすすめ</span>
+                <span style={{ fontSize: 11, color: 'var(--label2)', fontWeight: 500 }}>おすすめ</span>
                 <button
                   type="button"
                   onClick={handleAutoGet}
                   disabled={autoGetLoading}
                   className="flex items-center gap-2 transition-opacity"
-                  style={{ fontSize: 13, fontWeight: 600, color: '#1546D9', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  style={{ fontSize: 11, fontWeight: 600, color: '#1546D9', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
                     <LoaderCircleIcon size={11} className="animate-spin" />
@@ -569,7 +569,7 @@ export default function UserProfileOnboardingPage() {
               <div className="flex gap-2 flex-wrap">
                 
                 {suggestionsLoading ? (
-                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>候補を検索中…</span>
+                  <span style={{ fontSize: 11, color: 'var(--label2)' }}>候補を検索中…</span>
                 ) : suggestions.length > 0 ? (
                   suggestions.map(s => (
                     <button
@@ -590,7 +590,7 @@ export default function UserProfileOnboardingPage() {
                     </button>
                   ))
                 ) : (
-                  <span style={{ fontSize: 13, color: 'var(--label2)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
+                  <span style={{ fontSize: 11, color: 'var(--label2)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
                 )}
               </div>
             </div>
@@ -600,7 +600,7 @@ export default function UserProfileOnboardingPage() {
           {/* Birthday */}
           <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[15px] font-semibold text-[color:var(--label)]">誕生日</label>
+              <label className="text-[13px] font-semibold text-[color:var(--label)]">誕生日</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input
@@ -609,7 +609,7 @@ export default function UserProfileOnboardingPage() {
               onChange={e => setBirthday(e.target.value)}
               className="field-input"
             />
-            <p className="mt-2 text-[11px] text-amber-500 flex items-center gap-2">
+            <p className="mt-2 text-[9.5px] text-amber-500 flex items-center gap-2">
               <CircleAlertIcon size={12} style={{ flexShrink: 0 }} />
               誕生日は登録後に変更できません
             </p>
@@ -640,7 +640,7 @@ export default function UserProfileOnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
+        <p className="mt-6 mb-8 text-center text-[10px] text-label3 animate-slideUp-d4">
           プロフィールはあとから編集できます
         </p>
 

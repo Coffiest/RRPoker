@@ -268,7 +268,7 @@ export default function TransactionsClient() {
 
           {/* QR card */}
           <div className="tx-slide-2" style={{ background: '#fff', borderRadius: 22, padding: '32px 24px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 24 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 24 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
               <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00' }}>入店QRコード</span>
             </div>
@@ -382,7 +382,7 @@ export default function TransactionsClient() {
             </p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
               <span className="tech-label" style={{ color: 'var(--label3)' }}>BALANCE</span>
-              <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#3C3C43' }}>{fmtChip(balance)}</span>
+              <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1546D9' }}>{fmtChip(balance)}</span>
               {useBb && <span className="tech-num" style={{ fontSize: 12, color: 'var(--label3)' }}>({formatBbValue(balance)}BB)</span>}
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function TransactionsClient() {
             <button
               type="button"
               onClick={clearAmount}
-              style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#EDECE6', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
+              style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#EDECE6', border: 'none', fontSize: 12, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
             >
               <span className="tech-label">CLEAR</span>
             </button>
@@ -429,7 +429,7 @@ export default function TransactionsClient() {
           )}
           {message && (
             <div style={{ margin: '0 16px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.10)', borderRadius: 12, padding: '8px 16px' }}>
-              <CircleCheckIcon color="#995C00" size={16} style={{ flexShrink: 0 }} />
+              <CircleCheckIcon color="#1546D9" size={16} style={{ flexShrink: 0 }} />
               <p style={{ fontSize: 13, fontWeight: 500, color: '#995C00' }}>{message}</p>
             </div>
           )}
@@ -439,7 +439,7 @@ export default function TransactionsClient() {
             <button
               type="button"
               onClick={submit}
-              style={{ width: '100%', height: 54, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 16, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.40)', letterSpacing: '0.3px' }}
+              style={{ width: '100%', height: 54, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 14, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(249,179,24,0.40)', letterSpacing: '0.3px' }}
             >
               {mode === 'deposit' ? 'あずける（申請）' : 'ひきだす（申請）'}
             </button>
@@ -476,7 +476,7 @@ export default function TransactionsClient() {
               </button>
               <button
                 onClick={confirmWithdraw}
-                style={{ flex: 1, height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,179,24,0.38)' }}
+                style={{ flex: 1, height: 52, borderRadius: 16, background: '#F9B318', border: 'none', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 14px rgba(249,179,24,0.38)' }}
               >
                 確認完了
               </button>

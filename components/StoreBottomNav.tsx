@@ -55,7 +55,7 @@ export default function StoreBottomNav() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const col = (tab: ActiveTab) => ({
-    color: activeTab === tab ? '#F9B318' : '#3C3C43',
+    color: activeTab === tab ? '#1546D9' : '#3C3C43',
     fontWeight: activeTab === tab ? 700 : 400,
   })
 
@@ -90,7 +90,7 @@ export default function StoreBottomNav() {
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <HouseIcon size={22} />
-          <span style={{ fontSize: 11, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>HOME</span>
+          <span style={{ fontSize: 9.5, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>HOME</span>
         </button>
 
         {/* Center */}
@@ -124,7 +124,7 @@ export default function StoreBottomNav() {
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
           <UserIcon size={22} />
-          <span style={{ fontSize: 11, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>MY PAGE</span>
+          <span style={{ fontSize: 9.5, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>MY PAGE</span>
         </button>
       </div>
     </nav>

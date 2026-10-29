@@ -142,7 +142,7 @@ export default function HistoryPage() {
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[12px] font-semibold text-white"
           >
             ホームへ戻る
           </button>

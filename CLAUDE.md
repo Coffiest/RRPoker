@@ -28,6 +28,7 @@
 - **書体は JetBrains Mono(本文・数字)と Space Grotesk(見出し・ロゴ)。** `app/layout.tsx` の next/font と `globals.css` の `--stack-mono` / `--stack-display` で読み込む。システムフォントに置き換えない。日本語だけ端末標準へフォールバックさせる。
 - **コンソール風の装飾を残す。** `tech-label`(等幅・大文字)、`tech-label-bracket`([ ])、`term-prompt`($)、`term-prompt-arrow`(›)、`term-comment`(//)、`tech-caret`(点滅カーソル)、`tech-num`、`con-*` などを消したり `content: none` で隠したりしない。
 - **おしゃれに英語で書ける所は英語にする。** 例: Login / Create account / Forgot Password? / Entry / Re-entry / Add-on / PLAYERS / PAY OUT / ADJUST / START / PAUSE / LIVE / RANK / TOURNAMENT HISTORY / BALANCE / LOADING。説明文・注意書き・確認ダイアログの本文など、意味を正確に伝える文章は日本語のまま。
+- 文字は大きくしすぎない(オーナー指示)。最小 9px、小さな英字ラベルは 9〜11px、本文は 14px 前後、大見出しは 24px 前後。
 - 読みやすさ(コントラスト・44px の押せる範囲・8 の倍数の余白)はこの上で守る。
 
 ## 手元での動作確認

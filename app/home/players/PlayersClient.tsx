@@ -55,7 +55,7 @@ export default function Page() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[12px] font-semibold text-white"
           >
             Back
           </button>

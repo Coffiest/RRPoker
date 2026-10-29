@@ -415,7 +415,7 @@ export default function StoreMyPage() {
       <XIcon size={20} />
     </button>
   )
-  const note = (text: string, color: string) => <p role={color === '#D70015' ? 'alert' : 'status'} style={{ fontSize: 15, color, margin: '-16px 16px 16px' }}>{text}</p>
+  const note = (text: string, color: string) => <p role={color === '#D70015' ? 'alert' : 'status'} style={{ fontSize: 13, color, margin: '-16px 16px 16px' }}>{text}</p>
 
   return (
     <main style={{ minHeight: '100dvh', background: '#EDECE6', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
@@ -436,9 +436,9 @@ export default function StoreMyPage() {
                 : <UserIcon size={28} style={{ color: 'var(--label3)' }} />}
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name || "店舗名を設定"}</span>
-              <span style={{ display: 'block', fontSize: 15, color: 'var(--label2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
-              <span style={{ display: 'block', fontSize: 15, color: '#995C00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
+              <span style={{ display: 'block', fontSize: 18, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name || "店舗名を設定"}</span>
+              <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
+              <span style={{ display: 'block', fontSize: 13, color: '#995C00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
             </span>
           </button>
         </Section>
@@ -527,18 +527,18 @@ export default function StoreMyPage() {
 
       {/* ── 項目の編集 ── */}
       <AppleSheet open={sheet === "field" && !!editingField} onClose={closeSheet}
-        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editingField ? FIELD_LABEL[editingField] : ""}</p>{closeBtn(closeSheet)}</div>}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editingField ? FIELD_LABEL[editingField] : ""}</p>{closeBtn(closeSheet)}</div>}
         footer={<PrimaryButton disabled={saving} onClick={async () => { await saveProfile(); }}>{saving ? "保存しています…" : "保存する"}</PrimaryButton>}>
         {editingField && (
           <Section>
             {editingField === "description" ? (
               <textarea value={fieldValue(editingField)} onChange={e => { setError(""); setFieldValue(editingField, e.target.value) }} rows={5} placeholder="定休日や、どんなお店なのかなど" aria-label="店舗の説明"
-                style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 17, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 14, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
             ) : (
               <input value={fieldValue(editingField)} onChange={e => { setError(""); setFieldValue(editingField, e.target.value) }} aria-label={FIELD_LABEL[editingField]} autoFocus
                 inputMode={editingField === "postalCode" ? "numeric" : undefined}
                 placeholder={{ name: "例: RR ポーカークラブ", postalCode: "例: 100-0001", addressLine: "例: 東京都千代田区丸の内1丁目", addressDetail: "例: 1-1 ○○ビル 201", description: "" }[editingField]}
-                style={{ display: 'block', width: '100%', boxSizing: 'border-box', height: 56, padding: '0 16px', border: 'none', outline: 'none', fontSize: 17, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', height: 56, padding: '0 16px', border: 'none', outline: 'none', fontSize: 14, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
             )}
           </Section>
         )}
@@ -547,7 +547,7 @@ export default function StoreMyPage() {
 
       {/* ── リングゲームのブラインド ── */}
       <AppleSheet open={sheet === "blind"} onClose={closeSheet}
-        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>リングゲームのブラインド</p>{closeBtn(closeSheet)}</div>}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>リングゲームのブラインド</p>{closeBtn(closeSheet)}</div>}
         footer={<PrimaryButton onClick={async () => { await saveBlindSettings() }}>保存する</PrimaryButton>}>
         <Section footer="両方を空欄にすると、設定を消します。">
           <FieldRow label="SB"><input type="number" inputMode="numeric" value={blindSb} onChange={e => { setBlindError(""); setBlindSuccess(""); setBlindSb(e.target.value) }} placeholder="5" style={fieldInput} className="no-spin" /></FieldRow>
@@ -559,7 +559,7 @@ export default function StoreMyPage() {
 
       {/* ── SNS ── */}
       <AppleSheet open={sheet === "sns"} onClose={closeSheet}
-        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>SNS・外部リンク</p>{closeBtn(closeSheet)}</div>}
+        title={<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><p style={{ flex: 1, fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>SNS・外部リンク</p>{closeBtn(closeSheet)}</div>}
         footer={<PrimaryButton disabled={snsSaving} onClick={saveSns}>{snsSaving ? "保存しています…" : "保存する"}</PrimaryButton>}>
         <Section>
           {([
@@ -568,9 +568,9 @@ export default function StoreMyPage() {
             ["Web サイト", draftSnsWeb, setDraftSnsWeb, "https://yourstore.com"],
           ] as const).map(([label, value, set, ph]) => (
             <div key={label} style={{ padding: '8px 16px' }}>
-              <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)' }}>{label}</span>
+              <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)' }}>{label}</span>
               <input type="url" inputMode="url" value={value} onChange={e => { setSnsError(""); setSnsSuccess(""); set(e.target.value) }} placeholder={ph} aria-label={`${label} の URL`}
-                style={{ display: 'block', width: '100%', height: 44, border: 'none', outline: 'none', background: 'transparent', fontSize: 17, color: 'var(--label)', fontFamily: 'inherit', padding: 0 }} />
+                style={{ display: 'block', width: '100%', height: 44, border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: 'var(--label)', fontFamily: 'inherit', padding: 0 }} />
             </div>
           ))}
         </Section>
@@ -586,14 +586,14 @@ export default function StoreMyPage() {
 
 const linkRow: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 56, padding: '8px 16px',
-  fontSize: 17, color: 'var(--label)', textDecoration: 'none',
+  fontSize: 14, color: 'var(--label)', textDecoration: 'none',
 }
 
 function InfoRow({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 16px' }}>
-      <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{label}</span>
-      <span style={{ fontSize: 17, color: color ?? 'var(--label2)', fontWeight: color ? 600 : 400, textAlign: 'right' }}>{value}</span>
+      <span style={{ flex: 1, fontSize: 14, color: 'var(--label)' }}>{label}</span>
+      <span style={{ fontSize: 14, color: color ?? 'var(--label2)', fontWeight: color ? 600 : 400, textAlign: 'right' }}>{value}</span>
     </div>
   )
 }

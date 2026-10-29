@@ -412,20 +412,20 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 16px', flexShrink: 0, borderBottom: '1px solid #EDECE6' }}>
           <button
             onClick={onClose}
-            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
+            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 17, color: '#3C3C43', lineHeight: 1 }}
           ><XIcon size={20} /></button>
-          <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>PLAYERS</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E' }}>PLAYERS</span>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            style={{ width: 44, height: 44, borderRadius: '50%', background: isSaving ? '#E5E5EA' : 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSaving ? 'default' : 'pointer', boxShadow: isSaving ? 'none' : '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: isSaving ? '#E5E5EA' : 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isSaving ? 'default' : 'pointer', boxShadow: isSaving ? 'none' : '0 2px 8px rgba(52,199,89,0.35)', fontSize: 15, color: '#fff', lineHeight: 1 }}
           >{isSaving ? '…' : <CheckIcon size={20} />}</button>
         </div>
 
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>LOADING...</p>
+            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 12 }}>LOADING...</p>
           ) : error ? (
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
@@ -433,13 +433,13 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤー統計カード */}
               <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#EDECE6)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '16px 16px', marginBottom: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ textAlign: 'center', paddingRight: 16, borderRight: '1px solid #D1D1D6' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>PLAYERS</p>
+                  <p style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>PLAYERS</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
                   </p>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>Add-on</p>
+                  <p style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 8 }}>Add-on</p>
                   <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                     {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
                   </p>
@@ -448,7 +448,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
 
               {/* Bust コントロール */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '16px 16px', background: '#EDECE6', borderRadius: 14 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>敗退</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: '#1C1C1E' }}>敗退</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
                     style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', color: 'var(--label)', opacity: localBust <= 0 ? 0.3 : 1 }} aria-label="敗退を1人減らす"><MinusIcon size={20} /></button>
@@ -463,7 +463,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="プレイヤー検索"
                 aria-label="プレイヤー検索"
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 14, color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 12, color: '#1C1C1E', outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
               />
 
               {/* プレイヤーリスト */}
@@ -510,9 +510,9 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           const totalLen = curStr.length + buyStr.length + feeStr.length + finStr.length
                           const wrap = totalLen > 18
                           return (
-                            <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
+                            <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
+                                <span style={{ fontSize: 9.5, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>
@@ -538,7 +538,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             const n = player[item.field] ?? 0
                             return (
                               <div key={item.field} style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 52, borderTop: i ? '1px solid rgba(60,60,67,0.12)' : 'none' }}>
-                                <span style={{ flex: 1, fontSize: 15, color: 'var(--label)' }}>{item.label}</span>
+                                <span style={{ flex: 1, fontSize: 13, color: 'var(--label)' }}>{item.label}</span>
                                 <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
                                   <button type="button" aria-label={`${item.label}を1つ減らす`}
                                     onClick={() => handleEntryChange(player.id, item.field as any, -1)}
@@ -546,7 +546,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                                     style={{ width: 48, height: 44, border: 'none', background: 'transparent', color: 'var(--label)', cursor: n > 0 ? 'pointer' : 'default', opacity: n <= 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <MinusIcon size={20} />
                                   </button>
-                                  <span aria-live="polite" style={{ minWidth: 32, textAlign: 'center', fontSize: 17, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{n}</span>
+                                  <span aria-live="polite" style={{ minWidth: 32, textAlign: 'center', fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{n}</span>
                                   <button type="button" aria-label={`${item.label}を1つ増やす`}
                                     onClick={() => handleEntryChange(player.id, item.field as any, 1)}
                                     style={{ width: 48, height: 44, border: 'none', background: 'transparent', color: 'var(--label)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -569,10 +569,10 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                   value={newTempName} onChange={e => setNewTempName(e.target.value)}
                   placeholder="仮プレイヤー名"
                   aria-label="仮プレイヤー名"
-                  style={{ minWidth: 0, height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ minWidth: 0, height: 44, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 16px', fontSize: 11, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                 />
                 <button onClick={addTempPlayer}
-                  style={{ height: 44, borderRadius: 12, background: '#F9B318', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><PlusIcon size={20} /> 追加</button>
+                  style={{ height: 44, borderRadius: 12, background: '#F9B318', border: 'none', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><PlusIcon size={20} /> 追加</button>
               </div>
             </>
           )}
@@ -586,7 +586,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               onClick={e => e.stopPropagation()}>
               <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#D70015' }}><TriangleAlertIcon size={24} /></div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>所持バンクロール不足</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>所持バンクロール不足</p>
                 <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.5 }}>会計をしてください</p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
@@ -596,7 +596,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 >Cancel</button>
                 <button
                   onClick={confirmInsufficientPurchase}
-                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F9B318', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
+                  style={{ height: 48, borderRadius: 12, border: 'none', background: '#F9B318', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                 >確認</button>
               </div>
             </div>

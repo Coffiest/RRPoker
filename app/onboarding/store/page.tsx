@@ -264,14 +264,14 @@ export default function StoreOnboardingPage() {
         }
         .so-input {
           flex: 1; background: transparent; border: none; outline: none;
-          font-size: 16px; color: var(--label); padding: 0 16px;
+          font-size: 14px; color: var(--label); padding: 0 16px;
           font-family: inherit;
         }
         .so-input::placeholder { color: var(--label3); }
         .so-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
           background: #F9B318;
-          font-size: 17px; font-weight: 700; color: #fff;
+          font-size: 14px; font-weight: 700; color: #fff;
           display: flex; align-items: center; justify-content: center; gap: 8px;
           box-shadow: 0 4px 18px rgba(249,179,24,0.32);
           transition: transform .13s, opacity .13s;
@@ -287,7 +287,7 @@ export default function StoreOnboardingPage() {
       `}</style>
 
       {/* ヘッダー */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
+      <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)' }}>RRPOKER</span>
@@ -312,9 +312,9 @@ export default function StoreOnboardingPage() {
             <HouseIcon size={30} color="white" />
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
+            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
 
           <h1 style={{ fontSize: 23, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1.3, position: 'relative', zIndex: 1 }}>
@@ -349,17 +349,17 @@ export default function StoreOnboardingPage() {
               <SquarePenIcon size={12} color="white" />
             </div>
           </button>
-          <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8, fontWeight: 600 }}>タップしてアイコンを設定（任意）</p>
+          <p style={{ fontSize: 9.5, color: 'var(--label3)', marginTop: 8, fontWeight: 600 }}>タップしてアイコンを設定（任意）</p>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
         </div>
 
         {/* 基本情報カード */}
         <div className="so-appear so-d3" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>基本情報</p>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>基本情報</p>
 
           {/* 店舗名 */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
               店舗名（正式名称）<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
             </label>
             <div className={`so-field${missingFields.name ? ' field-error' : ''}`} style={{ height: 50 }}>
@@ -371,14 +371,14 @@ export default function StoreOnboardingPage() {
           </div>
 
           {/* 住所は任意 */}
-          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 12, padding: '8px 16px' }}>
+          <p style={{ fontSize: 9.5, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 12, padding: '8px 16px' }}>
             {t('storeOnboarding.addressOptionalNote')}
           </p>
 
           {/* 郵便番号 */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
-              郵便番号 <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
+            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+              郵便番号 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.postalCode ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
@@ -390,8 +390,8 @@ export default function StoreOnboardingPage() {
 
           {/* 住所 丁目 */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
-              住所、丁目 <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
+            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+              住所、丁目 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressLine ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
@@ -403,8 +403,8 @@ export default function StoreOnboardingPage() {
 
           {/* 番地 etc */}
           <div>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
-              番地、マンション名、号室など <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
+            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+              番地、マンション名、号室など <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressDetail ? ' field-error' : ''}`} style={{ height: 50 }}>
               <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
@@ -417,11 +417,11 @@ export default function StoreOnboardingPage() {
 
         {/* 詳細情報カード */}
         <div className="so-appear so-d4" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>詳細情報</p>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>詳細情報</p>
 
           {/* 説明 */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>店舗の説明</label>
+            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>店舗の説明</label>
             <div className="so-field" style={{ height: 'auto', alignItems: 'flex-start', padding: '16px 16px' }}>
               <textarea
                 value={description}
@@ -436,18 +436,18 @@ export default function StoreOnboardingPage() {
           {/* リングブラインド */}
           <div>
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
-              リングゲームのブラインド <span style={{ fontSize: 11, fontWeight: 500 }}>（任意）</span>
+              リングゲームのブラインド <span style={{ fontSize: 10, fontWeight: 500 }}>（任意）</span>
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>SB</div>
+                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>SB</div>
                 <div className="so-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindSb} onChange={e => setRingBlindSb(e.target.value)} placeholder="5" className="so-input" style={{ textAlign: 'center', minWidth: 0 }} />
                 </div>
               </div>
-              <div style={{ color: 'var(--label3)', fontSize: 18, marginTop: 16, flexShrink: 0 }}>—</div>
+              <div style={{ color: 'var(--label3)', fontSize: 15, marginTop: 16, flexShrink: 0 }}>—</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>BB</div>
+                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>BB</div>
                 <div className="so-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindBb} onChange={e => setRingBlindBb(e.target.value)} placeholder="10" className="so-input" style={{ textAlign: 'center', minWidth: 0 }} />
                 </div>
@@ -475,7 +475,7 @@ export default function StoreOnboardingPage() {
               </>
             )}
           </button>
-          <p style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginTop: 16 }}>
+          <p style={{ fontSize: 9.5, color: 'var(--label3)', textAlign: 'center', marginTop: 16 }}>
             * は必須項目です（店舗名のみ必須）
           </p>
         </div>

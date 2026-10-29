@@ -49,7 +49,7 @@ export function ConsolePanel({
         background: bar,
         borderBottom: `1px solid ${line}`,
       }}>
-        <span className="tech-label" style={{ fontSize: 13, color: titleColor }}>{title}</span>
+        <span className="tech-label" style={{ fontSize: 11, color: titleColor }}>{title}</span>
       </div>
       {children}
     </div>
@@ -89,7 +89,7 @@ export function ConsoleLine({
       className="tech-reveal"
       style={{
         fontFamily: 'var(--stack-mono)',
-        fontSize: 15,
+        fontSize: 12,
         lineHeight: 1.6,
         color,
         display: 'flex',

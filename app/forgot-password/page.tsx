@@ -56,20 +56,20 @@ export default function ForgotPasswordPage() {
             type="button"
             onClick={handleResetPassword}
             disabled={isLoading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[16px] font-semibold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[14px] font-semibold text-white shadow-sm transition-transform active:scale-[0.99] disabled:opacity-50"
           >
             {isLoading ? "送信中..." : "再設定メールを送信"}
           </button>
 
-          {error && <p className="term-prompt mt-4 text-center text-[13px] text-red-500">{error}</p>}
+          {error && <p className="term-prompt mt-4 text-center text-[11px] text-red-500">{error}</p>}
           {success && (
-            <p className="term-prompt-arrow mt-4 text-center text-[13px] text-green-600">
+            <p className="term-prompt-arrow mt-4 text-center text-[11px] text-green-600">
               パスワード再設定メールを送信しました。メールをご確認ください。
             </p>
           )}
         </div>
 
-        <div className="mt-6 flex items-center justify-center pb-8 text-[13px] text-gray-500">
+        <div className="mt-6 flex items-center justify-center pb-8 text-[11px] text-gray-500">
           <button
             type="button"
             onClick={() => router.push("/login")}

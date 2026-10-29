@@ -50,7 +50,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
 
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px' }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
             <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00' }}>入店QRコード</span>
           </div>

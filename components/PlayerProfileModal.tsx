@@ -103,7 +103,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
         <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '24px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>LOADING...</p>
+              <p className="term-comment" style={{ fontSize: 11, color: 'var(--label3)' }}>LOADING...</p>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
@@ -117,7 +117,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                   width: 84, height: 84, borderRadius: '50%',
                   overflow: 'hidden', background: '#EDECE6',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '3px solid rgba(249,179,24,0.25)',
+                  border: '3px solid rgba(21,70,217,0.25)',
                   flexShrink: 0,
                 }}>
                   {player.iconUrl
@@ -130,7 +130,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     {player.name || 'プレイヤー'}
                   </p>
                   {player.playerId && (
-                    <p style={{ fontSize: 13, color: 'var(--label3)', marginTop: 8 }}>{player.playerId}</p>
+                    <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8 }}>{player.playerId}</p>
                   )}
                 </div>
               </div>
@@ -138,17 +138,17 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
               {/* ── RR Rating カード */}
               <div style={{
                 background: 'linear-gradient(135deg, #F7F1E3, #FFF3CC)',
-                border: '1px solid rgba(249,179,24,0.25)',
+                border: '1px solid rgba(21,70,217,0.25)',
                 borderRadius: 20,
                 padding: '16px 24px',
                 marginBottom: 16,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00', marginBottom: 8 }}>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: '#995C00', marginBottom: 8 }}>
                     RR Rating
                   </p>
-                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>
+                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1546D9', letterSpacing: '-1px', lineHeight: 1 }}>
                     {rrDisplay}
                   </p>
                 </div>
@@ -173,10 +173,10 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     background: '#EDECE6', borderRadius: 16,
                     padding: '16px 8px', textAlign: 'center',
                   }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 8 }}>
+                    <p style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 8 }}>
                       {label}
                     </p>
-                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1546D9', letterSpacing: '-0.4px' }}>
                       {value}
                     </p>
                   </div>
@@ -198,7 +198,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     }}>
                       <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
                       <div>
-                        <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 600, marginBottom: 3, letterSpacing: '0.03em' }}>
+                        <p style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 3, letterSpacing: '0.03em' }}>
                           {label}
                         </p>
                         <p style={{ fontSize: 14, fontWeight: 600, color: '#1C1C1E' }}>{value}</p>

@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CheckIcon, LayoutGridIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
+import { AwardIcon, CheckIcon, LayoutGridIcon, UnlinkIcon, ChevronDownIcon, ChevronRightIcon, CirclePlusIcon, ClockIcon, CopyIcon, CreditCardIcon, DollarSignIcon, EllipsisIcon, HouseIcon, InboxIcon, LogInIcon, LogOutIcon, Maximize2Icon, MessageSquareIcon, MinusIcon, PauseIcon, PenLineIcon, PlayIcon, PlusIcon, RefreshCwIcon, ScanIcon, SearchIcon, SendIcon, SkipBackIcon, SkipForwardIcon, Trash2Icon, TriangleAlertIcon, UserIcon, UsersIcon, XIcon } from 'lucide-react'
 import { showToast } from "@/components/Toast"
 
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
@@ -21,6 +21,9 @@ import { isSubscriptionActive } from "@/lib/subscription-client"
 import { isNativeApp } from "@/lib/platform"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 import AppleSheet from "@/components/AppleSheet"
+import { BootLog, TermBar } from "@/components/Terminal"
+import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
+import { createPortal } from "react-dom"
 import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
 import TechBackdrop from "@/components/TechBackdrop"
 import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
@@ -139,6 +142,9 @@ export default function StorePage() {
   // 分割表示(2〜4 個のタイマーを 1 画面に)
   const [splitOpen, setSplitOpen] = useState(false)
   const [splitIds, setSplitIds] = useState<string[]>([])
+  // タイマーの合体(店舗の文書 timerGroups に保存。どの端末でも同じ並び)
+  const [mergeEditing, setMergeEditing] = useState(false)
+  const [timerGroups, setTimerGroups] = useState<string[][]>([])
   const [adjustModalOpen, setAdjustModalOpen] = useState<Record<string, boolean>>({})
   const [adjustSeconds, setAdjustSeconds] = useState<Record<string, number>>({})
   const [adjustTab, setAdjustTab] = useState<Record<string, 'time' | 'blind'>>({})
@@ -373,6 +379,14 @@ export default function StorePage() {
   const [ownedStores, setOwnedStores] = useState<OwnedStore[]>([])
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [showStorePicker, setShowStorePicker] = useState(false)
+  // 店舗切替メニューは、後ろのカード(動きの指定で重なり順が別になる)に隠れないよう body 直下に出す
+  const headerCardRef = useRef<HTMLDivElement>(null)
+  const [pickerTop, setPickerTop] = useState(0)
+  useEffect(() => {
+    if (!showStorePicker) return
+    const r = headerCardRef.current?.getBoundingClientRect()
+    if (r) setPickerTop(r.top + 76)
+  }, [showStorePicker])
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
   const cardTouchStartX = useRef(0)
   const cardTouchStartY = useRef(0)
@@ -854,9 +868,245 @@ export default function StorePage() {
     // (人のお金を預かる大会の時計なので、明確な操作以外で止めてはいけない)。
   }
 
+  useEffect(() => {
+    if (!storeId) return
+    return onSnapshot(doc(db, "stores", storeId), snap => {
+      const g = snap.data()?.timerGroups
+      // Firestore は配列の配列を持てないので [{ ids: [...] }] で保存している
+      setTimerGroups(Array.isArray(g) ? g.map((x: any) => Array.isArray(x?.ids) ? x.ids.filter((i: any) => typeof i === "string") : []).filter((x: string[]) => x.length > 0) : [])
+    })
+  }, [storeId])
+
+  // 画面に並べる単位(合体したものは 1 枚)。開催中でなくなった大会は外す
+  const mergeItems: MergeItem[] = (() => {
+    const live = new Set(activeTournaments.map(t => t.id))
+    const groups = timerGroups.map(g => g.filter(id => live.has(id))).filter(g => g.length >= 2)
+    const inGroup = new Map<string, string[]>()
+    groups.forEach(g => g.forEach(id => inGroup.set(id, g)))
+    const out: MergeItem[] = []
+    const used = new Set<string>()
+    for (const t of activeTournaments) {
+      if (used.has(t.id)) continue
+      const g = inGroup.get(t.id)
+      if (g) { g.forEach(id => used.add(id)); out.push({ key: "g:" + g.join(","), ids: g }) }
+      else { used.add(t.id); out.push({ key: t.id, ids: [t.id] }) }
+    }
+    return out
+  })()
+
+  const saveGroups = async (groups: string[][]) => {
+    setTimerGroups(groups)
+    if (!storeId) return
+    try { await updateDoc(doc(db, "stores", storeId), { timerGroups: groups.map(ids => ({ ids })) }) }
+    catch { showToast("合体を保存できませんでした") }
+  }
+  const mergeTimers = (sourceKey: string, targetKey: string) => {
+    const src = mergeItems.find(i => i.key === sourceKey), dst = mergeItems.find(i => i.key === targetKey)
+    if (!src || !dst) return
+    const merged = [...dst.ids, ...src.ids].slice(0, MAX_MERGE)
+    const rest = timerGroups.filter(g => !g.some(id => merged.includes(id)))
+    void saveGroups([...rest, merged])
+  }
+  const unmergeTimers = (ids: string[]) => {
+    void saveGroups(timerGroups.filter(g => !g.some(id => ids.includes(id))))
+  }
+  const openSplit = (ids: string[]) => {
+    const url = `/home/store/timer/split?ids=${ids.join(",")}`
+    if (isNativeApp()) router.push(url)
+    else window.open(url, "_blank")
+  }
+
+  // ── 開催中トーナメントのカード(単体) ──
+  const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const grip = <MergeGrip gripProps={gripProps} />
+    return (
+    <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
+      <div className="gold-line"/>
+      <TermBar path={`~/tournaments/${t.id.slice(0, 6)} --live`} right={grip} />
+      <div style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
+
+        {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+          <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#1E7B34' }}>LIVE</span>
+            <span className="tech-status-dot" style={{ background: '#34C759' }} />
+          </span>
+        </div>
+
+        {/* Fee / Stack info */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
+          {[
+            { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
+            { label: 'Re-entry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
+            { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
+          ].map(item => (
+            <div key={item.label} style={{ textAlign: 'center' }}>
+              <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Fee</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
+                  {item.fee > 0 ? item.fee.toLocaleString() : '—'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label2)' }}>Stack</span>
+                <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
+                  {item.stack > 0 ? item.stack.toLocaleString() : '—'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Timer Display — full TimerClient view scaled to card width */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          height: '224px',
+          overflow: 'hidden',
+          borderRadius: 12,
+          marginBottom: 16,
+          border: '1px solid var(--sep)',
+          background: '#fff',
+        }}>
+          <iframe
+            src={`/home/store/timer/${t.id}`}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '1200px',
+              height: '800px',
+              transform: 'scale(0.28)',
+              transformOrigin: 'top left',
+              border: 'none',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+          <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
+            <ClockIcon size={16}/> TIMER
+          </button>
+          <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
+            <PenLineIcon size={16}/> ADJUST
+          </button>
+          <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
+            <UsersIcon size={16}/> PLAYERS
+          </button>
+          <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
+            <DollarSignIcon size={16}/> PAY OUT
+          </button>
+        </div>
+
+        {/* プレイヤーの端末から確定したリエントリー / アドオン。
+            その場で取り消せるようにしておく(承認に技術的な鍵が無いため)。 */}
+        <TournamentPurchaseLog
+          tournamentId={t.id}
+          storeId={storeId!}
+          canRevoke={t.status === "active"}
+          unitLabel={store?.chipUnitLabel && store.chipUnitLabel !== "単位なし" ? store.chipUnitLabel : ""}
+          unitBefore={store?.chipUnitBefore !== false}
+        />
+
+        {/* Timer controls */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid var(--sep)' }}>
+          <button className="timer-btn" onClick={() => prevLevel(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><SkipBackIcon size={17} style={{ color: 'var(--label)' }}/></button>
+
+          <button className="timer-btn" onClick={() => toggleTimer(t.id)}
+            style={{ width: 56, height: 56, borderRadius: '50%', background: '#F9B318', boxShadow: '0 4px 14px rgba(249,179,24,0.32)' }}
+          >
+            {timerRunning[t.id] ? <PauseIcon size={20} style={{ color: 'white' }}/> : <PlayIcon size={20} style={{ color: 'white', marginLeft: 2 }}/>}
+          </button>
+
+          <button className="timer-btn" onClick={() => nextLevel(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><SkipForwardIcon size={17} style={{ color: 'var(--label)' }}/></button>
+
+          <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
+            style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
+          ><Maximize2Icon size={16} style={{ color: 'var(--label)' }}/></button>
+        </div>
+      </div>
+    </div>
+    )
+  }
+
+  // ── 編集中(ぷるぷる中)の小さいカード。全部が画面に収まり、重ねやすいように ──
+  const renderCompactCard = (ids: string[], gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
+    return (
+      <div className="ios-card" style={{ overflow: 'hidden' }}>
+        <TermBar path={ts.length > 1 ? `~/split --n=${ts.length}` : `~/tournaments/${ts[0]?.id.slice(0, 6)} --live`} right={<MergeGrip gripProps={gripProps} />} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px', minHeight: 64 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {ts.map(t => (
+              <p key={t.id} style={{ fontFamily: 'var(--stack-mono)', fontSize: 13, fontWeight: 800, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+            ))}
+          </div>
+          {ts.length > 1 && (
+            <button type="button" onClick={() => unmergeTimers(ids)} className="gl-press"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid rgba(21,70,217,0.3)', background: '#fff', color: '#1546D9', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+              <UnlinkIcon size={16} /> 分離
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ── 合体したタイマーのカード(2〜4 分割) ──
+  const renderGroupCard = (ids: string[], editing: boolean, gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
+    return (
+      <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
+        <div className="gold-line"/>
+        <TermBar path={`~/split --n=${ts.length}`} right={<MergeGrip gripProps={gripProps} />} />
+        <div style={{ padding: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+            <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)' }}>SPLIT · {ts.length}</p>
+            {editing && (
+              <button type="button" onClick={() => unmergeTimers(ids)} className="gl-press"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid rgba(21,70,217,0.3)', background: '#fff', color: '#1546D9', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                <UnlinkIcon size={16} /> 分離
+              </button>
+            )}
+          </div>
+          {/* 分割表示そのものを縮小して見せる */}
+          <div style={{ position: 'relative', width: '100%', height: 224, overflow: 'hidden', borderRadius: 12, marginBottom: 16, border: '1px solid var(--sep)', background: '#000' }}>
+            <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
+              style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
+          </div>
+          <button className="action-btn btn-gold" style={{ width: '100%', marginBottom: 16 }} onClick={() => openSplit(ts.map(t => t.id))}>
+            <ClockIcon size={16}/> TIMER · SPLIT
+          </button>
+          {/* トーナメントごとの操作 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {ts.map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+                <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><SkipBackIcon size={16} style={{ color: 'var(--label)' }}/></button>
+                <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#F9B318' }}>
+                  {timerRunning[t.id] ? <PauseIcon size={18} style={{ color: 'white' }}/> : <PlayIcon size={18} style={{ color: 'white', marginLeft: 2 }}/>}
+                </button>
+                <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><SkipForwardIcon size={16} style={{ color: 'var(--label)' }}/></button>
+                <button className="timer-btn" aria-label="参加者" onClick={() => setShowPlayerModal(t.id)} style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', border: '1px solid var(--sep)' }}><UsersIcon size={16} style={{ color: '#1546D9' }}/></button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (role === null) return (
     <div style={{ minHeight: '100dvh', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(249,179,24,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(21,70,217,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
     </div>
   )
   if (role !== "store") return null
@@ -918,10 +1168,11 @@ export default function StorePage() {
           opacity:0.55; pointer-events:none;
         }
         /* 見出しは二重スラッシュ付きの等幅。下の罫が左から引かれる。 */
+        .section-hd::before { content:"//"; color:#1546D9; margin-right:2px; }
         .section-hd {
           position:relative;
           font-family:var(--stack-mono);
-          font-size:11px; font-weight:700; letter-spacing:0.04em;
+          font-size:9.5px; font-weight:700; letter-spacing:0.04em;
           text-transform:uppercase; color:var(--label3);
           padding:0 0 8px; margin-bottom:16px;
           display:flex; align-items:center; gap:8px;
@@ -937,7 +1188,7 @@ export default function StorePage() {
         /* Gold accent line */
         .gold-line {
           height:3px;
-          background:#F9B318;
+          background:#1546D9;
           background-size:200% auto;
           animation:shimmer 3s linear infinite;
         }
@@ -952,7 +1203,7 @@ export default function StorePage() {
         .action-btn {
           min-height:48px; border-radius:12px; border:none; cursor:pointer; padding:0 8px;
           font-family:inherit;
-          font-size:15px; font-weight:600; letter-spacing:0;
+          font-size:13px; font-weight:600; letter-spacing:0;
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .12s ease, opacity .12s ease, filter .12s ease;
         }
@@ -966,7 +1217,7 @@ export default function StorePage() {
 
         /* Outline btn */
         .btn-outline-gold {
-          background:#fff; border:1.5px solid rgba(249,179,24,0.45); color:#995C00;
+          background:#fff; border:1.5px solid rgba(21,70,217,0.45); color:#995C00;
         }
 
         /* Danger btn */
@@ -989,7 +1240,7 @@ export default function StorePage() {
 
         /* Tab bar */
         .tab-item {
-          flex:1; padding:8px 0; font-size:13px; font-weight:600;
+          flex:1; padding:8px 0; font-size:11px; font-weight:600;
           background:none; border:none; cursor:pointer; position:relative;
           transition:color .15s;
         }
@@ -1001,7 +1252,7 @@ export default function StorePage() {
         }
         .req-action {
           min-height:44px; border-radius:12px; border:none; cursor:pointer; padding:0 4px;
-          font-size:14px; font-weight:600; transition:transform .1s ease-out;
+          font-size:12px; font-weight:600; transition:transform .1s ease-out;
           display:flex; align-items:center; justify-content:center;
         }
         .req-action:active { transform:scale(0.97); }
@@ -1047,7 +1298,7 @@ export default function StorePage() {
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
       <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
       <AppleSheet open={splitOpen} onClose={() => setSplitOpen(false)} title="SPLIT VIEW">
-        <p style={{ fontSize: 15, color: 'var(--label2)', margin: '0 0 16px', lineHeight: 1.5 }}>1 つの画面に並べるタイマーを、2〜4 個選んでください。2 個は左右、3 個は横に 3 つ、4 個は 4 分割で表示します。</p>
+        <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 0 16px', lineHeight: 1.5 }}>1 つの画面に並べるタイマーを、2〜4 個選んでください。2 個は左右、3 個は横に 3 つ、4 個は 4 分割で表示します。</p>
         <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 24 }}>
           {activeTournaments.map((t, i) => {
             const on = splitIds.includes(t.id)
@@ -1056,8 +1307,8 @@ export default function StorePage() {
               <button key={t.id} type="button" role="checkbox" aria-checked={on} disabled={full}
                 onClick={() => setSplitIds(ids => on ? ids.filter(x => x !== t.id) : [...ids, t.id])}
                 style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid rgba(60,60,67,0.12)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
-                <span style={{ flex: 1, fontSize: 17, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
-                <span className="tech-label" style={{ fontSize: 13, color: timerRunning[t.id] ? '#1E7B34' : 'var(--label2)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
+                <span style={{ flex: 1, fontSize: 14, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
+                <span className="tech-label" style={{ fontSize: 11, color: timerRunning[t.id] ? '#1E7B34' : 'var(--label2)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
                 <span style={{ width: 24, height: 24, borderRadius: 12, border: on ? 'none' : '2px solid var(--label3)', background: on ? '#F9B318' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {on && <CheckIcon size={16} color="#fff" strokeWidth={3} />}
                 </span>
@@ -1073,15 +1324,16 @@ export default function StorePage() {
             if (isNativeApp()) router.push(url)
             else window.open(url, '_blank')
           }}
-          style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: splitIds.length < 2 ? '#E5E5EA' : '#F9B318', color: splitIds.length < 2 ? 'var(--label3)' : '#fff', fontSize: 17, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
-          <span className="tech-label" style={{ fontSize: 17 }}>OPEN {splitIds.length >= 2 ? `${splitIds.length}-SPLIT` : ''}</span>
+          style={{ width: '100%', minHeight: 54, borderRadius: 14, border: 'none', background: splitIds.length < 2 ? '#E5E5EA' : '#F9B318', color: splitIds.length < 2 ? 'var(--label3)' : '#fff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+          <span className="tech-label" style={{ fontSize: 14 }}>OPEN {splitIds.length >= 2 ? `${splitIds.length}-SPLIT` : ''}</span>
         </button>
       </AppleSheet>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+        <BootLog storageKey="boot-store" lines={[{ text: 'rrpoker --store' }, { text: 'auth session', ok: true }, { text: 'sync tournaments', ok: true }, { text: 'timer clock calibrated', ok: true }]} />
 
         {/* ── Store Header Card ── */}
-        <div className="su d0" style={{ marginTop: 16, position: 'relative' }}>
+        <div ref={headerCardRef} className="su d0" style={{ marginTop: 16, position: 'relative' }}>
           <div
             className="ios-card"
             style={{ overflow: 'hidden' }}
@@ -1104,6 +1356,7 @@ export default function StorePage() {
             }}
           >
             <div className="gold-line"/>
+            <TermBar path={`~/store/${(store?.name || 'home').toString().toLowerCase().replace(/\s+/g, '-')}`} />
             <div style={{ padding: '16px 16px 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
               {/* Store icon — double-tap to toggle switcher, long-press to show picker */}
               {store?.iconUrl ? (
@@ -1119,7 +1372,7 @@ export default function StorePage() {
                 </div>
               ) : (
                 <div
-                  style={{ width: 60, height: 60, borderRadius: 18, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(249,179,24,0.28)', cursor: 'pointer' }}
+                  style={{ width: 60, height: 60, borderRadius: 18, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(249,179,24,0.28)', cursor: 'pointer' }}
                   onClick={handleIconTap}
                   onTouchStart={startLongPress}
                   onTouchEnd={cancelLongPress}
@@ -1130,7 +1383,7 @@ export default function StorePage() {
                 {/* 店舗名を押すと系列店の切り替え(以前はスワイプ・長押しでしか出せず、見つけられなかった) */}
                 <button type="button" onClick={() => setShowStorePicker(true)} aria-haspopup="menu" aria-label="店舗を切り替える"
                   style={{ display: 'flex', alignItems: 'center', gap: 4, maxWidth: '100%', minHeight: 44, padding: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--label)', marginBottom: 4 }}>
-                  <span style={{ fontSize: 17, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{store?.name ?? ""}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{store?.name ?? ""}</span>
                   <ChevronDownIcon size={20} style={{ color: 'var(--label2)', flexShrink: 0 }} />
                 </button>
                 <button onClick={copyCode}
@@ -1138,8 +1391,8 @@ export default function StorePage() {
                   aria-label={copiedCode ? "コピーしました" : "店舗コードをコピー"}
                   style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--label2)', whiteSpace: 'nowrap' }}>CODE</span>
-                  <span className="con-mono" style={{ fontSize: 15, fontWeight: 700, color: copiedCode ? '#1E7B34' : 'var(--label)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
+                  <span style={{ fontSize: 11, color: 'var(--label2)', whiteSpace: 'nowrap' }}>CODE</span>
+                  <span className="con-mono" style={{ fontSize: 13, fontWeight: 700, color: copiedCode ? '#1E7B34' : 'var(--label)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
                   {copiedCode ? <CheckIcon size={12} style={{ color: '#28A745' }}/> : <CopyIcon size={12} style={{ color: 'var(--label3)' }}/>}
                 </button>
               </div>
@@ -1172,30 +1425,30 @@ export default function StorePage() {
                   <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: 14, padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F9B318' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
                     {s.iconUrl
                       ? <img src={s.iconUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}/>
-                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
+                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800 }}>店</div>
                     }
                   </button>
                 ))}
                 <button onClick={() => router.push('/home/store/branch/new')} style={{ width: 46, height: 46, borderRadius: 14, border: '2px dashed rgba(60,60,67,0.25)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <PlusIcon size={18} style={{ color: 'var(--label2)' }}/>
                 </button>
-                <span style={{ fontSize: 11, color: 'var(--label3)', marginLeft: 8 }}>系列店を切替 / 追加</span>
+                <span style={{ fontSize: 9.5, color: 'var(--label3)', marginLeft: 8 }}>系列店を切替 / 追加</span>
               </div>
             </div>
           </div>
 
           {/* ── 長押しポップオーバー ── */}
-          {showStorePicker && (
+          {showStorePicker && typeof document !== 'undefined' && createPortal(
             <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
-              <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left', animation: 'aDialogIn 280ms cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 1500 }} onClick={() => setShowStorePicker(false)}/>
+              <div className="a-dialog" style={{ position: 'fixed', top: pickerTop, left: 'max(16px, calc(50% - 224px))', zIndex: 1501, padding: 16, minWidth: 220, transformOrigin: 'top left', animation: 'aDialogIn 280ms cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
+                <p style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {ownedStores.map(s => (
                     <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, background: s.id === storeId ? 'rgba(249,179,24,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left' }}>
                       {s.iconUrl
                         ? <img src={s.iconUrl} style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}/>
-                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
+                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
                       }
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
@@ -1213,7 +1466,8 @@ export default function StorePage() {
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>系列店を追加</p>
                 </button>
               </div>
-            </>
+            </>,
+            document.body,
           )}
         </div>
 
@@ -1224,12 +1478,12 @@ export default function StorePage() {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             {activeTournaments.length >= 2 && (
               <button type="button" onClick={() => { setSplitIds(activeTournaments.slice(0, 4).map(t => t.id)); setSplitOpen(true) }} className="gl-press"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid var(--a-sep, rgba(60,60,67,0.18))', background: '#fff', color: 'var(--label)', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
-                <LayoutGridIcon size={16} /> <span className="tech-label" style={{ fontSize: 13 }}>SPLIT</span>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid var(--a-sep, rgba(60,60,67,0.18))', background: '#fff', color: 'var(--label)', fontSize: 11, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+                <LayoutGridIcon size={16} /> <span className="tech-label" style={{ fontSize: 11 }}>SPLIT</span>
               </button>
             )}
             {activeTournaments.length > 0 && (
-              <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 8px' }}>
+              <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 9.5, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 8px' }}>
                 <span className="tech-status-dot" style={{ background: '#34C759' }} />
                 {activeTournaments.length} 件
               </span>
@@ -1245,125 +1499,8 @@ export default function StorePage() {
               <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {activeTournaments.map(t => {
-                return (
-                  <div key={t.id} className="ios-card su con-live-panel" style={{ overflow: 'hidden' }}>
-                    <div className="gold-line"/>
-                    <div style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
-
-                      {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
-                        <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1E7B34' }}>LIVE</span>
-                          <span className="tech-status-dot" style={{ background: '#34C759' }} />
-                        </span>
-                      </div>
-
-                      {/* Fee / Stack info */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
-                        {[
-                          { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
-                          { label: 'Re-entry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
-                          { label: 'Add-on',  fee: Number(t.addonFee),   stack: Number(t.addonStack) },
-                        ].map(item => (
-                          <div key={item.label} style={{ textAlign: 'center' }}>
-                            <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>{item.label}</p>
-                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Fee</span>
-                              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
-                                {item.fee > 0 ? item.fee.toLocaleString() : '—'}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--label2)' }}>Stack</span>
-                              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label2)' }}>
-                                {item.stack > 0 ? item.stack.toLocaleString() : '—'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Timer Display — full TimerClient view scaled to card width */}
-                      <div style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: '224px',
-                        overflow: 'hidden',
-                        borderRadius: 12,
-                        marginBottom: 16,
-                        border: '1px solid var(--sep)',
-                        background: '#fff',
-                      }}>
-                        <iframe
-                          src={`/home/store/timer/${t.id}`}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '1200px',
-                            height: '800px',
-                            transform: 'scale(0.28)',
-                            transformOrigin: 'top left',
-                            border: 'none',
-                            pointerEvents: 'none',
-                          }}
-                        />
-                      </div>
-
-                      {/* Action buttons */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-                        <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
-                          <ClockIcon size={16}/> TIMER
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
-                          <PenLineIcon size={16}/> ADJUST
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
-                          <UsersIcon size={16}/> PLAYERS
-                        </button>
-                        <button className="action-btn btn-gold" onClick={() => setShowPrizeModal(t.id)} disabled={t.status !== "active"} style={{ opacity: t.status !== "active" ? 0.4 : 1 }}>
-                          <DollarSignIcon size={16}/> PAY OUT
-                        </button>
-                      </div>
-
-                      {/* プレイヤーの端末から確定したリエントリー / アドオン。
-                          その場で取り消せるようにしておく(承認に技術的な鍵が無いため)。 */}
-                      <TournamentPurchaseLog
-                        tournamentId={t.id}
-                        storeId={storeId!}
-                        canRevoke={t.status === "active"}
-                        unitLabel={store?.chipUnitLabel && store.chipUnitLabel !== "単位なし" ? store.chipUnitLabel : ""}
-                        unitBefore={store?.chipUnitBefore !== false}
-                      />
-
-                      {/* Timer controls */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid var(--sep)' }}>
-                        <button className="timer-btn" onClick={() => prevLevel(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><SkipBackIcon size={17} style={{ color: 'var(--label)' }}/></button>
-
-                        <button className="timer-btn" onClick={() => toggleTimer(t.id)}
-                          style={{ width: 56, height: 56, borderRadius: '50%', background: '#F9B318', boxShadow: '0 4px 14px rgba(249,179,24,0.32)' }}
-                        >
-                          {timerRunning[t.id] ? <PauseIcon size={20} style={{ color: 'white' }}/> : <PlayIcon size={20} style={{ color: 'white', marginLeft: 2 }}/>}
-                        </button>
-
-                        <button className="timer-btn" onClick={() => nextLevel(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><SkipForwardIcon size={17} style={{ color: 'var(--label)' }}/></button>
-
-                        <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
-                          style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
-                        ><Maximize2Icon size={16} style={{ color: 'var(--label)' }}/></button>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+            <MergeBoard items={mergeItems} editing={mergeEditing} setEditing={setMergeEditing} onMerge={mergeTimers}
+              render={(item, { editing, gripProps }) => editing ? renderCompactCard(item.ids, gripProps) : item.ids.length > 1 ? renderGroupCard(item.ids, editing, gripProps) : renderTournamentCard(activeTournaments.find(x => x.id === item.ids[0])!, gripProps)} />
           )}
         </div>
 
@@ -1381,7 +1518,7 @@ export default function StorePage() {
             border: gold ? 'none' : '1px solid rgba(255,255,255,0.22)',
             boxShadow: gold ? '0 4px 14px rgba(249,179,24,0.38)' : 'none',
           })
-          const labelStyle: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }
+          const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }
           return (
             <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
               <div style={{
@@ -1546,8 +1683,8 @@ export default function StorePage() {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>時間・ブラインドの調整</p>
-                      <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                      <p style={{ fontSize: 18, fontWeight: 700, margin: 0, letterSpacing: '-0.01em' }}>時間・ブラインドの調整</p>
+                      <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                     </div>
                     <button type="button" onClick={() => closeAdjustModal(t.id)} aria-label="閉じる"
                       style={{ width: 44, height: 44, borderRadius: 22, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label)', marginRight: -8 }}>
@@ -1558,7 +1695,7 @@ export default function StorePage() {
                   <div role="tablist" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, padding: 4, marginTop: 16, background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
                     {(['time', 'blind'] as const).map(tb => (
                       <button key={tb} type="button" role="tab" aria-selected={tab === tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
-                        style={{ minHeight: 44, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: tab === tb ? 600 : 500,
+                        style={{ minHeight: 44, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === tb ? 600 : 500,
                           background: tab === tb ? '#fff' : 'transparent', color: 'var(--label)', boxShadow: tab === tb ? '0 1px 3px rgba(0,0,0,0.12)' : 'none', fontFamily: 'inherit' }}>
                         {tb === 'time' ? '残り時間' : 'ブラインド表'}
                       </button>
@@ -1607,7 +1744,7 @@ export default function StorePage() {
           <div className="su d2" style={{ marginTop: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 2px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>引き出しリクエスト</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#FF3B30', borderRadius: 99, padding: '2px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{withdrawRequests.length}</span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#fff', background: '#FF3B30', borderRadius: 99, padding: '2px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{withdrawRequests.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {withdrawRequests.map((req, idx) => (
@@ -1643,17 +1780,17 @@ export default function StorePage() {
                     ))}
                   </div>
                   {withdrawOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--label)', fontWeight: 500 }}>
                         <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する
                       </label>
                       <input value={withdrawOtherComment} onChange={e => setWithdrawOtherComment(e.target.value)}
-                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 12, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveWithdrawWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                       >確定する</button>
                     </div>
                   )}
@@ -1668,7 +1805,7 @@ export default function StorePage() {
           <div className="su d2" style={{ marginTop: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 2px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>預け入れリクエスト</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#34C759', borderRadius: 99, padding: '2px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{depositRequests.length}</span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#fff', background: '#34C759', borderRadius: 99, padding: '2px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{depositRequests.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {depositRequests.map((req, idx) => (
@@ -1705,17 +1842,17 @@ export default function StorePage() {
                     ))}
                   </div>
                   {depositOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--label)', fontWeight: 500 }}>
                         <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する
                       </label>
                       <input value={depositOtherComment} onChange={e => setDepositOtherComment(e.target.value)}
-                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 12, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveDepositWithType(req, "other")}
-                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
+                        style={{ height: 44, borderRadius: 10, background: '#F9B318', color: '#fff', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,179,24,0.25)' }}
                       >確定する</button>
                     </div>
                   )}
@@ -1730,7 +1867,7 @@ export default function StorePage() {
           <div className="su d3" style={{ marginTop: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 2px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>入店申請</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#1a1a1a', background: '#FFD60A', borderRadius: 99, padding: '2px 8px' }}>{pendingPlayers.length}</span>
+              <span style={{ fontSize: 9.5, fontWeight: 800, color: '#1a1a1a', background: '#FFD60A', borderRadius: 99, padding: '2px 8px' }}>{pendingPlayers.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {pendingPlayers.map((player, idx) => (
@@ -1742,15 +1879,15 @@ export default function StorePage() {
                     }
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{player.name}</p>
-                      <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 1 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
+                      <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 1 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => approvePlayer(player.id)}
-                      style={{ height: 44, width: 52, borderRadius: 10, background: '#34C759', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                      style={{ height: 44, width: 52, borderRadius: 10, background: '#34C759', color: '#fff', fontSize: 10, fontWeight: 700, border: 'none', cursor: 'pointer' }}
                     >許可</button>
                     <button onClick={() => setConfirmReq({ title: '入店を却下', message: `${player.name} の入店申請を却下します。`, action: '却下', destructive: true, run: () => rejectPlayer(player.id) })}
-                      style={{ height: 44, width: 52, borderRadius: 10, background: 'var(--fill)', color: 'var(--label2)', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                      style={{ height: 44, width: 52, borderRadius: 10, background: 'var(--fill)', color: 'var(--label2)', fontSize: 10, fontWeight: 600, border: 'none', cursor: 'pointer' }}
                     >却下</button>
                   </div>
                 </div>
@@ -1773,7 +1910,7 @@ export default function StorePage() {
                 </span>
               )}
               {/* In-store count badge */}
-              <span style={{ fontSize: 12, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '8px 8px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
+              <span style={{ fontSize: 10, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '8px 8px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
                 {inPlayers.length}名
               </span>
             </div>
@@ -1789,7 +1926,7 @@ export default function StorePage() {
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
                   placeholder="名前・IDで検索…"
-                  style={{ width: '100%', height: 42, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 40, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
+                  style={{ width: '100%', height: 42, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 40, paddingRight: playerSearchInput ? 36 : 13, fontSize: 12, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
                 />
                 {playerSearchInput && (
                   <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', width: 44, height: 44, borderRadius: '50%', background: 'rgba(60,60,67,0.3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease' }}>
@@ -1821,7 +1958,7 @@ export default function StorePage() {
                 {(['in', 'out'] as const).map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} style={{
                     flex: 1, height: 44, borderRadius: 11, border: 'none', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 700, transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    fontSize: 11, fontWeight: 700, transition: 'transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     background: activeTab === tab ? '#fff' : 'transparent',
                     color: activeTab === tab ? 'var(--label)' : 'var(--label2)',
                     boxShadow: activeTab === tab ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
@@ -1894,7 +2031,7 @@ export default function StorePage() {
                         </div>
                         {/* Player ID: always on its own line to prevent button collision */}
                         {player.playerId && (
-                          <p style={{ fontSize: 11, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
+                          <p style={{ fontSize: 9.5, color: 'var(--label2)', fontVariantNumeric: 'tabular-nums', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
                             ID: {player.playerId}
                           </p>
                         )}
@@ -1955,7 +2092,7 @@ export default function StorePage() {
                   )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: '#1546D9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease' }}
+                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#1546D9', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(249,179,24,0.03)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
@@ -1978,9 +2115,9 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
 
         </div>
-        <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 3 }}>ver 1.11.0</p>
-        <p style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
-        <p style={{ fontSize: 11, color: 'var(--label3)' }}>製作者 : なおゆき</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.11.0</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
         </div>
       </footer>
@@ -2061,7 +2198,7 @@ export default function StorePage() {
 
               {/* Ring Game */}
               <div style={{ marginBottom: 16 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>リングゲーム</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', margin: '0 0 8px' }}>リングゲーム</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Buy-in" direction="subtract" icon={<SendIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('buyin')} />
                   <ActionTile label="Cash Out" direction="add" icon={<InboxIcon size={15} style={{ color: '#34C759' }}/>} onClick={() => runStoreAdjustment('cashout')} />
@@ -2071,7 +2208,7 @@ export default function StorePage() {
 
               {/* Tournament */}
               <div style={{ marginBottom: 16 }}>
-                <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', margin: '0 0 8px' }}>トーナメント</p>
+                <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: 'var(--label3)', margin: '0 0 8px' }}>トーナメント</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                   <ActionTile label="Entry" direction="subtract" icon={<PlayIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tE')} />
                   <ActionTile label="Re-entry" direction="subtract" icon={<RefreshCwIcon size={15} style={{ color: '#FF3B30' }}/>} onClick={() => runStoreAdjustment('tR')} />
@@ -2102,7 +2239,7 @@ export default function StorePage() {
 
               {/* 手動調整 */}
               <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 16, marginBottom: 8 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>手動調整</p>
+                <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>手動調整</p>
 
                 {/* コメント */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--fill)', borderRadius: 12, padding: '0 16px', marginBottom: 8 }}>
@@ -2141,7 +2278,7 @@ export default function StorePage() {
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <TriangleAlertIcon size={24} style={{ color: '#FF3B30' }}/>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', marginBottom: 8 }}>バンクロールがマイナスになります</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)', marginBottom: 8 }}>バンクロールがマイナスになります</p>
               <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5 }}>
                 変更後の残高: {fmtChip(negativeConfirmAction.resultingBalance, store?.chipUnitLabel, store?.chipUnitBefore)}
                 <br/>このまま続行しますか？

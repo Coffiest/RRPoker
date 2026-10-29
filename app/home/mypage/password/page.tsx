@@ -67,24 +67,24 @@ export default function PasswordChangePage() {
             placeholder="新しいパスワード"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[12px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード（確認）"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[12px]"
           />
 
-          {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
-          {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
+          {error && <p className="mt-4 text-center text-[11px] text-red-500">{error}</p>}
+          {success && <p className="mt-4 text-center text-[11px] text-green-600">{success}</p>}
 
           <button
             type="button"
             onClick={changePassword}
             disabled={loading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[15px] font-semibold text-white disabled:opacity-60"
+            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F9B318] text-[13px] font-semibold text-white disabled:opacity-60"
           >
             変更する
           </button>

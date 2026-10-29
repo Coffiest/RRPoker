@@ -51,7 +51,7 @@ type StampPlayer = {
 
 function FeedbackText({ text, color }: { text: string; color: "green" | "red" }) {
   return (
-    <p role={color === "red" ? "alert" : "status"} style={{ fontSize: 15, margin: '-16px 16px 16px', color: color === "green" ? "#1E7B34" : "#D70015" }}>
+    <p role={color === "red" ? "alert" : "status"} style={{ fontSize: 13, margin: '-16px 16px 16px', color: color === "green" ? "#1E7B34" : "#D70015" }}>
       {text}
     </p>
   )
@@ -431,8 +431,8 @@ export default function StoreSettingsPage() {
   const sheetTitle = (title: string, sub?: string) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: '-0.01em', color: 'var(--label)' }}>{title}</p>
-        {sub && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
+        <p style={{ fontSize: 18, fontWeight: 700, margin: 0, letterSpacing: '-0.01em', color: 'var(--label)' }}>{title}</p>
+        {sub && <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
       </div>
       <button type="button" onClick={closeSheet} aria-label="閉じる"
         style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
@@ -528,7 +528,7 @@ export default function StoreSettingsPage() {
             <FieldRow label="期間">
               <input type="number" inputMode="numeric" value={birthdayCouponExpiryValue} onChange={e => setBirthdayCouponExpiryValue(e.target.value)} placeholder="7" style={{ ...fieldInput, width: 64 }} className="no-spin" />
               <select value={birthdayCouponExpiryUnit} onChange={e => setBirthdayCouponExpiryUnit(e.target.value as "day" | "month")}
-                style={{ height: 44, border: 'none', background: 'none', fontSize: 17, color: 'var(--label2)', fontFamily: 'inherit' }}>
+                style={{ height: 44, border: 'none', background: 'none', fontSize: 14, color: 'var(--label2)', fontFamily: 'inherit' }}>
                 <option value="day">日</option>
                 <option value="month">ヶ月</option>
               </select>
@@ -544,7 +544,7 @@ export default function StoreSettingsPage() {
         footer={<PrimaryButton onClick={sendNotice} disabled={noticeSending || !noticeMessage.trim()}>{noticeSending ? "送信しています…" : "送信する"}</PrimaryButton>}>
         <Section>
           <textarea value={noticeMessage} onChange={e => { setNoticeError(""); setNoticeSuccess(""); setNoticeMessage(e.target.value) }} placeholder="メッセージ" rows={5} aria-label="メッセージ"
-            style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 17, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
+            style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: 16, border: 'none', outline: 'none', resize: 'none', fontSize: 14, lineHeight: 1.4, color: 'var(--label)', fontFamily: 'inherit', background: 'transparent' }} />
         </Section>
         {noticeError && <FeedbackText text={noticeError} color="red" />}
         {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
@@ -554,8 +554,8 @@ export default function StoreSettingsPage() {
       <AppleSheet open={sheet === "unit"} onClose={closeSheet} title={sheetTitle("通貨の単位", "チップの数の横に表示されます")}
         footer={<PrimaryButton onClick={saveChipUnit}>保存する</PrimaryButton>}>
         <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
-          <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0 }}>表示の例</p>
-          <p style={{ fontSize: 34, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{unitPreview}</p>
+          <p style={{ fontSize: 11, color: 'var(--label2)', margin: 0 }}>表示の例</p>
+          <p style={{ fontSize: 24, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{unitPreview}</p>
         </div>
         <Section footer="例: $、pt.、chips。単位を付けないときは空欄にします。">
           <FieldRow label="単位">
@@ -576,7 +576,7 @@ export default function StoreSettingsPage() {
         <Section footer="0 にすると期限なしになります。変更すると、チップを持っているプレイヤーに通知が届きます。">
           <FieldRow label="期限">
             <input type="number" inputMode="numeric" value={chipExpiryInput} onChange={e => setChipExpiryInput(e.target.value)} placeholder="0" style={{ ...fieldInput, width: 80 }} className="no-spin" />
-            <span style={{ fontSize: 17, color: 'var(--label2)' }}>ヶ月</span>
+            <span style={{ fontSize: 14, color: 'var(--label2)' }}>ヶ月</span>
           </FieldRow>
         </Section>
         {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
@@ -605,7 +605,7 @@ export default function StoreSettingsPage() {
                 <ChevronLeftIcon size={24} />
               </button>
             )}
-            <p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{rakeView === "add" ? "レーキを記録" : rakeView === "history" ? "レーキの履歴" : "レーキ"}</p>
+            <p style={{ flex: 1, fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{rakeView === "add" ? "レーキを記録" : rakeView === "history" ? "レーキの履歴" : "レーキ"}</p>
             <button type="button" onClick={() => setIsRakeModalOpen(false)} aria-label="閉じる"
               style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
               <XIcon size={20} />
@@ -631,11 +631,11 @@ export default function StoreSettingsPage() {
         {rakeView === "menu" && (
           <>
             <div style={{ textAlign: 'center', padding: '8px 0 24px' }}>
-              <p style={{ fontSize: 13, color: 'var(--label2)', margin: 0 }}>レーキの合計</p>
-              <p style={{ fontSize: 34, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{rakeTotal.toLocaleString()}</p>
+              <p style={{ fontSize: 11, color: 'var(--label2)', margin: 0 }}>レーキの合計</p>
+              <p style={{ fontSize: 24, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{rakeTotal.toLocaleString()}</p>
             </div>
             <Section>
-              <NavRow icon={<PlusIcon size={20} style={{ color: '#995C00' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
+              <NavRow icon={<PlusIcon size={20} style={{ color: '#1546D9' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
               <NavRow label="HISTORY" detail={`${sortedRakeEntries.length} 件`} onClick={() => setRakeView("history")} />
             </Section>
           </>
@@ -655,14 +655,14 @@ export default function StoreSettingsPage() {
         )}
         {rakeView === "history" && (
           sortedRakeEntries.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>まだ記録がありません</p>
+            <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--label2)' }}>まだ記録がありません</p>
           ) : (
             <Section>
               {sortedRakeEntries.map(entry => (
                 <div key={entry.id} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '8px 8px 8px 16px' }}>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 17, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>+{entry.amount.toLocaleString()}</span>
-                    <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                    <span style={{ display: 'block', fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>+{entry.amount.toLocaleString()}</span>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
                       {formatDateTime(entry.createdAt?.seconds)}{entry.memo ? ` ・ ${entry.memo}` : ""}
                     </span>
                   </span>
@@ -690,7 +690,7 @@ export default function StoreSettingsPage() {
         title={
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <p style={{ flex: 1, fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>スタンプ数の管理</p>
+              <p style={{ flex: 1, fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>スタンプ数の管理</p>
               <button type="button" onClick={() => setStampModalOpen(false)} aria-label="閉じる"
                 style={{ width: 44, height: 44, borderRadius: 22, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', marginRight: -8, cursor: 'pointer' }}>
                 <XIcon size={20} />
@@ -699,12 +699,12 @@ export default function StoreSettingsPage() {
             <div style={{ position: 'relative', marginTop: 16 }}>
               <SearchIcon size={20} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }} />
               <input type="search" value={stampSearch} onChange={e => setStampSearch(e.target.value)} placeholder="名前で検索" aria-label="名前で検索"
-                style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 16px 0 40px', fontSize: 17, outline: 'none', boxSizing: 'border-box', color: 'var(--label)', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(118,118,128,0.12)', padding: '0 16px 0 40px', fontSize: 14, outline: 'none', boxSizing: 'border-box', color: 'var(--label)', fontFamily: 'inherit' }} />
             </div>
             <div role="tablist" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, padding: 4, marginTop: 8, background: 'rgba(118,118,128,0.12)', borderRadius: 12 }}>
               {([{ key: "recent", label: "最近の入店" }, { key: "name", label: "名前" }, { key: "count", label: "スタンプ数" }] as const).map(opt => (
                 <button key={opt.key} type="button" role="tab" aria-selected={stampSort === opt.key} onClick={() => setStampSort(opt.key)}
-                  style={{ minHeight: 44, borderRadius: 8, border: 'none', fontSize: 15, fontWeight: stampSort === opt.key ? 600 : 500, color: 'var(--label)', fontFamily: 'inherit', cursor: 'pointer',
+                  style={{ minHeight: 44, borderRadius: 8, border: 'none', fontSize: 13, fontWeight: stampSort === opt.key ? 600 : 500, color: 'var(--label)', fontFamily: 'inherit', cursor: 'pointer',
                     background: stampSort === opt.key ? '#fff' : 'transparent', boxShadow: stampSort === opt.key ? '0 1px 3px rgba(0,0,0,0.12)' : 'none' }}>
                   {opt.label}
                 </button>
@@ -714,9 +714,9 @@ export default function StoreSettingsPage() {
         }
       >
         {stampLoading ? (
-          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>読み込んでいます…</p>
+          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--label2)' }}>読み込んでいます…</p>
         ) : filteredStampPlayers.length === 0 ? (
-          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 15, color: 'var(--label2)' }}>
+          <p style={{ textAlign: 'center', padding: '32px 0', fontSize: 13, color: 'var(--label2)' }}>
             {stampSearch ? "見つかりませんでした" : "入店したことのあるプレイヤーがいません"}
           </p>
         ) : (
@@ -732,14 +732,14 @@ export default function StoreSettingsPage() {
                     : <UserIcon size={20} style={{ color: 'var(--label3)' }} />}
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 17, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
+                  <span style={{ display: 'block', fontSize: 14, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
                   {player.lastStampAt && (
-                    <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
                       最後の入店 {player.lastStampAt.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
                     </span>
                   )}
                 </span>
-                <span style={{ fontSize: 17, fontWeight: 600, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>{player.stampCount} 個</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>{player.stampCount} 個</span>
                 <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
               </button>
             ))}
@@ -758,8 +758,8 @@ export default function StoreSettingsPage() {
                 : <UserIcon size={24} style={{ color: 'var(--label3)' }} />}
             </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editStampPlayer?.name}</p>
-              <p style={{ fontSize: 13, color: 'var(--label2)', margin: '2px 0 0' }}>スタンプ数を変更</p>
+              <p style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--label)' }}>{editStampPlayer?.name}</p>
+              <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>スタンプ数を変更</p>
             </div>
           </div>
         }
@@ -771,7 +771,7 @@ export default function StoreSettingsPage() {
             <MinusIcon size={24} />
           </button>
           <input type="number" inputMode="numeric" value={editStampCount} onChange={e => setEditStampCount(e.target.value)} min={0} aria-label="スタンプ数" className="no-spin"
-            style={{ width: 96, height: 64, borderRadius: 16, border: 'none', background: 'rgba(118,118,128,0.12)', textAlign: 'center', fontSize: 34, fontWeight: 700, color: 'var(--label)', outline: 'none', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit' }} />
+            style={{ width: 96, height: 64, borderRadius: 16, border: 'none', background: 'rgba(118,118,128,0.12)', textAlign: 'center', fontSize: 24, fontWeight: 700, color: 'var(--label)', outline: 'none', fontVariantNumeric: 'tabular-nums', fontFamily: 'inherit' }} />
           <button type="button" aria-label="1 つ増やす" onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))}
             style={{ width: 56, height: 56, borderRadius: 28, border: 'none', background: 'rgba(118,118,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--label)', cursor: 'pointer' }}>
             <PlusIcon size={24} />

@@ -135,7 +135,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             left: spotlight.x, top: spotlight.y,
             width: spotlight.width, height: spotlight.height,
             borderRadius: spotlight.rx,
-            border: '2px solid rgba(249,179,24,0.75)',
+            border: '2px solid rgba(21,70,217,0.75)',
             boxShadow: '0 0 0 4px rgba(249,179,24,0.20)',
             pointerEvents: 'none',
             zIndex: 2,
@@ -186,12 +186,12 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Title */}
-            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
+            <p className="term-prompt-arrow" style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
               {step.title}
             </p>
 
             {/* Body */}
-            <p style={{ fontSize: 14, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
+            <p style={{ fontSize: 12, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
               {step.body}
             </p>
 

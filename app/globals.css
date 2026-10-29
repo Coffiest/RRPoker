@@ -11,6 +11,10 @@
    配色は既存テーマ（白基調・グレー階層・#F9B318 ゴールド）から一切追加しない。
    ========================================================================== */
 
+/* 画面上端(時計・電池の帯)は白いヘッダーと同じ白にする。中身の地のベージュは body が敷く */
+html { background: #fff; }
+body { background: var(--background); min-height: 100dvh; }
+
 html, body {
   touch-action: manipulation;
   overscroll-behavior: none;
@@ -145,7 +149,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -469,7 +473,7 @@ body {
 .con-hd {
   position: relative;
   font-family: var(--stack-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -741,7 +745,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   transition: background-color 280ms var(--a-spring);
 }
-.a-switch[aria-checked="true"] { background: #34C759 }
+.a-switch[aria-checked="true"] { background: var(--cobalt) } /* 選択中は差し色の青 */
 .a-switch::after {
   content: "";
   position: absolute;
@@ -1190,19 +1194,19 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   background: #F9B318;
   box-shadow: none;
 }
-.a-btn-sm { min-height: 44px; padding: 0 16px; font-size: 15px; }
+.a-btn-sm { min-height: 44px; padding: 0 16px; font-size: 13px; }
 .a-btn-icon { min-height: 44px; width: 44px; padding: 0; }
 .a-row { min-height: 56px; padding: 16px; gap: 16px; }
 .a-grabber { margin: 8px auto 0; }
 .a-switch { min-width: 51px; }
 
 /* 文字の階層(HIG Dynamic Type の既定値) */
-.a-display { font-size: 34px; line-height: 1.2; letter-spacing: -0.02em; }
-.a-title-lg{ font-size: 28px; line-height: 1.21; letter-spacing: -0.015em; }
-.a-title   { font-size: 22px; line-height: 1.27; letter-spacing: -0.01em; }
-.a-heading { font-size: 17px; line-height: 1.29; letter-spacing: 0; font-weight: 600; }
-.a-body    { font-size: 17px; line-height: 1.29; }
-.a-caption { font-size: 13px; line-height: 1.38; letter-spacing: 0; }
+.a-display { font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+.a-title-lg{ font-size: 22px; line-height: 1.21; letter-spacing: -0.015em; }
+.a-title   { font-size: 18px; line-height: 1.27; letter-spacing: -0.01em; }
+.a-heading { font-size: 14px; line-height: 1.29; letter-spacing: 0; font-weight: 600; }
+.a-body    { font-size: 14px; line-height: 1.29; }
+.a-caption { font-size: 11px; line-height: 1.38; letter-spacing: 0; }
 
 /* 主の操作は金の単色。グラデーション・光沢は使わない */
 .gold-btn, .gold-btn:active { background: #F9B318; box-shadow: none; }
@@ -1237,3 +1241,6 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-switch::before { content: ''; position: absolute; inset: -7px -4px }
 .hit-44 { position: relative }
 .hit-44::after { content: ''; position: absolute; inset: -15px -4px }
+
+/* 差し色の青(オーナー指示): 数字・選択中の状態 */
+.tech-num { color: var(--cobalt); }

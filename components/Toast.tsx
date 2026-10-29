@@ -48,7 +48,7 @@ export default function ToastHost() {
         <div key={t.id} role={t.kind === 'error' ? 'alert' : 'status'} className="a-dialog" style={{
           pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 8,
           maxWidth: 420, width: '100%', minHeight: 48, padding: '8px 16px', borderRadius: 16,
-          fontSize: 15, fontWeight: 500, color: 'var(--label)',
+          fontSize: 13, fontWeight: 500, color: 'var(--label)',
         }}>
           {t.kind === 'error'
             ? <CircleAlertIcon size={20} style={{ color: '#D70015', flexShrink: 0 }} />

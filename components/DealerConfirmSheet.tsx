@@ -83,7 +83,7 @@ export default function DealerConfirmSheet({
         }} />
 
         <div style={{ padding: '16px 24px 24px' }}>
-          <p className="tech-label" style={{ fontSize: 11, color: 'var(--label3)', letterSpacing: '0.04em', textAlign: 'center' }}>
+          <p className="tech-label" style={{ fontSize: 9.5, color: 'var(--label3)', letterSpacing: '0.04em', textAlign: 'center' }}>
             ディーラー確認
           </p>
 
@@ -106,7 +106,7 @@ export default function DealerConfirmSheet({
           <div className="tech-rule" style={{ margin: '16px 0' }} />
 
           {/* 名目とチップ数 */}
-          <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginBottom: 8 }}>
+          <p className="tech-label tech-label-bracket" style={{ fontSize: 10, color: 'var(--label3)', textAlign: 'center', marginBottom: 8 }}>
             {title}
           </p>
           <p className="tech-num" style={{

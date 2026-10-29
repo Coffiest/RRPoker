@@ -125,7 +125,7 @@ export default function QRScanner({ onScan, onClose }: Props) {
       {/* Header */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px', display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
         <span />
-        <p style={{ fontSize: 17, fontWeight: 600, color: '#fff', textAlign: 'center', margin: 0 }}>QRコードを読み取る</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', textAlign: 'center', margin: 0 }}>QRコードを読み取る</p>
         <button type="button" aria-label="閉じる" onClick={() => { stopCamera(); onClose() }}
           style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
         >
@@ -137,13 +137,13 @@ export default function QRScanner({ onScan, onClose }: Props) {
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 24px calc(env(safe-area-inset-bottom, 0px) + 32px)', textAlign: 'center' }}>
         {error ? (
           <>
-            <p role="alert" style={{ fontSize: 17, color: '#FF6961', fontWeight: 600, margin: 0 }}>{error}</p>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', marginTop: 8 }}>端末の「設定」でこのアプリのカメラを許可してください。</p>
+            <p role="alert" style={{ fontSize: 14, color: '#FF6961', fontWeight: 600, margin: 0 }}>{error}</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 8 }}>端末の「設定」でこのアプリのカメラを許可してください。</p>
           </>
         ) : (
           <>
-            <p style={{ fontSize: 17, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)' }}>合わせると自動で読み取ります</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>合わせると自動で読み取ります</p>
           </>
         )}
       </div>

@@ -20,7 +20,7 @@ export default function StoreLiveTournamentsPreview({ storeId }: { storeId: stri
   return (
     <div className="mb-6">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.04em' }}>
+        <p className="tech-label" style={{ fontSize: 9.5, color: '#1C1C1E', letterSpacing: '0.04em' }}>
           実施中のトナメ
         </p>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

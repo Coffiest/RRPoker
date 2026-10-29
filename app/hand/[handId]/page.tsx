@@ -93,7 +93,7 @@ export default function HandPage() {
       <div className="text-center px-6">
         <div className="mb-4 flex justify-center" style={{ color: "var(--label3)" }}><SpadeIcon size={40} /></div>
         <p className="term-comment text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
-        <p className="text-[13px] mt-2" style={{ color: CLR.gray3 }}>このリンクは無効です</p>
+        <p className="text-[11px] mt-2" style={{ color: CLR.gray3 }}>このリンクは無効です</p>
       </div>
     </div>
   )
@@ -138,7 +138,7 @@ export default function HandPage() {
             </p>
           </div>
           <button onClick={share}
-            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-[0.97] transition"
+            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[11px] font-semibold text-white shadow-md active:scale-[0.97] transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})` }}>
             <Share2Icon size={14} />
             {copied ? "コピー完了" : "シェア"}
@@ -147,9 +147,9 @@ export default function HandPage() {
 
         {/* Info badges */}
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[11px] font-bold rounded-full px-2 py-2"
+          <span className="text-[9.5px] font-bold rounded-full px-2 py-2"
             style={{ background: "#FEF0D1", color: CLR.goldDk }}>{hand.heroPosition}</span>
-          <span className="text-[11px] rounded-full px-2 py-2"
+          <span className="text-[9.5px] rounded-full px-2 py-2"
             style={{ background: CLR.surface, color: CLR.gray2 }}>{rPositions.length}人</span>
         </div>
 
@@ -204,7 +204,7 @@ export default function HandPage() {
                 )}
                 {pos === "BTN" && (
                   <div className="absolute -right-1 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-                    style={{ background: CLR.white, border: `1px solid ${CLR.border}`, fontSize: 11, fontWeight: 900, color: CLR.ink }}>D</div>
+                    style={{ background: CLR.white, border: `1px solid ${CLR.border}`, fontSize: 9, fontWeight: 900, color: CLR.ink }}>D</div>
                 )}
                 <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
                   style={{
@@ -222,7 +222,7 @@ export default function HandPage() {
                   </div>
                 </div>
                 {act && !isFolded && (
-                  <div className="rounded-full px-2 py-px text-[11px] font-semibold mt-0.5 whitespace-nowrap"
+                  <div className="rounded-full px-2 py-px text-[9.5px] font-semibold mt-0.5 whitespace-nowrap"
                     style={{
                       background: act.action === "bet" || act.action === "raise" ? "#FFFBEB" : act.action === "allin" ? "#FFF5F5" : CLR.white,
                       border: `1px solid ${act.action === "bet" || act.action === "raise" ? "#FDE68A" : act.action === "allin" ? "#FCA5A5" : CLR.border}`,
@@ -231,7 +231,7 @@ export default function HandPage() {
                     {ACT_JP[act.action]}{act.amount != null ? ` ${act.amount}` : ""}
                   </div>
                 )}
-                <span className="text-[11px] font-bold mt-0.5" style={{ color: isHero ? CLR.gold : CLR.gray2 }}>{pos}</span>
+                <span className="text-[9px] font-bold mt-0.5" style={{ color: isHero ? CLR.gold : CLR.gray2 }}>{pos}</span>
               </div>
             )
           })}
@@ -244,7 +244,7 @@ export default function HandPage() {
             aria-label="最初へ" style={{ background: CLR.surface, color: CLR.gray2 }}><ChevronsLeftIcon size={20} /></button>
           <button onClick={() => setReplayStep(s => Math.max(0, s - 1))} aria-label="1つ戻る"
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronLeftIcon size={20} /></button>
+            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 12 }}><ChevronLeftIcon size={20} /></button>
           <button onClick={() => setReplayPlaying(p => !p)} aria-label={replayPlaying ? "一時停止" : "再生"}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, boxShadow: "0 3px 12px rgba(249,179,24,0.4)" }}>
@@ -252,11 +252,11 @@ export default function HandPage() {
           </button>
           <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))} aria-label="1つ進む"
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
-            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}><ChevronRightIcon size={20} /></button>
+            style={{ background: CLR.surface, color: CLR.gray2, fontSize: 12 }}><ChevronRightIcon size={20} /></button>
           <button onClick={() => { setReplayStep(totalSteps); setReplayPlaying(false) }}
             className="w-11 h-11 rounded-full flex items-center justify-center active:scale-[0.97]"
             aria-label="最後へ" style={{ background: CLR.surface, color: CLR.gray2 }}><ChevronsRightIcon size={20} /></button>
-          <span className="text-[13px] ml-2 tabular-nums" style={{ color: CLR.gray2 }}>{replayStep}/{totalSteps}</span>
+          <span className="text-[11px] ml-2 tabular-nums" style={{ color: CLR.gray2 }}>{replayStep}/{totalSteps}</span>
         </div>
 
         {/* Action text list — all shown, current highlighted */}
@@ -266,7 +266,7 @@ export default function HandPage() {
             const stLabel = { preflop: "プリフロップ", flop: "フロップ", turn: "ターン", river: "リバー" }[st]
             return (
               <div key={st}>
-                <p className="text-[13px] font-semibold mb-2" style={{ color: CLR.gray2 }}>{stLabel}</p>
+                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>{stLabel}</p>
                 <div className="space-y-2">
                   {stActs.map((a, i) => {
                     const globalIdx = allActs.indexOf(a)
@@ -280,16 +280,16 @@ export default function HandPage() {
                           background: isCurrent ? "#FEF0D1" : isFuture ? "transparent" : CLR.white,
                           border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.border}`,
                         }}>
-                        <span className="text-[15px] font-semibold shrink-0 w-10"
+                        <span className="text-[13px] font-semibold shrink-0 w-10"
                           style={{ color: isHeroAct ? CLR.goldDk : CLR.gray2 }}>{a.position}</span>
-                        <span className="text-[15px]" style={{ color: isFuture ? CLR.gray3 :
+                        <span className="text-[13px]" style={{ color: isFuture ? CLR.gray3 :
                           a.action === "fold" ? CLR.gray3 :
                           a.action === "bet" || a.action === "raise" ? "#995C00" :
                           a.action === "allin" ? CLR.red : CLR.ink }}>
                           {ACT_JP[a.action]}{a.amount != null ? ` ${a.amount} BB` : ""}
                         </span>
                         {isCurrent && (
-                          <span className="ml-auto text-[11px] font-bold rounded-full px-2 py-px"
+                          <span className="ml-auto text-[9.5px] font-bold rounded-full px-2 py-px"
                             style={{ background: CLR.gold, color: CLR.white }}>いま</span>
                         )}
                       </div>
@@ -303,10 +303,10 @@ export default function HandPage() {
 
         {/* RRPoker CTA */}
         <div className="mt-8 text-center pb-8" style={{ borderTop: `1px solid ${CLR.border}`, paddingTop: 24 }}>
-          <p className="text-[15px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
-          <p className="text-[13px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
+          <p className="text-[13px] mb-2 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
+          <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/"
-            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-[0.97] transition"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[12px] font-bold active:scale-[0.97] transition"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.white, textDecoration: "none", boxShadow: "0 3px 14px rgba(249,179,24,0.4)" }}>
             RRPOKERを使ってみる <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} />
           </a>

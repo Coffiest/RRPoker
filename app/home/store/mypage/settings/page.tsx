@@ -114,7 +114,7 @@ export default function StoreSettingsPage() {
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">Settings</h1>
+          <h1 className="text-[20px] font-semibold text-gray-900">Settings</h1>
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
@@ -127,9 +127,9 @@ export default function StoreSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="mt-2 flex min-h-[44px] cursor-pointer items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[17px] text-gray-900">
+          <label className="mt-2 flex min-h-[44px] cursor-pointer items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900">
             <span>店舗アイコン</span>
-            <span className="text-[15px] text-label2">{file ? file.name : "画像を選ぶ"}</span>
+            <span className="text-[13px] text-label2">{file ? file.name : "画像を選ぶ"}</span>
             <input
               type="file"
               accept="image/*"
@@ -155,7 +155,7 @@ export default function StoreSettingsPage() {
                 key={option}
                 type="button"
                 onClick={() => setUnit(option)}
-                className={`h-11 rounded-2xl border text-[14px] ${
+                className={`h-11 rounded-2xl border text-[12px] ${
                   unit === option ? "border-[#F9B318] bg-[#FDF2D0]" : "border-gray-200"
                 }`}
               >
@@ -170,14 +170,14 @@ export default function StoreSettingsPage() {
               placeholder="単位を入力"
               value={customUnit}
               onChange={e => setCustomUnit(e.target.value)}
-              className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px]"
+              className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
             />
           )}
 
           <button
             type="button"
             onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[14px] font-semibold text-white"
+            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[12px] font-semibold text-white"
           >
             保存する
           </button>
@@ -190,21 +190,21 @@ export default function StoreSettingsPage() {
             placeholder="現在のパスワード"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[12px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[12px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード（確認）"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[12px]"
           />
           <button
             type="button"
@@ -215,8 +215,8 @@ export default function StoreSettingsPage() {
           </button>
         </div>
 
-        {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
-        {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
+        {error && <p className="mt-4 text-center text-[11px] text-red-500">{error}</p>}
+        {success && <p className="mt-4 text-center text-[11px] text-green-600">{success}</p>}
 
         <button
           type="button"

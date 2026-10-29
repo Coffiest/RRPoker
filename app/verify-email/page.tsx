@@ -135,7 +135,7 @@ export default function VerifyEmailPage() {
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
           background:#F9B318;
-          color:#fff; font-size:17px; font-weight:700; letter-spacing:-.1px;
+          color:#fff; font-size:14px; font-weight:700; letter-spacing:-.1px;
           box-shadow:0 4px 18px rgba(249,179,24,0.32);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease;
@@ -185,7 +185,7 @@ export default function VerifyEmailPage() {
 
       {/* ── Header（ロゴのみ・HomeHeader準拠） ── */}
       <header className="sticky top-0 z-50 border-b"
-        style={{ background:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:'rgba(60,60,67,0.07)', position:'relative', zIndex:50 }}
+        style={{ paddingTop:"env(safe-area-inset-top, 0px)", background:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:'rgba(60,60,67,0.07)', position:'relative', zIndex:50 }}
       >
         <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center' }}>
           <button type="button" onClick={() => router.push('/')}
@@ -218,14 +218,14 @@ export default function VerifyEmailPage() {
           </div>
 
           <div className="appear d0">
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
+            <p style={{ fontSize:9.5, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--gold)', marginBottom:8 }}>Email Verification</p>
             <h1 className="font-display" style={{ fontSize:24, fontWeight:900, letterSpacing:'-0.5px', color:'var(--label)', lineHeight:1.25, marginBottom:8 }}>
               確認メールを<br/>
               <span className="shimmer-text">送信しました</span>
             </h1>
             {email && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(249,179,24,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
-                <MailIcon size={12} color="#995C00" />
+              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(21,70,217,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
+                <MailIcon size={12} color="#1546D9" />
                 <span style={{ fontSize:12, fontWeight:600, color:'#995C00', letterSpacing:'-0.1px' }}>{email}</span>
               </div>
             )}
@@ -239,7 +239,7 @@ export default function VerifyEmailPage() {
           <div style={{ padding:'24px 24px 24px' }}>
 
             {/* 手順 */}
-            <p style={{ fontSize:13, color:'var(--label2)', lineHeight:1.75, marginBottom:24 }}>
+            <p style={{ fontSize:11, color:'var(--label2)', lineHeight:1.75, marginBottom:24 }}>
               メール内の<strong style={{ color:'var(--label)', fontWeight:700 }}>確認リンク</strong>をクリックして認証を完了してください。完了後、下の「認証完了後はこちら」ボタンを押してください。
             </p>
 
@@ -288,7 +288,7 @@ export default function VerifyEmailPage() {
         {/* ── チェックリストカード ── */}
         <div className="appear d2 ios-card" style={{ marginTop:16, overflow:'hidden' }}>
           <div style={{ padding:'16px 24px' }}>
-            <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--label2)', marginBottom:16 }}>メールが届かない場合</p>
+            <p style={{ fontSize:9.5, fontWeight:700, letterSpacing: '0.04em', textTransform:'uppercase', color:'var(--label2)', marginBottom:16 }}>メールが届かない場合</p>
             {[
               { icon:<FolderIcon size={20} />, text:'迷惑メールフォルダを確認する' },
               { icon:<MailIcon size={20} />, text:'入力したメールアドレスが正しいか確認する' },
@@ -316,7 +316,7 @@ export default function VerifyEmailPage() {
         {/* ── ログインへ戻る ── */}
         <div className="appear d4" style={{ marginTop:24, textAlign:'center' }}>
           <button type="button" onClick={() => router.replace('/login')}
-            style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:99, transition:'color .15s' }}
+            style={{ fontSize:11, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:8, padding:'8px 16px', borderRadius:99, transition:'color .15s' }}
           >
             <ArrowLeftIcon size={13} />
             ログイン画面へ戻る
@@ -330,8 +330,8 @@ export default function VerifyEmailPage() {
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
-          <p style={{ fontSize:11, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0</p>
-          <p style={{ fontSize:11, color:'var(--label3)' }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize:9.5, color:'var(--label3)', marginBottom:2 }}>ver 1.11.0</p>
+          <p style={{ fontSize:10, color:'var(--label3)' }}>RRPoker by Runner Runner</p>
         </div>
       </div>
     </div>

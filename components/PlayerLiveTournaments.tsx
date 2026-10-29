@@ -64,12 +64,12 @@ export default function PlayerLiveTournaments(props: Props) {
       style={{ marginTop: 24, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.04em' }}>
+        <p className="tech-label" style={{ fontSize: 9.5, color: '#1C1C1E', letterSpacing: '0.04em' }}>
           現在進行中のトナメ
         </p>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
-          <span className="tech-label" style={{ fontSize: 11, color: '#34C759' }}>LIVE</span>
+          <span className="tech-label" style={{ fontSize: 9, color: '#34C759' }}>LIVE</span>
         </span>
       </div>
 
@@ -146,7 +146,7 @@ function LiveTournamentRow({
         }}
       >
         <span>{KIND_LABEL[kind]}</span>
-        <span className="tech-num" style={{ fontSize: 11, fontWeight: 600, opacity: 0.85, letterSpacing: 0 }}>
+        <span className="tech-num" style={{ fontSize: 10, fontWeight: 600, opacity: 0.85, letterSpacing: 0 }}>
           {unitBefore ? `${unitLabel}${fee.toLocaleString()}` : `${fee.toLocaleString()}${unitLabel}`}
         </span>
       </button>
