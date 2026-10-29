@@ -481,7 +481,7 @@ for (const p of payouts) {
             <>
               {/* Prize Pool カード */}
               <div style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF3CC)', border: '1px solid rgba(249,179,24,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#8F5E00', marginBottom: 8 }}>賞金総額</p>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#995C00', marginBottom: 8 }}>賞金総額</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
@@ -518,7 +518,7 @@ for (const p of payouts) {
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
                         aria-label={r.showText ? '景品・メモを閉じる' : '景品・メモを追加'}
                         aria-pressed={r.showText}
-                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(249,179,24,0.15)' : '#fff', color: r.showText ? '#7A5000' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
+                        style={{ height: 44, padding: '0 16px', borderRadius: 10, border: 'none', background: r.showText ? 'rgba(249,179,24,0.15)' : '#fff', color: r.showText ? '#804D00' : 'var(--label2)', fontSize: 15, fontWeight: 600, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', gap: 4 }}
                       ><GiftIcon size={16} /> 景品</button>
                     </div>
                     {/* 景品テキスト */}

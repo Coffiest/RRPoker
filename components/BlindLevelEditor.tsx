@@ -109,7 +109,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, alignItems: 'center' }}>
               {lv.type === 'level' ? (
                 <>
-                  <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#8F5E00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
+                  <span style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#995C00', fontVariantNumeric: 'tabular-nums' }}>{levelNo(idx)}</span>
                   {(['smallBlind', 'bigBlind', 'ante', 'duration'] as const).map(key => (
                     <input key={key} type="number" inputMode="numeric" min={0} value={lv[key] ?? ''} placeholder="—"
                       aria-label={`レベル${levelNo(idx)} ${{ smallBlind: 'SB', bigBlind: 'BB', ante: 'アンティ', duration: '分' }[key]}`}

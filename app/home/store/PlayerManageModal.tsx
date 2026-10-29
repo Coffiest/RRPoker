@@ -490,7 +490,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             <input
                               value={player.name}
                               onChange={e => updateTempPlayerName(player.id, e.target.value)}
-                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #8F5E00', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
+                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #995C00', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
                             />
                           ) : (
                             <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', flex: 1 }}>{player.name}</span>
@@ -512,7 +512,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           return (
                             <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: '#8F5E00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
                                 {preview && (buyStr || feeStr) && (
                                   <>

@@ -454,7 +454,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   }
 
   // ── Shared input style for modal ─────────────────────────────────────────
-  const modalInput = "rounded-xl px-4 py-2 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#8F5E00] focus:ring-2 focus:ring-[#8F5E00]/15 transition"
+  const modalInput = "rounded-xl px-4 py-2 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#995C00] focus:ring-2 focus:ring-[#995C00]/15 transition"
 
   // ════════════════════════════════════════════════════════════════════════
   return (
@@ -506,7 +506,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <div className="flex items-center gap-6">
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
-                  <span className="text-[22px] font-black tracking-wide uppercase text-[#8F5E00] flex-shrink-0">
+                  <span className="text-[22px] font-black tracking-wide uppercase text-[#995C00] flex-shrink-0">
                     LEVEL&nbsp;{liveLevelIndex + 1}
                   </span>
                 )}
@@ -529,8 +529,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   style={{ background: "rgba(255,255,255,0.76)", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
                 >
                   <span
-                    className="text-[86px] font-black tracking-wide text-[#8F5E00]"
-                    style={{ textShadow: "0 2px 24px rgba(143,94,0,0.28)" }}
+                    className="text-[86px] font-black tracking-wide text-[#995C00]"
+                    style={{ textShadow: "0 2px 24px rgba(153,92,0,0.28)" }}
                   >
                     PAUSE
                   </span>
@@ -538,13 +538,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               )}
               {isPresetSelected ? (
                 <div className="flex items-center justify-center timer-num">
-                  <span className="text-[200px] font-light leading-none text-[#8F5E00]">
+                  <span className="text-[200px] font-light leading-none text-[#995C00]">
                     {minutes.toString().padStart(2, "0")}
                   </span>
-                  <span className={`text-[140px] font-light leading-none text-[#8F5E00] mx-2 ${isRunning ? "colon-blink" : "opacity-20"}`}>
+                  <span className={`text-[140px] font-light leading-none text-[#995C00] mx-2 ${isRunning ? "colon-blink" : "opacity-20"}`}>
                     :
                   </span>
-                  <span className="text-[200px] font-light leading-none text-[#8F5E00]">
+                  <span className="text-[200px] font-light leading-none text-[#995C00]">
                     {seconds.toString().padStart(2, "0")}
                   </span>
                 </div>
@@ -562,7 +562,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 <div className="w-full rounded-full overflow-hidden" style={{ height: "3px", background: "#F0F0F0", marginTop: "8px" }}>
                   <div
                     className="h-full rounded-full transition-[width] duration-1000"
-                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#A06500,#8F5E00)" }}
+                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#A06500,#995C00)" }}
                   />
                 </div>
               )}
@@ -572,14 +572,14 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="flex-none flex flex-col justify-center px-12 py-8">
               {/* Per-level / per-break comment */}
               {isPresetSelected && level?.comment && (
-                <p className="text-center text-[28px] font-black tracking-wide uppercase text-[#8F5E00] mb-4">
+                <p className="text-center text-[28px] font-black tracking-wide uppercase text-[#995C00] mb-4">
                   {level.comment}
                 </p>
               )}
               {level?.type === "break" ? (
                 /* ── BREAK SCREEN ─────────────────────────────────────────────── */
                 <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr 1px auto", columnGap: infoColGap, rowGap: "clamp(32px, 5vh, 64px)", alignItems: "center" }}>
-                  <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-bold tracking-wide text-[#8F5E00] text-center">
+                  <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-bold tracking-wide text-[#995C00] text-center">
                     — B R E A K —
                   </p>
                   <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
@@ -599,7 +599,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           <span>NEXT</span><span>BREAK</span>
                         </span>
                         {hasNextBreak
-                          ? <span className="text-[72px] font-bold text-[#8F5E00] timer-num leading-none">
+                          ? <span className="text-[72px] font-bold text-[#995C00] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
                           : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
@@ -613,7 +613,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         <span>NEXT</span><span>BREAK</span>
                       </span>
                       {hasNextBreak
-                        ? <span className="text-[72px] font-bold text-[#8F5E00] timer-num leading-none">
+                        ? <span className="text-[72px] font-bold text-[#995C00] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
                         : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
@@ -664,7 +664,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           <span>NEXT</span><span>BREAK</span>
                         </span>
                         {hasNextBreak
-                          ? <span className="text-[72px] font-bold text-[#8F5E00] timer-num leading-none">
+                          ? <span className="text-[72px] font-bold text-[#995C00] timer-num leading-none">
                               {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                             </span>
                           : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
@@ -679,7 +679,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         <span>NEXT</span><span>BREAK</span>
                       </span>
                       {hasNextBreak
-                        ? <span className="text-[72px] font-bold text-[#8F5E00] timer-num leading-none">
+                        ? <span className="text-[72px] font-bold text-[#995C00] timer-num leading-none">
                             {nextBreakMin.toString().padStart(2, "0")}:{nextBreakSec.toString().padStart(2, "0")}
                           </span>
                         : <span className="text-[36px] font-medium text-label3 leading-none">None.</span>
@@ -741,7 +741,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <p className="text-[22px] font-black tracking-wide uppercase text-gray-700 mb-2">Prize Pool</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-[14px] font-black tracking-wide uppercase text-gray-700">TOTAL</span>
-                <span className="text-[34px] font-normal text-[#8F5E00] timer-num leading-none">
+                <span className="text-[34px] font-normal text-[#995C00] timer-num leading-none">
                   {totalPrize.toLocaleString()}
                 </span>
               </div>
@@ -809,7 +809,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                className="w-full rounded-2xl px-4 py-2 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#8F5E00] focus:ring-2 focus:ring-[#8F5E00]/15 transition"
+                className="w-full rounded-2xl px-4 py-2 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#995C00] focus:ring-2 focus:ring-[#995C00]/15 transition"
                 placeholder="例: 通常トーナメント"
               />
             </div>
@@ -865,7 +865,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         <button
                           type="button"
                           onClick={() => setEditingCommentIdx(editingCommentIdx === idx ? null : idx)}
-                          className={`px-2 py-2 rounded-lg text-[11px] font-medium transition ${lv.comment ? "bg-[#8F5E00]/15 text-[#8F5E00] border border-[#8F5E00]/30" : "bg-gray-200 text-label3 hover:bg-gray-300"}`}
+                          className={`px-2 py-2 rounded-lg text-[11px] font-medium transition ${lv.comment ? "bg-[#995C00]/15 text-[#995C00] border border-[#995C00]/30" : "bg-gray-200 text-label3 hover:bg-gray-300"}`}
                         >
                           {lv.comment ? lv.comment : "＋"}
                         </button>
@@ -883,7 +883,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           placeholder="コメントを入力..."
                           value={lv.comment ?? ""}
                           onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                          className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#8F5E00] focus:outline-none transition"
+                          className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#995C00] focus:outline-none transition"
                           autoFocus={editingCommentIdx === idx}
                         />
                         <button
@@ -907,8 +907,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             <div className="px-6 py-6 border-t border-gray-100 space-y-4">
               <div className="flex gap-2">
                 <button onClick={addLevel}
-                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-[#8F5E00] transition hover:bg-[#8F5E00]/5"
-                  style={{ border: "1.5px solid rgba(143,94,0,0.35)" }}
+                  className="flex-1 py-2 rounded-2xl text-[13px] font-semibold text-[#995C00] transition hover:bg-[#995C00]/5"
+                  style={{ border: "1.5px solid rgba(153,92,0,0.35)" }}
                 >
                   ＋ レベル追加
                 </button>
@@ -922,7 +922,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               <div className="flex gap-4">
                 <button onClick={savePreset}
                   className="flex-1 py-4 rounded-2xl text-[14px] font-bold text-white transition"
-                  style={{ background: "linear-gradient(135deg,#8F5E00,#8F5E00)", boxShadow: "0 4px 14px rgba(143,94,0,0.28)" }}
+                  style={{ background: "linear-gradient(135deg,#995C00,#995C00)", boxShadow: "0 4px 14px rgba(153,92,0,0.28)" }}
                 >
                   Save
                 </button>
@@ -958,7 +958,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             overflow-hidden
             bg-white
             flex items-center justify-center
-            shadow-[0_0_20px_rgba(143,94,0,0.5)]
+            shadow-[0_0_20px_rgba(153,92,0,0.5)]
           "
         >
           <img src="/logo.png" alt="RRPoker" className="h-9 w-9 object-contain" />

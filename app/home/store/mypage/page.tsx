@@ -438,7 +438,7 @@ export default function StoreMyPage() {
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ display: 'block', fontSize: 22, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name || "店舗名を設定"}</span>
               <span style={{ display: 'block', fontSize: 15, color: 'var(--label2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
-              <span style={{ display: 'block', fontSize: 15, color: '#8F5E00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
+              <span style={{ display: 'block', fontSize: 15, color: '#995C00', marginTop: 4 }}>{savingIcon ? "アイコンを保存しています…" : "アイコンを変更"}</span>
             </span>
           </button>
         </Section>

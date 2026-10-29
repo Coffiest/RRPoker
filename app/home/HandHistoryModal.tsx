@@ -22,7 +22,7 @@ const CLR = {
   surface: "#F5F4EF",
   border:  "#E8E3DB",
   gold:    "#F9B318",
-  goldDk:  "#8F5E00",
+  goldDk:  "#995C00",
   ink:     "#1D1D1F",
   gray2:   "#545458",
   gray3:   "#6E6E73",
@@ -509,7 +509,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     if (last&&last.action!=="fold"){
                       const amtS=last.amount!=null?` ${last.amount}`:""
                       label=`${ACT_JP[last.action]}${amtS}`
-                      if (last.action==="bet"||last.action==="raise"){fg="#8F5E00";bd="#FDE68A";bg="#FFFBEB"}
+                      if (last.action==="bet"||last.action==="raise"){fg="#995C00";bd="#FDE68A";bg="#FFFBEB"}
                       else if (last.action==="allin"){fg=CLR.red;bd="#FCA5A5";bg="#FFF5F5"}
                       else {fg=CLR.gray2;bd=CLR.border;bg="#fff"}
                     }
@@ -1047,7 +1047,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                             style={{
                               background:act.action==="bet"||act.action==="raise"?"#FFFBEB":act.action==="allin"?"#FFF5F5":CLR.white,
                               border:`1px solid ${act.action==="bet"||act.action==="raise"?"#FDE68A":act.action==="allin"?"#FCA5A5":CLR.border}`,
-                              color:act.action==="bet"||act.action==="raise"?"#8F5E00":act.action==="allin"?CLR.red:CLR.gray2,
+                              color:act.action==="bet"||act.action==="raise"?"#995C00":act.action==="allin"?CLR.red:CLR.gray2,
                             }}>
                             {ACT_JP[act.action]}{act.amount!=null?` ${act.amount}`:""}
                           </div>
@@ -1105,7 +1105,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                                   style={{color:isHeroAct?CLR.goldDk:CLR.gray2}}>{a.position}</span>
                                 <span className="text-[11px]" style={{color:
                                   a.action==="fold"?CLR.gray3:
-                                  a.action==="bet"||a.action==="raise"?"#8F5E00":
+                                  a.action==="bet"||a.action==="raise"?"#995C00":
                                   a.action==="allin"?CLR.red:CLR.ink}}>
                                   {ACT_JP[a.action]}{a.amount!=null?` ${a.amount} BB`:""}
                                 </span>

@@ -1783,7 +1783,7 @@ const medalClass = (rank: number) => {
                     if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
                     setIsRankingModalOpen(true)
                   }}>
-                  <AwardIcon size={20} style={{ color: '#8F5E00' }} />
+                  <AwardIcon size={20} style={{ color: '#995C00' }} />
                   <span className="tech-label" style={{ flex: 1, fontSize: 13, color: 'var(--label)', letterSpacing: '0.14em' }}>RR RATING RANKING</span>
                   <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                 </button>
@@ -2224,7 +2224,7 @@ const medalClass = (rank: number) => {
                   <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)', border: '1.5px solid rgba(249,179,24,0.25)' }}>
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9B318]/15">
-                        <UserIcon className="text-[13px] text-[#8F5E00]" />
+                        <UserIcon className="text-[13px] text-[#995C00]" />
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-500">あなたの順位</p>
@@ -2290,7 +2290,7 @@ const medalClass = (rank: number) => {
                   )
                 })}
                 <li>
-                  <button type="button" onClick={openJoinModal} className="home-row home-row-btn" style={{ color: '#8F5E00' }}>
+                  <button type="button" onClick={openJoinModal} className="home-row home-row-btn" style={{ color: '#995C00' }}>
                     <SearchIcon size={20} />
                     <span style={{ flex: 1, fontSize: 17 }}>店舗を探して入店</span>
                   </button>
@@ -2396,7 +2396,7 @@ const medalClass = (rank: number) => {
                                     {entry.name || 'トーナメント'}
                                   </p>
                                   {entry.repeatWeekly && (
-                                    <span style={{ fontSize: 11, fontWeight: 800, color: '#8F5E00', background: 'rgba(249,179,24,0.12)', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
+                                    <span style={{ fontSize: 11, fontWeight: 800, color: '#995C00', background: 'rgba(249,179,24,0.12)', borderRadius: 99, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
                                   )}
                                 </div>
                                 <p style={{ fontSize: 15, color: 'var(--label2)' }}>{entry.storeName}</p>
@@ -2405,7 +2405,7 @@ const medalClass = (rank: number) => {
                                     <span style={{ fontSize: 15, color: 'var(--label2)' }}><ClockIcon size={14} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> {formatDateTime(entry.startTime)}</span>
                                   )}
                                   {entry.entryFee != null && (
-                                    <span style={{ fontSize: 15, fontWeight: 600, color: '#8F5E00' }}>{fmtChip(Number(entry.entryFee))}</span>
+                                    <span style={{ fontSize: 15, fontWeight: 600, color: '#995C00' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
                               </div>
@@ -2505,15 +2505,15 @@ const medalClass = (rank: number) => {
                   <span>合計</span><span>{d.buyin.toLocaleString()}</span>
                 </div>
                 {d.rank !== '-' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#8F5E00', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#995C00', fontWeight: 700 }}>
                     <span>獲得チップ</span><span>{d.prize.toLocaleString()}</span>
                   </div>
                 )}
                 {d.rrRating !== null && (
                   <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 8, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 600, color: '#8F5E00' }}>トナメ偏差値</span>
+                    <span style={{ fontWeight: 600, color: '#995C00' }}>トナメ偏差値</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#8F5E00' }}>{d.rrRating.toFixed(2)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#995C00' }}>{d.rrRating.toFixed(2)}</span>
                       {d.rrDelta !== null && Math.abs(d.rrDelta) >= 0.01 && (
                         <span style={{
                           fontSize: 11, fontWeight: 700,
@@ -2556,7 +2556,7 @@ const medalClass = (rank: number) => {
             <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>トナメ偏差値とは？</p>
             ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
             {tournamentStats.plays === 0 && (
-              <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#7A5000' }}>
+              <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#804D00' }}>
                 「集計中」と表示されている間は、まだ結果が確定したトーナメント参加履歴がありません。トーナメントに参加し、店舗側で大会結果（順位・獲得チップ）が確定すると、ここに数値が表示されます。
               </p>
             )}
@@ -2770,7 +2770,7 @@ const medalClass = (rank: number) => {
                 aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)}
                 className="a-btn a-btn-icon"
                 style={favoriteStores.includes(selectedStore.id)
-                  ? { minHeight: 44, width: 34, background: 'rgba(249,179,24,0.16)', color: '#8F5E00', boxShadow: 'inset 0 0 0 1px rgba(249,179,24,0.24)' }
+                  ? { minHeight: 44, width: 34, background: 'rgba(249,179,24,0.16)', color: '#995C00', boxShadow: 'inset 0 0 0 1px rgba(249,179,24,0.24)' }
                   : { minHeight: 44, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
               ><StarIcon size={15} /></button>
             </div>
@@ -2950,7 +2950,7 @@ const medalClass = (rank: number) => {
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
-                    <p style={{ fontSize: 11, color: '#8F5E00', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
+                    <p style={{ fontSize: 11, color: '#995C00', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
                   </div>
                 </div>
                 <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px' }}>{displayRrRating.toFixed(2)}</p>
@@ -2984,7 +2984,7 @@ const medalClass = (rank: number) => {
                         }
                       </div>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 11, color: '#8F5E00', marginLeft: 8 }}>（あなた）</span>}</p>
+                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 11, color: '#995C00', marginLeft: 8 }}>（あなた）</span>}</p>
                         <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 1 }}>{player.rank}位</p>
                       </div>
                     </div>
@@ -3059,7 +3059,7 @@ const medalClass = (rank: number) => {
                         <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}</p>
                       </div>
                       {entry.repeatWeekly && (
-                        <span className="shrink-0 rounded-full bg-[#F9B318]/15 px-2 py-2 text-[11px] font-bold text-[#8F5E00]">毎週</span>
+                        <span className="shrink-0 rounded-full bg-[#F9B318]/15 px-2 py-2 text-[11px] font-bold text-[#995C00]">毎週</span>
                       )}
                     </div>
 
@@ -3085,7 +3085,7 @@ const medalClass = (rank: number) => {
                       {entry.entryFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">エントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#995C00] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
                         </div>
                       )}
                       {entry.entryStack != null && (
@@ -3097,7 +3097,7 @@ const medalClass = (rank: number) => {
                       {entry.reentryFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">リエントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#995C00] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
                         </div>
                       )}
                       {entry.reentryStack != null && (
@@ -3109,7 +3109,7 @@ const medalClass = (rank: number) => {
                       {entry.addonFee != null && (
                         <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[11px] text-label3 font-medium uppercase tracking-wide">Add-on</p>
-                          <p className="text-[13px] font-bold text-[#8F5E00] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
+                          <p className="text-[13px] font-bold text-[#995C00] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
                         </div>
                       )}
                       {entry.addonStack != null && (

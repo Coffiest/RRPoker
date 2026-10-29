@@ -71,7 +71,7 @@ export default function VerifyEmailPage() {
     <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold:#F9B318; --gold-dk:#8F5E00;
+          --gold:#F9B318; --gold-dk:#995C00;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -225,8 +225,8 @@ export default function VerifyEmailPage() {
             </h1>
             {email && (
               <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(249,179,24,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
-                <MailIcon size={12} color="#8F5E00" />
-                <span style={{ fontSize:12, fontWeight:600, color:'#8F5E00', letterSpacing:'-0.1px' }}>{email}</span>
+                <MailIcon size={12} color="#995C00" />
+                <span style={{ fontSize:12, fontWeight:600, color:'#995C00', letterSpacing:'-0.1px' }}>{email}</span>
               </div>
             )}
           </div>

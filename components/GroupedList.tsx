@@ -93,7 +93,7 @@ export function ChoiceRow({ label, detail, selected, onSelect }: { label: string
         {detail && <span style={{ display: 'block', fontSize: 13, color: 'var(--label2)', marginTop: 2 }}>{detail}</span>}
       </span>
       {selected && (
-        <CheckIcon size={20} style={{ color: '#8F5E00', flexShrink: 0 }} aria-hidden="true" />
+        <CheckIcon size={20} style={{ color: '#995C00', flexShrink: 0 }} aria-hidden="true" />
       )}
     </button>
   )

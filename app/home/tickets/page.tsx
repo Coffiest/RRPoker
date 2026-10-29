@@ -70,7 +70,7 @@ function StampGrid({ count, iconUrl }: { count: number; iconUrl?: string }) {
                 iconUrl ? (
                   <img src={iconUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                 ) : (
-                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #8F5E00, #8F5E00)" }} />
+                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #995C00, #995C00)" }} />
                 )
               ) : null}
             </div>
@@ -114,7 +114,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       <div style={{ flex: 1, padding: "16px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#8F5E00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#995C00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
               {isUsed ? "USED" : "COUPON"}
             </p>
             <p style={{
@@ -266,7 +266,7 @@ export default function TicketsPage() {
                           {card.storeName}
                         </p>
                         {card.couponName && (
-                          <p style={{ fontSize: 11, color: "#8F5E00", fontWeight: 500, lineHeight: 1.3 }}>
+                          <p style={{ fontSize: 11, color: "#995C00", fontWeight: 500, lineHeight: 1.3 }}>
                             {STAMP_GOAL}スタンプで {card.couponName}
                           </p>
                         )}
@@ -401,7 +401,7 @@ export default function TicketsPage() {
             <div style={{ width: 36, height: 4, borderRadius: 99, background: "#D1D1D6", margin: "0 auto 24px" }} />
 
             <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(249,179,24,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <CreditCardIcon size={26} color="#8F5E00" />
+              <CreditCardIcon size={26} color="#995C00" />
             </div>
             <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
               {selectedCoupon.name}
@@ -415,7 +415,7 @@ export default function TicketsPage() {
                 type="checkbox"
                 checked={isChecked}
                 onChange={e => setIsChecked(e.target.checked)}
-                style={{ width: 20, height: 20, accentColor: "#8F5E00" }}
+                style={{ width: 20, height: 20, accentColor: "#995C00" }}
               />
               <span style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E" }}>スタッフが確認しました</span>
             </label>
@@ -435,7 +435,7 @@ export default function TicketsPage() {
                 background: isChecked ? "#F9B318" : "#E5E5EA",
                 color: isChecked ? "#1C1C1E" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
-                boxShadow: isChecked ? "0 4px 14px rgba(143,94,0,0.30)" : "none",
+                boxShadow: isChecked ? "0 4px 14px rgba(153,92,0,0.30)" : "none",
                 transition: "transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
               }}
             >

@@ -342,7 +342,7 @@ export default function UserProfileOnboardingPage() {
           justify-content: center;
         }
         .icon-ring:hover, .icon-ring.hovered {
-          border-color: #8F5E00;
+          border-color: #995C00;
           box-shadow: 0 0 0 4px rgba(249,179,24,0.12);
           transform: scale(1.03);
         }
@@ -402,7 +402,7 @@ export default function UserProfileOnboardingPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
           <p className="mt-2 text-[14px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
-            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#8F5E00] font-semibold">プライバシーポリシー</a>をご覧ください。
+            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#995C00] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
@@ -454,7 +454,7 @@ export default function UserProfileOnboardingPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-[15px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
-              <span className="text-[13px] font-semibold text-[#8F5E00]">必須</span>
+              <span className="text-[13px] font-semibold text-[#995C00]">必須</span>
             </div>
             <input
               type="text"
@@ -482,19 +482,19 @@ export default function UserProfileOnboardingPage() {
                     width: 44, height: 44, minHeight: 44, margin: '-16px -8px', borderRadius: '50%',
                     border: 'none', background: 'none',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: showIdInfo ? '#8F5E00' : 'var(--label3)',
+                    color: showIdInfo ? '#995C00' : 'var(--label3)',
                     cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                     flexShrink: 0,
                   }}
                 ><InfoIcon size={18} /></button>
               </div>
-              <span className="text-[13px] font-semibold text-[#8F5E00]">必須</span>
+              <span className="text-[13px] font-semibold text-[#995C00]">必須</span>
             </div>
 
             {/* ? 説明パネル */}
             {showIdInfo && (
               <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(249,179,24,0.25)' }}>
-                <p className="text-[12px] font-semibold mb-2" style={{ color: '#7A5000' }}>Player ID とは？</p>
+                <p className="text-[12px] font-semibold mb-2" style={{ color: '#804D00' }}>Player ID とは？</p>
                 <ul className="space-y-2">
                   {[
                     '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
@@ -504,7 +504,7 @@ export default function UserProfileOnboardingPage() {
                   ].map((txt, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span style={{ color: '#F9B318', flexShrink: 0, marginTop: 1 }}>•</span>
-                      <span className="text-[11px] leading-relaxed" style={{ color: '#7A5000' }}>{txt}</span>
+                      <span className="text-[11px] leading-relaxed" style={{ color: '#804D00' }}>{txt}</span>
                     </li>
                   ))}
                 </ul>
@@ -583,7 +583,7 @@ export default function UserProfileOnboardingPage() {
                         border: '1px solid #e5e7eb',
                         cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F7F1E3'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F9B318'; (e.currentTarget as HTMLButtonElement).style.color = '#8F5E00' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F7F1E3'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F9B318'; (e.currentTarget as HTMLButtonElement).style.color = '#995C00' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}
                     >
                       @{s}

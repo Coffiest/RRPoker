@@ -172,7 +172,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {isAdd
-                      ? <ArrowUpIcon size={15} style={{ color: '#8F5E00' }}/>
+                      ? <ArrowUpIcon size={15} style={{ color: '#995C00' }}/>
                       : <ArrowDownIcon size={15} style={{ color: 'var(--label3)' }}/>
                     }
                   </div>
@@ -194,7 +194,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   <p style={{
                     fontSize: 14, fontWeight: 800, flexShrink: 0, marginLeft: 8,
                     fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px',
-                    color: isAdd ? '#8F5E00' : 'var(--label3)',
+                    color: isAdd ? '#995C00' : 'var(--label3)',
                   }}>
                     {isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                   </p>

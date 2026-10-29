@@ -13,7 +13,7 @@ export default function BackLink({ fallback = '/' }: { fallback?: string }) {
       type="button"
       onClick={() => (window.history.length > 1 ? router.back() : router.push(fallback))}
       data-nav-back=""
-      className="inline-flex min-h-[44px] items-center gap-1 text-[17px] text-[#8F5E00] mb-4 -ml-2 pr-2"
+      className="inline-flex min-h-[44px] items-center gap-1 text-[17px] text-[#995C00] mb-4 -ml-2 pr-2"
       style={{ background: 'none', border: 'none', cursor: 'pointer' }}
     >
       <ChevronLeftIcon size={24} />

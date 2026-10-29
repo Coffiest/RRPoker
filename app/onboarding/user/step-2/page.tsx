@@ -259,7 +259,7 @@ export default function UserWelcomePage() {
           >
             <CircleAlertIcon size={15} color="#F9B318" className="mt-0.5 flex-shrink-0" />
             <p
-              className={`text-[13px] text-[#7A5000] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
+              className={`text-[13px] text-[#804D00] leading-relaxed tip-box ${tipVisible ? 'shown-tip' : 'hidden-tip'}`}
             >
               {TIPS[tipIndex]}
             </p>

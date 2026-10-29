@@ -180,7 +180,7 @@ function LiveTournamentRow({
       {message && (
         <p style={{
           fontSize: 12, fontWeight: 600, marginTop: 8, textAlign: 'center',
-          color: message.tone === 'ok' ? '#8F5E00' : '#FF3B30',
+          color: message.tone === 'ok' ? '#995C00' : '#FF3B30',
         }}>
           {message.text}
         </p>

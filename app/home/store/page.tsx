@@ -870,7 +870,7 @@ export default function StorePage() {
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
       <style>{`
         :root {
-          --gold:#F9B318; --gold-dk:#8F5E00;
+          --gold:#F9B318; --gold-dk:#995C00;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -966,7 +966,7 @@ export default function StorePage() {
 
         /* Outline btn */
         .btn-outline-gold {
-          background:#fff; border:1.5px solid rgba(249,179,24,0.45); color:#8F5E00;
+          background:#fff; border:1.5px solid rgba(249,179,24,0.45); color:#995C00;
         }
 
         /* Danger btn */

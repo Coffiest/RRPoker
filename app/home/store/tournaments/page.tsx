@@ -461,7 +461,7 @@ export default function TournamentsPage() {
           --sep: rgba(60,60,67,0.12);
           --fill: rgba(120,120,128,0.12);
           --gold: #F9B318;
-          --gold-dk: #8F5E00;
+          --gold-dk: #995C00;
           --blue: #1546D9;
         }
         .tp-press { transition: transform 100ms ease-out, background-color 100ms ease-out, opacity 100ms ease-out; -webkit-tap-highlight-color: transparent; cursor: pointer; }
@@ -1038,7 +1038,7 @@ function FormRow({ label, hint, children, last }: { label: string; hint?: string
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, [string, string, string]> = {
-    active: ['LIVE', 'rgba(249,179,24,0.16)', '#7A5000'],
+    active: ['LIVE', 'rgba(249,179,24,0.16)', '#804D00'],
     scheduled: ['予定', 'rgba(118,118,128,0.12)', 'var(--label2)'],
     finished: ['終了', 'rgba(118,118,128,0.12)', 'var(--label2)'],
   }

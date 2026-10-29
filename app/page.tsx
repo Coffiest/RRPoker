@@ -100,7 +100,7 @@ export default function TopPage() {
     <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold: #F9B318; --gold-dk: #8F5E00;
+          --gold: #F9B318; --gold-dk: #995C00;
           --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --fill: rgba(120,120,128,0.12);
         }
@@ -306,9 +306,9 @@ export default function TopPage() {
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           <button onClick={() => { setMenuOpen(false); router.push('/login') }}
-            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(249,179,24,0.4)', background:'rgba(249,179,24,0.06)', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#8F5E00', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
+            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(249,179,24,0.4)', background:'rgba(249,179,24,0.06)', padding:'16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#995C00', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
           >
-            <LogInIcon size={15} color="#8F5E00" />
+            <LogInIcon size={15} color="#995C00" />
             ログイン / 新規登録
           </button>
           {['このアプリについて', 'RR Ratingとは？', 'よくある質問'].map(label => (
@@ -497,9 +497,9 @@ export default function TopPage() {
       <section style={{ padding:'0 24px 16px', maxWidth:480, margin:'0 auto' }}>
         <div className="d6 ios-card" style={{ padding:'16px 16px', display:'flex', alignItems:'flex-start', gap:8 }}>
           <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(249,179,24,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-            <LightbulbIcon size={16} color="#7A5000" />
+            <LightbulbIcon size={16} color="#804D00" />
           </div>
-          <p className="tip-txt" style={{ fontSize:13, color:'#7A5000', lineHeight:1.65, fontWeight:500 }}>
+          <p className="tip-txt" style={{ fontSize:13, color:'#804D00', lineHeight:1.65, fontWeight:500 }}>
             {TIPS[tipIndex]}
           </p>
         </div>

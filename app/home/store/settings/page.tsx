@@ -635,7 +635,7 @@ export default function StoreSettingsPage() {
               <p style={{ fontSize: 34, fontWeight: 700, margin: '4px 0 0', fontVariantNumeric: 'tabular-nums', color: 'var(--label)' }}>{rakeTotal.toLocaleString()}</p>
             </div>
             <Section>
-              <NavRow icon={<PlusIcon size={20} style={{ color: '#8F5E00' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
+              <NavRow icon={<PlusIcon size={20} style={{ color: '#995C00' }} />} label="レーキを記録" onClick={() => setRakeView("add")} />
               <NavRow label="HISTORY" detail={`${sortedRakeEntries.length} 件`} onClick={() => setRakeView("history")} />
             </Section>
           </>

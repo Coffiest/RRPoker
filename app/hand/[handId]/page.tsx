@@ -12,7 +12,7 @@ const ACT_JP: Record<string, string> = {
 }
 const CLR = {
   bg: "#EDECE6", white: "#FFFFFF", surface: "#F5F4EF", border: "#E8E3DB",
-  gold: "#F9B318", goldDk: "#8F5E00", ink: "#1D1D1F", gray2: "#545458", gray3: "#6E6E73",
+  gold: "#F9B318", goldDk: "#995C00", ink: "#1D1D1F", gray2: "#545458", gray3: "#6E6E73",
   red: "#E53E3A",
 }
 
@@ -226,7 +226,7 @@ export default function HandPage() {
                     style={{
                       background: act.action === "bet" || act.action === "raise" ? "#FFFBEB" : act.action === "allin" ? "#FFF5F5" : CLR.white,
                       border: `1px solid ${act.action === "bet" || act.action === "raise" ? "#FDE68A" : act.action === "allin" ? "#FCA5A5" : CLR.border}`,
-                      color: act.action === "bet" || act.action === "raise" ? "#8F5E00" : act.action === "allin" ? CLR.red : CLR.gray2,
+                      color: act.action === "bet" || act.action === "raise" ? "#995C00" : act.action === "allin" ? CLR.red : CLR.gray2,
                     }}>
                     {ACT_JP[act.action]}{act.amount != null ? ` ${act.amount}` : ""}
                   </div>
@@ -284,7 +284,7 @@ export default function HandPage() {
                           style={{ color: isHeroAct ? CLR.goldDk : CLR.gray2 }}>{a.position}</span>
                         <span className="text-[15px]" style={{ color: isFuture ? CLR.gray3 :
                           a.action === "fold" ? CLR.gray3 :
-                          a.action === "bet" || a.action === "raise" ? "#8F5E00" :
+                          a.action === "bet" || a.action === "raise" ? "#995C00" :
                           a.action === "allin" ? CLR.red : CLR.ink }}>
                           {ACT_JP[a.action]}{a.amount != null ? ` ${a.amount} BB` : ""}
                         </span>

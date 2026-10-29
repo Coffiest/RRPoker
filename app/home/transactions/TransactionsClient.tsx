@@ -270,7 +270,7 @@ export default function TransactionsClient() {
           <div className="tx-slide-2" style={{ background: '#fff', borderRadius: 22, padding: '32px 24px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 24 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
-              <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8F5E00' }}>入店QRコード</span>
+              <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00' }}>入店QRコード</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
@@ -429,8 +429,8 @@ export default function TransactionsClient() {
           )}
           {message && (
             <div style={{ margin: '0 16px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.10)', borderRadius: 12, padding: '8px 16px' }}>
-              <CircleCheckIcon color="#8F5E00" size={16} style={{ flexShrink: 0 }} />
-              <p style={{ fontSize: 13, fontWeight: 500, color: '#8F5E00' }}>{message}</p>
+              <CircleCheckIcon color="#995C00" size={16} style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: 13, fontWeight: 500, color: '#995C00' }}>{message}</p>
             </div>
           )}
 

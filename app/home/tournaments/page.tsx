@@ -68,7 +68,7 @@ async function generateTournamentCard(opts: {
   // Gold top bar
   const goldGrad = ctx.createLinearGradient(0, 0, W, 0)
   goldGrad.addColorStop(0, '#F9B318')
-  goldGrad.addColorStop(1, '#8F5E00')
+  goldGrad.addColorStop(1, '#995C00')
   ctx.fillStyle = goldGrad
   ctx.fillRect(0, 0, W, 5)
 
@@ -80,7 +80,7 @@ async function generateTournamentCard(opts: {
   if (isITM) {
     const rankCX = W - 58, rankCY = 82, rankR = 36
     const rankGrad = ctx.createLinearGradient(rankCX - rankR, rankCY - rankR, rankCX + rankR, rankCY + rankR)
-    rankGrad.addColorStop(0, '#F9B318'); rankGrad.addColorStop(1, '#8F5E00')
+    rankGrad.addColorStop(0, '#F9B318'); rankGrad.addColorStop(1, '#995C00')
     ctx.fillStyle = rankGrad
     ctx.beginPath(); ctx.arc(rankCX, rankCY, rankR, 0, Math.PI * 2); ctx.fill()
     // Shadow ring
@@ -302,7 +302,7 @@ export default function TournamentHistoryPage() {
               </div>
               <div className="text-center">
                 <p className="text-[11px] text-gray-500">インマネ率</p>
-                <p className="text-[20px] font-bold text-[#8F5E00]">
+                <p className="text-[20px] font-bold text-[#995C00]">
                   {history.length > 0
                     ? `${Math.round((history.filter(h => h.rank && h.rank !== "-").length / history.length) * 100)}%`
                     : "0%"}
@@ -334,7 +334,7 @@ export default function TournamentHistoryPage() {
                     </p>
                   </div>
                   {rank !== "-" && (
-                    <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F9B318] to-[#8F5E00] shadow-sm flex-shrink-0">
+                    <div className="ml-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#F9B318] to-[#995C00] shadow-sm flex-shrink-0">
                       <span className="text-[13px] font-bold text-white">{rank}位</span>
                     </div>
                   )}
@@ -380,7 +380,7 @@ export default function TournamentHistoryPage() {
                       <p className="text-[11px] font-semibold text-gray-600">獲得チップ</p>
                     </div>
                     {rank !== "-" ? (
-                      <p className="text-[16px] font-bold text-[#8F5E00]">{prize.toLocaleString()}</p>
+                      <p className="text-[16px] font-bold text-[#995C00]">{prize.toLocaleString()}</p>
                     ) : (
                       <p className="text-[14px] text-label3">-</p>
                     )}
@@ -479,7 +479,7 @@ export default function TournamentHistoryPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                 <div style={{ background: isITM ? 'rgba(249,179,24,0.08)' : '#EDECE6', borderRadius: 16, padding: '16px 16px', border: isITM ? '1px solid rgba(249,179,24,0.2)' : 'none' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>獲得チップ</p>
-                  <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#8F5E00' : 'var(--label3)' }}>{isITM ? prize.toLocaleString() : '-'}</p>
+                  <p style={{ fontSize: 22, fontWeight: 800, color: isITM ? '#995C00' : 'var(--label3)' }}>{isITM ? prize.toLocaleString() : '-'}</p>
                 </div>
                 <div style={{ background: roi > 0 ? 'rgba(52,199,89,0.08)' : roi < 0 ? 'rgba(255,59,48,0.08)' : '#EDECE6', borderRadius: 16, padding: '16px 16px' }}>
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: 'var(--label3)', marginBottom: 8 }}>ROI</p>

@@ -145,7 +145,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#8F5E00', marginBottom: 8 }}>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00', marginBottom: 8 }}>
                     RR Rating
                   </p>
                   <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>

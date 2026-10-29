@@ -81,7 +81,7 @@ async function generateProfileCard(opts: {
   // Gold top bar
   const goldGrad = ctx.createLinearGradient(0, 0, W, 0)
   goldGrad.addColorStop(0, '#F9B318')
-  goldGrad.addColorStop(1, '#8F5E00')
+  goldGrad.addColorStop(1, '#995C00')
   ctx.fillStyle = goldGrad
   ctx.fillRect(0, 0, W, 5)
 
@@ -94,7 +94,7 @@ async function generateProfileCard(opts: {
   // Avatar ring
   const CX = W / 2, CY = 108, R = 46
   const ringGrad = ctx.createLinearGradient(CX - R, CY - R, CX + R, CY + R)
-  ringGrad.addColorStop(0, '#F9B318'); ringGrad.addColorStop(1, '#8F5E00')
+  ringGrad.addColorStop(0, '#F9B318'); ringGrad.addColorStop(1, '#995C00')
   ctx.strokeStyle = ringGrad; ctx.lineWidth = 3
   ctx.beginPath(); ctx.arc(CX, CY, R + 3, 0, Math.PI * 2); ctx.stroke()
 
@@ -731,7 +731,7 @@ export default function MyPage() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
-                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(249,179,24,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(249,179,24,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#8F5E00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
+                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(249,179,24,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(249,179,24,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#995C00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
                     {opt}
                   </button>
                 ))}

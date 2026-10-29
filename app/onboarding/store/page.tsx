@@ -214,7 +214,7 @@ export default function StoreOnboardingPage() {
     <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold: #F9B318; --gold-dk: #8F5E00;
+          --gold: #F9B318; --gold-dk: #995C00;
           --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --red: #FF3B30;
         }
@@ -314,7 +314,7 @@ export default function StoreOnboardingPage() {
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#8F5E00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
 
           <h1 style={{ fontSize: 23, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1.3, position: 'relative', zIndex: 1 }}>

@@ -356,7 +356,7 @@ export default function StoreRegisterPage() {
           )}
 
           <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, textAlign: 'center' }}>
-            {t('storeRegister.privacyNotice')}<a href="/privacy" className="hit-44" target="_blank" rel="noopener noreferrer" style={{ color: '#8F5E00', fontWeight: 700 }}>{t('common.privacyPolicy')}</a>{t('storeRegister.privacyNoticeSuffix')}
+            {t('storeRegister.privacyNotice')}<a href="/privacy" className="hit-44" target="_blank" rel="noopener noreferrer" style={{ color: '#995C00', fontWeight: 700 }}>{t('common.privacyPolicy')}</a>{t('storeRegister.privacyNoticeSuffix')}
           </p>
 
           <button className={`sr-btn${success ? ' success-state' : ''}`} onClick={handleRegister} disabled={isLoading}>

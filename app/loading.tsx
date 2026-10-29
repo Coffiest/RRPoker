@@ -32,7 +32,7 @@ export default function Loading() {
 
         <div className="mt-4 flex items-center justify-between">
           <span className="tech-label text-label3">状態</span>
-          <span className="tech-label text-[#8F5E00]">LOADING</span>
+          <span className="tech-label text-[#995C00]">LOADING</span>
         </div>
       </div>
     </div>

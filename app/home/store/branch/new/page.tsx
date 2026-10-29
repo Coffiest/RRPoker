@@ -150,7 +150,7 @@ export default function BranchStorePage() {
   return (
     <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
       <style>{`
-        :root { --gold:#F9B318; --gold-dk:#8F5E00; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
+        :root { --gold:#F9B318; --gold-dk:#995C00; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
         @keyframes spin { to { transform:rotate(360deg); } }
         .bs-field { position:relative; display:flex; align-items:center; background:#EDECE6; border:1.5px solid var(--sep); border-radius:14px; transition:border-color .18s,box-shadow .18s,background .18s; overflow:hidden; }
         .bs-field:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(249,179,24,0.12); background:white; }
@@ -178,7 +178,7 @@ export default function BranchStorePage() {
 
         {/* 説明 */}
         <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
-          <p style={{ fontSize: 13, color: '#8F5E00', fontWeight: 600, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: '#995C00', fontWeight: 600, lineHeight: 1.6 }}>
             系列店は同一ログインアカウントで管理できます。プレイヤーの店内通貨は全系列店で共有されます。
           </p>
         </div>
