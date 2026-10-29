@@ -11,6 +11,10 @@
    配色は既存テーマ（白基調・グレー階層・#F9B318 ゴールド）から一切追加しない。
    ========================================================================== */
 
+/* 画面上端(時計・電池の帯)は白いヘッダーと同じ白にする。中身の地のベージュは body が敷く */
+html { background: #fff; }
+body { background: var(--background); min-height: 100dvh; }
+
 html, body {
   touch-action: manipulation;
   overscroll-behavior: none;

@@ -185,7 +185,7 @@ export default function VerifyEmailPage() {
 
       {/* ── Header（ロゴのみ・HomeHeader準拠） ── */}
       <header className="sticky top-0 z-50 border-b"
-        style={{ background:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:'rgba(60,60,67,0.07)', position:'relative', zIndex:50 }}
+        style={{ paddingTop:"env(safe-area-inset-top, 0px)", background:'rgba(255,255,255,0.9)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:'rgba(60,60,67,0.07)', position:'relative', zIndex:50 }}
       >
         <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center' }}>
           <button type="button" onClick={() => router.push('/')}

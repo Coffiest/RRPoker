@@ -299,7 +299,7 @@ export default function RegisterPage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-50 border-b"
-        style={{ background:headerElevated?'rgba(255,255,255,0.96)':'rgba(255,255,255,0.88)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:headerElevated?'rgba(60,60,67,0.12)':'rgba(60,60,67,0.05)', transition:'background .2s, border-color .2s', position:'relative', zIndex:50 }}
+        style={{ paddingTop:"env(safe-area-inset-top, 0px)", background:headerElevated?'rgba(255,255,255,0.96)':'rgba(255,255,255,0.88)', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)', borderBottomColor:headerElevated?'rgba(60,60,67,0.12)':'rgba(60,60,67,0.05)', transition:'background .2s, border-color .2s', position:'relative', zIndex:50 }}
       >
         <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <button type="button" onClick={() => router.push('/')}

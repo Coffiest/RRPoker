@@ -191,7 +191,7 @@ export default function StoreRegisterPage() {
 
 
       {/* ヘッダー */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.18)' }}>
+      <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.18)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button type="button" onClick={() => router.back()}
             style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#1546D9', fontSize: 14, fontWeight: 700, padding: '8px 0' }}

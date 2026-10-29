@@ -259,7 +259,7 @@ export default function HomeHeader({
 	// ヘッダーは白のまま。方眼は背景(TechBackdrop)が受け持つ。
 	// ここにも方眼を敷くと紙面がうるさくなり、白いヘッダーとの境目も消える。
 	return (
-		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md">
+		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
 		<style>{`html { overflow-x: hidden; }`}</style>
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-6 py-4">
 				<button

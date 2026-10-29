@@ -164,7 +164,7 @@ export default function BranchStorePage() {
         .bs-btn:disabled { opacity:.55; pointer-events:none; }
       `}</style>
 
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
+      <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 16 }}>
           <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
             <ChevronLeftIcon size={20} color="var(--label)" />

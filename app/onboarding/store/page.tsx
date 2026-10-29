@@ -287,7 +287,7 @@ export default function StoreOnboardingPage() {
       `}</style>
 
       {/* ヘッダー */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
+      <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)' }}>RRPOKER</span>

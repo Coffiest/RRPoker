@@ -250,7 +250,7 @@ export default function TopPage() {
       ════════════════════════════════ */}
       <header
         className="sticky top-0 z-50 border-b border-gray-100"
-        style={{
+        style={{ paddingTop:"env(safe-area-inset-top, 0px)",
           background: headerElevated ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.9)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',

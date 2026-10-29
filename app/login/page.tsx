@@ -404,7 +404,7 @@ export default function LoginPage() {
       ════════════════════════════════════ */}
       <header
         className="sticky top-0 z-50 border-b"
-        style={{
+        style={{ paddingTop:"env(safe-area-inset-top, 0px)",
           background: headerElevated ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.88)',
           backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
           borderBottomColor: headerElevated ? 'rgba(60,60,67,0.12)' : 'rgba(60,60,67,0.05)',

@@ -21,6 +21,7 @@ import { isSubscriptionActive } from "@/lib/subscription-client"
 import { isNativeApp } from "@/lib/platform"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 import AppleSheet from "@/components/AppleSheet"
+import { createPortal } from "react-dom"
 import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
 import TechBackdrop from "@/components/TechBackdrop"
 import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
@@ -373,6 +374,14 @@ export default function StorePage() {
   const [ownedStores, setOwnedStores] = useState<OwnedStore[]>([])
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [showStorePicker, setShowStorePicker] = useState(false)
+  // 店舗切替メニューは、後ろのカード(動きの指定で重なり順が別になる)に隠れないよう body 直下に出す
+  const headerCardRef = useRef<HTMLDivElement>(null)
+  const [pickerTop, setPickerTop] = useState(0)
+  useEffect(() => {
+    if (!showStorePicker) return
+    const r = headerCardRef.current?.getBoundingClientRect()
+    if (r) setPickerTop(r.top + 76)
+  }, [showStorePicker])
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
   const cardTouchStartX = useRef(0)
   const cardTouchStartY = useRef(0)
@@ -1081,7 +1090,7 @@ export default function StorePage() {
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
         {/* ── Store Header Card ── */}
-        <div className="su d0" style={{ marginTop: 16, position: 'relative' }}>
+        <div ref={headerCardRef} className="su d0" style={{ marginTop: 16, position: 'relative' }}>
           <div
             className="ios-card"
             style={{ overflow: 'hidden' }}
@@ -1185,10 +1194,10 @@ export default function StorePage() {
           </div>
 
           {/* ── 長押しポップオーバー ── */}
-          {showStorePicker && (
+          {showStorePicker && typeof document !== 'undefined' && createPortal(
             <>
-              <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setShowStorePicker(false)}/>
-              <div className="a-dialog" style={{ position: 'absolute', top: 76, left: 16, zIndex: 101, padding: 16, minWidth: 220, transformOrigin: 'top left', animation: 'aDialogIn 280ms cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 1500 }} onClick={() => setShowStorePicker(false)}/>
+              <div className="a-dialog" style={{ position: 'fixed', top: pickerTop, left: 'max(16px, calc(50% - 224px))', zIndex: 1501, padding: 16, minWidth: 220, transformOrigin: 'top left', animation: 'aDialogIn 280ms cubic-bezier(0.2, 0.9, 0.3, 1) both' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {ownedStores.map(s => (
@@ -1213,7 +1222,8 @@ export default function StorePage() {
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>系列店を追加</p>
                 </button>
               </div>
-            </>
+            </>,
+            document.body,
           )}
         </div>
 
