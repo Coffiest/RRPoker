@@ -95,7 +95,7 @@ export default function StoreRegisterPage() {
             <strong style={{ color: 'var(--label)' }}>{email}</strong> 宛に確認メールを送信しました。<br />
             メール内のリンクをクリックしてアカウントを有効化してください。
           </p>
-          <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24, textAlign: 'left' }}>
+          <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24, textAlign: 'left' }}>
             <p style={{ fontSize: 12, color: 'rgba(249,179,24,0.85)', fontWeight: 600, lineHeight: 1.7 }}>
               メールが届かない場合は迷惑メールフォルダをご確認ください。<br />
               メール認証後、ログインすると店舗情報の登録に進みます。
@@ -218,7 +218,7 @@ export default function StoreRegisterPage() {
           </div>
 
           {/* 店舗専用ラベル */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.12)', border: '1px solid rgba(249,179,24,0.3)', borderRadius: 99, padding: '8px 16px', marginBottom: 16 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.12)', border: '1px solid rgba(21,70,217,0.3)', borderRadius: 99, padding: '8px 16px', marginBottom: 16 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block', boxShadow: '0 0 6px rgba(249,179,24,0.8)' }} />
             <span style={{ fontSize: 9.5, fontWeight: 800, color: '#F9B318', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗専用アカウント登録</span>
           </div>
@@ -392,7 +392,7 @@ export default function StoreRegisterPage() {
             { icon: <TimerIcon size={20} color="#F9B318" />, title: 'ブラインドタイマー', desc: 'プリセット管理付きのスマートタイマー' },
           ].map((f, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 0', borderBottom: i < 3 ? '1px solid rgba(60,60,67,0.18)' : 'none' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
+              <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{f.icon}</div>
               <div>
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>{f.title}</p>
                 <p style={{ fontSize: 9.5, color: 'var(--label2)', marginTop: 2 }}>{f.desc}</p>

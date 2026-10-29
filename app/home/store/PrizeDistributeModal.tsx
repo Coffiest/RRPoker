@@ -480,7 +480,7 @@ for (const p of payouts) {
           ) : (
             <>
               {/* Prize Pool カード */}
-              <div style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF3CC)', border: '1px solid rgba(249,179,24,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
+              <div style={{ background: 'linear-gradient(135deg,#F7F1E3,#FFF3CC)', border: '1px solid rgba(21,70,217,0.22)', borderRadius: 18, padding: '16px 16px', marginBottom: 16 }}>
                 <p style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#995C00', marginBottom: 8 }}>賞金総額</p>
                 <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
@@ -528,7 +528,7 @@ for (const p of payouts) {
                           value={r.text}
                           onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
                           placeholder="景品・メモ"
-                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(249,179,24,0.3)', background: '#fff', padding: '0 16px', fontSize: 11, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                          style={{ width: '100%', height: 44, borderRadius: 10, border: '1.5px solid rgba(21,70,217,0.3)', background: '#fff', padding: '0 16px', fontSize: 11, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
                         />
                       </div>
                     )}

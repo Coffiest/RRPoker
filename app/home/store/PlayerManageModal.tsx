@@ -510,7 +510,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           const totalLen = curStr.length + buyStr.length + feeStr.length + finStr.length
                           const wrap = totalLen > 18
                           return (
-                            <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
+                            <div style={{ background: 'linear-gradient(135deg,rgba(249,179,24,0.08),rgba(249,179,24,0.12))', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 12, padding: '8px 16px', marginBottom: 8 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
                                 <span style={{ fontSize: 9.5, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 0 }}>BALANCE</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>

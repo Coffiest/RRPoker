@@ -232,13 +232,13 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>BLIND</span>
-            <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1C1C1E' }}>
+            <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1546D9' }}>
               {sb == null ? '—' : sb.toLocaleString()} / {bb == null ? '—' : bb.toLocaleString()}
             </span>
           </span>
           <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>ANTE</span>
-            <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1C1C1E' }}>
+            <span className="tech-num" style={{ fontSize: 17, fontWeight: 800, color: '#1546D9' }}>
               {ante == null ? '—' : ante.toLocaleString()}
             </span>
           </span>
@@ -267,7 +267,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
             <p className="tech-label tech-label-bracket" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 3 }}>
               {item.label}
             </p>
-            <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>
+            <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1546D9' }}>
               <KineticNumber value={item.n} format={item.fmt} signal={item.signal} />
             </p>
           </div>

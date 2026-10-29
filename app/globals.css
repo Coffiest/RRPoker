@@ -745,7 +745,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   transition: background-color 280ms var(--a-spring);
 }
-.a-switch[aria-checked="true"] { background: #34C759 }
+.a-switch[aria-checked="true"] { background: var(--cobalt) } /* 選択中は差し色の青 */
 .a-switch::after {
   content: "";
   position: absolute;
@@ -1241,3 +1241,6 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-switch::before { content: ''; position: absolute; inset: -7px -4px }
 .hit-44 { position: relative }
 .hit-44::after { content: ''; position: absolute; inset: -15px -4px }
+
+/* 差し色の青(オーナー指示): 数字・選択中の状態 */
+.tech-num { color: var(--cobalt); }

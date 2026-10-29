@@ -150,7 +150,7 @@ export default function UserWelcomePage() {
         }
         .feature-item.active {
           background: linear-gradient(135deg,#F7F1E3 0%,#EDECE6 100%);
-          border-color: rgba(249,179,24,0.35);
+          border-color: rgba(21,70,217,0.35);
           box-shadow: 0 2px 10px rgba(249,179,24,0.1);
         }
         .tip-box {
@@ -254,7 +254,7 @@ export default function UserWelcomePage() {
             className="rounded-2xl px-4 py-4 flex items-start gap-2"
             style={{
               background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)',
-              border: '1px solid rgba(249,179,24,0.2)',
+              border: '1px solid rgba(21,70,217,0.2)',
             }}
           >
             <CircleAlertIcon size={15} color="#F9B318" className="mt-0.5 flex-shrink-0" />

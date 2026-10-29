@@ -127,7 +127,7 @@ export default function PlayerBottomNav() {
           width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: L.itemGap,
           padding: 0, overflow: 'hidden',
-          color: isActive ? '#F9B318' : '#3C3C43',
+          color: isActive ? '#1546D9' : '#3C3C43',
           fontWeight: isActive ? 700 : 400,
         }}
       >

@@ -306,9 +306,9 @@ export default function TopPage() {
         </div>
         <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
           <button onClick={() => { setMenuOpen(false); router.push('/login') }}
-            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(249,179,24,0.4)', background:'rgba(249,179,24,0.06)', padding:'16px 16px', textAlign:'left', fontSize:12, fontWeight:700, color:'#995C00', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
+            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(21,70,217,0.4)', background:'rgba(249,179,24,0.06)', padding:'16px 16px', textAlign:'left', fontSize:12, fontWeight:700, color:'#995C00', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
           >
-            <LogInIcon size={15} color="#995C00" />
+            <LogInIcon size={15} color="#1546D9" />
             ログイン / 新規登録
           </button>
           {['このアプリについて', 'RR Ratingとは？', 'よくある質問'].map(label => (

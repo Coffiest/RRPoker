@@ -117,7 +117,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                   width: 84, height: 84, borderRadius: '50%',
                   overflow: 'hidden', background: '#EDECE6',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '3px solid rgba(249,179,24,0.25)',
+                  border: '3px solid rgba(21,70,217,0.25)',
                   flexShrink: 0,
                 }}>
                   {player.iconUrl
@@ -138,7 +138,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
               {/* ── RR Rating カード */}
               <div style={{
                 background: 'linear-gradient(135deg, #F7F1E3, #FFF3CC)',
-                border: '1px solid rgba(249,179,24,0.25)',
+                border: '1px solid rgba(21,70,217,0.25)',
                 borderRadius: 20,
                 padding: '16px 24px',
                 marginBottom: 16,
@@ -148,7 +148,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: '#995C00', marginBottom: 8 }}>
                     RR Rating
                   </p>
-                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>
+                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1546D9', letterSpacing: '-1px', lineHeight: 1 }}>
                     {rrDisplay}
                   </p>
                 </div>
@@ -176,7 +176,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     <p style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 8 }}>
                       {label}
                     </p>
-                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
+                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1546D9', letterSpacing: '-0.4px' }}>
                       {value}
                     </p>
                   </div>

@@ -865,7 +865,7 @@ export default function StorePage() {
 
   if (role === null) return (
     <div style={{ minHeight: '100dvh', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(249,179,24,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
+      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(21,70,217,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
     </div>
   )
   if (role !== "store") return null
@@ -946,7 +946,7 @@ export default function StorePage() {
         /* Gold accent line */
         .gold-line {
           height:3px;
-          background:#F9B318;
+          background:#1546D9;
           background-size:200% auto;
           animation:shimmer 3s linear infinite;
         }
@@ -975,7 +975,7 @@ export default function StorePage() {
 
         /* Outline btn */
         .btn-outline-gold {
-          background:#fff; border:1.5px solid rgba(249,179,24,0.45); color:#995C00;
+          background:#fff; border:1.5px solid rgba(21,70,217,0.45); color:#995C00;
         }
 
         /* Danger btn */
@@ -1653,7 +1653,7 @@ export default function StorePage() {
                     ))}
                   </div>
                   {withdrawOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--label)', fontWeight: 500 }}>
                         <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する
@@ -1715,7 +1715,7 @@ export default function StorePage() {
                     ))}
                   </div>
                   {depositOtherOpenId === req.id && (
-                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(249,179,24,0.07)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--label)', fontWeight: 500 }}>
                         <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F9B318' }}/>
                         純増する

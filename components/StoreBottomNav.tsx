@@ -55,7 +55,7 @@ export default function StoreBottomNav() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const col = (tab: ActiveTab) => ({
-    color: activeTab === tab ? '#F9B318' : '#3C3C43',
+    color: activeTab === tab ? '#1546D9' : '#3C3C43',
     fontWeight: activeTab === tab ? 700 : 400,
   })
 

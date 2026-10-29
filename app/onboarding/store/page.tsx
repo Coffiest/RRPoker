@@ -312,7 +312,7 @@ export default function StoreOnboardingPage() {
             <HouseIcon size={30} color="white" />
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
             <span style={{ fontSize: 9.5, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
@@ -371,7 +371,7 @@ export default function StoreOnboardingPage() {
           </div>
 
           {/* 住所は任意 */}
-          <p style={{ fontSize: 9.5, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.25)', borderRadius: 12, padding: '8px 16px' }}>
+          <p style={{ fontSize: 9.5, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 12, padding: '8px 16px' }}>
             {t('storeOnboarding.addressOptionalNote')}
           </p>
 

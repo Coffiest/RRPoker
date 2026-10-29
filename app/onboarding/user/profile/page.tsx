@@ -493,7 +493,7 @@ export default function UserProfileOnboardingPage() {
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(249,179,24,0.25)' }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(21,70,217,0.25)' }}>
                 <p className="text-[12px] font-semibold mb-2" style={{ color: '#804D00' }}>Player ID とは？</p>
                 <ul className="space-y-2">
                   {[

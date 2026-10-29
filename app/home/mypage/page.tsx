@@ -641,7 +641,7 @@ export default function MyPage() {
                 </button>
               </div>
             ) : (
-              <p className="tech-num" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E' }}>{profile.birthday}</p>
+              <p className="tech-num" style={{ fontSize: 15, fontWeight: 600, color: '#1546D9' }}>{profile.birthday}</p>
             )}
             {!profile.birthday && <p style={{ fontSize: 9.5, color: '#7A2020', marginTop: 8 }}>※一度設定すると変更できません</p>}
           </div>

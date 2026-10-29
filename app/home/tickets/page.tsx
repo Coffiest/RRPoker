@@ -401,7 +401,7 @@ export default function TicketsPage() {
             <div style={{ width: 36, height: 4, borderRadius: 99, background: "#D1D1D6", margin: "0 auto 24px" }} />
 
             <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(249,179,24,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <CreditCardIcon size={26} color="#995C00" />
+              <CreditCardIcon size={26} color="#1546D9" />
             </div>
             <p className="font-display" style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
               {selectedCoupon.name}

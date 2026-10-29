@@ -1450,14 +1450,14 @@ const medalClass = (rank: number) => {
         /* ── ストアバッジ ── */
         .store-badge {
           background: linear-gradient(145deg,rgba(249,179,24,0.08) 0%,rgba(249,179,24,0.03) 100%);
-          border: 1.5px solid rgba(249,179,24,0.2);
+          border: 1.5px solid rgba(21,70,217,0.2);
         }
 
         /* ── RR ── */
         .rr-board {
           position:relative;
           background: linear-gradient(145deg,#EDECE6 0%,#F7F1E3 100%);
-          border: 1px solid rgba(249,179,24,0.15);
+          border: 1px solid rgba(21,70,217,0.15);
           border-radius: 28px;
           padding: 24px;
           box-shadow: 0 2px 8px rgba(249,179,24,0.08), 0 12px 32px rgba(249,179,24,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
@@ -1478,14 +1478,14 @@ const medalClass = (rank: number) => {
         }
         .rr-ranking-item {
           background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-          border:1px solid rgba(249,179,24,0.1); border-radius:16px; padding:16px 16px;
+          border:1px solid rgba(21,70,217,0.1); border-radius:16px; padding:16px 16px;
           box-shadow:0 1px 3px rgba(249,179,24,0.08),inset 0 1px 0 rgba(255,255,255,1);
           transition:transform 0.2s cubic-bezier(0.4,0,0.2,1), opacity 0.2s cubic-bezier(0.4,0,0.2,1), background-color 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1), color 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1);
         }
-        .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(249,179,24,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(249,179,24,0.2); }
+        .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(249,179,24,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(21,70,217,0.2); }
         .rr-my-entry {
           background:linear-gradient(135deg,#EDECE6 0%,#FFF4E0 100%);
-          border:1.5px solid rgba(249,179,24,0.3); border-radius:16px; padding:16px 16px;
+          border:1.5px solid rgba(21,70,217,0.3); border-radius:16px; padding:16px 16px;
           box-shadow:0 2px 8px rgba(249,179,24,0.12),inset 0 1px 0 rgba(255,255,255,0.9);
         }
 
@@ -1584,7 +1584,7 @@ const medalClass = (rank: number) => {
         /* ── 追加ユーティリティ ── */
         .divider-gold { height:1px; background:linear-gradient(90deg,transparent,rgba(249,179,24,0.2),transparent); }
         .stat-chip {
-          background:#fff; border:1px solid rgba(249,179,24,0.18);
+          background:#fff; border:1px solid rgba(21,70,217,0.18);
           border-radius:16px; padding:16px 16px;
           box-shadow:0 1px 4px rgba(249,179,24,0.06);
         }
@@ -1774,7 +1774,7 @@ const medalClass = (rank: number) => {
                       {s.deltaFmt(s.deltaVal)}
                     </span>
                   )}
-                  <span className="tech-num" style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{s.value}</span>
+                  <span className="tech-num" style={{ fontSize: 14, fontWeight: 600, color: '#1546D9' }}>{s.value}</span>
                 </li>
               ))}
               <li>
@@ -1783,7 +1783,7 @@ const medalClass = (rank: number) => {
                     if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
                     setIsRankingModalOpen(true)
                   }}>
-                  <AwardIcon size={20} style={{ color: '#995C00' }} />
+                  <AwardIcon size={20} style={{ color: '#1546D9' }} />
                   <span className="tech-label" style={{ flex: 1, fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>RR RATING RANKING</span>
                   <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                 </button>
@@ -2221,7 +2221,7 @@ const medalClass = (rank: number) => {
                 const myRank = rankingTab === 'all' ? userRank : monthlyUserRank
                 if (!myRank) return null
                 return (
-                  <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)', border: '1.5px solid rgba(249,179,24,0.25)' }}>
+                  <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#F7F1E3,#EDECE6)', border: '1.5px solid rgba(21,70,217,0.25)' }}>
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9B318]/15">
                         <UserIcon className="text-[11px] text-[#995C00]" />
@@ -2382,7 +2382,7 @@ const medalClass = (rank: number) => {
                             {/* コンテンツ */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', flex: 1 }}>
                               {/* 店舗アイコン */}
-                              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#EDECE6', flexShrink: 0, border: '2px solid rgba(249,179,24,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#EDECE6', flexShrink: 0, border: '2px solid rgba(21,70,217,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {entry.storeIconUrl
                                   ? <img src={entry.storeIconUrl} alt={entry.storeName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   : <StoreIcon size={20} color="var(--label3)" />
@@ -2943,7 +2943,7 @@ const medalClass = (rank: number) => {
 
             {/* My entry (pinned) */}
             {rrMyEntry && (
-              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#EDECE6,#FFF4E0)', border: '1.5px solid rgba(249,179,24,0.3)', borderRadius: 16, padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#EDECE6,#FFF4E0)', border: '1.5px solid rgba(21,70,217,0.3)', borderRadius: 16, padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F9B318', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     {profile.iconUrl ? <img src={profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <UserIcon style={{ color: '#F9B318', fontSize: 12 }} />}

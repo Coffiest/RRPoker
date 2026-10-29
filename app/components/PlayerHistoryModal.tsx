@@ -172,7 +172,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {isAdd
-                      ? <ArrowUpIcon size={15} style={{ color: '#995C00' }}/>
+                      ? <ArrowUpIcon size={15} style={{ color: '#1546D9' }}/>
                       : <ArrowDownIcon size={15} style={{ color: 'var(--label3)' }}/>
                     }
                   </div>

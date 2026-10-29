@@ -177,7 +177,7 @@ export default function BranchStorePage() {
       <div style={{ maxWidth: 440, margin: '0 auto', padding: '16px 24px 64px' }}>
 
         {/* 説明 */}
-        <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(249,179,24,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
+        <div style={{ background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(21,70,217,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
           <p style={{ fontSize: 13, color: '#995C00', fontWeight: 600, lineHeight: 1.6 }}>
             系列店は同一ログインアカウントで管理できます。プレイヤーの店内通貨は全系列店で共有されます。
           </p>

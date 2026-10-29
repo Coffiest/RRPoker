@@ -224,8 +224,8 @@ export default function VerifyEmailPage() {
               <span className="shimmer-text">送信しました</span>
             </h1>
             {email && (
-              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(249,179,24,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
-                <MailIcon size={12} color="#995C00" />
+              <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(249,179,24,0.08)', border:'1px solid rgba(21,70,217,0.2)', borderRadius:99, padding:'8px 16px', marginTop:8 }}>
+                <MailIcon size={12} color="#1546D9" />
                 <span style={{ fontSize:12, fontWeight:600, color:'#995C00', letterSpacing:'-0.1px' }}>{email}</span>
               </div>
             )}
