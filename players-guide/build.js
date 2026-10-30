@@ -46,13 +46,13 @@ const schedule = `
 <section class="page">
   ${header('EVENT SCHEDULE', `${D.event.date} &nbsp;FUKUOKA`)}
   <table class="sched">
-    <thead><tr><th>START</th><th>CLOSE</th><th>NO</th><th>TOURNAMENT</th><th>ENTRY</th><th>STACK</th></tr></thead>
+    <thead><tr><th>START</th><th>CLOSE</th><th>NO</th><th>TOURNAMENT</th><th>ENTRY 学生/一般</th><th>STACK</th></tr></thead>
   </table>
   <div class="day">${D.event.dayLabel} <span>${D.event.dow}</span></div>
   <table class="sched">
-    <tbody>${D.schedule.map((r) => `<tr class="${r.main ? 'hl' : ''}"><td>${r.start}</td><td>${r.close}</td><td>${r.no}</td><td class="nm">${r.name}</td><td>${r.entry}</td><td>${r.stack}</td></tr>`).join('')}</tbody>
+    <tbody>${D.schedule.map((r) => `<tr class="${r.main ? 'hl' : ''}"><td>${r.start}</td><td>${r.close}</td><td>${r.no}</td><td class="nm">${r.name}</td><td>${r.entry}${r.note ? `<small class="cap">${r.note}</small>` : ''}</td><td>${r.stack}</td></tr>`).join('')}</tbody>
   </table>
-  <p class="note">CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
   <div class="venue-box">
     <div><span class="pill">VENUE</span><b>${D.event.venue}</b><small>${D.event.address}</small></div>
   </div>
@@ -89,17 +89,18 @@ const tPage = (t) => {
       <tbody>${blindRows(t)}</tbody>
     </table>
     <aside>
-      <div class="big">Entry : ${t.entry}</div>
+      <div class="big">Entry</div>
+      <table class="prize entry">${t.entry.all ? `<tr><th>All</th><td>${yen(t.entry.all)}</td></tr>` : `<tr><th>学生</th><td>${yen(t.entry.student)}</td></tr><tr><th>一般</th><td>${yen(t.entry.adult)}</td></tr>`}</table>
       <dl>
         <dt>Starting Chips</dt><dd>${n(t.chips)} <small>(${t.stackBB})</small></dd>
-        <dt>Late Reg</dt><dd>${rcTime}</dd>
+        <dt>Late Reg</dt><dd>${rcTime}</dd>${t.cap ? `<dt>Cap</dt><dd>${t.cap}</dd>` : ''}
       </dl>
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>${yen(t.prize.total)}</td></tr>
-        <tr><th>In Prize</th><td>${t.prize.places.length}${['', 'st', 'nd', 'rd'][t.prize.places.length] || 'th'}</td></tr>
+        <tr><th>In Money</th><td>${t.prize.inMoney}${['', 'st', 'nd', 'rd'][t.prize.inMoney] || 'th'}</td></tr>
       </table>
-      <table class="places">${t.prize.places.map((p) => `<tr><th>${p[0]}</th><td>${p[1]}${p[2] ? '<span class="tro">+ Trophy</span>' : ''}</td></tr>`).join('')}</table>
+      <table class="places">${t.prize.places.map((p) => `<tr><th>${p[0]}</th><td>${p[1].replace(/PokerART Platinum 1ヶ月/, '<span class="plat">PokerART Platinum 1ヶ月</span>')}${p[2] ? '<span class="tro">+ Trophy</span>' : ''}</td></tr>`).join('')}</table>
     </aside>
   </div>
 </section>`;
@@ -161,15 +162,21 @@ table { border-collapse: collapse; width: 100%; }
 .blind tr.brk td { background: rgba(255,255,255,.18); font-size: 10.5px; letter-spacing: .08em; padding: 1.5px 0; }
 .blind tr.brk.rc td { background: var(--dark); color: var(--cream); }
 aside .big { font-family: Anton; font-size: 30px; margin: 0 0 3mm; }
-aside dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 9mm; }
+aside dl { margin-top: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 9mm; }
 aside dt { color: var(--dark); }
 aside dd small { font-size: 12px; }
 .prize th, .places th { text-align: left; font-size: 15px; padding: 7px 10px; background: rgba(36,16,10,.6); width: 40%; }
 .prize td, .places td { font-size: 18px; font-weight: 700; padding: 7px 10px; border-bottom: 2px solid #fff; }
 .prize tr:first-child td, .prize tr:first-child th { border-top: 3px solid #fff; }
 .places { margin-top: 5mm; }
-.places th { background: transparent; color: var(--dark); border-bottom: 1px solid rgba(255,255,255,.5); }
+.places th { background: transparent; color: var(--cream); border-bottom: 1px solid rgba(255,255,255,.5); }
 .places td { border-bottom: 1px solid rgba(255,255,255,.5); }
+.entry { margin-bottom: 7mm; }
+.entry th { font-family: 'Noto Sans JP'; }
+.plat { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--dark); background: #fff; border-radius: 4px; padding: 1px 6px; }
+.places td { font-size: 15px; }
+.places th, .places td { padding: 5px 10px; }
+.cap { display: block; font-size: 10px; color: var(--cream); font-family: 'Noto Sans JP'; }
 .tro { font-size: 11px; color: var(--dark); background: var(--cream); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 </style></head><body>
 ${cover}${schedule}${D.tournaments.map(tPage).join('')}

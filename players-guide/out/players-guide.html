@@ -54,15 +54,21 @@ table { border-collapse: collapse; width: 100%; }
 .blind tr.brk td { background: rgba(255,255,255,.18); font-size: 10.5px; letter-spacing: .08em; padding: 1.5px 0; }
 .blind tr.brk.rc td { background: var(--dark); color: var(--cream); }
 aside .big { font-family: Anton; font-size: 30px; margin: 0 0 3mm; }
-aside dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 9mm; }
+aside dl { margin-top: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 9mm; }
 aside dt { color: var(--dark); }
 aside dd small { font-size: 12px; }
 .prize th, .places th { text-align: left; font-size: 15px; padding: 7px 10px; background: rgba(36,16,10,.6); width: 40%; }
 .prize td, .places td { font-size: 18px; font-weight: 700; padding: 7px 10px; border-bottom: 2px solid #fff; }
 .prize tr:first-child td, .prize tr:first-child th { border-top: 3px solid #fff; }
 .places { margin-top: 5mm; }
-.places th { background: transparent; color: var(--dark); border-bottom: 1px solid rgba(255,255,255,.5); }
+.places th { background: transparent; color: var(--cream); border-bottom: 1px solid rgba(255,255,255,.5); }
 .places td { border-bottom: 1px solid rgba(255,255,255,.5); }
+.entry { margin-bottom: 7mm; }
+.entry th { font-family: 'Noto Sans JP'; }
+.plat { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--dark); background: #fff; border-radius: 4px; padding: 1px 6px; }
+.places td { font-size: 15px; }
+.places th, .places td { padding: 5px 10px; }
+.cap { display: block; font-size: 10px; color: var(--cream); font-family: 'Noto Sans JP'; }
 .tro { font-size: 11px; color: var(--dark); background: var(--cream); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 </style></head><body>
 
@@ -97,13 +103,13 @@ aside dd small { font-size: 12px; }
 </div></div>
 </header>
   <table class="sched">
-    <thead><tr><th>START</th><th>CLOSE</th><th>NO</th><th>TOURNAMENT</th><th>ENTRY</th><th>STACK</th></tr></thead>
+    <thead><tr><th>START</th><th>CLOSE</th><th>NO</th><th>TOURNAMENT</th><th>ENTRY 学生/一般</th><th>STACK</th></tr></thead>
   </table>
   <div class="day">11/7 <span>sat</span></div>
   <table class="sched">
-    <tbody><tr class=""><td>11:00</td><td>14:10</td><td>#2</td><td class="nm">High Roller</td><td>¥1,500</td><td>150BB</td></tr><tr class="hl"><td>11:00</td><td>17:15</td><td>#1</td><td class="nm">Main Event</td><td>¥300</td><td>250BB</td></tr><tr class=""><td>18:00</td><td>20:05</td><td>#3</td><td class="nm">RR Super Turbo</td><td>¥300</td><td>75BB</td></tr><tr class=""><td>20:00</td><td>20:15</td><td>#4</td><td class="nm">RR Double Stack AoF</td><td>¥300</td><td>15BB</td></tr></tbody>
+    <tbody><tr class=""><td>11:00</td><td>14:10</td><td>#2</td><td class="nm">High Roller</td><td>¥1,500 / ¥3,000<small class="cap">10名限定</small></td><td>150BB</td></tr><tr class="hl"><td>11:00</td><td>17:15</td><td>#1</td><td class="nm">Main Event</td><td>¥300 / ¥1,500</td><td>250BB</td></tr><tr class=""><td>18:00</td><td>20:05</td><td>#3</td><td class="nm">RR Super Turbo</td><td>¥300 / ¥1,500</td><td>75BB</td></tr><tr class=""><td>20:00</td><td>20:15</td><td>#4</td><td class="nm">RR Double Stack AoF</td><td>¥300 (一律)</td><td>15BB</td></tr></tbody>
   </table>
-  <p class="note">CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
   <div class="venue-box">
     <div><span class="pill">VENUE</span><b>eスタジアムコミュニティハウス福岡</b><small>福岡県福岡市中央区薬院4丁目2-11</small></div>
   </div>
@@ -128,7 +134,8 @@ aside dd small { font-size: 12px; }
       <tbody><tr><td>11:00</td><td>1</td><td>100-200</td><td>200</td><td>40</td></tr><tr><td>11:40</td><td>2</td><td>200-300</td><td>300</td><td>40</td></tr><tr><td>12:20</td><td>3</td><td>300-400</td><td>400</td><td>40</td></tr><tr class="brk "><td>13:00</td><td colspan="4">Break 5min</td></tr><tr><td>13:05</td><td>4</td><td>400-800</td><td>800</td><td>40</td></tr><tr><td>13:45</td><td>5</td><td>500-1,000</td><td>1,000</td><td>40</td></tr><tr><td>14:25</td><td>6</td><td>600-1,200</td><td>1,200</td><td>40</td></tr><tr class="brk "><td>15:05</td><td colspan="4">Break 5min</td></tr><tr><td>15:10</td><td>7</td><td>1,000-1,500</td><td>1,500</td><td>40</td></tr><tr><td>15:50</td><td>8</td><td>1,000-2,000</td><td>2,000</td><td>40</td></tr><tr><td>16:30</td><td>9</td><td>1,500-3,000</td><td>3,000</td><td>40</td></tr><tr class="brk rc"><td>17:10</td><td colspan="4">Break 5min &nbsp;/&nbsp; Registration Close</td></tr><tr><td>17:15</td><td>10</td><td>2,000-4,000</td><td>4,000</td><td>30</td></tr><tr><td>17:45</td><td>11</td><td>2,500-5,000</td><td>5,000</td><td>30</td></tr><tr><td>18:15</td><td>12</td><td>3,000-6,000</td><td>6,000</td><td>30</td></tr><tr><td>18:45</td><td>13</td><td>4,000-8,000</td><td>8,000</td><td>30</td></tr><tr class="brk "><td>19:15</td><td colspan="4">Break 5min</td></tr><tr><td>19:20</td><td>14</td><td>5,000-10,000</td><td>10,000</td><td>20</td></tr><tr><td>19:40</td><td>15</td><td>6,000-12,000</td><td>12,000</td><td>20</td></tr><tr><td>20:00</td><td>16</td><td>10,000-15,000</td><td>15,000</td><td>20</td></tr><tr><td>20:20</td><td>17</td><td>10,000-20,000</td><td>20,000</td><td>20</td></tr><tr><td>20:40</td><td>18</td><td>12,000-24,000</td><td>24,000</td><td>20</td></tr><tr><td>21:00</td><td>19</td><td>15,000-30,000</td><td>30,000</td><td>20</td></tr><tr class="brk "><td>21:20</td><td colspan="4">Break 5min</td></tr><tr><td>21:25</td><td>20</td><td>20,000-40,000</td><td>40,000</td><td>15</td></tr><tr><td>21:40</td><td>21</td><td>25,000-50,000</td><td>50,000</td><td>15</td></tr><tr><td>21:55</td><td>22</td><td>30,000-60,000</td><td>60,000</td><td>15</td></tr><tr><td>22:10</td><td>23</td><td>40,000-80,000</td><td>80,000</td><td>15</td></tr><tr><td>22:25</td><td>24</td><td>50,000-100,000</td><td>100,000</td><td>15</td></tr><tr><td>22:40</td><td>25</td><td>60,000-120,000</td><td>120,000</td><td>15</td></tr><tr><td>22:55</td><td>26</td><td>75,000-150,000</td><td>150,000</td><td>15</td></tr><tr><td>23:10</td><td>27</td><td>100,000-150,000</td><td>150,000</td><td>15</td></tr><tr class="brk "><td>23:25</td><td colspan="4">Break 5min</td></tr><tr><td>23:30</td><td>28</td><td>100,000-200,000</td><td>200,000</td><td>10</td></tr><tr><td>23:40</td><td>29</td><td>150,000-300,000</td><td>300,000</td><td>10</td></tr><tr><td>23:50</td><td>30</td><td>200,000-400,000</td><td>400,000</td><td>10</td></tr><tr><td>0:00</td><td>31</td><td>250,000-500,000</td><td>500,000</td><td>10</td></tr><tr><td>0:10</td><td>32</td><td>300,000-600,000</td><td>600,000</td><td>10</td></tr><tr><td>0:20</td><td>33</td><td>400,000-800,000</td><td>800,000</td><td>10</td></tr><tr><td>0:30</td><td>34</td><td>500,000-1,000,000</td><td>1,000,000</td><td>10</td></tr></tbody>
     </table>
     <aside>
-      <div class="big">Entry : ¥300</div>
+      <div class="big">Entry</div>
+      <table class="prize entry"><tr><th>学生</th><td>¥300</td></tr><tr><th>一般</th><td>¥1,500</td></tr></table>
       <dl>
         <dt>Starting Chips</dt><dd>50,000 <small>(250BB)</small></dd>
         <dt>Late Reg</dt><dd>17:15</dd>
@@ -136,9 +143,9 @@ aside dd small { font-size: 12px; }
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>¥20,000</td></tr>
-        <tr><th>In Prize</th><td>4th</td></tr>
+        <tr><th>In Money</th><td>4th</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥10,000<span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥5,000</td></tr><tr><th>3rd</th><td>¥3,000</td></tr><tr><th>4th</th><td>¥2,000</td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥10,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥3,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥2,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>9th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
@@ -159,20 +166,21 @@ aside dd small { font-size: 12px; }
   <div class="grid">
     <table class="blind dense">
       <thead><tr><th>Time</th><th>Lv</th><th>Blind</th><th>Ante</th><th>Min</th></tr></thead>
-      <tbody><tr><td>11:00</td><td>1</td><td>100-200</td><td>200</td><td>30</td></tr><tr><td>11:30</td><td>2</td><td>200-300</td><td>300</td><td>30</td></tr><tr><td>12:00</td><td>3</td><td>300-400</td><td>400</td><td>30</td></tr><tr class="brk "><td>12:30</td><td colspan="4">Break 5min</td></tr><tr><td>12:35</td><td>4</td><td>400-800</td><td>800</td><td>30</td></tr><tr><td>13:05</td><td>5</td><td>500-1,000</td><td>1,000</td><td>30</td></tr><tr><td>13:35</td><td>6</td><td>600-1,200</td><td>1,200</td><td>30</td></tr><tr class="brk rc"><td>14:05</td><td colspan="4">Break 5min &nbsp;/&nbsp; Registration Close</td></tr><tr><td>14:10</td><td>7</td><td>1,000-1,500</td><td>1,500</td><td>20</td></tr><tr><td>14:30</td><td>8</td><td>1,000-2,000</td><td>2,000</td><td>20</td></tr><tr><td>14:50</td><td>9</td><td>1,500-3,000</td><td>3,000</td><td>20</td></tr><tr><td>15:10</td><td>10</td><td>2,000-4,000</td><td>4,000</td><td>15</td></tr><tr><td>15:25</td><td>11</td><td>2,500-5,000</td><td>5,000</td><td>15</td></tr><tr><td>15:40</td><td>12</td><td>3,000-6,000</td><td>6,000</td><td>15</td></tr><tr><td>15:55</td><td>13</td><td>4,000-8,000</td><td>8,000</td><td>15</td></tr><tr class="brk "><td>16:10</td><td colspan="4">Break 5min</td></tr><tr><td>16:15</td><td>14</td><td>5,000-10,000</td><td>10,000</td><td>10</td></tr><tr><td>16:25</td><td>15</td><td>6,000-12,000</td><td>12,000</td><td>10</td></tr><tr><td>16:35</td><td>16</td><td>10,000-15,000</td><td>15,000</td><td>10</td></tr><tr><td>16:45</td><td>17</td><td>10,000-20,000</td><td>20,000</td><td>10</td></tr><tr><td>16:55</td><td>18</td><td>12,000-24,000</td><td>24,000</td><td>10</td></tr><tr><td>17:05</td><td>19</td><td>15,000-30,000</td><td>30,000</td><td>10</td></tr><tr><td>17:15</td><td>20</td><td>20,000-40,000</td><td>40,000</td><td>10</td></tr><tr><td>17:25</td><td>21</td><td>25,000-50,000</td><td>50,000</td><td>10</td></tr><tr><td>17:35</td><td>22</td><td>30,000-60,000</td><td>60,000</td><td>10</td></tr><tr><td>17:45</td><td>23</td><td>40,000-80,000</td><td>80,000</td><td>10</td></tr><tr><td>17:55</td><td>24</td><td>50,000-100,000</td><td>100,000</td><td>10</td></tr><tr><td>18:05</td><td>25</td><td>60,000-120,000</td><td>120,000</td><td>10</td></tr><tr class="brk "><td>18:15</td><td colspan="4">Break 5min</td></tr><tr><td>18:20</td><td>26</td><td>75,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>18:25</td><td>27</td><td>100,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>18:30</td><td>28</td><td>100,000-200,000</td><td>200,000</td><td>5</td></tr><tr><td>18:35</td><td>29</td><td>150,000-300,000</td><td>300,000</td><td>5</td></tr><tr><td>18:40</td><td>30</td><td>200,000-400,000</td><td>400,000</td><td>5</td></tr><tr><td>18:45</td><td>31</td><td>250,000-500,000</td><td>500,000</td><td>5</td></tr><tr><td>18:50</td><td>32</td><td>300,000-600,000</td><td>600,000</td><td>5</td></tr><tr><td>18:55</td><td>33</td><td>400,000-800,000</td><td>800,000</td><td>5</td></tr><tr><td>19:00</td><td>34</td><td>500,000-1,000,000</td><td>1,000,000</td><td>5</td></tr></tbody>
+      <tbody><tr><td>11:00</td><td>1</td><td>100-200</td><td>200</td><td>30</td></tr><tr><td>11:30</td><td>2</td><td>200-300</td><td>300</td><td>30</td></tr><tr><td>12:00</td><td>3</td><td>300-400</td><td>400</td><td>30</td></tr><tr class="brk "><td>12:30</td><td colspan="4">Break 5min</td></tr><tr><td>12:35</td><td>4</td><td>400-800</td><td>800</td><td>30</td></tr><tr><td>13:05</td><td>5</td><td>500-1,000</td><td>1,000</td><td>30</td></tr><tr><td>13:35</td><td>6</td><td>600-1,200</td><td>1,200</td><td>30</td></tr><tr class="brk rc"><td>14:05</td><td colspan="4">Break 5min &nbsp;/&nbsp; Registration Close</td></tr><tr><td>14:10</td><td>7</td><td>1,000-1,500</td><td>1,500</td><td>20</td></tr><tr><td>14:30</td><td>8</td><td>1,000-2,000</td><td>2,000</td><td>20</td></tr><tr><td>14:50</td><td>9</td><td>1,500-3,000</td><td>3,000</td><td>20</td></tr><tr><td>15:10</td><td>10</td><td>2,000-4,000</td><td>4,000</td><td>20</td></tr><tr><td>15:30</td><td>11</td><td>2,500-5,000</td><td>5,000</td><td>20</td></tr><tr><td>15:50</td><td>12</td><td>3,000-6,000</td><td>6,000</td><td>20</td></tr><tr><td>16:10</td><td>13</td><td>4,000-8,000</td><td>8,000</td><td>20</td></tr><tr class="brk "><td>16:30</td><td colspan="4">Break 5min</td></tr><tr><td>16:35</td><td>14</td><td>5,000-10,000</td><td>10,000</td><td>10</td></tr><tr><td>16:45</td><td>15</td><td>6,000-12,000</td><td>12,000</td><td>10</td></tr><tr><td>16:55</td><td>16</td><td>10,000-15,000</td><td>15,000</td><td>10</td></tr><tr><td>17:05</td><td>17</td><td>10,000-20,000</td><td>20,000</td><td>10</td></tr><tr><td>17:15</td><td>18</td><td>12,000-24,000</td><td>24,000</td><td>10</td></tr><tr><td>17:25</td><td>19</td><td>15,000-30,000</td><td>30,000</td><td>10</td></tr><tr><td>17:35</td><td>20</td><td>20,000-40,000</td><td>40,000</td><td>10</td></tr><tr><td>17:45</td><td>21</td><td>25,000-50,000</td><td>50,000</td><td>10</td></tr><tr><td>17:55</td><td>22</td><td>30,000-60,000</td><td>60,000</td><td>10</td></tr><tr><td>18:05</td><td>23</td><td>40,000-80,000</td><td>80,000</td><td>10</td></tr><tr><td>18:15</td><td>24</td><td>50,000-100,000</td><td>100,000</td><td>10</td></tr><tr><td>18:25</td><td>25</td><td>60,000-120,000</td><td>120,000</td><td>10</td></tr><tr class="brk "><td>18:35</td><td colspan="4">Break 5min</td></tr><tr><td>18:40</td><td>26</td><td>75,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>18:45</td><td>27</td><td>100,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>18:50</td><td>28</td><td>100,000-200,000</td><td>200,000</td><td>5</td></tr><tr><td>18:55</td><td>29</td><td>150,000-300,000</td><td>300,000</td><td>5</td></tr><tr><td>19:00</td><td>30</td><td>200,000-400,000</td><td>400,000</td><td>5</td></tr><tr><td>19:05</td><td>31</td><td>250,000-500,000</td><td>500,000</td><td>5</td></tr><tr><td>19:10</td><td>32</td><td>300,000-600,000</td><td>600,000</td><td>5</td></tr><tr><td>19:15</td><td>33</td><td>400,000-800,000</td><td>800,000</td><td>5</td></tr><tr><td>19:20</td><td>34</td><td>500,000-1,000,000</td><td>1,000,000</td><td>5</td></tr></tbody>
     </table>
     <aside>
-      <div class="big">Entry : ¥1,500</div>
+      <div class="big">Entry</div>
+      <table class="prize entry"><tr><th>学生</th><td>¥1,500</td></tr><tr><th>一般</th><td>¥3,000</td></tr></table>
       <dl>
         <dt>Starting Chips</dt><dd>30,000 <small>(150BB)</small></dd>
-        <dt>Late Reg</dt><dd>14:10</dd>
+        <dt>Late Reg</dt><dd>14:10</dd><dt>Cap</dt><dd>10名限定</dd>
       </dl>
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>¥15,000</td></tr>
-        <tr><th>In Prize</th><td>3rd</td></tr>
+        <tr><th>In Money</th><td>3rd</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥8,000<span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥4,000</td></tr><tr><th>3rd</th><td>¥2,000</td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥8,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>2nd</th><td>¥4,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥2,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
@@ -196,7 +204,8 @@ aside dd small { font-size: 12px; }
       <tbody><tr><td>18:00</td><td>1</td><td>300-400</td><td>400</td><td>20</td></tr><tr><td>18:20</td><td>2</td><td>400-800</td><td>800</td><td>20</td></tr><tr><td>18:40</td><td>3</td><td>500-1,000</td><td>1,000</td><td>20</td></tr><tr><td>19:00</td><td>4</td><td>600-1,200</td><td>1,200</td><td>20</td></tr><tr><td>19:20</td><td>5</td><td>1,000-1,500</td><td>1,500</td><td>20</td></tr><tr><td>19:40</td><td>6</td><td>1,000-2,000</td><td>2,000</td><td>20</td></tr><tr class="brk rc"><td>20:00</td><td colspan="4">Break 5min &nbsp;/&nbsp; Registration Close</td></tr><tr><td>20:05</td><td>7</td><td>1,500-3,000</td><td>3,000</td><td>10</td></tr><tr><td>20:15</td><td>8</td><td>2,000-4,000</td><td>4,000</td><td>10</td></tr><tr><td>20:25</td><td>9</td><td>2,500-5,000</td><td>5,000</td><td>10</td></tr><tr><td>20:35</td><td>10</td><td>3,000-6,000</td><td>6,000</td><td>10</td></tr><tr><td>20:45</td><td>11</td><td>4,000-8,000</td><td>8,000</td><td>10</td></tr><tr><td>20:55</td><td>12</td><td>5,000-10,000</td><td>10,000</td><td>10</td></tr><tr><td>21:05</td><td>13</td><td>6,000-12,000</td><td>12,000</td><td>8</td></tr><tr><td>21:13</td><td>14</td><td>10,000-15,000</td><td>15,000</td><td>8</td></tr><tr><td>21:21</td><td>15</td><td>10,000-20,000</td><td>20,000</td><td>8</td></tr><tr><td>21:29</td><td>16</td><td>12,000-24,000</td><td>24,000</td><td>8</td></tr><tr><td>21:37</td><td>17</td><td>15,000-30,000</td><td>30,000</td><td>8</td></tr><tr><td>21:45</td><td>18</td><td>20,000-40,000</td><td>40,000</td><td>5</td></tr><tr><td>21:50</td><td>19</td><td>25,000-50,000</td><td>50,000</td><td>5</td></tr><tr><td>21:55</td><td>20</td><td>30,000-60,000</td><td>60,000</td><td>5</td></tr><tr><td>22:00</td><td>21</td><td>40,000-80,000</td><td>80,000</td><td>5</td></tr><tr><td>22:05</td><td>22</td><td>50,000-100,000</td><td>100,000</td><td>5</td></tr><tr><td>22:10</td><td>23</td><td>60,000-120,000</td><td>120,000</td><td>5</td></tr><tr><td>22:15</td><td>24</td><td>75,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>22:20</td><td>25</td><td>100,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>22:25</td><td>26</td><td>100,000-200,000</td><td>200,000</td><td>5</td></tr><tr><td>22:30</td><td>27</td><td>150,000-300,000</td><td>300,000</td><td>5</td></tr><tr><td>22:35</td><td>28</td><td>200,000-400,000</td><td>400,000</td><td>5</td></tr><tr><td>22:40</td><td>29</td><td>250,000-500,000</td><td>500,000</td><td>5</td></tr><tr><td>22:45</td><td>30</td><td>300,000-600,000</td><td>600,000</td><td>5</td></tr><tr><td>22:50</td><td>31</td><td>400,000-800,000</td><td>800,000</td><td>5</td></tr><tr><td>22:55</td><td>32</td><td>500,000-1,000,000</td><td>1,000,000</td><td>5</td></tr></tbody>
     </table>
     <aside>
-      <div class="big">Entry : ¥300</div>
+      <div class="big">Entry</div>
+      <table class="prize entry"><tr><th>学生</th><td>¥300</td></tr><tr><th>一般</th><td>¥1,500</td></tr></table>
       <dl>
         <dt>Starting Chips</dt><dd>30,000 <small>(75BB)</small></dd>
         <dt>Late Reg</dt><dd>20:05</dd>
@@ -204,9 +213,9 @@ aside dd small { font-size: 12px; }
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>¥10,000</td></tr>
-        <tr><th>In Prize</th><td>4th</td></tr>
+        <tr><th>In Money</th><td>4th</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥5,000<span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥2,500</td></tr><tr><th>3rd</th><td>¥1,500</td></tr><tr><th>4th</th><td>¥1,000</td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>2nd</th><td>¥2,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥1,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥1,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>9th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
@@ -230,7 +239,8 @@ aside dd small { font-size: 12px; }
       <tbody><tr><td>20:00</td><td>1</td><td>1,000-2,000</td><td>2,000</td><td>5</td></tr><tr><td>20:05</td><td>2</td><td>1,500-3,000</td><td>3,000</td><td>5</td></tr><tr><td>20:10</td><td>3</td><td>2,000-4,000</td><td>4,000</td><td>5</td></tr><tr><td>20:15</td><td>4</td><td>2,500-5,000</td><td>5,000</td><td>5</td></tr><tr><td>20:20</td><td>5</td><td>3,000-6,000</td><td>6,000</td><td>5</td></tr><tr><td>20:25</td><td>6</td><td>4,000-8,000</td><td>8,000</td><td>5</td></tr><tr><td>20:30</td><td>7</td><td>5,000-10,000</td><td>10,000</td><td>5</td></tr><tr><td>20:35</td><td>8</td><td>6,000-12,000</td><td>12,000</td><td>5</td></tr><tr><td>20:40</td><td>9</td><td>10,000-15,000</td><td>15,000</td><td>5</td></tr><tr><td>20:45</td><td>10</td><td>10,000-20,000</td><td>20,000</td><td>5</td></tr><tr><td>20:50</td><td>11</td><td>12,000-24,000</td><td>24,000</td><td>5</td></tr><tr><td>20:55</td><td>12</td><td>15,000-30,000</td><td>30,000</td><td>5</td></tr><tr><td>21:00</td><td>13</td><td>20,000-40,000</td><td>40,000</td><td>5</td></tr><tr><td>21:05</td><td>14</td><td>25,000-50,000</td><td>50,000</td><td>5</td></tr><tr><td>21:10</td><td>15</td><td>30,000-60,000</td><td>60,000</td><td>5</td></tr><tr><td>21:15</td><td>16</td><td>40,000-80,000</td><td>80,000</td><td>5</td></tr><tr><td>21:20</td><td>17</td><td>50,000-100,000</td><td>100,000</td><td>5</td></tr><tr><td>21:25</td><td>18</td><td>60,000-120,000</td><td>120,000</td><td>5</td></tr><tr><td>21:30</td><td>19</td><td>75,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>21:35</td><td>20</td><td>100,000-150,000</td><td>150,000</td><td>5</td></tr><tr><td>21:40</td><td>21</td><td>100,000-200,000</td><td>200,000</td><td>5</td></tr><tr><td>21:45</td><td>22</td><td>150,000-300,000</td><td>300,000</td><td>5</td></tr><tr><td>21:50</td><td>23</td><td>200,000-400,000</td><td>400,000</td><td>5</td></tr><tr><td>21:55</td><td>24</td><td>250,000-500,000</td><td>500,000</td><td>5</td></tr><tr><td>22:00</td><td>25</td><td>300,000-600,000</td><td>600,000</td><td>5</td></tr><tr><td>22:05</td><td>26</td><td>400,000-800,000</td><td>800,000</td><td>5</td></tr><tr><td>22:10</td><td>27</td><td>500,000-1,000,000</td><td>1,000,000</td><td>5</td></tr></tbody>
     </table>
     <aside>
-      <div class="big">Entry : ¥300</div>
+      <div class="big">Entry</div>
+      <table class="prize entry"><tr><th>All</th><td>¥300</td></tr></table>
       <dl>
         <dt>Starting Chips</dt><dd>30,000 <small>(15BB)</small></dd>
         <dt>Late Reg</dt><dd>20:00</dd>
@@ -238,9 +248,9 @@ aside dd small { font-size: 12px; }
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>¥3,000</td></tr>
-        <tr><th>In Prize</th><td>2nd</td></tr>
+        <tr><th>In Money</th><td>2nd</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥2,000<span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥1,000</td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥2,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>2nd</th><td>¥1,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
