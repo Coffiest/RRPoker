@@ -46,7 +46,7 @@ module.exports = {
     },
     {
       no: '#2', name: 'HIGH ROLLER', start: '11:00', entry: { student: 1500, adult: 3000 }, cap: '10名限定', chips: 30000, stackBB: '150BB',
-      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 2000], 5) },
+      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 3000], 5) },
       levels: [
         [100,200,200,30],[200,300,300,30],[300,400,400,30],'B5',
         [400,800,800,30],[500,1000,1000,30],[600,1200,1200,30],'RC5',
