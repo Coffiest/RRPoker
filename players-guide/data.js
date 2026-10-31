@@ -33,7 +33,7 @@ module.exports = {
   tournaments: [
     {
       no: '#1', name: 'MAIN EVENT', start: '11:00', entry: { student: 300, adult: 1500 }, chips: 500, stackBB: '250BB',
-      prize: { total: 20000, inMoney: 4, places: places([10000, 5000, 3000, 2000], 9, true) },
+      prize: { total: 20000, inMoney: 4, places: places([10000, 5000, 3000, 2000], 8, true) },
       levels: [
         [1,2,2,40],[2,3,3,40],[3,4,4,40],'B5',
         [4,8,8,40],[5,10,10,40],[6,12,12,40],'B5',
@@ -46,7 +46,7 @@ module.exports = {
     },
     {
       no: '#2', name: 'HIGH ROLLER', start: '11:00', entry: { student: 1500, adult: 3000 }, cap: '10名限定', chips: 30000, stackBB: '150BB',
-      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 3000], 5) },
+      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 3000], 4) },
       levels: [
         [100,200,200,30],[200,300,300,30],[300,400,400,30],'B5',
         [400,800,800,30],[500,1000,1000,30],[600,1200,1200,30],'RC5',
@@ -57,7 +57,7 @@ module.exports = {
     },
     {
       no: '#3', name: 'RR SUPER TURBO', start: '17:00', entry: { student: 300, adult: 1500 }, chips: 300, stackBB: '75BB',
-      prize: { total: 10000, inMoney: 4, places: places([5000, 2500, 1500, 1000], 9) },
+      prize: { total: 10000, inMoney: 4, places: places([5000, 2500, 1500, 1000], 8) },
       levels: [
         [2,4,4,20],[3,6,6,20],[4,8,8,20],[5,10,10,20],[6,12,12,20],[10,15,15,20],'RC5',
         [10,20,20,10],[15,30,30,10],[20,40,40,10],[25,50,50,10],[30,60,60,10],[40,80,80,10],

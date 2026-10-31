@@ -48,7 +48,7 @@ const schedule = `
   <table class="sched">
     <thead><tr><th>START</th><th>CLOSE</th><th>NO</th><th>TOURNAMENT</th><th>ENTRY 学生/一般</th><th>STACK</th></tr></thead>
   </table>
-  <div class="day">${D.event.dayLabel} <span>${D.event.dow}</span></div>
+  <div class="day">${D.event.dayLabel} <span>${D.event.dow}</span><em class="max">ALL TABLES 8-MAX<small>全席固定 8人テーブル</small></em></div>
   <table class="sched">
     <tbody>${D.schedule.map((r) => `<tr class="${r.main ? 'hl' : ''}"><td>${r.start}</td><td>${r.close}</td><td>${r.no}</td><td class="nm">${r.name}</td><td>${r.entry}${r.note ? `<small class="cap">${r.note}</small>` : ''}</td><td>${r.stack}</td></tr>`).join('')}</tbody>
   </table>
@@ -148,6 +148,8 @@ table { border-collapse: collapse; width: 100%; }
 .sched th:nth-child(5), .sched td:nth-child(5), .sched th:nth-child(6), .sched td:nth-child(6) { width: 14%; }
 .sched tr.hl td { background: rgba(36,16,10,.55); }
 .day { font-family: Anton; font-size: 40px; margin: 6mm 0 2mm; }
+.max { float: right; font-style: normal; font-family: Oswald; font-weight: 700; font-size: 14px; letter-spacing: .12em; color: var(--cream); background: var(--dark); border-radius: 6px; padding: 6px 12px; margin-top: 10px; line-height: 1.2; text-align: center; }
+.max small { display: block; font-family: 'Noto Sans JP'; font-size: 10px; letter-spacing: .05em; }
 .day span { font-family: Oswald; font-size: 26px; color: var(--dark); }
 .note { font-family: 'Noto Sans JP'; font-size: 11px; font-weight: 500; margin-top: 4mm; }
 .venue-box { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-size: 18px; }
