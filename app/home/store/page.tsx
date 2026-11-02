@@ -10,6 +10,7 @@ import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { isNativeApp } from "@/lib/platform"
 import { nextTemplateBlind } from "@/lib/blindTemplate"
+import { endClock } from "@/lib/endEstimate"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -34,7 +35,7 @@ import {
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid, FiEdit2,
-  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
+  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2, FiFlag,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
   FiCreditCard, FiRefreshCw, FiPlusCircle, FiAward, FiMessageSquare, FiSend, FiInbox,
 } from "react-icons/fi"
@@ -380,6 +381,7 @@ export default function StorePage() {
           totalEntries: entry + reentry, alive: (entry + reentry) - bustCount,
           status: data.status ?? "scheduled", currentLevelIndex: data.currentLevelIndex ?? 0,
           timeRemaining: data.timeRemaining ?? 1200, selectedPreset: data.selectedPreset ?? "",
+          blindPresetId: typeof data.blindPresetId === "string" ? data.blindPresetId : "", date: data.date ?? "", startTime: data.startTime ?? "",
           customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
           timerRunning: data.timerRunning ?? false,
           levelStartedAtMs: data.levelStartedAt?.toMillis?.() ?? null,
@@ -1008,6 +1010,23 @@ export default function StorePage() {
     else window.open(url, "_blank")
   }
 
+  // 終了予定時刻(店舗側だけ)。ブラインドのプリセットに初期スタックと人数があるとき
+  const [presetMap, setPresetMap] = useState<Record<string, any>>({})
+  useEffect(() => {
+    if (!storeId) return
+    return onSnapshot(collection(db, "stores", storeId, "blindPresets"), snap => {
+      const m: Record<string, any> = {}; snap.forEach(d => { m[d.id] = d.data() }); setPresetMap(m)
+    })
+  }, [storeId])
+  const endOf = (t: any) => {
+    const pr = presetMap[t.blindPresetId]
+    if (!pr || !Array.isArray(pr.levels)) return null
+    return endClock(t.date, t.startTime, pr.levels, pr.startStack, pr.players)
+  }
+  const EndBadge = ({ t }: { t: any }) => endOf(t)
+    ? <p className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--label3)', margin: '-4px 0 8px' }}><FiFlag size={11} /> 終了予定 {endOf(t)}</p>
+    : null
+
   // ── 開催中トーナメントのカード(単体) ──
   const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => (
     <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
@@ -1024,6 +1043,7 @@ export default function StorePage() {
           </span>
         </div>
 
+        <EndBadge t={t} />
         {/* Fee / Stack info */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 6px', marginBottom: 12, padding: '8px 10px', background: 'var(--fill)', borderRadius: 10 }}>
           {[
@@ -1179,6 +1199,7 @@ export default function StorePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
               <div key={t.id} style={{ padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+              {endOf(t) && <p className="con-mono" style={{ fontSize: 10, color: 'var(--label3)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 4 }}><FiFlag size={11} /> 終了予定 {endOf(t)}</p>}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>

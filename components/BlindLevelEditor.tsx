@@ -3,7 +3,7 @@
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon } from 'lucide-react'
+import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon, FlagIcon } from 'lucide-react'
 
 /**
  * ブラインド表の編集。トーナメント作成・店舗ホームの調整・タイマー画面で同じものを使う
@@ -60,9 +60,11 @@ const menuItem: React.CSSProperties = {
   fontSize: 14, color: 'var(--label)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
 }
 
-export default function BlindLevelEditor({ levels, onChange, showAddButtons = false }: {
+export default function BlindLevelEditor({ levels, onChange, showAddButtons = false, endIdx = null }: {
   levels: Level[]
   onChange: (next: Level[]) => void
+  /** 終了予定のレベルの位置(lib/endEstimate.ts)。その行を目立たせ「終了予定」と入れる */
+  endIdx?: number | null
   /** 表の下に「+ レベル」「+ ブレイク」を出す(呼び出し側が固定の場所に置くなら false)。 */
   showAddButtons?: boolean
 }) {
@@ -111,7 +113,12 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {levels.map((lv, idx) => (
-          <li key={idx} style={{ background: lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+          <li key={idx} style={{ background: idx === endIdx ? 'rgba(249,179,24,0.12)' : lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: idx === endIdx ? 'inset 0 0 0 2px #F9B318' : '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+            {idx === endIdx && (
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px 4px', fontSize: 11, fontWeight: 700, color: '#995C00' }}>
+                <FlagIcon size={14} /> 終了予定(ヘッズアップのアベレージが 10BB を切る)
+              </p>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, alignItems: 'center' }}>
               {lv.type === 'level' ? (
                 <>

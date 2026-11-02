@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import { FlagIcon, AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -14,6 +14,7 @@ import AppleSheet from "@/components/AppleSheet"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
+import { endClock, endLevelIndex } from "@/lib/endEstimate"
 import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
@@ -124,6 +125,9 @@ export default function TournamentsPage() {
   const [blindModalView, setBlindModalView] = useState<"list" | "edit">("list")
   const [editingBlindPresetId, setEditingBlindPresetId] = useState<string | null>(null)
   const [blindPresetName, setBlindPresetName] = useState("")
+  // 終了予定の計算に使う(任意)。プリセットに一緒に保存する
+  const [blindStartStack, setBlindStartStack] = useState("")
+  const [blindPlayers, setBlindPlayers] = useState("")
   const [blindLevels, setBlindLevels] = useState<Level[]>([{ ...emptyBlindLevel }])
   const [bulkDuration, setBulkDuration] = useState("")
   // 保存中・入力エラー・削除の確認
@@ -367,16 +371,17 @@ export default function TournamentsPage() {
   function openEditBlindPreset(preset: any) {
     const levels = Array.isArray(preset.levels) && preset.levels.length > 0 ? preset.levels : [{ ...emptyBlindLevel }]
     setEditingBlindPresetId(preset.id); setBlindPresetName(preset.name); setBlindLevels(levels)
+    setBlindStartStack(preset.startStack ? String(preset.startStack) : ""); setBlindPlayers(preset.players ? String(preset.players) : "")
     blindSnapshot.current = snapshotOf(preset.name, levels); setBlindError(""); setBlindModalView("edit")
   }
   function openNewBlindPreset() {
     const levels: Level[] = [{ type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
-    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels)
+    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels); setBlindStartStack(""); setBlindPlayers("")
     blindSnapshot.current = snapshotOf("", levels); setBlindError(""); setBlindModalView("edit")
   }
   const blindDirty = blindModalView === "edit" && snapshotOf(blindPresetName, blindLevels) !== blindSnapshot.current
   function resetBlindEditor() {
-    setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName("")
+    setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName(""); setBlindStartStack(""); setBlindPlayers("")
     setBlindLevels([{ ...emptyBlindLevel }]); setBlindError("")
   }
   /** 変更を捨ててよいか確かめてから進む。変更が無ければそのまま進む。 */
@@ -393,7 +398,7 @@ export default function TournamentsPage() {
     if (invalid) { setBlindError(invalid); return }
     setBlindSaving(true)
     try {
-      const data = { name: blindPresetName.trim(), levels: blindLevels }
+      const data = { name: blindPresetName.trim(), levels: blindLevels, startStack: Number(blindStartStack) > 0 ? Math.round(Number(blindStartStack)) : null, players: Number(blindPlayers) > 0 ? Math.round(Number(blindPlayers)) : null }
       if (editingBlindPresetId) await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), data)
       else await addDoc(collection(db, "stores", storeId, "blindPresets"), { ...data, createdAt: serverTimestamp() })
       await refreshPresets(storeId)
@@ -433,6 +438,12 @@ export default function TournamentsPage() {
     ? tournaments.filter(t => t.status === "finished" && (!historySearch || t.name.toLowerCase().includes(historySearch.toLowerCase())))
     : []
   const presetName = (id: string) => blindPresets.find(p => p.id === id)?.name
+  // 終了予定時刻(店舗側だけに出す)。ブラインドのプリセットに初期スタックと人数が入っているときだけ
+  const endOf = (t: { blindPresetId?: string; date?: string; startTime?: string }) => {
+    const pr = blindPresets.find(p => p.id === t.blindPresetId)
+    if (!pr || !Array.isArray(pr.levels)) return null
+    return endClock(t.date, t.startTime, pr.levels, pr.startStack, pr.players)
+  }
   const countsOf = (id: string) => {
     const entries = entriesMap[id] ?? []
     return {
@@ -508,6 +519,7 @@ export default function TournamentsPage() {
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 13, color: 'var(--label2)' }}>
                       <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
                       {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
+                      {endOf(t) && <span style={{ ...metaItem, color: 'var(--label3)' }}><FlagIcon size={14} /> 終了予定 {endOf(t)}</span>}
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
@@ -689,7 +701,7 @@ export default function TournamentsPage() {
           <FormRow label="開催日">
             <input type="date" value={form.date} onChange={e => handleChange('date', e.target.value)} style={rowInput} />
           </FormRow>
-          <FormRow label="開始時刻">
+          <FormRow label="開始時刻" hint={(() => { const e = endOf({ blindPresetId, date: form.date, startTime: form.startTime }); return e ? `終了予定 ${e}` : undefined })()}>
             <input type="time" value={form.startTime} onChange={e => handleChange('startTime', e.target.value)} style={rowInput} />
           </FormRow>
           <FormRow label="開始時刻にタイマースタート" hint={autoStart ? (form.date && form.startTime ? `${form.date} ${form.startTime} に自動で開催中にし、タイマーを動かします` : "開催日と開始時刻を入れてください") : "オフのときは、手動で開始します"}>
@@ -846,8 +858,14 @@ export default function TournamentsPage() {
         ) : (
           <>
             <div style={{ ...list, marginBottom: 16 }}>
-              <FormRow label="名前" last>
+              <FormRow label="名前">
                 <input value={blindPresetName} onChange={e => { setBlindError(""); setBlindPresetName(e.target.value) }} placeholder="例: 通常トーナメント" style={rowInput} />
+              </FormRow>
+              <FormRow label="初期スタック" hint="任意。人数と両方入れると終了予定が出ます">
+                <input type="number" inputMode="numeric" min={0} value={blindStartStack} onChange={e => setBlindStartStack(e.target.value)} placeholder="例: 300" className="no-spin" style={rowInput} />
+              </FormRow>
+              <FormRow label="人数" hint="任意" last>
+                <input type="number" inputMode="numeric" min={0} value={blindPlayers} onChange={e => setBlindPlayers(e.target.value)} placeholder="例: 30" className="no-spin" style={rowInput} />
               </FormRow>
             </div>
 
@@ -865,7 +883,8 @@ export default function TournamentsPage() {
               </button>
             </div>
 
-            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }} />
+            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }}
+              endIdx={endLevelIndex(blindLevels, Number(blindStartStack), Number(blindPlayers))} />
           </>
         )}
       </AppleSheet>
