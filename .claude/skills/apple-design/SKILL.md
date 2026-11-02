@@ -280,3 +280,8 @@ Tactical rules that serve these:
 | Translucent chrome | `backdrop-filter` layer | content scrolls under |
 | Type tracking | Size-specific, never fixed | tighten large text (`-0.02em`), body near `0` |
 | Reduced motion | Cross-fade, not slide/spring | `@media (prefers-reduced-motion)` |
+
+
+## 禁止: カード上端の色の線(オーナー指定・全アプリ共通)
+
+カード・パネルの一番上に色の線や帯を入れる「トップボーダー/アクセントストライプ」は使わない。区別は影の深さ(面の重なり)・余白・見出しの太さで付け、状態は小さな点やラベルで示す。

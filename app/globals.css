@@ -511,18 +511,6 @@ body {
     0 14px 38px rgba(0, 0, 0, 0.07);
   overflow: hidden;
 }
-/* 上端の細い金の線。読み込み位置を示す指標のように見せる */
-.con-panel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent);
-  opacity: 0.65;
-  pointer-events: none;
-}
 
 /* 稼働中の面。ゆっくり走査線が降りる */
 .con-live-panel { position: relative; overflow: hidden; }

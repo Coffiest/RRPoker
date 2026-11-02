@@ -483,8 +483,6 @@ export default function LoginPage() {
 
         {/* ── ログインフォーム ── */}
         <div id="form-anchor" className="appear d2 ios-card" style={{ overflow:'hidden' }}>
-          {/* アクセントバー */}
-          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
           <div style={{ padding:'22px 20px 24px' }}>
 
@@ -644,7 +642,6 @@ export default function LoginPage() {
           <p className="section-hd" style={{ marginBottom:10 }}>{t('login.homePreview')}</p>
           <div style={{ borderRadius:22, padding:20, position:'relative', overflow:'hidden', background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 55%,#1C1C1E 100%)', boxShadow:'0 8px 28px rgba(0,0,0,0.16)', animation:'card-float 4.5s ease-in-out infinite' }}>
             <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.16) 0%,transparent 60%)', pointerEvents:'none' }}/>
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
                 <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
