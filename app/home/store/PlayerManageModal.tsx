@@ -217,8 +217,6 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     setLocalPlayers(prev =>
       prev.map(p => p.id === playerId ? { ...p, [field]: (p[field] ?? 0) + delta } : p)
     )
-    // リエントリーは「一度バストした人がもう一度入る」こと。+1 したらバストも +1(取り消しは -1)
-    if (field === "reentryCount") bustWithReentry(delta)
   }
 
   // ── Confirm insufficient purchase ──────────────────────────────────────────
@@ -239,7 +237,6 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     setLocalPlayers(prev =>
       prev.map(p => p.id === playerId ? { ...p, [field]: (p[field] ?? 0) + 1 } : p)
     )
-    if (type === "reentry") bustWithReentry(1)
 
     setInsufficientAlert(null)
   }
@@ -391,11 +388,6 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     if (delta < 0 && localBust <= 0) return
     bustDirtyRef.current = true
     setLocalBust(prev => prev + delta)
-  }
-
-  const bustWithReentry = (delta: number) => {
-    bustDirtyRef.current = true
-    setLocalBust(prev => Math.max(0, prev + delta))
   }
 
   const addTempPlayer = () => {
