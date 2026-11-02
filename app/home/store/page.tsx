@@ -837,21 +837,51 @@ export default function StorePage() {
     await setDoc(doc(db, "users", playerId), { checkinStatus: "none", pendingStoreId: null }, { merge: true })
   }
 
-  const qrCheckinPlayer = async (playerUid: string) => {
+  // QR でプレイヤーを読んだら、すぐ入店させずに「状態と操作」のシートを開く
+  type QrPlayer = { uid: string; name: string; iconUrl?: string; inStore: boolean; counts: Record<string, { entry: number; reentry: number; addon: number }> }
+  const [qrPlayer, setQrPlayer] = useState<QrPlayer | null>(null)
+  const [qrBusy, setQrBusy] = useState(false)
+  const [qrAction, setQrAction] = useState<{ tid: string; action: "entry" | "reentry" | "addon" | "bust" } | null>(null)
+  const loadQrPlayer = async (playerUid: string) => {
     if (!storeId) return
+    const playerSnap = await getDoc(doc(db, "users", playerUid))
+    if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
+    const d = playerSnap.data()
+    const counts: QrPlayer["counts"] = {}
+    await Promise.all(activeTournaments.map(async t => {
+      try {
+        const e = (await getDoc(doc(db, "stores", storeId, "tournaments", t.id, "entries", playerUid))).data()
+        counts[t.id] = { entry: e?.entryCount ?? 0, reentry: e?.reentryCount ?? 0, addon: e?.addonCount ?? 0 }
+      } catch { counts[t.id] = { entry: 0, reentry: 0, addon: 0 } }
+    }))
+    setQrPlayer({ uid: playerUid, name: d?.name ?? "", iconUrl: d?.iconUrl, inStore: d?.currentStoreId === storeId && d?.checkinStatus === "approved", counts })
+  }
+  const qrCheckinPlayer = async (playerUid: string) => {
     setIsScannerOpen(false)
+    try { await loadQrPlayer(playerUid) }
+    catch { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000) }
+  }
+  // 開発中だけ: カメラなしで QR 読み取りを試せるようにする(本番のビルドでは入らない)
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return
+    ;(window as any).__rrQrScan = qrCheckinPlayer
+  })
+  const qrCheckIn = async () => {
+    if (!qrPlayer || !storeId) return
+    setQrBusy(true)
     try {
-      const playerSnap = await getDoc(doc(db, "users", playerUid))
-      if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
-      const playerName = playerSnap.data()?.name ?? ""
-      await setDoc(doc(db, "users", playerUid), { joinedStores: arrayUnion(storeId) }, { merge: true })
-      await approvePlayer(playerUid)
-      setQrCheckinResult({ success: true, name: playerName })
-      setTimeout(() => setQrCheckinResult(null), 3000)
-    } catch {
-      setQrCheckinResult({ success: false })
-      setTimeout(() => setQrCheckinResult(null), 3000)
-    }
+      await setDoc(doc(db, "users", qrPlayer.uid), { joinedStores: arrayUnion(storeId) }, { merge: true })
+      await approvePlayer(qrPlayer.uid)
+      await loadQrPlayer(qrPlayer.uid)
+    } catch { alert("入店できませんでした") } finally { setQrBusy(false) }
+  }
+  const qrCheckOut = async () => {
+    if (!qrPlayer) return
+    setQrBusy(true)
+    try {
+      await setDoc(doc(db, "users", qrPlayer.uid), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }, { merge: true })
+      await loadQrPlayer(qrPlayer.uid)
+    } catch { alert("退店できませんでした") } finally { setQrBusy(false) }
   }
 
   const formatDateTime = (date?: Date | null) => {
@@ -2577,6 +2607,66 @@ export default function StorePage() {
           onScan={qrCheckinPlayer}
           onClose={() => setIsScannerOpen(false)}
         />
+      )}
+
+      {/* QR で読んだプレイヤーの状態と操作 */}
+      <AppleSheet open={!!qrPlayer && !qrAction} onClose={() => setQrPlayer(null)} title={qrPlayer?.name || "プレイヤー"}>
+        {qrPlayer && (
+          <div>
+            <div className="ios-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', marginBottom: 14 }}>
+              {qrPlayer.iconUrl
+                ? <img src={qrPlayer.iconUrl} alt="" style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'cover' }} />
+                : <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={18} style={{ color: 'var(--label3)' }} /></div>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)' }}>{qrPlayer.name}</p>
+                <p className="tech-label" style={{ fontSize: 9, color: qrPlayer.inStore ? '#34C759' : 'var(--label3)', marginTop: 2 }}>{qrPlayer.inStore ? 'IN STORE' : 'NOT CHECKED IN'}</p>
+              </div>
+              {qrPlayer.inStore ? (
+                <button type="button" onClick={qrCheckOut} disabled={qrBusy}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#FF3B30', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
+                  <FiLogOut size={14} /> 退店
+                </button>
+              ) : (
+                <button type="button" onClick={qrCheckIn} disabled={qrBusy}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(52,199,89,0.12)', color: '#1E7B34', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
+                  <FiLogIn size={14} /> 入店
+                </button>
+              )}
+            </div>
+
+            <p className="section-hd" style={{ marginBottom: 8 }}>Live Tournaments</p>
+            {activeTournaments.length === 0 ? (
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px 16px' }}>開催中のトーナメントはありません</p>
+            ) : activeTournaments.map(t => {
+              const c = qrPlayer.counts[t.id] ?? { entry: 0, reentry: 0, addon: 0 }
+              return (
+                <div key={t.id} className="ios-card" style={{ padding: '12px 14px', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                    <p className="tech-num" style={{ fontSize: 11, color: 'var(--label2)', flexShrink: 0 }}>E {c.entry} · R {c.reentry} · A {c.addon}</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                    {([['entry', 'Entry'], ['reentry', 'Re-entry'], ['addon', 'Add-on'], ['bust', 'Bust']] as const).map(([k, label]) => (
+                      <button key={k} type="button" disabled={!qrPlayer.inStore} onClick={() => setQrAction({ tid: t.id, action: k })}
+                        className={k === 'bust' ? undefined : 'action-btn btn-gold'}
+                        style={{ height: 36, fontSize: 11, opacity: qrPlayer.inStore ? 1 : 0.4, ...(k === 'bust' ? { borderRadius: 12, border: '1.5px solid rgba(255,59,48,0.25)', background: 'rgba(255,59,48,0.08)', color: '#FF3B30', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' } : {}) }}>
+                        ＋ {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+            {!qrPlayer.inStore && activeTournaments.length > 0 && (
+              <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 4px 8px' }}>エントリーなどは入店してから押せます。</p>
+            )}
+          </div>
+        )}
+      </AppleSheet>
+      {qrPlayer && qrAction && (
+        <PlayerManageModal tournamentId={qrAction.tid} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore}
+          focusPlayerId={qrPlayer.uid} autoAction={qrAction.action}
+          onClose={() => { setQrAction(null); void loadQrPlayer(qrPlayer.uid) }} />
       )}
 
       {/* QR入店結果トースト */}

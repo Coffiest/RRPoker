@@ -22,6 +22,9 @@ type PlayerManageModalProps = {
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
+  /** QR から開いたとき: このプレイヤーだけを表示し、autoAction を 1 回だけ行う(確定は ✓ で、普段と同じ処理) */
+  focusPlayerId?: string
+  autoAction?: "entry" | "reentry" | "addon" | "bust"
 }
 
 type PlayerExtra = {
@@ -41,7 +44,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerManageModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose }: PlayerManageModalProps) {
+export default function PlayerManageModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose, focusPlayerId, autoAction }: PlayerManageModalProps) {
   // 下から出る画面を指で下に引いて閉じられるように(見た目は元のまま)
   const sheetDrag = useDragToClose(() => onClose())
   const [players, setPlayers] = useState<any[]>([])
@@ -409,8 +412,22 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
   const updateTempPlayerName = (id: string, name: string) =>
     setLocalPlayers(prev => prev.map(p => p.id === id ? { ...p, name } : p))
 
+  // QR から開いたとき: そのプレイヤーに絞り、頼まれた操作を 1 回だけ(残高の扱いは手で + を押したときと同じ)
+  const autoDoneRef = useRef(false)
+  useEffect(() => {
+    if (!focusPlayerId || autoDoneRef.current || loading) return
+    const pl = localPlayers.find(p => p.id === focusPlayerId)
+    if (!pl) return
+    if (autoAction && autoAction !== "bust" && !playerExtras[focusPlayerId]) return // 残高の読み込み待ち
+    autoDoneRef.current = true
+    setSearch(pl.name ?? "")
+    if (autoAction === "bust") handleTournamentBustChange(1)
+    else if (autoAction) handleEntryChange(focusPlayerId, autoAction === "entry" ? "entryCount" : autoAction === "reentry" ? "reentryCount" : "addonCount", 1)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusPlayerId, autoAction, loading, localPlayers, playerExtras])
+
   // 仮プレイヤーは検索に関係なく常に一番上に固定(足した順)。その下に検索に合うプレイヤー
-  const allPlayers = [
+  const allPlayers = focusPlayerId ? localPlayers.filter(p => p.id === focusPlayerId) : [
     ...localPlayers.filter(p => p.isTemp),
     ...localPlayers.filter(p => !p.isTemp && (p.name ?? "").toLowerCase().includes(search.toLowerCase())),
   ]
