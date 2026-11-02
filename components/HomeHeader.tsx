@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { FiBell, FiCreditCard } from 'react-icons/fi'
-import { MdQrCode2 } from 'react-icons/md'
 import { auth, db } from '@/lib/firebase'
 import { signOut } from 'firebase/auth'
 import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
@@ -319,29 +318,19 @@ export default function HomeHeader({
 						</button>
 					)}
 
-					{isUserVariant ? (
-						/* QRコードボタン（user のみ） */
-						<button
-							type="button"
-							onClick={() => setIsQROpen(true)}
-							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
-						>
-							<MdQrCode2 className="text-[22px]" />
-						</button>
-					) : (
-						/* ハンバーガーメニュー（store のみ） */
-						<button
-							type="button"
-							onClick={() => setIsMenuOpen(prev => !prev)}
-							className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700"
-						>
-							<span className="flex flex-col gap-1">
-								<span className="h-[2px] w-5 rounded bg-gray-700" />
-								<span className="h-[2px] w-5 rounded bg-gray-700" />
-								<span className="h-[2px] w-5 rounded bg-gray-700" />
-							</span>
-						</button>
-					)}
+					{/* ハンバーガーメニュー(プレイヤー・店舗どちらも。入店QRはフッターのツールから) */}
+					<button
+						type="button"
+						aria-label="メニュー"
+						onClick={() => setIsMenuOpen(prev => !prev)}
+						className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700"
+					>
+						<span className="flex flex-col gap-1">
+							<span className="h-[2px] w-5 rounded bg-gray-700" />
+							<span className="h-[2px] w-5 rounded bg-gray-700" />
+							<span className="h-[2px] w-5 rounded bg-gray-700" />
+						</span>
+					</button>
 				</div>
 			</div>
 
