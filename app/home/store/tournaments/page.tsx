@@ -70,7 +70,7 @@ function aiBestLT(available: number): number {
   return best
 }
 // 自動作成(オーナー指定): 使うチップは選ばない。ブラインドの並びは傾斜テンプレート(lib/blindTemplate.ts)。
-// 時間の割り振り(1 レベルの長さ・休憩)は、レジスト締切までの時間からこれまでどおり決める。
+// 時間の割り振り(1 レベルの長さ・ブレイク)は、レジスト締切までの時間からこれまでどおり決める。
 function aiGenerate(stack: number, rcHours: number): Level[] {
   if (stack <= 0 || rcHours <= 0) return []
   const available = rcHours * 60 - 10
@@ -804,7 +804,7 @@ export default function TournamentsPage() {
                   <PlusIcon size={20} /> レベル
                 </button>
                 <button type="button" onClick={addBlindBreak} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
-                  <CoffeeIcon size={20} /> 休憩
+                  <CoffeeIcon size={20} /> ブレイク
                 </button>
               </div>
               <button type="button" onClick={saveBlindPreset} disabled={blindSaving} className="tp-press" style={{ ...btn.primary, width: '100%', opacity: blindSaving ? 0.6 : 1 }}>
@@ -830,7 +830,7 @@ export default function TournamentsPage() {
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
                         <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
-                          {lvCount} レベル ・ 休憩 {brkCount} 回 ・ {fmtMinutes(mins)}
+                          {lvCount} レベル ・ ブレイク {brkCount} 回 ・ {fmtMinutes(mins)}
                         </span>
                       </span>
                       <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
@@ -877,8 +877,8 @@ export default function TournamentsPage() {
         maxWidth={560}
         zIndex={400}
         title={aiView === "input"
-          ? <SheetTitle title="ブラインドを自動で作る" sub="スタックと締切までの時間から、レベルと休憩を決めます" onClose={() => setIsAiOpen(false)} />
-          : <SheetTitle title="この構成で作りますか？" sub={`${aiPreviewLevels.filter(l => l.type === "level").length} レベル ・ 休憩 ${aiPreviewLevels.filter(l => l.type === "break").length} 回`} onBack={() => setAiView("input")} onClose={() => setIsAiOpen(false)} />}
+          ? <SheetTitle title="ブラインドを自動で作る" sub="スタックと締切までの時間から、レベルとブレイクを決めます" onClose={() => setIsAiOpen(false)} />
+          : <SheetTitle title="この構成で作りますか？" sub={`${aiPreviewLevels.filter(l => l.type === "level").length} レベル ・ ブレイク ${aiPreviewLevels.filter(l => l.type === "break").length} 回`} onBack={() => setAiView("input")} onClose={() => setIsAiOpen(false)} />}
         footer={aiView === "input" ? (
           <>
             {aiError && <InlineError>{aiError}</InlineError>}
@@ -913,7 +913,7 @@ export default function TournamentsPage() {
                 </span>
               </FormRow>
             </div>
-            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
+            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後のブレイク(10分)が終わる時刻が締切になるよう調整します。</p>
           </>
         ) : (
           <ol style={{ ...list, listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
@@ -921,7 +921,7 @@ export default function TournamentsPage() {
               <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none', fontVariantNumeric: 'tabular-nums',
                 color: lv.type === "break" ? 'var(--blue)' : 'var(--label)', background: lv.type === "break" ? 'rgba(10,108,214,0.06)' : 'transparent' }}>
                 {lv.type === "break" ? (
-                  <><CoffeeIcon size={20} /><span style={{ flex: 1, fontWeight: 600 }}>{lv.duration === 10 ? "締切前の休憩" : "休憩"}</span><span>{lv.duration}分</span></>
+                  <><CoffeeIcon size={20} /><span style={{ flex: 1, fontWeight: 600 }}>{lv.duration === 10 ? "締切前のブレイク" : "ブレイク"}</span><span>{lv.duration}分</span></>
                 ) : (
                   <>
                     <span style={{ width: 24, textAlign: 'center', fontWeight: 700, color: 'var(--gold-dk)' }}>{aiPreviewLevels.slice(0, i + 1).filter(l => l.type === "level").length}</span>
