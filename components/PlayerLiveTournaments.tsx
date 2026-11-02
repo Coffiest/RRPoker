@@ -1,60 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { doc, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
-import LiveTournamentTimer, { useLiveTournaments, type LiveTournament } from '@/components/LiveTournamentTimer'
-import DealerConfirmSheet from '@/components/DealerConfirmSheet'
-import { applyTournamentPurchase, type PurchaseKind } from '@/lib/tournamentEntryActions'
+import { useState } from 'react'
+import { FiList } from 'react-icons/fi'
+import AppleSheet from '@/components/AppleSheet'
+import { useLiveTournaments, type LiveTournament } from '@/components/LiveTournamentTimer'
+import { computeLiveLevelState, type TimerLevel } from '@/lib/timerCompute'
+import { getServerNow } from '@/lib/serverClock'
 import { hapticTap } from '@/lib/haptics'
 
 /**
- * 入店中のプレイヤーに、自分が参加している進行中トーナメントを見せる。
+ * 入店中のプレイヤーに、その店で進行中のトーナメントのタイマーを見せる。
  *
- * タイマーは読み取り専用。そのうえで、リエントリーとアドオンだけを
- * その場で確定できるようにする。これまでは店員が Players 画面を開いて
- * 数字を打ち直すしかなく、そのたびに卓の進行が止まっていた。
+ * 見た目は店舗側で実際に映しているタイマー画面(/home/store/timer/[id])そのもの。
+ * それを「見るだけ」の指定(?store=<店舗ID>&view=1)で埋め込む。プライズも同じに見える。
  *
- * タイマーは、入店中の店で進行中の大会をすべて出す(エントリーしていなくても、
- * いまのレベルや残り時間を見られるように)。リエントリー / アドオンのボタンは
- * 「自分がエントリー登録されている」大会にだけ出す。初回のエントリーは
- * 従来どおり店舗側の Players 画面から行う(飛び入りの受付は人が確認する)。
+ * プレイヤーはタイマーを絶対に操作できない(オーナー確定のルール)。
+ *  - 埋め込みは押せない(pointer-events: none)。view=1 のときタイマー画面は何も書き込まない。
+ *  - Firestore のルールでも、大会の文書は店舗しか書けない(firestore.rules)。
+ * 操作ボタンは置かない。全体のブラインド一覧だけをシートで見られる。
  */
 
-type Props = {
-  storeId: string
-  /** 残高の置き場。系列店で共有するため storeId とは別。 */
-  balanceGroupId: string
-  userId: string
-  playerName: string
-  playerIconUrl?: string | null
-  /** いまのチップ残高。足りているかの判定に使う。 */
-  balance: number
-  unitLabel: string
-  unitBefore: boolean
-}
+type Props = { storeId: string }
 
-const KIND_LABEL: Record<PurchaseKind, string> = {
-  reentry: 'リエントリー',
-  addon: 'アドオン',
-}
+const DESIGN_W = 1440
+const DESIGN_H = 900
 
-export default function PlayerLiveTournaments(props: Props) {
-  const tournaments = useLiveTournaments(props.storeId)
-  const [joined, setJoined] = useState<Record<string, boolean>>({})
-
-  // 各大会について、自分の参加記録があるかを見る。
-  useEffect(() => {
-    const unsubs = tournaments.map(t =>
-      onSnapshot(
-        doc(db, 'stores', props.storeId, 'tournaments', t.id, 'entries', props.userId),
-        snap => setJoined(prev => ({ ...prev, [t.id]: snap.exists() })),
-        () => setJoined(prev => ({ ...prev, [t.id]: false })),
-      ),
-    )
-    return () => unsubs.forEach(u => u())
-    // tournaments の中身ではなく「どの大会か」が変わったときだけ張り直す。
-  }, [props.storeId, props.userId, tournaments.map(t => t.id).join(',')])
+export default function PlayerLiveTournaments({ storeId }: Props) {
+  const tournaments = useLiveTournaments(storeId)
+  const [blindsOf, setBlindsOf] = useState<LiveTournament | null>(null)
 
   if (tournaments.length === 0) return null
 
@@ -73,131 +46,74 @@ export default function PlayerLiveTournaments(props: Props) {
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {tournaments.map(t => (
-          <LiveTournamentRow key={t.id} tournament={t} joined={joined[t.id] === true} {...props} />
+          <div key={t.id}>
+            {/* 店舗のタイマー画面(1440×900)を、幅に合わせてそのまま縮める */}
+            <div style={{ position: 'relative', width: '100%', aspectRatio: `${DESIGN_W} / ${DESIGN_H}`, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff' }}>
+              <iframe
+                src={`/home/store/timer/${t.id}?store=${encodeURIComponent(storeId)}&view=1`}
+                title={`timer-${t.name}`}
+                tabIndex={-1}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => { hapticTap(); setBlindsOf(t) }}
+              className="gl-press"
+              style={{
+                marginTop: 8, width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--sep)', background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--label)', cursor: 'pointer',
+              }}
+            >
+              <FiList size={14} /> BLINDS
+            </button>
+          </div>
         ))}
       </div>
+
+      <AppleSheet open={blindsOf !== null} onClose={() => setBlindsOf(null)} zIndex={1300}
+        title={<span className="tech-label" style={{ fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>BLINDS · {blindsOf?.name ?? ''}</span>}>
+        {blindsOf && <BlindList t={blindsOf} />}
+      </AppleSheet>
     </div>
   )
 }
 
-function LiveTournamentRow({
-  tournament,
-  storeId,
-  balanceGroupId,
-  userId,
-  playerName,
-  playerIconUrl,
-  balance,
-  unitLabel,
-  unitBefore,
-  joined,
-}: Props & { tournament: LiveTournament; joined: boolean }) {
-  const [confirming, setConfirming] = useState<PurchaseKind | null>(null)
-  const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
-
-  const feeOf = (kind: PurchaseKind) =>
-    kind === 'reentry' ? tournament.reentryFee : tournament.addonFee
-
-  const runPurchase = async (kind: PurchaseKind) => {
-    setMessage(null)
-    const result = await applyTournamentPurchase({
-      storeId,
-      balanceGroupId,
-      tournamentId: tournament.id,
-      playerId: userId,
-      playerName,
-      kind,
-    })
-    setConfirming(null)
-    if (result.ok) {
-      setMessage({ tone: 'ok', text: `${KIND_LABEL[kind]}を記録しました` })
-      window.setTimeout(() => setMessage(null), 4000)
-      return
-    }
-    const text =
-      result.reason === 'insufficient' ? 'チップが不足しています'
-      : result.reason === 'no_fee' ? 'この大会では選べません'
-      : result.reason === 'not_active' ? 'この大会は進行中ではありません'
-      : '記録できませんでした'
-    setMessage({ tone: 'error', text })
+function BlindList({ t }: { t: LiveTournament }) {
+  const levels: TimerLevel[] = t.customBlindLevels ?? []
+  if (levels.length === 0) {
+    return <p style={{ fontSize: 13, color: 'var(--label3)', textAlign: 'center', padding: '24px 0' }}>ブラインド表がありません</p>
   }
-
-  const button = (kind: PurchaseKind) => {
-    const fee = feeOf(kind)
-    // 参加費が設定されていない種別は、そもそもその大会に無いのでボタンを出さない。
-    if (fee <= 0) return null
-    const short = balance < fee
-    return (
-      <button
-        type="button"
-        className="con-btn"
-        onClick={() => { if (!short) { hapticTap(); setConfirming(kind) } }}
-        disabled={short}
-        style={{
-          flex: 1, height: 50, borderRadius: 999, border: 'none',
-          background: short ? '#F2F2F7' : 'linear-gradient(135deg,#F2A900,#D4910A)',
-          color: short ? 'var(--label3)' : '#fff',
-          fontSize: 12.5, fontWeight: 800,
-          cursor: short ? 'default' : 'pointer',
-          boxShadow: short ? 'none' : '0 3px 12px rgba(242,169,0,0.30)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-        }}
-      >
-        <span>{KIND_LABEL[kind]}</span>
-        <span className="tech-num" style={{ fontSize: 10, fontWeight: 600, opacity: 0.85, letterSpacing: 0 }}>
-          {unitBefore ? `${unitLabel}${fee.toLocaleString()}` : `${fee.toLocaleString()}${unitLabel}`}
-        </span>
-      </button>
-    )
-  }
-
-  // 操作できるのは、自分がエントリーしている大会だけ。見るだけの大会にはボタンを出さない。
-  const reentryBtn = joined ? button('reentry') : null
-  const addonBtn = joined ? button('addon') : null
-  const shortOfAny = joined && (
-    (tournament.reentryFee > 0 && balance < tournament.reentryFee) ||
-    (tournament.addonFee > 0 && balance < tournament.addonFee))
-
+  const live = computeLiveLevelState(
+    t.currentLevelIndex, t.levelStartedAtMs, t.levelStartedRemaining ?? t.timeRemaining, levels, t.timerRunning, getServerNow(),
+  ).levelIndex
+  let lv = 0
   return (
-    <div>
-      <LiveTournamentTimer tournament={tournament} />
-
-      {(reentryBtn || addonBtn) && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-          {reentryBtn}
-          {addonBtn}
-        </div>
-      )}
-
-      {shortOfAny && (
-        <p className="term-comment" style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8, textAlign: 'center' }}>
-          チップが不足している項目は選べません
-        </p>
-      )}
-
-      {message && (
-        <p style={{
-          fontSize: 12, fontWeight: 600, marginTop: 8, textAlign: 'center',
-          color: message.tone === 'ok' ? '#D4910A' : '#FF3B30',
-        }}>
-          {message.text}
-        </p>
-      )}
-
-      {confirming && (
-        <DealerConfirmSheet
-          title={KIND_LABEL[confirming]}
-          amount={feeOf(confirming)}
-          unitLabel={unitLabel}
-          unitBefore={unitBefore}
-          playerName={playerName}
-          playerIconUrl={playerIconUrl}
-          onApprove={() => runPurchase(confirming)}
-          onCancel={() => setConfirming(null)}
-        />
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 16 }}>
+      {levels.map((l, i) => {
+        const isBreak = l.type === 'break'
+        if (!isBreak) lv++
+        const now = i === live
+        return (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 12, minHeight: 40, padding: '0 12px', borderRadius: 10,
+            background: now ? 'rgba(242,169,0,0.12)' : isBreak ? 'var(--fill)' : 'transparent',
+            fontFamily: 'var(--stack-mono)', fontSize: 13, color: 'var(--label)',
+          }}>
+            <span style={{ width: 64, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: now ? '#D4910A' : 'var(--label2)' }}>
+              {isBreak ? 'BREAK' : `LV ${lv}`}
+            </span>
+            <span style={{ flex: 1, fontWeight: now ? 800 : 600 }} className="tech-num">
+              {isBreak ? '' : `${(l.smallBlind ?? 0).toLocaleString()} / ${(l.bigBlind ?? 0).toLocaleString()}`}
+              {!isBreak && l.ante ? <span style={{ color: 'var(--label3)', fontWeight: 500 }}>{` (${l.ante.toLocaleString()})`}</span> : null}
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--label3)' }}>{l.duration ?? '-'}min</span>
+          </div>
+        )
+      })}
     </div>
   )
 }

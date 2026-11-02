@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { FiHome, FiUser } from 'react-icons/fi'
-import { MdQrCode2, MdDialpad } from 'react-icons/md'
+import { MdQrCode2 } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
 import { EDGE_PADDING, computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
@@ -108,7 +108,6 @@ export default function PlayerBottomNav() {
     return () => { unsubAuth(); unsubSnap?.() }
   }, [])
 
-  const checkedIn = currentStoreId !== null
 
   const go = (href: string) => { hapticTap(); router.push(href) }
 
@@ -216,18 +215,15 @@ export default function PlayerBottomNav() {
 
             {sideTab('home', 'HOME', '/home', FiHome)}
 
-            {/* 中央。
-                 入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
-                 入店前にテンキーを出しても行き先の店舗が無く、入店後にQRを出しても
-                 もう用が無いので、そのときに要るほうだけを置く。 */}
+            {/* 中央は常に入店QR(入店中も、別の店で読み取ってもらえるように)。
+                 チップ申請(引き出し)はハンバーガーメニューから行う。 */}
             <button
               type="button"
               onClick={() => {
                 hapticTap()
-                if (checkedIn) router.push('/home/transactions?mode=withdraw')
-                else setIsQROpen(true)
+                setIsQROpen(true)
               }}
-              aria-label={checkedIn ? 'チップを引き出す' : '入店QRを表示'}
+              aria-label="入店QRを表示"
               data-tutorial="nav-qr"
               style={{
                 width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
@@ -244,9 +240,7 @@ export default function PlayerBottomNav() {
                   : '0 4px 14px rgba(242,169,0,0.45)',
                 transition: 'box-shadow 0.35s ease',
               }}>
-                {checkedIn
-                  ? <MdDialpad size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
-                  : <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
+                <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
               </div>
             </button>
 
