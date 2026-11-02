@@ -112,6 +112,7 @@ export default function HomeHeader({
 		prevCheckinStatusRef.current = undefined
 		const unsub = onSnapshot(doc(db, 'users', authUserId), snap => {
 			const status = snap.data()?.checkinStatus as string | undefined
+			setCheckedIn(typeof snap.data()?.currentStoreId === 'string')
 			if (prevCheckinStatusRef.current === undefined) {
 				prevCheckinStatusRef.current = status
 				return
@@ -262,8 +263,12 @@ export default function HomeHeader({
 		run: async () => { await signOut(auth); router.replace('/login') },
 	})
 
-	const effectiveMenuItems =
-		menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)
+	// 入店中のチップ申請(引き出し)。フッター中央が入店QRになったので、ここから行う
+	const [checkedIn, setCheckedIn] = useState(false)
+	const effectiveMenuItems = [
+		...(isUserVariant && checkedIn ? [{ label: 'チップ申請', onClick: () => router.push('/home/transactions?mode=withdraw') }] : []),
+		...(menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)),
+	]
 
 	// ヘッダーは白のまま。方眼は背景(TechBackdrop)が受け持つ。
 	// ここにも方眼を敷くと紙面がうるさくなり、白いヘッダーとの境目も消える。
@@ -334,8 +339,10 @@ export default function HomeHeader({
 				</div>
 			</div>
 
-			{/* オーバーレイ（store variant のみ） */}
-			{!isUserVariant && (
+			{/* メニューは body に出す(ヘッダーの重なり順の中だとフッターの下に隠れる) */}
+			{typeof document !== 'undefined' && createPortal(<>
+			{/* オーバーレイ(プレイヤー・店舗どちらも) */}
+			{(
 				<div
 					className={`fixed inset-0 z-[999] bg-white transition-opacity ${
 						isMenuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -344,8 +351,8 @@ export default function HomeHeader({
 				/>
 			)}
 
-			{/* 右スライドメニュー（store variant のみ） */}
-			{!isUserVariant && (
+			{/* 右スライドメニュー(プレイヤー・店舗どちらも) */}
+			{(
 				<aside
 					className={`fixed right-0 top-0 z-[1000] h-screen w-[80%] max-w-sm border-l border-gray-200 bg-white shadow-2xl transition-transform duration-300 ${
 						isMenuOpen ? 'translate-x-0' : 'translate-x-full'
@@ -388,6 +395,7 @@ export default function HomeHeader({
 					</div>
 				</aside>
 			)}
+			</>, document.body)}
 
 			{toastMessage && (
 				<div className="fixed left-1/2 top-[70px] z-50 -translate-x-1/2 rounded-full bg-gray-900 px-4 py-2 text-[12px] text-white shadow-lg">

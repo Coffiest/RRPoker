@@ -152,6 +152,15 @@ export default function StorePage() {
   const [adjContextMenuIdx, setAdjContextMenuIdx] = useState<Record<string, number | null>>({})
   const [expandedTimerId, setExpandedTimerId] = useState<string | null>(null)
   const [expandCtrlVisible, setExpandCtrlVisible] = useState(false)
+  // 合体したタイマーの拡大表示(分割のまま全画面)
+  const [expandedSplitIds, setExpandedSplitIds] = useState<string[] | null>(null)
+  const [expandSplitCtrl, setExpandSplitCtrl] = useState(false)
+  const [expandSplitTouch, setExpandSplitTouch] = useState(0)
+  useEffect(() => {
+    if (!expandSplitCtrl || !expandedSplitIds) return
+    const t = window.setTimeout(() => setExpandSplitCtrl(false), 5000)
+    return () => window.clearTimeout(t)
+  }, [expandSplitCtrl, expandSplitTouch, expandedSplitIds])
   // 分割表示を選ぶシート
   const [splitOpen, setSplitOpen] = useState(false)
   const [splitIds, setSplitIds] = useState<string[]>([])
@@ -1189,9 +1198,14 @@ export default function StorePage() {
             <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
               style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
           </div>
-          <button className="action-btn btn-gold" style={{ width: '100%', marginBottom: 14 }} onClick={() => openSplit(ts.map(t => t.id))}>
-            <FiClock size={15}/> TIMER · SPLIT
-          </button>
+          {/* 合体したタイマーの拡大は、ここの 1 つだけ(分割のまま全画面で見る) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <button className="action-btn btn-gold" style={{ flex: 1, minWidth: 0 }} onClick={() => openSplit(ts.map(t => t.id))}>
+              <FiClock size={15}/> TIMER · SPLIT
+            </button>
+            <button className="timer-btn" aria-label="分割タイマーを拡大表示" onClick={() => { setExpandSplitCtrl(true); setExpandedSplitIds(ts.map(t => t.id)) }}
+              style={{ ...smallBtn, width: 44, height: 44 }}><FiMaximize2 size={16} style={{ color: 'var(--label)' }}/></button>
+          </div>
           {/* トーナメントごとの操作 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
@@ -1204,7 +1218,6 @@ export default function StorePage() {
                   {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 2 }}/>}
                 </button>
                 <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={smallBtn}><FiSkipForward size={15} style={{ color: 'var(--label)' }}/></button>
-                <button className="timer-btn" aria-label="拡大表示" onClick={() => setExpandedTimerId(t.id)} style={smallBtn}><FiMaximize2 size={14} style={{ color: 'var(--label)' }}/></button>
               </div>
               {/* 単体のカードと同じ操作 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
@@ -1610,6 +1623,52 @@ export default function StorePage() {
               render={(item, { editing, gripProps }) => editing ? renderCompactCard(item.ids, gripProps) : item.ids.length > 1 ? renderGroupCard(item.ids, gripProps) : renderTournamentCard(activeTournaments.find(x => x.id === item.ids[0])!, gripProps)} />
           )}
         </div>
+
+        {/* ── 合体タイマーの拡大表示(横向き・分割のまま)。タップで操作バー ── */}
+        {expandedSplitIds && (() => {
+          const ets = expandedSplitIds.map(id => activeTournaments.find(t => t.id === id)).filter(Boolean) as any[]
+          const circle = (gold?: boolean): React.CSSProperties => ({
+            width: gold ? 44 : 36, height: gold ? 44 : 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: gold ? 'none' : '1px solid rgba(255,255,255,0.22)', cursor: 'pointer',
+            background: gold ? 'linear-gradient(135deg,#F2A900,#D4910A)' : 'rgba(255,255,255,0.14)', flexShrink: 0,
+          })
+          const close = () => { setExpandedSplitIds(null); setExpandSplitCtrl(false) }
+          return (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100vh', height: '100vw', transform: 'translate(-50%, -50%) rotate(90deg)', transformOrigin: 'center center', overflow: 'hidden' }}>
+                <iframe src={`/home/store/timer/split?ids=${expandedSplitIds.join(',')}&preview=1`} title="split-expanded" allow="autoplay"
+                  style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }} />
+                {!expandSplitCtrl && (
+                  <button type="button" aria-label="操作を表示" onClick={() => { setExpandSplitCtrl(true); setExpandSplitTouch(n => n + 1) }}
+                    style={{ position: 'absolute', inset: 0, background: 'transparent', border: 'none', cursor: 'default' }} />
+                )}
+                {expandSplitCtrl && (
+                  <div onPointerDown={() => setExpandSplitTouch(n => n + 1)} style={{
+                    position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                    borderTop: '1px solid rgba(255,255,255,0.10)', padding: '10px 16px 14px', display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto',
+                  }}>
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                      <button aria-label="閉じる" onClick={close} style={circle()}><FiX size={16} style={{ color: '#fff' }} /></button>
+                      <button aria-label="操作を隠す" onClick={() => setExpandSplitCtrl(false)} style={circle()}><FiChevronDown size={16} style={{ color: '#fff' }} /></button>
+                    </div>
+                    {/* タイマーごとの操作(画面の並びと同じ順) */}
+                    {ets.map(et => (
+                      <div key={et.id} style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                        <span style={{ maxWidth: '100%', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{et.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(et.id)} style={circle()}><FiSkipBack size={15} style={{ color: '#fff' }} /></button>
+                          <button className="timer-btn" aria-label={timerRunning[et.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(et.id)} style={circle(true)}>
+                            {timerRunning[et.id] ? <FiPause size={18} style={{ color: '#fff' }} /> : <FiPlay size={18} style={{ color: '#fff', marginLeft: 2 }} />}
+                          </button>
+                          <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(et.id)} style={circle()}><FiSkipForward size={15} style={{ color: '#fff' }} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ── Timer Expand Modal (landscape / スマホ横持ち対応) ── */}
         {expandedTimerId && (() => {

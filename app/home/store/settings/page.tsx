@@ -151,6 +151,8 @@ export default function StoreSettingsPage() {
   const [couponError, setCouponError] = useState("")
   const [couponSuccess, setCouponSuccess] = useState("")
   const [isApprovalRequired, setIsApprovalRequired] = useState(true)
+  // プレイヤーが自分で退店できるか(既定は ON)。OFF ならホームの「退店する」を出さない
+  const [allowPlayerCheckout, setAllowPlayerCheckout] = useState(true)
   const [birthdayCouponEnabled, setBirthdayCouponEnabled] = useState(false)
   const [birthdayCouponName, setBirthdayCouponName] = useState("")
   const [birthdayCouponExpiryValue, setBirthdayCouponExpiryValue] = useState("")
@@ -203,6 +205,7 @@ export default function StoreSettingsPage() {
       setCheckinBonusEnabled(data?.checkinBonusEnabled ?? false)
       setCouponName(data?.checkinBonusCouponName ?? "")
       setIsApprovalRequired(data?.isApprovalRequired ?? true)
+      setAllowPlayerCheckout(data?.allowPlayerCheckout !== false)
       setBirthdayCouponEnabled(data?.birthdayCouponEnabled ?? false)
       setBirthdayCouponName(data?.birthdayCouponName ?? "")
       setBirthdayCouponExpiryValue(data?.birthdayCouponExpiryValue?.toString() ?? "")
@@ -316,6 +319,13 @@ export default function StoreSettingsPage() {
     })
     setBirthdayCouponSuccess("保存しました")
     setTimeout(() => setBirthdayCouponSuccess(""), 2000)
+  }
+
+  const toggleAllowPlayerCheckout = async () => {
+    if (!storeId) return
+    const next = !allowPlayerCheckout
+    setAllowPlayerCheckout(next)
+    await updateDoc(doc(db, "stores", storeId), { allowPlayerCheckout: next })
   }
 
   const toggleApprovalRequired = async () => {
@@ -591,6 +601,15 @@ export default function StoreSettingsPage() {
             <div className="flex items-center justify-between">
               <span className="text-[14px]" style={{ color: CLR.ink }}>承認を必要にする</span>
               <Toggle on={isApprovalRequired} onToggle={toggleApprovalRequired} />
+            </div>
+          </SectionCard>
+
+          {/* ── 退店 ── */}
+          <SectionCard>
+            <SectionTitle title="退店" subtitle="OFF：プレイヤーのホームに「退店する」を出さない" />
+            <div className="flex items-center justify-between">
+              <span className="text-[14px]" style={{ color: CLR.ink }}>退店を許可する</span>
+              <Toggle on={allowPlayerCheckout} onToggle={toggleAllowPlayerCheckout} />
             </div>
           </SectionCard>
 

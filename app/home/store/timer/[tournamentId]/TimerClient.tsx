@@ -4,7 +4,7 @@ import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiX } from "react-icons/fi"
 import { addDoc } from "firebase/firestore"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firestore"
 import { createPortal } from "react-dom"
@@ -80,6 +80,10 @@ export default function TimerClient() {
   useEffect(() => { ensureClockCalibrated() }, [])
 
   const params = useParams()
+  // プレイヤー側の埋め込み表示(?store=<店舗ID>&view=1)。見るだけで、何も書き込まない
+  const searchParams = useSearchParams()
+  const viewStoreId = searchParams.get("store")
+  const viewOnly = searchParams.get("view") === "1"
   const tournamentId = params.tournamentId as string
 
   const [storeId, setStoreId] = useState<string | null>(null)
@@ -198,7 +202,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     // Firestoreに書き込む: store/page.tsxの次へ/前へボタンが正しいレベル情報を参照できるようにする
     const update: Record<string, any> = { selectedPreset: preset.id, customBlindLevels: lvs }
     if (timeRemaining === 0) update.timeRemaining = firstDur
-    void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
+    if (!viewOnly) void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
   }, [tournamentBlindPresetId, blindPresets, selectedPreset, customBlindLevels, timeRemaining, storeId])
 
   // ── Level helpers ────────────────────────────────────────────────────────
@@ -258,7 +262,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       const newDur = newLevels[levelIdx]?.duration
       const update: Record<string, any> = { customBlindLevels: newLevels }
       if (typeof newDur === "number" && newDur > 0) update.timeRemaining = newDur * 60
-      void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
+      if (!viewOnly) void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
     })
     return () => unsub()
   }, [storeId])
@@ -266,6 +270,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) return
+      if (viewStoreId) { setStoreId(viewStoreId); return }
       const snap = await getDoc(doc(db, "users", user.uid))
       setStoreId(snap.data()?.storeId ?? null)
     })
@@ -305,6 +310,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
   // ── Timer actions ────────────────────────────────────────────────────────
   const updatePrize = async (place: string, value: any) => {
+    if (viewOnly) return
     if (!storeId) return
     await updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), { [`prizePool.${place}`]: value })
   }
@@ -416,6 +422,19 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const nextBreakMin = Math.floor(nextBreakSeconds / 60)
   const nextBreakSec = nextBreakSeconds % 60
   const hasNextBreak = levelsToUse.slice(liveLevelIndex + 1).some(lv => lv.type === "break")
+  // 賞金の帯が枠に入りきらない分(px)。0 なら動かさない
+  const prizeBoxRef = useRef<HTMLDivElement>(null)
+  const prizeListRef = useRef<HTMLDivElement>(null)
+  const [prizeOverflow, setPrizeOverflow] = useState(0)
+  useEffect(() => {
+    const box = prizeBoxRef.current, list = prizeListRef.current
+    if (!box || !list) return
+    const measure = () => setPrizeOverflow(Math.max(0, Math.ceil(list.scrollHeight - box.clientHeight)))
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(box); ro.observe(list)
+    return () => ro.disconnect()
+  }, [prizePool])
   const totalPrize = Object.values(prizePool).reduce((a, b) => a + (Number(b?.amount) || 0), 0)
   const isPresetSelected = levelsToUse.length > 0 && level !== null
 
@@ -486,6 +505,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             100% { transform:translateX(100vw);  opacity:0; }
           }
           .news-ticker { animation:newsFlash 10s ease-in-out infinite; }
+          @keyframes prizeScroll {
+            0%, 12%  { transform:translateY(0); }
+            88%, 100% { transform:translateY(var(--prize-dist)); }
+          }
+          .prize-autoscroll { animation-name:prizeScroll; animation-timing-function:linear; animation-iteration-count:infinite; }
         `}</style>
 
 
@@ -496,10 +520,23 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
           <div className="flex-1 min-w-0 flex flex-col bg-white overflow-hidden">
 
             {/* TOURNAMENT NAME */}
-            <div className="flex-none text-center" style={{ padding: "18px 56px 12px" }}>
-              <h1 className="font-display text-[56px] font-black tracking-[0.18em] uppercase leading-none text-gray-900">
+            {/* 左上にロゴ、中央に大会名。ロゴと同じ幅の空きを右にも取り、名前が長くても重ならない */}
+            <div className="flex-none flex items-start" style={{ padding: "18px 24px 12px" }}>
+              <div className="flex-none" style={{ width: 196 }}>
+                <div
+                  className="inline-flex items-center gap-3 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
+                  style={{ padding: "8px 14px 8px 8px" }}
+                >
+                  <div className="h-10 w-10 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-[0_0_20px_rgba(200,130,10,0.5)]">
+                    <img src="/logo.png" alt="RRPoker" className="h-8 w-8 object-contain" />
+                  </div>
+                  <span className="text-[18px] font-bold tracking-widest text-gray-900">RRPOKER</span>
+                </div>
+              </div>
+              <h1 className="flex-1 min-w-0 text-center font-display text-[56px] font-black tracking-[0.18em] uppercase leading-none text-gray-900" style={{ paddingTop: 4, overflowWrap: "anywhere" }}>
                 {tournamentName || " "}
               </h1>
+              <div className="flex-none" style={{ width: 196 }} aria-hidden />
             </div>
 
             {/* LEVEL DIVIDER */}
@@ -748,8 +785,10 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               </div>
             </div>
 
-            {/* Places */}
-            <div className="flex-1 flex flex-col justify-evenly" style={{ padding: "8px 14px 60px" }}>
+            {/* Places。入りきらないときは、ゆっくり下へ送り、いちばん下まで行ったら上に戻って繰り返す */}
+            <div ref={prizeBoxRef} className="flex-1 min-h-0 overflow-hidden relative">
+            <div ref={prizeListRef} className={`flex flex-col justify-evenly${prizeOverflow > 0 ? " prize-autoscroll" : ""}`}
+              style={{ padding: "8px 14px 16px", minHeight: "100%", ...(prizeOverflow > 0 ? { ["--prize-dist" as any]: `-${prizeOverflow}px`, animationDuration: `${Math.max(8, prizeOverflow / 24 + 6)}s` } : {}) }}>
               {Object.entries(prizePool).map(([place, data], idx, arr) => {
                 const hasText = Boolean(data?.text)
                 return (
@@ -773,6 +812,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       <input
                         type="number"
                         value={data?.amount ?? ""}
+                        readOnly={viewOnly}
+                        tabIndex={viewOnly ? -1 : undefined}
                         onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
                         className="prize-input text-right font-normal text-gray-800 bg-transparent outline-none min-w-0 w-full"
                         style={{ fontSize: hasText ? "26px" : "32px", border: "none", lineHeight: 1.15 }}
@@ -789,6 +830,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   </div>
                 )
               })}
+            </div>
             </div>
           </div>
 
@@ -939,42 +981,6 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
         document.body
       )}
 
-      {/* ── Glass Logo (unchanged) ─────────────────────────────────────── */}
-      <div
-        className="
-          fixed bottom-8 right-8
-          flex items-center gap-4
-          px-5 py-3
-          rounded-2xl
-          bg-white/40 backdrop-blur-xl
-          border border-white/50
-          shadow-[0_8px_30px_rgba(0,0,0,0.15)]
-          z-[200]
-        "
-      >
-        <div
-          className="
-            h-12 w-12
-            rounded-xl
-            overflow-hidden
-            bg-white
-            flex items-center justify-center
-            shadow-[0_0_20px_rgba(200,130,10,0.5)]
-          "
-        >
-          <img src="/logo.png" alt="RRPoker" className="h-9 w-9 object-contain" />
-        </div>
-        <span
-          className="
-            text-[22px]
-            font-bold
-            tracking-widest
-            text-gray-900
-          "
-        >
-          RRPOKER
-        </span>
-      </div>
       </div>{/* end scale wrapper */}
 
     </div>

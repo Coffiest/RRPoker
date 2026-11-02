@@ -300,6 +300,8 @@ export default function HomePage() {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
   // 退店は押し間違えると入り直し(店舗の承認)が要るので、確認を挟む
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false)
+  // 店舗の「退店を許可する」(既定 ON)。店舗が切り替えたらすぐ反映するため購読する
+  const [checkoutAllowed, setCheckoutAllowed] = useState(true)
   const [isRankingModalOpen, setIsRankingModalOpen] = useState(false)
   const [isHistoryFlipped, setIsHistoryFlipped] = useState(false)
   const [isDetailedRankingModalOpen, setIsDetailedRankingModalOpen] = useState(false)
@@ -651,6 +653,11 @@ export default function HomePage() {
     }
     fetchStores()
   }, [joinedStores])
+
+  useEffect(() => {
+    if (!currentStoreId) { setCheckoutAllowed(true); return }
+    return onSnapshot(doc(db, "stores", currentStoreId), snap => setCheckoutAllowed(snap.data()?.allowPlayerCheckout !== false), () => {})
+  }, [currentStoreId])
 
   useEffect(() => {
     if (!userId || !currentStoreId) { setBalance(0); setNetGain(0); return }
@@ -1897,16 +1904,7 @@ const medalClass = (rank: number) => {
              入店中の店で進行中の大会を、読み取り専用のタイマー付きですべて出す。
              リエントリー / アドオンは、自分がエントリーしている大会でだけ確定できる。 */}
         {currentStoreId && currentStore && userId && (
-          <PlayerLiveTournaments
-            storeId={currentStoreId}
-            balanceGroupId={currentStore.balanceGroupId ?? currentStoreId}
-            userId={userId}
-            playerName={profile.name ?? ""}
-            playerIconUrl={profile.iconUrl}
-            balance={balance}
-            unitLabel={unitLabel}
-            unitBefore={currentStore.chipUnitBefore !== false}
-          />
+          <PlayerLiveTournaments storeId={currentStoreId} />
         )}
 
         {/* ════ 入店中 ════ */}
@@ -1951,12 +1949,12 @@ const medalClass = (rank: number) => {
               )}
             </div>
 
-            {/* 退店ボタン */}
-            <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)}
+            {/* 退店ボタン。店舗が「退店を許可する」を OFF にしていたら出さない(既定は出す) */}
+            {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
             >
               <FiLogOut className="text-[15px]" />退店する
-            </button>
+            </button>}
 
             {/* バンクロールカード */}
             <div data-tutorial="balance-card" className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
