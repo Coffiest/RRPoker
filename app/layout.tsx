@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google"
 import AuthGuard from '@/components/AuthGuard'
 import CapacitorBoot from '@/components/CapacitorBoot'
+import TechBackdrop from '@/components/TechBackdrop'
 import { LanguageProvider } from '@/lib/i18n'
 import "./globals.css"
 
@@ -78,7 +79,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="RRPoker" />
       </head>
-      <body className="min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip bg-white flex flex-col">
+      <body className="min-h-[100dvh] min-h-[100svh] w-full overflow-x-clip flex flex-col" style={{ background: "transparent" }}>
+        {/* 全画面で同じ下地(店舗ホームと同じ: 方眼と金のにじみ)。各画面は背景を塗らない */}
+        <TechBackdrop />
         <CapacitorBoot />
         <LanguageProvider>
           <AuthGuard>

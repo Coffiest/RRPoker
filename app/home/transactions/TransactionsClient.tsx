@@ -235,8 +235,7 @@ export default function TransactionsClient() {
     return (
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#F2F2F7" />
-      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1 }}>
+      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <PlayerBottomNav />
@@ -251,8 +250,7 @@ export default function TransactionsClient() {
     return (
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#F2F2F7" />
-      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 100 }}>
+      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 100 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 20px' }}>
@@ -324,8 +322,7 @@ export default function TransactionsClient() {
   return (
     <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#F2F2F7" />
-      <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 100 }}>
+      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 100 }}>
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 

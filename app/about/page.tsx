@@ -2,7 +2,7 @@
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-white px-5">
+    <main className="min-h-screen px-5">
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
           <h1 className="font-display term-prompt-arrow text-[24px] font-semibold text-gray-900">このアプリについて</h1>

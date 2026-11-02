@@ -147,7 +147,7 @@ export default function BranchStorePage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         :root { --gold:#F2A900; --gold-dk:#D4910A; --label:#1C1C1E; --sep:rgba(60,60,67,0.12); --red:#FF3B30; }
         @keyframes spin { to { transform:rotate(360deg); } }

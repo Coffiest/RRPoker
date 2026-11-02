@@ -181,7 +181,7 @@ export default function LoginPage() {
   const headerElevated = scrollY > 8
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A; --gold-lt:#FFE07A;

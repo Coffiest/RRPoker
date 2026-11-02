@@ -1203,7 +1203,7 @@ export default function StorePage() {
   }
 
   if (role === null) return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .7s linear infinite' }}/>
     </div>
   )
@@ -1214,8 +1214,7 @@ export default function StorePage() {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。プレイヤー側と同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
-    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
+    <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: "transparent", position: 'relative', zIndex: 1 }}>
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A;

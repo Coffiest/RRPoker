@@ -76,7 +76,7 @@ function PairPageInner() {
   }, [authReady, codeFromQuery])
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.light, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: "transparent", display: 'flex', flexDirection: 'column' }}>
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"

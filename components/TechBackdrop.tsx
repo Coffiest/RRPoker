@@ -12,11 +12,11 @@
  * `position: fixed` で画面に貼り付けるので、スクロールしても方眼は動かない。
  * 内容より後ろ(zIndex: 0)に置き、指はすべて素通しにする。
  */
-export default function TechBackdrop({ base = '#FFFBF5' }: { base?: string }) {
+export default function TechBackdrop({ base = '#F2F2F7' }: { base?: string }) {
   return (
     <div
       aria-hidden="true"
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden', background: base }}
+      style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none', overflow: 'hidden', background: base }}
     >
       <style>{`
         @keyframes techOrbDrift {

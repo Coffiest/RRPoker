@@ -125,7 +125,7 @@ export default function RegisterPage() {
   const strengthColor = ['', '#FF3B30', '#FF9500', '#34C759', '#30D158'][pwStrength]
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A; --gold-lt:#FFE07A;

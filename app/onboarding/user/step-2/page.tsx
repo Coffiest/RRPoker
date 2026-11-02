@@ -101,7 +101,7 @@ export default function UserWelcomePage() {
   }, [])
 
   return (
-    <main style={{ background: '#FFFBF5' }} className="min-h-screen px-5 pb-16">
+    <main style={{ background: "transparent" }} className="min-h-screen px-5 pb-16">
       <style>{`
         @keyframes slideUp {
           from { opacity:0; transform:translateY(12px); }

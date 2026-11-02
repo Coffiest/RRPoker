@@ -82,14 +82,14 @@ export default function HandPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: CLR.bg }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
         style={{ borderColor: `${CLR.gold} transparent ${CLR.gold} ${CLR.gold}` }} />
     </div>
   )
 
   if (!hand) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: CLR.bg }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
       <div className="text-center px-6">
         <p className="text-[40px] mb-3">🃏</p>
         <p className="term-comment text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
@@ -124,7 +124,7 @@ export default function HandPage() {
   )
 
   return (
-    <main className="min-h-screen pb-12" style={{ background: CLR.bg }}>
+    <main className="min-h-screen pb-12" style={{ background: "transparent" }}>
       <div className="mx-auto max-w-sm px-4 pt-6">
 
         {/* Header */}

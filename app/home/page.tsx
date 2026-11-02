@@ -1364,7 +1364,6 @@ const medalClass = (rank: number) => {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#FFFBF5" />
     <main className="min-h-screen pb-32" style={{ background: "transparent", position: "relative", zIndex: 1 }}>
       <style>{`
         /* ── アニメーション ── */

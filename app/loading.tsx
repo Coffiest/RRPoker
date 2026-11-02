@@ -7,7 +7,7 @@
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center px-6">
       <div className="tech-grid tech-scanline tech-corners w-full max-w-[300px] rounded-[22px] border border-gray-100 bg-white/70 px-6 py-7 shadow-sm">
         {/* 端末のタイトルバー */}
         <div className="flex items-center justify-between">
