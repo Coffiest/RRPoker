@@ -1,5 +1,4 @@
 'use client'
-import { CheckIcon, HouseIcon, LockIcon, LogInIcon, MailIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from "react"
 import { signInWithEmailAndPassword } from "firebase/auth"
@@ -182,10 +181,10 @@ export default function LoginPage() {
   const headerElevated = scrollY > 8
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold:#F9B318; --gold-dk:#995C00; --gold-lt:#FFD36B;
+          --gold:#F2A900; --gold-dk:#D4910A; --gold-lt:#FFE07A;
           --label:#1C1C1E;
           --sep:rgba(60,60,67,0.12); --fill:rgba(120,120,128,0.12);
           --green:#34C759; --red:#FF3B30;
@@ -214,8 +213,8 @@ export default function LoginPage() {
           100% { transform:scale(1); opacity:1; }
         }
         @keyframes field-focus-in {
-          from { box-shadow:0 0 0 0 rgba(249,179,24,0); }
-          to   { box-shadow:0 0 0 3.5px rgba(249,179,24,0.18); }
+          from { box-shadow:0 0 0 0 rgba(242,169,0,0); }
+          to   { box-shadow:0 0 0 3.5px rgba(242,169,0,0.18); }
         }
         @keyframes error-shake {
           0%,100% { transform:translateX(0); }
@@ -256,7 +255,7 @@ export default function LoginPage() {
 
         /* ── Shimmer text ── */
         .shimmer-text {
-          background: #F9B318;
+          background: linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
           background-clip:text; animation:shimmer 3s linear infinite;
@@ -271,21 +270,21 @@ export default function LoginPage() {
         /* ── Form fields ── */
         .field-wrap {
           position:relative; border-radius:14px;
-          background:#EDECE6;
+          background:#F2F2F7;
           border:1.5px solid transparent;
           transition:border-color .18s, background .18s, box-shadow .18s;
           overflow:hidden;
         }
         .field-wrap.focused {
           border-color:var(--gold);
-          background:#EDECE6;
-          box-shadow:0 0 0 3.5px rgba(249,179,24,0.15);
+          background:#FFFBF5;
+          box-shadow:0 0 0 3.5px rgba(242,169,0,0.15);
           animation:field-focus-in .18s ease-out;
         }
         .field-wrap.has-error { border-color:var(--red); background:#FFF5F5; }
         .field-input-bare {
           width:100%; height:50px; background:transparent;
-          border:none; outline:none; padding:0 48px 0 16px;
+          border:none; outline:none; padding:0 44px 0 16px;
           font-size:16px; color:var(--label); box-sizing:border-box;
         }
         .field-input-bare::placeholder { color:var(--label3); }
@@ -293,9 +292,9 @@ export default function LoginPage() {
         /* ── Primary button ── */
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
-          background:#F9B318;
-          color:#fff; font-size:14px; font-weight:700; letter-spacing:-.2px;
-          box-shadow:0 4px 18px rgba(249,179,24,0.32), 0 1px 3px rgba(0,0,0,0.08);
+          background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
+          color:#1a1a1a; font-size:16px; font-weight:800; letter-spacing:-.2px;
+          box-shadow:0 4px 18px rgba(242,169,0,0.32), 0 1px 3px rgba(0,0,0,0.08);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease, box-shadow .13s ease;
           position:relative; overflow:hidden;
@@ -307,7 +306,7 @@ export default function LoginPage() {
           pointer-events:none;
         }
         .btn-gold:active  { transform:scale(0.97); opacity:.88; }
-        .btn-gold:hover   { box-shadow:0 6px 24px rgba(249,179,24,0.42); }
+        .btn-gold:hover   { box-shadow:0 6px 24px rgba(242,169,0,0.42); }
         .btn-gold:disabled{ opacity:.5; pointer-events:none; }
         .btn-gold.success-state {
           background:linear-gradient(135deg,#34C759,#28A745) !important;
@@ -318,7 +317,7 @@ export default function LoginPage() {
         .btn-google {
           width:100%; height:50px; border-radius:14px;
           border:1.5px solid rgba(60,60,67,0.14); background:#fff;
-          display:flex; align-items:center; justify-content:center; gap:8px;
+          display:flex; align-items:center; justify-content:center; gap:9px;
           font-size:15px; font-weight:600; color:var(--label); cursor:pointer;
           box-shadow:0 1px 4px rgba(0,0,0,0.06);
           transition:transform .13s ease, box-shadow .13s ease, border-color .13s;
@@ -329,18 +328,18 @@ export default function LoginPage() {
 
         /* ── Header CTA ── */
         .header-cta {
-          background:#F9B318;
-          border:none; border-radius:20px; padding:8px 16px;
+          background:linear-gradient(135deg,#F2A900,#D4910A);
+          border:none; border-radius:20px; padding:7px 14px;
           color:white; font-size:13px; font-weight:700; cursor:pointer;
-          box-shadow:0 2px 8px rgba(249,179,24,0.28);
-          white-space:nowrap; display:flex; align-items:center; gap:8px;
+          box-shadow:0 2px 8px rgba(242,169,0,0.28);
+          white-space:nowrap; display:flex; align-items:center; gap:4px;
           transition:transform .12s, opacity .12s;
         }
-        .header-cta:active { transform:scale(0.97); opacity:.85; }
+        .header-cta:active { transform:scale(0.95); opacity:.85; }
 
         /* ── Error ── */
         .error-box {
-          border-radius:12px; padding:8px 16px;
+          border-radius:12px; padding:10px 14px;
           background:rgba(255,59,48,0.06); border:1px solid rgba(255,59,48,0.2);
           animation:error-shake .35s ease-out;
         }
@@ -348,15 +347,15 @@ export default function LoginPage() {
         /* ── Spinner ── */
         .spinner {
           width:20px; height:20px; border-radius:50%;
-          border:2.5px solid rgba(255,255,255,0.35);
-          border-top-color:#fff;
-          animation:spin .8s linear infinite;
+          border:2.5px solid rgba(26,26,26,0.18);
+          border-top-color:#1a1a1a;
+          animation:spin .65s linear infinite;
         }
         .spinner-white {
           width:20px; height:20px; border-radius:50%;
           border:2.5px solid rgba(255,255,255,0.25);
           border-top-color:white;
-          animation:spin .8s linear infinite;
+          animation:spin .65s linear infinite;
         }
 
         /* ── Success check ── */
@@ -370,8 +369,8 @@ export default function LoginPage() {
 
         /* ── Feature badge ── */
         .feat-badge {
-          display:inline-flex; align-items:center; gap:8px;
-          border-radius:99px; padding:8px 8px;
+          display:inline-flex; align-items:center; gap:5px;
+          border-radius:99px; padding:5px 10px;
           font-size:11px; font-weight:700; white-space:nowrap;
         }
 
@@ -381,9 +380,10 @@ export default function LoginPage() {
         /* ── Section label ── */
         .section-hd {
           font-family:var(--stack-mono);
-          font-size:9.5px; font-weight:700; letter-spacing:0.04em;
+          font-size:11px; font-weight:700; letter-spacing:.16em;
           text-transform:uppercase; color:var(--label2);
         }
+        .section-hd::before{ content:'//'; opacity:.4; margin-right:.55em; }
 
         button { -webkit-tap-highlight-color:transparent; }
       `}</style>
@@ -394,9 +394,9 @@ export default function LoginPage() {
       <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
         {/* 方眼の下地 */}
         <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.6 }}/>
-        <div style={{ position:'absolute', top:`calc(8% + ${orb1y}px)`, right:`calc(5% + ${orb1x}px)`, width:280, height:280, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.11) 0%,transparent 70%)', transition:'transform .1s linear' }}/>
-        <div style={{ position:'absolute', bottom:`calc(15% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:220, height:220, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.07) 0%,transparent 70%)' }}/>
-        <div style={{ position:'absolute', top:`calc(45% + ${orb3y}px)`, left:`calc(40% + ${orb3x}px)`, width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(249,179,24,0.06) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', top:`calc(8% + ${orb1y}px)`, right:`calc(5% + ${orb1x}px)`, width:280, height:280, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.11) 0%,transparent 70%)', transition:'transform .1s linear' }}/>
+        <div style={{ position:'absolute', bottom:`calc(15% + ${orb2y}px)`, left:`calc(2% + ${orb2x}px)`, width:220, height:220, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.07) 0%,transparent 70%)' }}/>
+        <div style={{ position:'absolute', top:`calc(45% + ${orb3y}px)`, left:`calc(40% + ${orb3x}px)`, width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.06) 0%,transparent 70%)' }}/>
       </div>
 
       {/* ════════════════════════════════════
@@ -404,7 +404,7 @@ export default function LoginPage() {
       ════════════════════════════════════ */}
       <header
         className="sticky top-0 z-50 border-b"
-        style={{ paddingTop:"env(safe-area-inset-top, 0px)",
+        style={{
           background: headerElevated ? 'rgba(255,255,255,0.96)' : 'rgba(255,255,255,0.88)',
           backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)',
           borderBottomColor: headerElevated ? 'rgba(60,60,67,0.12)' : 'rgba(60,60,67,0.05)',
@@ -412,7 +412,7 @@ export default function LoginPage() {
           position:'relative', zIndex:50,
         }}
       >
-        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 24px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 20px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           {/* ロゴ */}
           <button type="button" onClick={() => router.push('/')}
             style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'pointer', padding:0 }}
@@ -435,18 +435,18 @@ export default function LoginPage() {
         className={menuOpen ? 'drawer' : ''}
         style={{ position:'fixed', right:0, top:0, zIndex:1000, height:'100dvh', width:'80%', maxWidth:340, background:'white', borderLeft:'1px solid rgba(60,60,67,0.1)', boxShadow:'-8px 0 32px rgba(0,0,0,0.12)', transform:menuOpen?'translateX(0)':'translateX(100%)', transition:menuOpen?'none':'transform .25s cubic-bezier(.22,1,.36,1)', display:'flex', flexDirection:'column' }}
       >
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 24px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
           <p style={{ fontSize:14, fontWeight:700, color:'var(--label)' }}>メニュー</p>
-          <button onClick={() => setMenuOpen(false)} style={{ fontSize:11, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px' }}>閉じる</button>
+          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>閉じる</button>
         </div>
-        <div style={{ padding:'16px 24px', display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
           {[
-            { label:'Login', action:() => { setMenuOpen(false); document.getElementById('form-anchor')?.scrollIntoView({ behavior:'smooth' }) }, gold:true },
+            { label:'ログイン', action:() => { setMenuOpen(false); document.getElementById('form-anchor')?.scrollIntoView({ behavior:'smooth' }) }, gold:true },
             { label:'新規登録はこちら', action:() => { setMenuOpen(false); router.push('/register') }, gold:false },
-            { label:'Forgot Password?', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
+            { label:'パスワードを忘れた方', action:() => { setMenuOpen(false); router.push('/forgot-password') }, gold:false },
           ].map(item => (
             <button key={item.label} onClick={item.action}
-              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(249,179,24,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(249,179,24,0.06)':'none', padding:'16px 16px', textAlign:'left', fontSize:12, fontWeight:600, color:item.gold?'#995C00':'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:item.gold?'1.5px solid rgba(242,169,0,0.4)':'1px solid rgba(60,60,67,0.12)', background:item.gold?'rgba(242,169,0,0.06)':'none', padding:'13px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:item.gold?'#D4910A':'var(--label)', cursor:'pointer' }}
             >{item.label}</button>
           ))}
         </div>
@@ -455,22 +455,22 @@ export default function LoginPage() {
       {/* ════════════════════════════════════
           MAIN CONTENT
       ════════════════════════════════════ */}
-      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 24px 64px' }}>
+      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 20px 60px' }}>
 
         {/* ── ロゴヒーロー ── */}
-        <div style={{ paddingTop:48, paddingBottom:32, textAlign:'center' }}>
-          <div className="logo-wrap" style={{ display:'inline-block', marginBottom:16 }}>
+        <div style={{ paddingTop:44, paddingBottom:28, textAlign:'center' }}>
+          <div className="logo-wrap" style={{ display:'inline-block', marginBottom:18 }}>
             <div style={{ position:'relative', display:'inline-block' }}>
               {/* グロー */}
-              <div style={{ position:'absolute', inset:-12, borderRadius:30, background:'radial-gradient(circle,rgba(249,179,24,0.2) 0%,transparent 70%)', filter:'blur(8px)' }}/>
+              <div style={{ position:'absolute', inset:-12, borderRadius:30, background:'radial-gradient(circle,rgba(242,169,0,0.2) 0%,transparent 70%)', filter:'blur(8px)' }}/>
               <img src="/logo.png" alt="RRPoker"
-                style={{ width:80, height:80, borderRadius:24, objectFit:'cover', position:'relative', zIndex:1, boxShadow:'0 8px 28px rgba(249,179,24,0.28), 0 2px 8px rgba(0,0,0,0.1)', display:'block' }}
+                style={{ width:80, height:80, borderRadius:24, objectFit:'cover', position:'relative', zIndex:1, boxShadow:'0 8px 28px rgba(242,169,0,0.28), 0 2px 8px rgba(0,0,0,0.1)', display:'block' }}
               />
             </div>
           </div>
 
           <div className="appear d0">
-            <h1 className="font-display" style={{ fontSize:22, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:8 }}>
+            <h1 className="font-display" style={{ fontSize:30, fontWeight:900, letterSpacing:'-0.6px', color:'var(--label)', lineHeight:1.2, marginBottom:6 }}>
               <span className="shimmer-text">RRPoker</span>
             </h1>
             <p className="term-comment" style={{ fontSize:13, color:'var(--label2)', lineHeight:1.6 }}>
@@ -484,23 +484,23 @@ export default function LoginPage() {
         {/* ── ログインフォーム ── */}
         <div id="form-anchor" className="appear d2 ios-card" style={{ overflow:'hidden' }}>
           {/* アクセントバー */}
-          <div style={{ height:3, background:'#F9B318', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
+          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
-          <div style={{ padding:'24px 24px 24px' }}>
+          <div style={{ padding:'22px 20px 24px' }}>
 
             {/* タイトル */}
-            <div style={{ marginBottom:24 }}>
+            <div style={{ marginBottom:20 }}>
               <p className="term-prompt tech-caret font-display" style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:3 }}>Login</p>
               
             </div>
 
             {/* ソーシャルログイン — 丸アイコン */}
-            <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'center', gap:20, marginBottom:16 }}>
               <button onClick={handleGoogleLogin} disabled={loading || googleLoading}
                 style={{ width:52, height:52, borderRadius:'50%', border:'1.5px solid rgba(60,60,67,0.15)', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.07)', transition:'transform .13s, box-shadow .13s', flexShrink:0 }}
               >
                 {googleLoading
-                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .8s linear infinite' }}/>
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(60,60,67,0.15)', borderTopColor:'#4285F4', animation:'spin .65s linear infinite' }}/>
                   : <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                       <path d="M19.6 10.23c0-.68-.06-1.36-.18-2.02H10v3.83h5.44c-.23 1.23-.93 2.27-1.98 2.96v2.46h3.2c1.87-1.73 2.94-4.28 2.94-7.23z" fill="#4285F4"/>
                       <path d="M10 20c2.7 0 4.97-.9 6.63-2.44l-3.2-2.46c-.89.6-2.03.96-3.43.96-2.63 0-4.86-1.77-5.66-4.15H1.01v2.6C2.67 17.98 6.08 20 10 20z" fill="#34A853"/>
@@ -513,7 +513,7 @@ export default function LoginPage() {
                 style={{ width:52, height:52, borderRadius:'50%', border:'none', background:'#000', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.18)', transition:'transform .13s, opacity .13s', flexShrink:0 }}
               >
                 {appleLoading
-                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .8s linear infinite' }}/>
+                  ? <div style={{ width:18, height:18, borderRadius:'50%', border:'2px solid rgba(255,255,255,0.2)', borderTopColor:'white', animation:'spin .65s linear infinite' }}/>
                   : <svg width="16" height="20" viewBox="0 0 16 20" fill="white">
                       <path d="M13.15 10.44c-.02-2.05 1.67-3.04 1.75-3.09-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.47.74-3.11.74-.64 0-1.62-.72-2.67-.7-1.37.02-2.64.8-3.34 2.02C1.27 10.26 2.3 14.5 3.84 16.87c.77 1.16 1.68 2.44 2.88 2.4 1.16-.05 1.59-.74 2.99-.74 1.4 0 1.79.74 3.01.71 1.24-.02 2.03-1.17 2.79-2.33.88-1.33 1.24-2.63 1.26-2.7-.03-.01-2.4-.92-2.62-3.77z"/>
                       <path d="M11.06 4.66c.63-.78 1.06-1.86.94-2.95-.91.04-2.02.62-2.67 1.38-.58.67-1.1 1.77-.96 2.81 1.02.08 2.06-.52 2.69-1.24z"/>
@@ -523,20 +523,23 @@ export default function LoginPage() {
             </div>
 
             {/* or 区切り */}
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
               <div className="divider-line" style={{ flex:1 }}/>
-              <span style={{ fontSize:9.5, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>または</span>
+              <span style={{ fontSize:11, fontWeight:600, color:'var(--label3)', letterSpacing:'0.04em' }}>or</span>
               <div className="divider-line" style={{ flex:1 }}/>
             </div>
 
             {/* メール */}
-            <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>
+            <div style={{ marginBottom:10 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>
                 Email
               </label>
               <div className={`field-wrap${emailFocus?' focused':''}${error&&!email?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:emailFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <MailIcon size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                    <polyline points="22,6 12,13 2,6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
                 </div>
                 <input
                   type="email" value={email}
@@ -552,13 +555,16 @@ export default function LoginPage() {
             </div>
 
             {/* パスワード */}
-            <div style={{ marginBottom:8 }}>
-              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:9.5, color:'var(--label2)', marginBottom:8 }}>
+            <div style={{ marginBottom:6 }}>
+              <label className="tech-label tech-label-bracket" style={{ display:'block', fontSize:11, color:'var(--label2)', marginBottom:6 }}>
                 Password
               </label>
               <div className={`field-wrap${pwFocus?' focused':''}${error&&!password?' has-error':''}`}>
                 <div style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:pwFocus?'var(--gold)':'var(--label3)', transition:'color .18s' }}>
-                  <LockIcon size={16} />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
                 </div>
                 <input
                   type={showPw ? 'text' : 'password'} value={password}
@@ -571,21 +577,21 @@ export default function LoginPage() {
                   style={{ paddingLeft:40 }}
                 />
                 <button type="button" onClick={() => setShowPw(v => !v)}
-                  style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:pwFocus?'var(--gold-dk)':'var(--label3)', fontSize:9.5, fontWeight:700, padding:'8px 2px', transition:'color .18s' }}
+                  style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:pwFocus?'var(--gold-dk)':'var(--label3)', fontSize:11, fontWeight:700, padding:'4px 2px', transition:'color .18s' }}
                 >{showPw ? '隠す' : '表示'}</button>
               </div>
             </div>
 
             {/* パスワード忘れ */}
-            <div style={{ textAlign:'right', marginBottom:16 }}>
+            <div style={{ textAlign:'right', marginBottom:18 }}>
               <button type="button" onClick={() => router.push('/forgot-password')}
-                style={{ fontSize:10, fontWeight:600, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'8px 0', opacity:0.85 }}
+                style={{ fontSize:12, fontWeight:600, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'4px 0', opacity:0.85 }}
               >Forgot Password?</button>
             </div>
 
             {/* エラー */}
             {error && (
-              <div className="error-box" style={{ marginBottom:16 }}>
+              <div className="error-box" style={{ marginBottom:14 }}>
                 <p style={{ fontSize:12, color:'var(--red)', fontWeight:600, textAlign:'center' }}>{error}</p>
                 {isUnverified && <p style={{ fontSize:11, color:'var(--red)', textAlign:'center', marginTop:3, opacity:0.8 }}>{t('login.checkInbox')}</p>}
               </div>
@@ -600,59 +606,63 @@ export default function LoginPage() {
               {loading ? (
                 <div className="spinner"/>
               ) : success ? (
-                <CheckIcon size={22} color="#fff" />
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="check-path"/>
+                </svg>
               ) : (
                 <>
-                  <LogInIcon size={16} color="#fff" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   Login
                 </>
               )}
             </button>
 
             {/* 新規登録 */}
-            <div style={{ marginTop:16, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:8, flexWrap:'wrap' }}>
+            <div style={{ marginTop:14, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
               <span style={{ fontSize:13, color:'var(--label2)' }}>{t('login.noAccount')}</span>
               <button type="button" onClick={() => router.push('/register')}
-                style={{ fontSize:11, fontWeight:700, color:'#1546D9', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
+                style={{ fontSize:13, fontWeight:700, color:'var(--gold-dk)', background:'none', border:'none', cursor:'pointer', padding:'0 2px' }}
               >{t('login.signUp')}</button>
             </div>
           </div>
         </div>
 
         {/* 店舗向け(カードの外に控えめに) */}
-        <div className="appear d4" style={{ marginTop:16, textAlign:'center' }}>
+        <div className="appear d4" style={{ marginTop:12, textAlign:'center' }}>
           <button type="button" onClick={() => router.push('/store-register')}
-            style={{ fontSize:9.5, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'8px 8px', display:'inline-flex', alignItems:'center', gap:8 }}
+            style={{ fontSize:11, color:'var(--label3)', background:'none', border:'none', cursor:'pointer', padding:'4px 6px', display:'inline-flex', alignItems:'center', gap:4 }}
           >
-            <HouseIcon size={10} />
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             {t('login.storeOwner')}
           </button>
         </div>
 
         {/* ── バンクロールプレビュー ── */}
         <div className="appear d4" style={{ marginTop:16 }}>
-          <p className="section-hd" style={{ marginBottom:8 }}>{t('login.homePreview')}</p>
-          <div style={{ borderRadius:22, padding:24, position:'relative', overflow:'hidden', background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 55%,#1C1C1E 100%)', boxShadow:'0 8px 28px rgba(0,0,0,0.16)', animation:'card-float 4.5s ease-in-out infinite' }}>
-            <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(249,179,24,0.16) 0%,transparent 60%)', pointerEvents:'none' }}/>
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.55),transparent)' }}/>
+          <p className="section-hd" style={{ marginBottom:10 }}>{t('login.homePreview')}</p>
+          <div style={{ borderRadius:22, padding:20, position:'relative', overflow:'hidden', background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 55%,#1C1C1E 100%)', boxShadow:'0 8px 28px rgba(0,0,0,0.16)', animation:'card-float 4.5s ease-in-out infinite' }}>
+            <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.16) 0%,transparent 60%)', pointerEvents:'none' }}/>
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.55),transparent)' }}/>
             <div style={{ position:'relative', zIndex:1 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.72)' }}>Bank Roll</p>
-                <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 8px', fontSize:9.5, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
+                <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
+                <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 7px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
               </div>
-              <p style={{ fontSize:9.5, color:'rgba(255,255,255,0.72)', marginBottom:16, fontWeight:500 }}>○○ ポーカークラブ</p>
+              <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:14, fontWeight:500 }}>○○ ポーカークラブ</p>
               <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
-              <p style={{ fontSize:11, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
-              <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(249,179,24,0.38),transparent)' }}/>
-              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.72)', fontWeight:500 }}>{t('login.previewNote')}</p>
+              <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:6 }}>+ 4,500</p>
+              <div style={{ marginTop:12, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.38),transparent)' }}/>
+              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>{t('login.previewNote')}</p>
             </div>
           </div>
         </div>
 
         {/* ── フッター ── */}
-        <div className="appear d6" style={{ marginTop:32, textAlign:'center' }}>
-          <div className="divider-line" style={{ marginBottom:16 }}/>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:8 }}>
+        <div className="appear d6" style={{ marginTop:28, textAlign:'center' }}>
+          <div className="divider-line" style={{ marginBottom:18 }}/>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, marginBottom:10 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width:24, height:24, borderRadius:7, objectFit:'cover' }}/>
             <span style={{ fontSize:12, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
           </div>
@@ -673,11 +683,11 @@ export default function LoginPage() {
           onClick={() => setAdminModalOpen(false)}
         >
           <div
-            style={{ background:'#1C1C1E', borderRadius:20, padding:32, width:'100%', maxWidth:320, boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}
+            style={{ background:'#1C1C1E', borderRadius:20, padding:28, width:'100%', maxWidth:320, boxShadow:'0 20px 60px rgba(0,0,0,0.5)' }}
             onClick={e => e.stopPropagation()}
           >
-            <p style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:8 }}>管理者認証</p>
-            <p style={{ fontSize:10, color:'#888' /* contrast-ok: 暗いモーダルの上 */, marginBottom:24 }}>パスワードを入力してください</p>
+            <p style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:4 }}>管理者認証</p>
+            <p style={{ fontSize:12, color:'#888' /* contrast-ok: 暗いモーダルの上 */, marginBottom:20 }}>パスワードを入力してください</p>
             <input
               type="password"
               value={adminPw}
@@ -685,18 +695,18 @@ export default function LoginPage() {
               onKeyDown={e => e.key === "Enter" && handleAdminLogin()}
               placeholder="Password"
               autoFocus
-              style={{ width:'100%', background:'#2C2C2E', border:'1px solid #3A3A3C', borderRadius:12, padding:'16px 16px', color:'#fff', fontSize:12, outline:'none', boxSizing:'border-box', marginBottom:8 }}
+              style={{ width:'100%', background:'#2C2C2E', border:'1px solid #3A3A3C', borderRadius:12, padding:'12px 14px', color:'#fff', fontSize:14, outline:'none', boxSizing:'border-box', marginBottom:8 }}
             />
             {adminError && <p style={{ fontSize:12, color:'#FF453A', marginBottom:8 }}>{adminError}</p>}
-            <div style={{ display:'flex', gap:8, marginTop:8 }}>
+            <div style={{ display:'flex', gap:10, marginTop:8 }}>
               <button
                 onClick={() => setAdminModalOpen(false)}
-                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:12, cursor:'pointer' }}
-              >Cancel</button>
+                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'1px solid #3A3A3C', background:'transparent', color:'#888' /* contrast-ok: 暗いモーダルの上 */, fontSize:14, cursor:'pointer' }}
+              >キャンセル</button>
               <button
                 onClick={handleAdminLogin}
                 disabled={adminLoading || !adminPw.trim()}
-                style={{ flex:1, padding:'8px 0', borderRadius:12, border:'none', background:'#F9B318', color:'#000', fontSize:12, fontWeight:700, cursor:'pointer', opacity: adminLoading || !adminPw.trim() ? 0.5 : 1 }}
+                style={{ flex:1, padding:'11px 0', borderRadius:12, border:'none', background:'#F2A900', color:'#000', fontSize:14, fontWeight:700, cursor:'pointer', opacity: adminLoading || !adminPw.trim() ? 0.5 : 1 }}
               >{adminLoading ? "確認中..." : "ログイン"}</button>
             </div>
           </div>

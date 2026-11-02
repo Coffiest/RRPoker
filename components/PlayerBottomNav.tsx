@@ -1,11 +1,12 @@
 'use client'
-import { Grid3x3Icon, HouseIcon, PlusIcon, QrCodeIcon, UserIcon, XIcon } from 'lucide-react'
 
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, onSnapshot } from 'firebase/firestore'
+import { FiHome, FiUser } from 'react-icons/fi'
+import { MdQrCode2, MdDialpad } from 'react-icons/md'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import { hapticTap } from '@/lib/haptics'
 import { EDGE_PADDING, computeNavLayout, indicatorCenterRatio } from '@/lib/navLayout'
@@ -117,7 +118,7 @@ export default function PlayerBottomNav() {
   }
 
   /** アイコン+ラベルの列(ホーム / マイページ)。 */
-  const sideTab = (key: TabKey, label: string, href: string, Icon: typeof HouseIcon) => {
+  const sideTab = (key: TabKey, label: string, href: string, Icon: typeof FiHome) => {
     const isActive = activeTab === key
     return (
       <button
@@ -127,7 +128,7 @@ export default function PlayerBottomNav() {
           width: L.tabWidth, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: L.itemGap,
           padding: 0, overflow: 'hidden',
-          color: isActive ? '#1546D9' : '#3C3C43',
+          color: isActive ? '#F2A900' : '#3C3C43',
           fontWeight: isActive ? 700 : 400,
         }}
       >
@@ -205,7 +206,7 @@ export default function PlayerBottomNav() {
               width: L.indicatorSize,
               height: L.indicatorSize,
               borderRadius: '50%',
-              background: 'rgba(249,179,24,0.14)',
+              background: 'rgba(242,169,0,0.14)',
               opacity: activeIndex === CENTER_INDEX ? 0 : 1,
               transition: transition
                 ? 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease'
@@ -213,7 +214,7 @@ export default function PlayerBottomNav() {
               pointerEvents: 'none',
             }} />
 
-            {sideTab('home', 'HOME', '/home', HouseIcon)}
+            {sideTab('home', 'ホーム', '/home', FiHome)}
 
             {/* 中央。
                  入店していないときは入店QR、入店中はチップの入出金(テンキー)へ。
@@ -235,21 +236,21 @@ export default function PlayerBottomNav() {
             >
               <div style={{
                 width: L.circleSize, height: L.circleSize, borderRadius: '50%',
-                background: '#F9B318',
+                background: 'linear-gradient(135deg,#F2A900,#D4910A)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
                 boxShadow: activeTab === 'action'
-                  ? '0 4px 18px rgba(249,179,24,0.70), 0 0 0 4px rgba(249,179,24,0.18)'
-                  : '0 4px 14px rgba(249,179,24,0.45)',
+                  ? '0 4px 18px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
+                  : '0 4px 14px rgba(242,169,0,0.45)',
                 transition: 'box-shadow 0.35s ease',
               }}>
                 {checkedIn
-                  ? <Grid3x3Icon size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
-                  : <QrCodeIcon size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
+                  ? <MdDialpad size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />
+                  : <MdQrCode2 size={Math.round(L.iconSize * 1.1)} style={{ color: '#fff' }} />}
               </div>
             </button>
 
-            {sideTab('mypage', 'MY PAGE', '/home/mypage', UserIcon)}
+            {sideTab('mypage', 'マイページ', '/home/mypage', FiUser)}
           </div>
 
           {/* ── ツール(正方形、メインピルと高さ一致) ── */}
@@ -278,7 +279,7 @@ export default function PlayerBottomNav() {
                       animationDelay: `${i * 0.06}s`,
                     }}
                   >
-                    <span style={{ fontSize: Math.max(11, Math.round(12 * L.scale)), fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
+                    <span style={{ fontSize: Math.max(10, Math.round(12 * L.scale)), fontWeight: 700, color: '#1C1C1E' }}>{item.label}</span>
                   </button>
                 ))}
               </div>
@@ -287,7 +288,7 @@ export default function PlayerBottomNav() {
             <button
               type="button"
               onClick={() => { hapticTap(); setToolsOpen(v => !v) }}
-              aria-label="TOOLS"
+              aria-label="ツール"
               style={{
                 ...GLASS,
                 width: L.navH, height: L.navH,
@@ -295,15 +296,15 @@ export default function PlayerBottomNav() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: 1, padding: 0,
                 boxShadow: toolsOpen
-                  ? '0 20px 60px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 3px rgba(249,179,24,0.30)'
+                  ? '0 20px 60px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 3px rgba(242,169,0,0.30)'
                   : GLASS.boxShadow,
                 transition: 'box-shadow 0.2s ease',
               }}
             >
-              <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F9B318', lineHeight: 1 }}>
-                {toolsOpen ? <XIcon size={Math.max(16, Math.round(20 * L.scale))} /> : <PlusIcon size={Math.max(16, Math.round(20 * L.scale))} strokeWidth={2.5} />}
+              <span style={{ fontSize: Math.max(13, Math.round(16 * L.scale)), fontWeight: toolsOpen ? 300 : 900, color: toolsOpen ? '#3C3C43' : '#F2A900', lineHeight: 1 }}>
+                {toolsOpen ? '×' : '+'}
               </span>
-              <span style={{ fontSize: Math.max(11, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>TOOLS</span>
+              <span style={{ fontSize: Math.max(7, Math.round(8 * L.scale)), fontWeight: 700, color: '#3C3C43', letterSpacing: '0.06em', lineHeight: 1 }}>ツール</span>
             </button>
           </div>
         </div>

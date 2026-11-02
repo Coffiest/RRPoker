@@ -1,10 +1,10 @@
 "use client"
-import { ArrowDownIcon, ArrowUpIcon, Trash2Icon, TriangleAlertIcon, XIcon } from 'lucide-react'
-import AppleSheet from "@/components/AppleSheet"
 
+import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from "react"
 import { collection, query, where, onSnapshot, orderBy, getDocs, writeBatch, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { FiX, FiArrowUp, FiArrowDown, FiTrash2, FiAlertTriangle } from "react-icons/fi"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
 
 type Transaction = {
@@ -23,8 +23,6 @@ type Props = {
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
-  /** 重なり順。全画面タイマーの上に出すときに上げる。 */
-  zIndex?: number
 }
 
 function formatDate(ts: any) {
@@ -69,7 +67,9 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose, zIndex }: Props) {
+export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose }: Props) {
+  // 下から出る画面を指で下に引いて閉じられるように(見た目は元のまま)
+  const sheetDrag = useDragToClose(() => onClose())
   const [history, setHistory] = useState<Transaction[]>([])
   const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false)
   const [wiping, setWiping] = useState(false)
@@ -125,25 +125,31 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
   }
 
   return (
-    <AppleSheet open onClose={onClose} bare maxWidth={480} maxHeightVh={80} zIndex={zIndex ?? 200}>
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
+      onClick={onClose}
+    >
+      <div ref={sheetDrag}
+        style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRadius: '34px 34px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', maxHeight: '80vh', display: 'flex', flexDirection: 'column', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
+        onClick={e => e.stopPropagation()}
+      >
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
           <div style={{ width: 36, height: 5, borderRadius: 999, background: 'rgba(60,60,67,0.20)' }}/>
         </div>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 16px', borderBottom: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(28,28,30,1)', margin: 0 }}>チップ履歴</p>
             <p style={{ fontSize: 11, color: 'var(--label3)', margin: '2px 0 0' }}>{history.length}件</p>
-            <ChipDisclaimer className="mt-2" />
+            <ChipDisclaimer className="mt-1" />
           </div>
           <button
             onClick={onClose}
-            style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ width: 32, height: 32, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
-            <XIcon size={14} style={{ color: 'var(--label3)' }}/>
+            <FiX size={14} style={{ color: 'var(--label3)' }}/>
           </button>
         </div>
 
@@ -151,8 +157,8 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {history.length === 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0', gap: 8 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(120,120,128,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                <ArrowUpIcon size={20} style={{ color: 'var(--label3)' }}/>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(120,120,128,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
+                <FiArrowUp size={20} style={{ color: 'var(--label3)' }}/>
               </div>
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label3)', margin: 0 }}>履歴なし</p>
               <p style={{ fontSize: 12, color: 'var(--label3)', margin: 0 }}>取引が記録されると表示されます</p>
@@ -162,18 +168,18 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
               const isAdd = item.direction === "add"
               return (
                 <div key={item.id} style={{
-                  display: 'flex', alignItems: 'center', padding: '16px 16px',
+                  display: 'flex', alignItems: 'center', padding: '12px 18px',
                   borderBottom: idx < history.length - 1 ? '1px solid rgba(60,60,67,0.08)' : 'none',
                 }}>
                   {/* Direction icon */}
                   <div style={{
-                    width: 36, height: 36, borderRadius: 11, flexShrink: 0, marginRight: 16,
-                    background: isAdd ? 'rgba(249,179,24,0.1)' : 'rgba(120,120,128,0.08)',
+                    width: 36, height: 36, borderRadius: 11, flexShrink: 0, marginRight: 12,
+                    background: isAdd ? 'rgba(242,169,0,0.1)' : 'rgba(120,120,128,0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
                     {isAdd
-                      ? <ArrowUpIcon size={15} style={{ color: '#1546D9' }}/>
-                      : <ArrowDownIcon size={15} style={{ color: 'var(--label3)' }}/>
+                      ? <FiArrowUp size={15} style={{ color: '#D4910A' }}/>
+                      : <FiArrowDown size={15} style={{ color: 'var(--label3)' }}/>
                     }
                   </div>
 
@@ -182,8 +188,8 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(28,28,30,1)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {formatType(item.type, item.comment)}
                     </p>
-                    <p style={{ fontSize: 9.5, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '1px 8px', fontWeight: 600 }}>
+                    <p style={{ fontSize: 10, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '1px 5px', fontWeight: 600 }}>
                         {formatSubtype(item.type)}
                       </span>
                       <span>{formatDate(item.createdAt)}</span>
@@ -194,7 +200,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                   <p style={{
                     fontSize: 14, fontWeight: 800, flexShrink: 0, marginLeft: 8,
                     fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px',
-                    color: isAdd ? '#995C00' : 'var(--label3)',
+                    color: isAdd ? '#D4910A' : 'var(--label3)',
                   }}>
                     {isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                   </p>
@@ -205,16 +211,16 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
         </div>
 
         {/* Danger zone */}
-        <div style={{ padding: '16px 16px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
+        <div style={{ padding: '12px 18px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
           <button
             onClick={() => setWipeConfirmOpen(true)}
             style={{
               width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.08)',
               color: '#FF3B30', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
             }}
           >
-            <Trash2Icon size={14} />
+            <FiTrash2 size={14} />
             履歴とチップを全て削除
           </button>
         </div>
@@ -230,26 +236,26 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
             style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <TriangleAlertIcon size={24} style={{ color: '#FF3B30' }}/>
+            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                <FiAlertTriangle size={24} style={{ color: '#FF3B30' }}/>
               </div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 8 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 6 }}>
                 {playerName ?? 'このプレイヤー'}の履歴を全て削除しますか？
               </p>
               <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5, margin: 0 }}>
                 チップ履歴（{history.length}件）と所持チップ・純増値が全て0になります。<br/>この操作は取り消せません。
               </p>
               {wipeError && (
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#FF3B30', marginTop: 8 }}>{wipeError}</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', marginTop: 10 }}>{wipeError}</p>
               )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
               <button
                 onClick={() => setWipeConfirmOpen(false)}
                 disabled={wiping}
                 style={{ height: 48, borderRadius: 12, border: 'none', background: 'rgba(120,120,128,0.12)', color: 'rgba(28,28,30,1)', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: wiping ? 0.6 : 1 }}
-              >Cancel</button>
+              >キャンセル</button>
               <button
                 onClick={wipeHistoryAndBalance}
                 disabled={wiping}
@@ -259,6 +265,6 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
           </div>
         </div>
       )}
-    </AppleSheet>
+    </div>
   )
 }

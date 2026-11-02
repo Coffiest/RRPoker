@@ -24,9 +24,9 @@ export function ConsolePanel({
 }) {
   const dark = tone === 'dark'
   const bg = dark ? '#0E0E10' : '#FFFFFF'
-  const bar = dark ? '#1A1A1E' : '#EDECE6'
+  const bar = dark ? '#1A1A1E' : '#F2F2F7'
   const line = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'
-  const titleColor = dark ? 'rgba(255,255,255,0.75)' : 'var(--label3)'
+  const titleColor = dark ? 'rgba(255,255,255,0.42)' : 'var(--label3)'
 
   return (
     <div
@@ -45,11 +45,16 @@ export function ConsolePanel({
       {/* タイトルバー */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '8px 16px',
+        padding: '9px 12px',
         background: bar,
         borderBottom: `1px solid ${line}`,
       }}>
-        <span className="tech-label" style={{ fontSize: 11, color: titleColor }}>{title}</span>
+        <svg width="38" height="8" viewBox="0 0 38 8" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <circle cx="4" cy="4" r="4" fill={dark ? '#3A3A40' : '#D8D8DE'} />
+          <circle cx="17" cy="4" r="4" fill={dark ? '#3A3A40' : '#D8D8DE'} />
+          <circle cx="30" cy="4" r="4" fill="#F2A900" />
+        </svg>
+        <span className="tech-label" style={{ fontSize: 9.5, color: titleColor, letterSpacing: '0.16em' }}>{title}</span>
       </div>
       {children}
     </div>
@@ -60,7 +65,7 @@ export function ConsolePanel({
  * 端末に流れる1行。`kind` で行頭の記号と色を決める。
  *  - cmd  … 打ち込んだ命令( $ )
  *  - out  … その出力( > )
- *  - ok   … 成功(チェックの印は呼び出し側で足す)
+ *  - ok   … 成功( ✓ 相当の印は呼び出し側で足す)
  *  - note … 補足のコメント( // )
  */
 export function ConsoleLine({
@@ -78,11 +83,11 @@ export function ConsoleLine({
   const dark = tone === 'dark'
   const color =
     kind === 'cmd' ? (dark ? 'rgba(255,255,255,0.92)' : '#1C1C1E')
-    : kind === 'ok' ? '#F9B318'
-    : kind === 'note' ? (dark ? 'rgba(255,255,255,0.7)' : 'var(--label3)')
-    : (dark ? 'rgba(255,255,255,0.75)' : 'var(--label2)')
+    : kind === 'ok' ? '#F2A900'
+    : kind === 'note' ? (dark ? 'rgba(255,255,255,0.32)' : 'rgba(60,60,67,0.40)')
+    : (dark ? 'rgba(255,255,255,0.62)' : 'rgba(60,60,67,0.62)')
 
-  const prefix = ''
+  const prefix = kind === 'cmd' ? '$' : kind === 'out' ? '>' : kind === 'note' ? '//' : ''
 
   return (
     <p
@@ -90,7 +95,7 @@ export function ConsoleLine({
       style={{
         fontFamily: 'var(--stack-mono)',
         fontSize: 12,
-        lineHeight: 1.6,
+        lineHeight: 1.75,
         color,
         display: 'flex',
         gap: 8,

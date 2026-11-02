@@ -9,10 +9,10 @@ import PlayerBottomNav from '@/components/PlayerBottomNav'
 import { getCommonMenuItems } from '@/components/commonMenuItems'
 
 const COLORS = {
-  gold: '#F9B318',
+  gold: '#F2A900',
   dark: '#1C1C1E',
-  light: '#EDECE6',
-  lightGray: '#EDECE6',
+  light: '#FAFAFA',
+  lightGray: '#F2F2F7',
   border: '#E5E5EA',
   red: '#d32f2f',
 }
@@ -82,10 +82,14 @@ function PairPageInner() {
         myPagePath="/home/mypage"
         menuItems={getCommonMenuItems(router, 'user')}
       />
-      <div style={{ flex: 1, padding: '24px 24px 104px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 420, marginTop: 24 }}>
+      <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+            <span className="tech-status-dot" />
+            <span className="tech-label" style={{ color: 'var(--label3)' }}>DEVICE LINK</span>
+          </div>
           <p className="font-display" style={{ fontSize: 20, fontWeight: 700, color: COLORS.dark, marginBottom: 8, textAlign: 'center' }}>
-            テレビと連携
+            TVと連携
           </p>
           <p className="term-comment" style={{ fontSize: 14, color: COLORS.dark, marginBottom: 24, lineHeight: 1.6 }}>
             Fire TV / Fire Stick 端末の画面に表示されているQRコードを読み込むと自動で連携されます。{'\n'}
@@ -103,8 +107,8 @@ function PairPageInner() {
             </div>
           ) : (
             <>
-              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 8 }}>
-                連携コード(6桁)
+              <label className="tech-label tech-label-bracket" style={{ display: 'block', color: 'var(--label3)', marginBottom: 6 }}>
+                PAIRING CODE
               </label>
               <input
                 className="tech-num"
@@ -119,11 +123,11 @@ function PairPageInner() {
                   letterSpacing: 8,
                   textAlign: 'center',
                   fontWeight: 700,
-                  padding: '16px 16px',
+                  padding: '16px 12px',
                   borderRadius: 12,
                   border: `2px solid ${COLORS.border}`,
                   color: COLORS.dark,
-                  marginBottom: 24,
+                  marginBottom: 20,
                   boxSizing: 'border-box',
                 }}
               />

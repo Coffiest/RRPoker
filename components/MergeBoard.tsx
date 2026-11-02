@@ -165,8 +165,8 @@ export default function MergeBoard({ items, editing, setEditing, onMerge, render
             {render(item, { editing, gripProps: gripProps(item.key) })}
             {/* 重ねた先に「+」 */}
             {isTarget && (
-              <div aria-hidden="true" style={{ position: 'absolute', inset: 0, borderRadius: 16, border: '2px solid #1546D9', background: 'rgba(21,70,217,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 60 }}>
-                <span style={{ width: 64, height: 64, borderRadius: 32, background: '#1546D9', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(21,70,217,0.4)' }}>
+              <div aria-hidden="true" style={{ position: 'absolute', inset: 0, borderRadius: 16, border: '2px solid #F2A900', background: 'rgba(242,169,0,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 60 }}>
+                <span style={{ width: 64, height: 64, borderRadius: 32, background: '#F2A900', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(242,169,0,0.4)' }}>
                   <PlusIcon size={32} color="#fff" strokeWidth={3} />
                 </span>
               </div>
@@ -180,7 +180,7 @@ export default function MergeBoard({ items, editing, setEditing, onMerge, render
           <div style={{ pointerEvents: 'auto', display: 'flex', alignItems: 'center', gap: 16, padding: '8px 8px 8px 24px', borderRadius: 999, background: 'rgba(28,28,30,0.86)', backdropFilter: 'blur(20px)', color: '#fff' }}>
             <span className="tech-label" style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'none' }}>$ merge --drag-onto-another</span>
             <button type="button" onClick={() => setEditing(false)} className="gl-press"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: 'none', background: '#1546D9', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 16px', borderRadius: 999, border: 'none', background: '#F2A900', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
               <CheckIcon size={16} /> DONE
             </button>
           </div>
@@ -192,7 +192,7 @@ export default function MergeBoard({ items, editing, setEditing, onMerge, render
         @keyframes mbJiggle { 0% { transform: rotate(-0.7deg) } 50% { transform: rotate(0.7deg) } 100% { transform: rotate(-0.7deg) } }
         .mb-jiggle { animation: mbJiggle 0.26s ease-in-out infinite; transform-origin: 50% 40%; }
         @media (prefers-reduced-motion: reduce) {
-          .mb-jiggle { animation: none; outline: 2px dashed rgba(21,70,217,0.5); outline-offset: 4px; border-radius: 16px; }
+          .mb-jiggle { animation: none; outline: 2px dashed rgba(242,169,0,0.5); outline-offset: 4px; border-radius: 16px; }
         }
       `}</style>
     </div>
@@ -203,7 +203,7 @@ export default function MergeBoard({ items, editing, setEditing, onMerge, render
 export function MergeGrip({ gripProps }: { gripProps: React.HTMLAttributes<HTMLElement> }) {
   return (
     <span role="button" tabIndex={0} aria-label="長押しで並べ替え・合体" {...gripProps}
-      style={{ ...(gripProps.style ?? {}), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 32, margin: '-8px -8px -8px 0', color: '#1546D9', flexShrink: 0 }}>
+      style={{ ...(gripProps.style ?? {}), display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 32, margin: '-8px -8px -8px 0', color: '#D4910A', flexShrink: 0 }}>
       <GripIcon size={18} />
     </span>
   )

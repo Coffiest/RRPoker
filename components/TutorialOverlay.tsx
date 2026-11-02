@@ -1,5 +1,4 @@
 'use client'
-import { ChevronRightIcon } from 'lucide-react'
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -135,8 +134,8 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             left: spotlight.x, top: spotlight.y,
             width: spotlight.width, height: spotlight.height,
             borderRadius: spotlight.rx,
-            border: '2px solid rgba(21,70,217,0.75)',
-            boxShadow: '0 0 0 4px rgba(249,179,24,0.20)',
+            border: '2px solid rgba(242,169,0,0.75)',
+            boxShadow: '0 0 0 4px rgba(242,169,0,0.20)',
             pointerEvents: 'none',
             zIndex: 2,
           }} />
@@ -157,7 +156,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
               maxWidth: 340,
               background: '#fff',
               borderRadius: 22,
-              padding: '24px 24px 16px',
+              padding: '20px 20px 16px',
               boxShadow: '0 8px 48px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)',
               zIndex: 4,
               animation: 'tut-fade 0.28s cubic-bezier(0.22,1,0.36,1) both',
@@ -172,26 +171,26 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Step dots */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 16 }}>
               {steps.map((_, i) => (
                 <div key={i} style={{
                   width: i === currentStep ? 20 : 6,
                   height: 6,
                   borderRadius: 99,
-                  background: i === currentStep ? '#F9B318' : '#E5E5EA',
-                  transition: 'transform 0.25s ease, opacity 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease',
+                  background: i === currentStep ? '#F2A900' : '#E5E5EA',
+                  transition: 'all 0.25s ease',
                   flexShrink: 0,
                 }} />
               ))}
             </div>
 
             {/* Title */}
-            <p className="term-prompt-arrow" style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
+            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 7, lineHeight: 1.3 }}>
               {step.title}
             </p>
 
             {/* Body */}
-            <p style={{ fontSize: 12, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
+            <p style={{ fontSize: 14, color: '#48484A', lineHeight: 1.65, marginBottom: 18 }}>
               {step.body}
             </p>
 
@@ -208,21 +207,21 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                 type="button"
                 onClick={advance}
                 style={{
-                  height: 44,
-                  paddingInline: 32,
+                  height: 42,
+                  paddingInline: 28,
                   borderRadius: 99,
-                  background: '#F9B318',
+                  background: 'linear-gradient(135deg,#F2A900,#D4910A)',
                   border: 'none',
                   cursor: 'pointer',
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 700,
                   fontFamily: 'inherit',
-                  boxShadow: '0 3px 14px rgba(249,179,24,0.45)',
+                  boxShadow: '0 3px 14px rgba(242,169,0,0.45)',
                   letterSpacing: '-0.1px',
                 }}
               >
-                {isLast ? 'はじめる' : <>Next <ChevronRightIcon size={16} style={{ display: 'inline', verticalAlign: '-0.15em' }} /></>}
+                {isLast ? 'はじめる ✓' : '次へ →'}
               </button>
             </div>
           </div>

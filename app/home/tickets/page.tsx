@@ -1,5 +1,4 @@
 "use client"
-import { CreditCardIcon, TicketIcon } from 'lucide-react'
 
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
@@ -8,6 +7,7 @@ import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useEffect, useState } from "react"
 import { auth, db } from "@/lib/firebase"
 import { collection, getDocs, getDoc, doc, updateDoc, serverTimestamp, addDoc, setDoc } from "firebase/firestore"
+import { FiCreditCard } from "react-icons/fi"
 
 const STAMP_GOAL = 12
 
@@ -50,9 +50,9 @@ function isExpired(expiresAt: any): boolean {
 function StampGrid({ count, iconUrl }: { count: number; iconUrl?: string }) {
   const dots = Array.from({ length: STAMP_GOAL }, (_, i) => i < count)
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {[dots.slice(0, 6), dots.slice(6, 12)].map((row, r) => (
-        <div key={r} style={{ display: "flex", gap: 8 }}>
+        <div key={r} style={{ display: "flex", gap: 6 }}>
           {row.map((filled, i) => (
             <div
               key={i}
@@ -63,14 +63,14 @@ function StampGrid({ count, iconUrl }: { count: number; iconUrl?: string }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: filled ? "0 2px 6px rgba(0,0,0,0.18)" : "none",
                 flexShrink: 0, overflow: "hidden",
-                transition: "transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+                transition: "all 0.15s ease",
               }}
             >
               {filled ? (
                 iconUrl ? (
                   <img src={iconUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
                 ) : (
-                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #995C00, #995C00)" }} />
+                  <div style={{ width: "100%", height: "100%", borderRadius: "50%", background: "linear-gradient(145deg, #D4910A, #C8820A)" }} />
                 )
               ) : null}
             </div>
@@ -87,7 +87,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
     <div
       style={{
         position: "relative",
-        background: isUsed ? "#EDECE6" : "#fff",
+        background: isUsed ? "#F2F2F7" : "#fff",
         borderRadius: 16,
         overflow: "hidden",
         boxShadow: isUsed ? "none" : "0 2px 12px rgba(0,0,0,0.08)",
@@ -98,7 +98,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       {/* 左側ゴールドストライプ */}
       <div style={{
         width: 8,
-        background: isUsed ? "#C7C7CC" : "#F9B318",
+        background: isUsed ? "#C7C7CC" : "linear-gradient(180deg, #F2A900, #D4910A)",
         flexShrink: 0,
       }} />
 
@@ -111,10 +111,10 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
       }} />
 
       {/* コンテンツ */}
-      <div style={{ flex: 1, padding: "16px 16px", minWidth: 0 }}>
+      <div style={{ flex: 1, padding: "14px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 9.5, fontWeight: 700, color: isUsed ? "var(--label3)" : "#995C00", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: isUsed ? "var(--label3)" : "#D4910A", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
               {isUsed ? "USED" : "COUPON"}
             </p>
             <p style={{
@@ -134,8 +134,8 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
             <button
               onClick={onUse}
               style={{
-                height: 44, padding: "0 16px", borderRadius: 99, border: "none",
-                background: "#F9B318",
+                height: 36, padding: "0 14px", borderRadius: 99, border: "none",
+                background: "linear-gradient(135deg, #F2A900, #D4910A)",
                 color: "#1C1C1E", fontSize: 12, fontWeight: 700,
                 cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
               }}
@@ -144,7 +144,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
             </button>
           )}
           {isUsed && (
-            <div style={{ padding: "8px 8px", borderRadius: 99, background: "#E5E5EA" }}>
+            <div style={{ padding: "4px 10px", borderRadius: 99, background: "#E5E5EA" }}>
               <p style={{ fontSize: 11, color: "var(--label3)", fontWeight: 600 }}>使用済み</p>
             </div>
           )}
@@ -226,7 +226,7 @@ export default function TicketsPage() {
   const usedCoupons = coupons.filter(c => c.isUsed || isExpired(c.expiresAt))
 
   return (
-    <main className="min-h-screen pb-32" style={{ background: "#EDECE6" }}>
+    <main className="min-h-screen pb-32" style={{ background: "#F2F2F7" }}>
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"
@@ -238,35 +238,35 @@ export default function TicketsPage() {
 
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>
-          <h2 className="text-[11px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
-            Stamp Card
+          <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "var(--label3)" }}>
+            スタンプカード
           </h2>
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p className="term-comment" style={{ fontSize: 11, color: "var(--label3)" }}>LOADING...</p>
+              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>読み込み中…</p>
             </div>
           ) : stampCards.length === 0 ? (
-            <div style={{ background: "#fff", borderRadius: 20, padding: "32px 24px", textAlign: "center" }}>
-              <div style={{ marginBottom: 8, color: "var(--label3)", display: "flex", justifyContent: "center" }}><TicketIcon size={40} /></div>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "#1C1C1E", marginBottom: 8 }}>スタンプカードがありません</p>
+            <div style={{ background: "#fff", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 36, marginBottom: 10 }}>🎫</div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E", marginBottom: 4 }}>スタンプカードがありません</p>
               <p style={{ fontSize: 12, color: "var(--label3)", lineHeight: 1.5 }}>店舗に入店するとスタンプが貯まります</p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {stampCards.map((card) => {
                 const pct = Math.min(card.stampCount / STAMP_GOAL, 1)
                 const done = card.stampCount >= STAMP_GOAL
                 return (
-                  <div key={card.storeId} style={{ background: "#fff", borderRadius: 20, padding: "16px 16px", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
+                  <div key={card.storeId} style={{ background: "#fff", borderRadius: 20, padding: "16px 18px", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}>
                     {/* 店舗名 + バッジ/カウント */}
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-                      <div style={{ flex: 1, minWidth: 0, marginRight: 16 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+                      <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
                         <p style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", letterSpacing: -0.2, lineHeight: 1.3, marginBottom: 2 }}>
                           {card.storeName}
                         </p>
                         {card.couponName && (
-                          <p style={{ fontSize: 11, color: "#995C00", fontWeight: 500, lineHeight: 1.3 }}>
+                          <p style={{ fontSize: 11, color: "#C8820A", fontWeight: 500, lineHeight: 1.3 }}>
                             {STAMP_GOAL}スタンプで {card.couponName}
                           </p>
                         )}
@@ -276,9 +276,9 @@ export default function TicketsPage() {
                           onClick={() => claimCoupon(card)}
                           disabled={claiming === card.storeId}
                           style={{
-                            background: "#F9B318",
+                            background: "linear-gradient(135deg,#F2A900,#D4910A)",
                             borderRadius: 10, border: "none", cursor: "pointer",
-                            paddingLeft: 16, paddingRight: 16, paddingTop: 8, paddingBottom: 8,
+                            paddingLeft: 12, paddingRight: 12, paddingTop: 6, paddingBottom: 6,
                             flexShrink: 0, opacity: claiming === card.storeId ? 0.6 : 1,
                           }}
                         >
@@ -300,11 +300,11 @@ export default function TicketsPage() {
                     <StampGrid count={card.stampCount} iconUrl={card.iconUrl} />
 
                     {/* プログレスバー + 最終入店 */}
-                    <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                      <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#EDECE6", overflow: "hidden" }}>
+                    <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#F2F2F7", overflow: "hidden" }}>
                         <div style={{
                           height: "100%", width: `${pct * 100}%`, borderRadius: 99,
-                          background: "#F9B318",
+                          background: "linear-gradient(90deg,#F2A900,#D4910A)",
                           transition: "width 0.4s ease",
                         }} />
                       </div>
@@ -324,22 +324,22 @@ export default function TicketsPage() {
         {/* ── クーポン ────────────────────────────────────────── */}
         {!loading && (
           <section>
-            <h2 className="text-[11px] font-semibold tracking-wide uppercase mb-4" style={{ color: "var(--label3)" }}>
+            <h2 className="text-[13px] font-semibold tracking-widest uppercase mb-3" style={{ color: "var(--label3)" }}>
               クーポン
             </h2>
 
             {/* タブ */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
               {([{ key: "active", label: `未使用 ${activeCoupons.length > 0 ? `(${activeCoupons.length})` : ""}` }, { key: "used", label: "使用済み" }] as const).map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setCouponTab(tab.key)}
                   style={{
-                    flex: 1, height: 44, borderRadius: 99, border: "none", cursor: "pointer",
+                    flex: 1, height: 36, borderRadius: 99, border: "none", cursor: "pointer",
                     background: couponTab === tab.key ? "#1C1C1E" : "#E5E5EA",
-                    color: couponTab === tab.key ? "#fff" : "var(--label2)",
+                    color: couponTab === tab.key ? "#fff" : "var(--label3)",
                     fontSize: 13, fontWeight: 600,
-                    transition: "transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s",
+                    transition: "all 0.15s",
                   }}
                 >
                   {tab.label}
@@ -349,11 +349,11 @@ export default function TicketsPage() {
 
             {couponTab === "active" ? (
               activeCoupons.length === 0 ? (
-                <div style={{ background: "#fff", borderRadius: 20, padding: "24px 24px", textAlign: "center" }}>
+                <div style={{ background: "#fff", borderRadius: 20, padding: "22px 20px", textAlign: "center" }}>
                   <p style={{ fontSize: 13, color: "var(--label3)" }}>未使用のクーポンはありません</p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {activeCoupons.map(coupon => (
                     <CouponCard
                       key={coupon.id}
@@ -366,11 +366,11 @@ export default function TicketsPage() {
               )
             ) : (
               usedCoupons.length === 0 ? (
-                <div style={{ background: "#fff", borderRadius: 20, padding: "24px 24px", textAlign: "center" }}>
+                <div style={{ background: "#fff", borderRadius: 20, padding: "22px 20px", textAlign: "center" }}>
                   <p style={{ fontSize: 13, color: "var(--label3)" }}>使用済みのクーポンはありません</p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {usedCoupons.map(coupon => (
                     <CouponCard key={coupon.id} coupon={coupon} isUsed={true} onUse={() => {}} />
                   ))}
@@ -395,27 +395,27 @@ export default function TicketsPage() {
           onClick={() => setSelectedCoupon(null)}
         >
           <div
-            style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "32px 24px 40px", width: "100%", maxWidth: 420 }}
+            style={{ background: "#fff", borderRadius: "24px 24px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 420 }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ width: 36, height: 4, borderRadius: 99, background: "#D1D1D6", margin: "0 auto 24px" }} />
+            <div style={{ width: 36, height: 4, borderRadius: 99, background: "#D1D1D6", margin: "0 auto 20px" }} />
 
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(249,179,24,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <CreditCardIcon size={26} color="#1546D9" />
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(242,169,0,0.12)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <FiCreditCard size={26} color="#D4910A" />
             </div>
-            <p className="font-display" style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 8 }}>
+            <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 6 }}>
               {selectedCoupon.name}
             </p>
             <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
               スタッフにこの画面を見せてください
             </p>
 
-            <label style={{ display: "flex", alignItems: "center", gap: 16, background: "#EDECE6", borderRadius: 14, padding: "16px 16px", cursor: "pointer", marginBottom: 16 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, background: "#F2F2F7", borderRadius: 14, padding: "14px 16px", cursor: "pointer", marginBottom: 16 }}>
               <input
                 type="checkbox"
                 checked={isChecked}
                 onChange={e => setIsChecked(e.target.checked)}
-                style={{ width: 20, height: 20, accentColor: "#995C00" }}
+                style={{ width: 20, height: 20, accentColor: "#D4910A" }}
               />
               <span style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E" }}>スタッフが確認しました</span>
             </label>
@@ -432,20 +432,20 @@ export default function TicketsPage() {
               }}
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none", cursor: isChecked ? "pointer" : "default",
-                background: isChecked ? "#F9B318" : "#E5E5EA",
+                background: isChecked ? "linear-gradient(135deg,#F2A900,#D4910A)" : "#E5E5EA",
                 color: isChecked ? "#1C1C1E" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
-                boxShadow: isChecked ? "0 4px 14px rgba(153,92,0,0.30)" : "none",
-                transition: "transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+                boxShadow: isChecked ? "0 4px 14px rgba(200,130,10,0.30)" : "none",
+                transition: "all 0.2s ease",
               }}
             >
               使用済みにする
             </button>
             <button
               onClick={() => setSelectedCoupon(null)}
-              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 13, color: "var(--label3)", marginTop: 8, cursor: "pointer" }}
+              style={{ width: "100%", height: 44, background: "transparent", border: "none", fontSize: 15, color: "var(--label3)", marginTop: 6, cursor: "pointer" }}
             >
-              Cancel
+              キャンセル
             </button>
           </div>
         </div>
