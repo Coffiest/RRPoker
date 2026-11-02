@@ -241,7 +241,6 @@ export default function VerifyEmailPage() {
 
         {/* ── メインカード ── */}
         <div className="appear d1 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
           <div style={{ padding:'22px 20px 24px' }}>
 

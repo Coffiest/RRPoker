@@ -1030,7 +1030,6 @@ export default function StorePage() {
   // ── 開催中トーナメントのカード(単体) ──
   const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => (
     <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
-      <div className="gold-line"/>
       <div style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
 
         {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
@@ -1151,7 +1150,6 @@ export default function StorePage() {
     const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
     return (
       <div className="ios-card" style={{ overflow: 'hidden' }}>
-        <div className="gold-line"/>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', minHeight: 64 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             {ts.length > 1 && <p className="tech-label" style={{ fontSize: 8.5, color: '#D4910A', marginBottom: 2 }}>SPLIT · {ts.length}</p>}
@@ -1177,7 +1175,6 @@ export default function StorePage() {
     const smallBtn: React.CSSProperties = { width: 38, height: 38, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
     return (
       <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
-        <div className="gold-line"/>
         <div style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
             <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)' }}>SPLIT · {ts.length}</p>
@@ -1304,12 +1301,6 @@ export default function StorePage() {
         @media (prefers-reduced-motion: reduce) { .section-hd::after { animation:none; } }
 
         /* Gold accent line */
-        .gold-line {
-          height:3px;
-          background:linear-gradient(90deg,#F2A900,#FFE07A,#F2A900);
-          background-size:200% auto;
-          animation:shimmer 3s linear infinite;
-        }
 
         /* Stat chip */
         .stat-chip {
@@ -1466,7 +1457,6 @@ export default function StorePage() {
               if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dx > 0) setSwitcherOpen(p => !p)
             }}
           >
-            <div className="gold-line"/>
             <div style={{ padding: '18px 18px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
               {/* Store icon — double-tap to toggle switcher, long-press to show picker */}
               {store?.iconUrl ? (

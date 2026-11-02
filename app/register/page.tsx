@@ -376,7 +376,6 @@ export default function RegisterPage() {
 
         {/* ── 登録フォーム ── */}
         <div id="form-anchor" className="appear d2 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ height:3, background:'linear-gradient(90deg,#F2A900,#FFE07A,#F2A900)', backgroundSize:'200% auto', animation:'shimmer 3.2s linear infinite' }}/>
 
           <div style={{ padding:'22px 20px 24px' }}>
             <div style={{ marginBottom:20 }}>

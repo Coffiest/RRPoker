@@ -123,7 +123,6 @@ export default function StoreWelcomePage() {
         <div style={{ position:'absolute', top:`calc(4% + ${orb1y}px)`, right:`calc(-5% + ${orb1x}px)`, width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.14) 0%,transparent 65%)', animation:'sw-glow-pulse 6s ease-in-out infinite' }}/>
         <div style={{ position:'absolute', bottom:`calc(12% + ${orb2y}px)`, left:`calc(-8% + ${orb2x}px)`, width:320, height:320, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 65%)', animation:'sw-glow-pulse 8s ease-in-out 2s infinite' }}/>
         <div style={{ position:'absolute', top:`calc(42% + ${orb3y}px)`, left:`calc(28% + ${orb3x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(212,145,10,0.07) 0%,transparent 65%)', animation:'sw-glow-pulse 10s ease-in-out 4s infinite' }}/>
-        <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.35),transparent)' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, maxWidth:440, margin:'0 auto', padding:'0 20px 80px' }}>

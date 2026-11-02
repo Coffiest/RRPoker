@@ -451,7 +451,6 @@ export default function TopPage() {
           boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
         }}>
           <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.17) 0%,transparent 60%)', pointerEvents:'none' }}/>
-          <div style={{ position:'absolute', top:0, left:0, right:0, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.6),transparent)' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
               <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)' }}>Bank Roll</p>
