@@ -40,7 +40,8 @@ export default function BranchStorePage() {
       if (!user) { router.replace('/'); return }
       const userSnap = await getDoc(doc(db, 'users', user.uid))
       const sid = userSnap.data()?.storeId
-      if (!sid) { router.replace('/home/store'); return }
+      // 系列店の追加はオーナーだけ(権限を付けたプレイヤーは不可)
+      if (!sid || userSnap.data()?.role !== 'store') { router.replace('/home/store'); return }
       setParentStoreId(sid)
       const storeSnap = await getDoc(doc(db, 'stores', sid))
       const data = storeSnap.data()

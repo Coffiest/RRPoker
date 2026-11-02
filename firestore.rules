@@ -10,7 +10,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // 店舗を操作できる人 = オーナー、またはオーナーが権限を付けたプレイヤー(stores/{id}.managerUids)。
+    // 権限を付けた人はオーナーと同じことができる。ただし権限の付け外し・店舗の削除・課金はオーナーだけ(isTrueStoreOwner)。
     function isStoreOwner(storeId) {
+      return isSignedIn()
+        && storeId is string
+        && exists(/databases/$(database)/documents/stores/$(storeId))
+        && (
+          get(/databases/$(database)/documents/stores/$(storeId)).data.ownerUid == request.auth.uid
+          || request.auth.uid in get(/databases/$(database)/documents/stores/$(storeId)).data.get('managerUids', [])
+        );
+    }
+
+    function isTrueStoreOwner(storeId) {
       return isSignedIn()
         && storeId is string
         && exists(/databases/$(database)/documents/stores/$(storeId))
@@ -42,7 +54,10 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/users/$(request.auth.uid))
           && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId is string
           && exists(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId))
-          && get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.ownerUid == request.auth.uid
+          && (
+            get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.ownerUid == request.auth.uid
+            || request.auth.uid in get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.get('managerUids', [])
+          )
           && get(/databases/$(database)/documents/stores/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.storeId)).data.balanceGroupId == balGroupId
         );
     }
@@ -109,7 +124,11 @@ service cloud.firestore {
 
       allow read: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.ownerUid == request.auth.uid;
-      allow update, delete: if isStoreOwner(storeId);
+      // 権限を付けた人も店舗の情報は変えられる。ただしオーナー・権限・課金の欄はオーナーだけ
+      allow update: if isTrueStoreOwner(storeId)
+        || (isStoreOwner(storeId)
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerUid', 'managerUids', 'subscription', 'isFree']));
+      allow delete: if isTrueStoreOwner(storeId);
 
       match /tournaments/{tournamentId} {
         allow read: if isSignedIn();

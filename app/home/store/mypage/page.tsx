@@ -72,6 +72,8 @@ export default function StoreMyPage() {
       if (!user) return
       const snap = await getDoc(doc(db, "users", user.uid))
       const data = snap.data() ?? {}
+      // 店舗のマイページ(アカウント削除・解約がある)はオーナーだけ。権限を付けたプレイヤーは自分のマイページへ
+      if (data.role !== "store") { router.replace("/home/mypage"); return }
       setStoreId(data.storeId ?? null)
       setEmail(user.email ?? "")
       setProfile(data)

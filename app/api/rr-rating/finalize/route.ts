@@ -26,7 +26,9 @@ export async function POST(req: NextRequest) {
   }
 
   const storeSnap = await adminDb.collection("stores").doc(storeId).get()
-  if (!storeSnap.exists || storeSnap.data()?.ownerUid !== uid) {
+  const sd = storeSnap.data()
+  // オーナー、またはオーナーが権限を付けたプレイヤー
+  if (!storeSnap.exists || !(sd?.ownerUid === uid || (Array.isArray(sd?.managerUids) && sd.managerUids.includes(uid)))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

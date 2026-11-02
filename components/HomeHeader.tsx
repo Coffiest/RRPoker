@@ -12,6 +12,8 @@ import PlayerQRModal from '@/app/components/PlayerQRModal'
 
 import type { MenuItem } from './commonMenuItems'
 import { getCommonMenuItems } from './commonMenuItems'
+import { switchToStore, useManagedStores } from '@/lib/storeAccess'
+import { GrantAccessSheet, ManageAccessSheet, StoreChooserSheet } from './StoreAccess'
 
 
 
@@ -265,8 +267,37 @@ export default function HomeHeader({
 
 	// 入店中のチップ申請(引き出し)。フッター中央が入店QRになったので、ここから行う
 	const [checkedIn, setCheckedIn] = useState(false)
+
+	// ---- 店舗の権限(lib/storeAccess.ts) ----
+	// me: 自分の uid / 店舗オーナーか / 操作中の店舗(users.storeId)
+	const [me, setMe] = useState<{ uid: string; isOwner: boolean; storeId: string | null } | null>(null)
+	useEffect(() => auth.onAuthStateChanged(async user => {
+		if (!user) { setMe(null); return }
+		const d = (await getDoc(doc(db, 'users', user.uid)).catch(() => null))?.data()
+		setMe({ uid: user.uid, isOwner: d?.role === 'store', storeId: typeof d?.storeId === 'string' ? d.storeId : null })
+	}), [])
+	const managedStores = useManagedStores(me && !me.isOwner ? me.uid : null)
+	const [grantOpen, setGrantOpen] = useState(false)
+	const [manageOpen, setManageOpen] = useState(false)
+	const [chooserOpen, setChooserOpen] = useState(false)
+	const openStore = async (storeId: string) => {
+		if (!me) return
+		setChooserOpen(false)
+		await switchToStore(me.uid, storeId)
+		router.push('/home/store')
+	}
+	// プレイヤー ⇄ 店舗の切り替え(ワンタップ)。権限のある店舗が 1 つならすぐ開く
+	const switchTarget: { label: string; onClick: () => void } | null =
+		isUserVariant && managedStores.length > 0
+			? { label: 'STORE', onClick: () => { if (managedStores.length === 1) void openStore(managedStores[0].id); else setChooserOpen(true) } }
+			: !isUserVariant && me && !me.isOwner
+				? { label: 'PLAYER', onClick: () => router.push('/home') }
+				: null
+
 	const effectiveMenuItems = [
 		...(isUserVariant && checkedIn ? [{ label: 'チップ申請', onClick: () => router.push('/home/transactions?mode=withdraw') }] : []),
+		...(isUserVariant ? [{ label: '権限を追加', onClick: () => setGrantOpen(true) }] : []),
+		...(!isUserVariant && me?.isOwner ? [{ label: '権限を管理', onClick: () => setManageOpen(true) }] : []),
 		...(menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)),
 	]
 
@@ -276,6 +307,9 @@ export default function HomeHeader({
 		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
 		<style>{`html { overflow-x: hidden; }`}</style>
 		<ConfirmDialog request={logoutConfirm} onClose={() => setLogoutConfirm(null)} />
+		<GrantAccessSheet open={grantOpen} onClose={() => setGrantOpen(false)} uid={me?.uid ?? null} />
+		<ManageAccessSheet open={manageOpen} onClose={() => setManageOpen(false)} storeId={me?.storeId ?? null} />
+		<StoreChooserSheet open={chooserOpen} onClose={() => setChooserOpen(false)} stores={managedStores} onPick={id => void openStore(id)} />
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
 					type="button"
@@ -294,6 +328,14 @@ export default function HomeHeader({
 				</button>
 
 				<div className="flex items-center gap-2">
+					{/* 権限のある店舗の画面 ⇄ 自分のプレイヤー画面 */}
+					{switchTarget && (
+						<button type="button" onClick={switchTarget.onClick} aria-label={switchTarget.label === 'STORE' ? '店舗の画面へ切り替え' : 'プレイヤーの画面へ切り替え'}
+							className="flex h-10 items-center justify-center whitespace-nowrap rounded-full px-3 font-mono text-[10px] font-bold tracking-[0.12em] text-white"
+							style={{ background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 3px 10px rgba(242,169,0,0.35)' }}>
+							⇄ {switchTarget.label}
+						</button>
+					)}
 					{isUserVariant && (
 						<button
 							type="button"

@@ -49,3 +49,9 @@
 
 - プレイヤー側のホームに出すタイマーは、店舗のタイマー画面(`/home/store/timer/[id]?store=<店舗ID>&view=1`)を押せない形で埋め込むだけ。操作ボタン(再生・停止・レベル送り・リエントリー/アドオン等)は置かない。見られるのはタイマーと全体のブラインド一覧(BLINDS のシート)だけ。
 - `view=1` のときタイマー画面は Firestore に一切書き込まない。Firestore のルールでも大会の文書は店舗しか書けない(`firestore.rules` の tournaments)。この 2 つを緩めない。
+
+## 店舗の権限(managerUids)
+
+- オーナーはプレイヤーに店舗の権限を付けられる(`stores/{id}.managerUids`)。付いた人はオーナーと同じ操作ができる。権限の付け外し・店舗の削除・課金・系列店の追加・店舗マイページはオーナーだけ。仕組みは `lib/storeAccess.ts` の冒頭。
+- 店舗画面はどこも `users/{uid}.storeId` から店舗を決める。権限のあるプレイヤーが店舗画面を開くときは、そのプレイヤーの `users.storeId` に操作する店舗を入れる。**`users.storeId` だけを権限の根拠にしない**(誰でも書ける)。必ず `ownerUid` か `managerUids` を見る。課金の API はオーナーかを確かめる。
+- この仕組みは Firestore のルールと Cloud Functions の変更を含む。変えたら `firebase deploy --only firestore:rules,functions` も必要。

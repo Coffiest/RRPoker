@@ -20,6 +20,13 @@ const addMonths = (value: Date, months: number) => {
 /**
  * 🔵 Store Ranking Update (v2)
  */
+// 店舗を操作できるか: オーナー、またはオーナーが権限を付けたプレイヤー(stores/{id}.managerUids)
+function canOperateStore(store: FirebaseFirestore.DocumentData | undefined, uid: string): boolean {
+  if (!store) return false
+  if (store.ownerUid === uid) return true
+  return Array.isArray(store.managerUids) && store.managerUids.includes(uid)
+}
+
 export const updatePublicRanking = onDocumentWritten(
   "users/{userId}/storeBalances/{storeId}",
   async (event) => {
@@ -271,8 +278,7 @@ export const startTournamentTimer = onCall(
     const storeSnap = await storeRef.get()
     if (!storeSnap.exists) throw new Error("Store not found")
 
-    const ownerUid = storeSnap.data()?.ownerUid
-    if (ownerUid !== request.auth.uid) throw new Error("Unauthorized")
+    if (!canOperateStore(storeSnap.data(), request.auth.uid)) throw new Error("Unauthorized")
 
     const tournamentRef = storeRef.collection("tournaments").doc(tournamentId)
 
@@ -315,7 +321,7 @@ export const pauseTournamentTimer = onCall(
     const storeRef = db.collection("stores").doc(storeId)
     const storeSnap = await storeRef.get()
     if (!storeSnap.exists) throw new Error("Store not found")
-    if (storeSnap.data()?.ownerUid !== request.auth.uid) throw new Error("Unauthorized")
+    if (!canOperateStore(storeSnap.data(), request.auth.uid)) throw new Error("Unauthorized")
 
     const tournamentRef = storeRef.collection("tournaments").doc(tournamentId)
 
@@ -356,7 +362,7 @@ export const resumeTournamentTimer = onCall(
     const storeRef = db.collection("stores").doc(storeId)
     const storeSnap = await storeRef.get()
     if (!storeSnap.exists) throw new Error("Store not found")
-    if (storeSnap.data()?.ownerUid !== request.auth.uid) throw new Error("Unauthorized")
+    if (!canOperateStore(storeSnap.data(), request.auth.uid)) throw new Error("Unauthorized")
 
     const tournamentRef = storeRef.collection("tournaments").doc(tournamentId)
 
@@ -398,7 +404,7 @@ export const setTournamentLevel = onCall(
     const storeRef = db.collection("stores").doc(storeId)
     const storeSnap = await storeRef.get()
     if (!storeSnap.exists) throw new Error("Store not found")
-    if (storeSnap.data()?.ownerUid !== request.auth.uid) throw new Error("Unauthorized")
+    if (!canOperateStore(storeSnap.data(), request.auth.uid)) throw new Error("Unauthorized")
 
     const tournamentRef = storeRef.collection("tournaments").doc(tournamentId)
 
@@ -456,7 +462,7 @@ export const adjustTournamentTime = onCall(
     const storeRef = db.collection("stores").doc(storeId)
     const storeSnap = await storeRef.get()
     if (!storeSnap.exists) throw new Error("Store not found")
-    if (storeSnap.data()?.ownerUid !== request.auth.uid) throw new Error("Unauthorized")
+    if (!canOperateStore(storeSnap.data(), request.auth.uid)) throw new Error("Unauthorized")
 
     const tournamentRef = storeRef.collection("tournaments").doc(tournamentId)
 
@@ -758,7 +764,7 @@ export const revertTournamentPurchase = onCall(
     if (!storeId) throw new HttpsError("failed-precondition", "wrong_type")
 
     const storeSnap = await db.collection("stores").doc(storeId).get()
-    if (storeSnap.data()?.ownerUid !== uid) {
+    if (!canOperateStore(storeSnap.data(), uid)) {
       throw new HttpsError("permission-denied", "Unauthorized")
     }
 

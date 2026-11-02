@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
   const userSnap = await adminDb.doc(`users/${uid}`).get()
   const storeId: string | undefined = userSnap.data()?.storeId
   if (!storeId) return NextResponse.json({ received: true })
+  // 課金はオーナーだけ。権限を付けたプレイヤー(managerUids)は users.storeId を持っていても触れない
+  if ((await adminDb.doc(`stores/${storeId}`).get()).data()?.ownerUid !== uid) return NextResponse.json({ received: true })
 
   const mapped = productId ? PRODUCT_MAP[productId] : undefined
   const currentPeriodEnd = event.expiration_at_ms ? Math.floor(event.expiration_at_ms / 1000) : undefined
