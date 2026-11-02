@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { FiEdit2, FiMoreHorizontal, FiTrash2 } from "react-icons/fi"
 import { useDragToClose } from "@/lib/useDragToClose"
 import {
   collection,
@@ -21,6 +22,9 @@ type PlayerManageModalProps = {
   chipUnit?: string
   chipUnitBefore?: boolean
   onClose: () => void
+  /** QR から開いたとき: このプレイヤーだけを表示し、autoAction を 1 回だけ行う(確定は ✓ で、普段と同じ処理) */
+  focusPlayerId?: string
+  autoAction?: "entry" | "reentry" | "addon" | "bust"
 }
 
 type PlayerExtra = {
@@ -40,7 +44,7 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerManageModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose }: PlayerManageModalProps) {
+export default function PlayerManageModal({ tournamentId, storeId, balanceGroupId, chipUnit, chipUnitBefore, onClose, focusPlayerId, autoAction }: PlayerManageModalProps) {
   // 下から出る画面を指で下に引いて閉じられるように(見た目は元のまま)
   const sheetDrag = useDragToClose(() => onClose())
   const [players, setPlayers] = useState<any[]>([])
@@ -213,6 +217,8 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     setLocalPlayers(prev =>
       prev.map(p => p.id === playerId ? { ...p, [field]: (p[field] ?? 0) + delta } : p)
     )
+    // リエントリーは「一度バストした人がもう一度入る」こと。+1 したらバストも +1(取り消しは -1)
+    if (field === "reentryCount") bustWithReentry(delta)
   }
 
   // ── Confirm insufficient purchase ──────────────────────────────────────────
@@ -233,6 +239,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     setLocalPlayers(prev =>
       prev.map(p => p.id === playerId ? { ...p, [field]: (p[field] ?? 0) + 1 } : p)
     )
+    if (type === "reentry") bustWithReentry(1)
 
     setInsufficientAlert(null)
   }
@@ -386,6 +393,11 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     setLocalBust(prev => prev + delta)
   }
 
+  const bustWithReentry = (delta: number) => {
+    bustDirtyRef.current = true
+    setLocalBust(prev => Math.max(0, prev + delta))
+  }
+
   const addTempPlayer = () => {
     if (!newTempName.trim()) return
     setLocalPlayers(prev => [...prev, {
@@ -400,7 +412,31 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
   const updateTempPlayerName = (id: string, name: string) =>
     setLocalPlayers(prev => prev.map(p => p.id === id ? { ...p, name } : p))
 
-  const allPlayers = localPlayers.filter(p => (p.name ?? "").toLowerCase().includes(search.toLowerCase()))
+  // QR から開いたとき: そのプレイヤーに絞り、頼まれた操作を 1 回だけ(残高の扱いは手で + を押したときと同じ)
+  const autoDoneRef = useRef(false)
+  useEffect(() => {
+    if (!focusPlayerId || autoDoneRef.current || loading) return
+    const pl = localPlayers.find(p => p.id === focusPlayerId)
+    if (!pl) return
+    if (autoAction && autoAction !== "bust" && !playerExtras[focusPlayerId]) return // 残高の読み込み待ち
+    autoDoneRef.current = true
+    setSearch(pl.name ?? "")
+    if (autoAction === "bust") handleTournamentBustChange(1)
+    else if (autoAction) handleEntryChange(focusPlayerId, autoAction === "entry" ? "entryCount" : autoAction === "reentry" ? "reentryCount" : "addonCount", 1)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusPlayerId, autoAction, loading, localPlayers, playerExtras])
+
+  // 仮プレイヤーは検索に関係なく常に一番上に固定(足した順)。その下に検索に合うプレイヤー
+  const allPlayers = focusPlayerId ? localPlayers.filter(p => p.id === focusPlayerId) : [
+    ...localPlayers.filter(p => p.isTemp),
+    ...localPlayers.filter(p => !p.isTemp && (p.name ?? "").toLowerCase().includes(search.toLowerCase())),
+  ]
+  const [tempMenuId, setTempMenuId] = useState<string | null>(null)
+  const renameTempPlayer = (id: string) => {
+    const cur = localPlayers.find(p => p.id === id)?.name ?? ""
+    const name = window.prompt("仮プレイヤーの名前", cur)
+    if (name && name.trim()) updateTempPlayerName(id, name.trim())
+  }
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -437,20 +473,18 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
             <>
-              {/* プレイヤー統計カード */}
-              <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '12px 14px', marginBottom: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div style={{ textAlign: 'center', paddingRight: 12, borderRight: '1px solid #D1D1D6' }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 4 }}>Players</p>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
-                    {(() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })()}
-                  </p>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 4 }}>Add-on</p>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
-                    {localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)}
-                  </p>
-                </div>
+              {/* プレイヤー統計カード: Players / Re-entry / Add-on */}
+              <div style={{ background: 'linear-gradient(135deg,#F9F9F9,#F2F2F7)', border: '1px solid #E5E5EA', borderRadius: 18, padding: '10px 12px', marginBottom: 12, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+                {[
+                  { label: 'Players', value: (() => { const total = localPlayers.reduce((s, p) => s + (p.entryCount ?? 0) + (p.reentryCount ?? 0), 0); return `${total - localBust}/${total}` })() },
+                  { label: 'Re-entry', value: String(localPlayers.reduce((s, p) => s + (p.reentryCount ?? 0), 0)) },
+                  { label: 'Add-on', value: String(localPlayers.reduce((s, p) => s + (p.addonCount ?? 0), 0)) },
+                ].map((c, i) => (
+                  <div key={c.label} style={{ textAlign: 'center', borderLeft: i ? '1px solid #D1D1D6' : 'none' }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.05em', marginBottom: 2 }}>{c.label}</p>
+                    <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.4px' }}>{c.value}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Bust コントロール */}
@@ -463,6 +497,17 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                   <button onClick={() => handleTournamentBustChange(1)}
                     style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18, fontWeight: 700, color: '#D4910A' }}>＋</button>
                 </div>
+              </div>
+
+              {/* 仮プレイヤー追加 */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                <input
+                  value={newTempName} onChange={e => setNewTempName(e.target.value)}
+                  placeholder="仮プレイヤー名"
+                  style={{ height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
+                />
+                <button onClick={addTempPlayer}
+                  style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>＋ Add</button>
               </div>
 
               {/* プレイヤー検索 */}
@@ -481,29 +526,36 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                     const preview = computePreview(player)
                     const extra = playerExtras[player.id]
                     return (
-                      <div key={player.id} style={{ background: '#F9F9F9', borderRadius: 16, padding: '12px 14px', border: '1px solid #E5E5EA' }}>
+                      <div key={player.id} style={{ background: player.isTemp ? 'rgba(242,169,0,0.06)' : '#F9F9F9', borderRadius: 12, padding: '8px 10px', border: `1px solid ${player.isTemp ? 'rgba(242,169,0,0.25)' : '#E5E5EA'}`, position: 'relative' }}>
                         {/* プレイヤー名行 */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                           {!player.isTemp && player.iconUrl && (
-                            <img src={player.iconUrl} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                            <img src={player.iconUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                           )}
                           {!player.isTemp && !player.iconUrl && (
-                            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--label3)', flexShrink: 0 }}>
+                            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'var(--label3)', flexShrink: 0 }}>
                               {(player.name ?? '?')[0]?.toUpperCase()}
                             </div>
                           )}
-                          {player.isTemp ? (
-                            <input
-                              value={player.name}
-                              onChange={e => updateTempPlayerName(player.id, e.target.value)}
-                              style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', borderBottom: '1.5px solid #D4910A', outline: 'none', flex: 1, background: 'transparent', padding: '2px 0' }}
-                            />
-                          ) : (
-                            <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', flex: 1 }}>{player.name}</span>
-                          )}
+                          <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
+                          {player.isTemp && <span className="tech-label" style={{ fontSize: 8.5, color: '#D4910A' }}>TEMP</span>}
                           {player.isTemp && (
-                            <button onClick={() => deleteTempPlayer(player.id)}
-                              style={{ background: 'none', border: 'none', color: 'var(--label3)', fontSize: 18, cursor: 'pointer', padding: 0 }}>×</button>
+                            <button onClick={() => setTempMenuId(id => id === player.id ? null : player.id)} aria-label="仮プレイヤーの操作"
+                              style={{ width: 28, height: 28, borderRadius: 8, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label2)' }}>
+                              <FiMoreHorizontal size={18} />
+                            </button>
+                          )}
+                          {player.isTemp && tempMenuId === player.id && (
+                            <div style={{ position: 'absolute', top: 38, right: 8, zIndex: 5, background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.16)', border: '1px solid #E5E5EA', overflow: 'hidden', minWidth: 140 }}>
+                              <button onClick={() => { setTempMenuId(null); renameTempPlayer(player.id) }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '11px 14px', background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer', textAlign: 'left' }}>
+                                <FiEdit2 size={14} /> 名前を変更
+                              </button>
+                              <button onClick={() => { setTempMenuId(null); deleteTempPlayer(player.id) }}
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '11px 14px', background: 'none', border: 'none', borderTop: '1px solid #F2F2F7', fontSize: 13, fontWeight: 600, color: '#FF3B30', cursor: 'pointer', textAlign: 'left' }}>
+                                <FiTrash2 size={14} /> 削除
+                              </button>
+                            </div>
                           )}
                         </div>
 
@@ -516,7 +568,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                           const totalLen = curStr.length + buyStr.length + feeStr.length + finStr.length
                           const wrap = totalLen > 18
                           return (
-                            <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '9px 12px', marginBottom: 10 }}>
+                            <div style={{ background: 'linear-gradient(135deg,rgba(242,169,0,0.08),rgba(242,169,0,0.12))', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 10, padding: '5px 10px', marginBottom: 6 }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: wrap ? 'wrap' : 'nowrap' }}>
                                 <span style={{ fontSize: 9, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase', flexShrink: 0 }}>Bankroll</span>
                                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{curStr}</span>
@@ -534,20 +586,20 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                         })()}
 
                         {/* Entry / Reentry / Addon */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
                           {[
                             { label: 'Entry', field: 'entryCount' },
                             { label: 'Reentry', field: 'reentryCount' },
                             { label: 'Addon', field: 'addonCount' },
                           ].map(item => (
-                            <div key={item.field} style={{ textAlign: 'center' }}>
-                              <p style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 6 }}>{item.label}</p>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                            <div key={item.field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                              <p style={{ fontSize: 9, color: 'var(--label3)', fontWeight: 700, width: 14 }}>{item.label[0]}</p>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                                 <button
                                   onClick={() => handleEntryChange(player.id, item.field as any, -1)}
                                   disabled={(player[item.field] ?? 0) <= 0}
                                   style={{ width: 28, height: 28, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: 'var(--label3)', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                                <span style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', minWidth: '24px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', minWidth: '18px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
                                 <button
                                   onClick={() => handleEntryChange(player.id, item.field as any, 1)}
                                   style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', color: '#D4910A', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>＋</button>
@@ -561,16 +613,6 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 )}
               </div>
 
-              {/* 仮プレイヤー追加 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
-                <input
-                  value={newTempName} onChange={e => setNewTempName(e.target.value)}
-                  placeholder="仮プレイヤー名"
-                  style={{ height: 40, borderRadius: 12, border: '1.5px solid #E5E5EA', background: '#F9F9F9', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
-                />
-                <button onClick={addTempPlayer}
-                  style={{ height: 40, borderRadius: 12, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>＋ Add</button>
-              </div>
             </>
           )}
         </div>

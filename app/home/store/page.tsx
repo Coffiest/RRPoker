@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { isNativeApp } from "@/lib/platform"
+import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -32,7 +33,7 @@ import {
 } from "firebase/firestore"
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
-  FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid,
+  FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid, FiEdit2,
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
   FiCreditCard, FiRefreshCw, FiPlusCircle, FiAward, FiMessageSquare, FiSend, FiInbox,
@@ -211,8 +212,10 @@ export default function StorePage() {
     setAdjustBlindLevels(p => {
       const lvs = [...(p[id] ?? [])]
       const last = [...lvs].reverse().find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
-      const sb = Math.round((last?.smallBlind ?? 100) * 1.5)
-      const bb = Math.round((last?.bigBlind ?? 200) * 1.5)
+      // 傾斜テンプレート(lib/blindTemplate.ts)の次の段。時間は直前と同じ
+      const first = lvs.find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
+      const nx = nextTemplateBlind(last?.bigBlind ?? 200, first?.bigBlind ?? undefined)
+      const sb = nx.sb, bb = nx.bb
       const dur = last?.duration ?? 20
       lvs.push({ type: 'level', smallBlind: sb, bigBlind: bb, ante: bb, duration: dur })
       return { ...p, [id]: lvs }
@@ -834,21 +837,51 @@ export default function StorePage() {
     await setDoc(doc(db, "users", playerId), { checkinStatus: "none", pendingStoreId: null }, { merge: true })
   }
 
-  const qrCheckinPlayer = async (playerUid: string) => {
+  // QR でプレイヤーを読んだら、すぐ入店させずに「状態と操作」のシートを開く
+  type QrPlayer = { uid: string; name: string; iconUrl?: string; inStore: boolean; counts: Record<string, { entry: number; reentry: number; addon: number }> }
+  const [qrPlayer, setQrPlayer] = useState<QrPlayer | null>(null)
+  const [qrBusy, setQrBusy] = useState(false)
+  const [qrAction, setQrAction] = useState<{ tid: string; action: "entry" | "reentry" | "addon" | "bust" } | null>(null)
+  const loadQrPlayer = async (playerUid: string) => {
     if (!storeId) return
+    const playerSnap = await getDoc(doc(db, "users", playerUid))
+    if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
+    const d = playerSnap.data()
+    const counts: QrPlayer["counts"] = {}
+    await Promise.all(activeTournaments.map(async t => {
+      try {
+        const e = (await getDoc(doc(db, "stores", storeId, "tournaments", t.id, "entries", playerUid))).data()
+        counts[t.id] = { entry: e?.entryCount ?? 0, reentry: e?.reentryCount ?? 0, addon: e?.addonCount ?? 0 }
+      } catch { counts[t.id] = { entry: 0, reentry: 0, addon: 0 } }
+    }))
+    setQrPlayer({ uid: playerUid, name: d?.name ?? "", iconUrl: d?.iconUrl, inStore: d?.currentStoreId === storeId && d?.checkinStatus === "approved", counts })
+  }
+  const qrCheckinPlayer = async (playerUid: string) => {
     setIsScannerOpen(false)
+    try { await loadQrPlayer(playerUid) }
+    catch { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000) }
+  }
+  // 開発中だけ: カメラなしで QR 読み取りを試せるようにする(本番のビルドでは入らない)
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return
+    ;(window as any).__rrQrScan = qrCheckinPlayer
+  })
+  const qrCheckIn = async () => {
+    if (!qrPlayer || !storeId) return
+    setQrBusy(true)
     try {
-      const playerSnap = await getDoc(doc(db, "users", playerUid))
-      if (!playerSnap.exists()) { setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000); return }
-      const playerName = playerSnap.data()?.name ?? ""
-      await setDoc(doc(db, "users", playerUid), { joinedStores: arrayUnion(storeId) }, { merge: true })
-      await approvePlayer(playerUid)
-      setQrCheckinResult({ success: true, name: playerName })
-      setTimeout(() => setQrCheckinResult(null), 3000)
-    } catch {
-      setQrCheckinResult({ success: false })
-      setTimeout(() => setQrCheckinResult(null), 3000)
-    }
+      await setDoc(doc(db, "users", qrPlayer.uid), { joinedStores: arrayUnion(storeId) }, { merge: true })
+      await approvePlayer(qrPlayer.uid)
+      await loadQrPlayer(qrPlayer.uid)
+    } catch { alert("入店できませんでした") } finally { setQrBusy(false) }
+  }
+  const qrCheckOut = async () => {
+    if (!qrPlayer) return
+    setQrBusy(true)
+    try {
+      await setDoc(doc(db, "users", qrPlayer.uid), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }, { merge: true })
+      await loadQrPlayer(qrPlayer.uid)
+    } catch { alert("退店できませんでした") } finally { setQrBusy(false) }
   }
 
   const formatDateTime = (date?: Date | null) => {
@@ -1145,14 +1178,22 @@ export default function StorePage() {
           {/* トーナメントごとの操作 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
-              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+              <div key={t.id} style={{ padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>
                 <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ ...smallBtn, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none' }}>
                   {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 2 }}/>}
                 </button>
                 <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={smallBtn}><FiSkipForward size={15} style={{ color: 'var(--label)' }}/></button>
-                <button className="timer-btn" aria-label="参加者" onClick={() => setShowPlayerModal(t.id)} style={smallBtn}><FiUsers size={15} style={{ color: '#D4910A' }}/></button>
+                <button className="timer-btn" aria-label="拡大表示" onClick={() => setExpandedTimerId(t.id)} style={smallBtn}><FiMaximize2 size={14} style={{ color: 'var(--label)' }}/></button>
+              </div>
+              {/* 単体のカードと同じ操作 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}><FiEdit2 size={13}/> ADJUST</button>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPlayerModal(t.id)}><FiUsers size={13}/> PLAYERS</button>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPrizeModal(t.id)}><FiDollarSign size={13}/> PAY OUT</button>
+              </div>
               </div>
             ))}
           </div>
@@ -1700,6 +1741,9 @@ export default function StorePage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
                   <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setExpandAdjustOpen(false); setExpandedTimerId(null); router.push(`/home/store/tournaments?edit=${et.id}`) }}
+                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                    ><FiEdit2 size={13}/> 詳細</button>
                     <button onClick={() => setExpandAdjustOpen(false)}
                       style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease-out' }}
                     ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
@@ -1812,6 +1856,10 @@ export default function StorePage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>Adjust</p>
                   <div style={{ display: 'flex', gap: 8 }}>
+                    {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
+                    <button onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
+                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                    ><FiEdit2 size={13}/> 詳細</button>
                     <button onClick={() => closeAdjustModal(t.id)}
                       style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                     ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
@@ -2559,6 +2607,66 @@ export default function StorePage() {
           onScan={qrCheckinPlayer}
           onClose={() => setIsScannerOpen(false)}
         />
+      )}
+
+      {/* QR で読んだプレイヤーの状態と操作 */}
+      <AppleSheet open={!!qrPlayer && !qrAction} onClose={() => setQrPlayer(null)} title={qrPlayer?.name || "プレイヤー"}>
+        {qrPlayer && (
+          <div>
+            <div className="ios-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', marginBottom: 14 }}>
+              {qrPlayer.iconUrl
+                ? <img src={qrPlayer.iconUrl} alt="" style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'cover' }} />
+                : <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={18} style={{ color: 'var(--label3)' }} /></div>}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)' }}>{qrPlayer.name}</p>
+                <p className="tech-label" style={{ fontSize: 9, color: qrPlayer.inStore ? '#34C759' : 'var(--label3)', marginTop: 2 }}>{qrPlayer.inStore ? 'IN STORE' : 'NOT CHECKED IN'}</p>
+              </div>
+              {qrPlayer.inStore ? (
+                <button type="button" onClick={qrCheckOut} disabled={qrBusy}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#FF3B30', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
+                  <FiLogOut size={14} /> 退店
+                </button>
+              ) : (
+                <button type="button" onClick={qrCheckIn} disabled={qrBusy}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(52,199,89,0.12)', color: '#1E7B34', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
+                  <FiLogIn size={14} /> 入店
+                </button>
+              )}
+            </div>
+
+            <p className="section-hd" style={{ marginBottom: 8 }}>Live Tournaments</p>
+            {activeTournaments.length === 0 ? (
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px 16px' }}>開催中のトーナメントはありません</p>
+            ) : activeTournaments.map(t => {
+              const c = qrPlayer.counts[t.id] ?? { entry: 0, reentry: 0, addon: 0 }
+              return (
+                <div key={t.id} className="ios-card" style={{ padding: '12px 14px', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                    <p className="tech-num" style={{ fontSize: 11, color: 'var(--label2)', flexShrink: 0 }}>E {c.entry} · R {c.reentry} · A {c.addon}</p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                    {([['entry', 'Entry'], ['reentry', 'Re-entry'], ['addon', 'Add-on'], ['bust', 'Bust']] as const).map(([k, label]) => (
+                      <button key={k} type="button" disabled={!qrPlayer.inStore} onClick={() => setQrAction({ tid: t.id, action: k })}
+                        className={k === 'bust' ? undefined : 'action-btn btn-gold'}
+                        style={{ height: 36, fontSize: 11, opacity: qrPlayer.inStore ? 1 : 0.4, ...(k === 'bust' ? { borderRadius: 12, border: '1.5px solid rgba(255,59,48,0.25)', background: 'rgba(255,59,48,0.08)', color: '#FF3B30', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' } : {}) }}>
+                        ＋ {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+            {!qrPlayer.inStore && activeTournaments.length > 0 && (
+              <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 4px 8px' }}>エントリーなどは入店してから押せます。</p>
+            )}
+          </div>
+        )}
+      </AppleSheet>
+      {qrPlayer && qrAction && (
+        <PlayerManageModal tournamentId={qrAction.tid} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore}
+          focusPlayerId={qrPlayer.uid} autoAction={qrAction.action}
+          onClose={() => { setQrAction(null); void loadQrPlayer(qrPlayer.uid) }} />
       )}
 
       {/* QR入店結果トースト */}
