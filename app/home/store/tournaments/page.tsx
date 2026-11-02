@@ -292,10 +292,10 @@ export default function TournamentsPage() {
         entryStack: Number(form.entryStack) || 0, reentryStack: Number(form.reentryStack) || 0, addonStack: Number(form.addonStack) || 0,
         flyerUrl, repeatWeekly, blindPresetId, autoStart,
         // 開始時刻か自動スタートを変えたら、もう一度自動で始められるようにする
-        ...(editData && (editData.startTime !== form.startTime || editData.date !== form.date || !editData.autoStart) ? { autoStartedAt: null } : {}),
-        bustCount: editData?.bustCount ?? 0,
-        status: editData ? (editData.status ?? "scheduled") : "scheduled",
-        createdAt: editData?.createdAt ?? serverTimestamp(),
+        // 開始時刻か自動スタートを変えたら、もう一度自動で始められるようにする(開催中の大会は対象外。勝手に動き出さないように)
+        ...(editData && editData.status !== "active" && (editData.startTime !== form.startTime || editData.date !== form.date || !editData.autoStart) ? { autoStartedAt: null } : {}),
+        // 編集では、開催中に変わり続ける値(バスト数・状態・作成日時)を上書きしない
+        ...(editData ? {} : { bustCount: 0, status: "scheduled", createdAt: serverTimestamp() }),
       }
       if (editData) await updateDoc(doc(db, "stores", storeId, "tournaments", editData.id), payload)
       else await addDoc(collection(db, "stores", storeId, "tournaments"), payload)
@@ -322,6 +322,16 @@ export default function TournamentsPage() {
       await deleteDoc(doc(db, "stores", storeId, "tournaments", t.id))
     },
   })
+  // 店舗ホームの ADJUST から ?edit=<id> で来たら、その大会の編集を開く
+  const editParamDone = useRef(false)
+  useEffect(() => {
+    if (editParamDone.current || tournaments.length === 0) return
+    const id = new URLSearchParams(window.location.search).get("edit")
+    if (!id) { editParamDone.current = true; return }
+    const t = tournaments.find(x => x.id === id)
+    if (t) { editParamDone.current = true; handleEdit(t) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournaments])
   const handleEdit = (t: any) => {
     setEditData(t); setRepeatWeekly(t.repeatWeekly ?? false); setAutoStart(t.autoStart === true); setBlindPresetId(t.blindPresetId ?? "")
     setImageFile(null); setImagePreview(t.flyerUrl || null); setFormError("")
@@ -509,6 +519,13 @@ export default function TournamentsPage() {
                       <p style={{ fontSize: 11, color: 'var(--label2)', margin: '16px 0 0' }}>ブラインド: {presetName(t.blindPresetId)}</p>
                     )}
                   </div>
+                  {isActive && (
+                    <div style={{ display: 'flex', gap: 8, padding: '0 16px 16px' }}>
+                      <button type="button" onClick={() => handleEdit(t)} className="tp-press" style={{ ...btn.icon, flex: 1, gap: 8, fontSize: 13, fontWeight: 600 }} aria-label="編集">
+                        <PencilIcon size={20} /> 詳細を編集
+                      </button>
+                    </div>
+                  )}
                   {t.status === "scheduled" && (
                     <div style={{ display: 'flex', gap: 8, padding: '0 16px 16px' }}>
                       <button type="button" onClick={() => askStartTournament(t)} disabled={!!startingId} className="tp-press" style={{ ...btn.primary, flex: 1, opacity: startingId ? 0.5 : 1 }}>

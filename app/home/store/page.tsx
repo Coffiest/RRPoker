@@ -33,7 +33,7 @@ import {
 } from "firebase/firestore"
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
-  FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid,
+  FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid, FiEdit2,
   FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
   FiCreditCard, FiRefreshCw, FiPlusCircle, FiAward, FiMessageSquare, FiSend, FiInbox,
@@ -1148,14 +1148,22 @@ export default function StorePage() {
           {/* トーナメントごとの操作 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
-              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+              <div key={t.id} style={{ padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>
                 <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ ...smallBtn, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none' }}>
                   {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 2 }}/>}
                 </button>
                 <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={smallBtn}><FiSkipForward size={15} style={{ color: 'var(--label)' }}/></button>
-                <button className="timer-btn" aria-label="参加者" onClick={() => setShowPlayerModal(t.id)} style={smallBtn}><FiUsers size={15} style={{ color: '#D4910A' }}/></button>
+                <button className="timer-btn" aria-label="拡大表示" onClick={() => setExpandedTimerId(t.id)} style={smallBtn}><FiMaximize2 size={14} style={{ color: 'var(--label)' }}/></button>
+              </div>
+              {/* 単体のカードと同じ操作 */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}><FiEdit2 size={13}/> ADJUST</button>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPlayerModal(t.id)}><FiUsers size={13}/> PLAYERS</button>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPrizeModal(t.id)}><FiDollarSign size={13}/> PAY OUT</button>
+              </div>
               </div>
             ))}
           </div>
@@ -1703,6 +1711,9 @@ export default function StorePage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
                   <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => { setExpandAdjustOpen(false); setExpandedTimerId(null); router.push(`/home/store/tournaments?edit=${et.id}`) }}
+                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                    ><FiEdit2 size={13}/> 詳細</button>
                     <button onClick={() => setExpandAdjustOpen(false)}
                       style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease-out' }}
                     ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
@@ -1815,6 +1826,10 @@ export default function StorePage() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>Adjust</p>
                   <div style={{ display: 'flex', gap: 8 }}>
+                    {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
+                    <button onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
+                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                    ><FiEdit2 size={13}/> 詳細</button>
                     <button onClick={() => closeAdjustModal(t.id)}
                       style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                     ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
