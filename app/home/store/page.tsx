@@ -359,7 +359,14 @@ export default function StorePage() {
     const unsub = auth.onAuthStateChanged(async (user) => {
       if (!user) { router.replace("/"); return }
       const snap = await getDoc(doc(db, "users", user.uid))
-      const userRole = snap.data()?.role ?? null
+      const ud = snap.data()
+      let userRole = ud?.role ?? null
+      // 権限を付けてもらったプレイヤーは、操作中の店舗(users.storeId)の managerUids に入っていれば店舗画面を使える
+      if (userRole !== "store" && typeof ud?.storeId === "string") {
+        const ss = await getDoc(doc(db, "stores", ud.storeId)).catch(() => null)
+        const mgr = ss?.data()?.managerUids
+        if (Array.isArray(mgr) && mgr.includes(user.uid)) userRole = "store"
+      }
       setRole(userRole)
       if (userRole !== "store") router.replace("/home")
     })
