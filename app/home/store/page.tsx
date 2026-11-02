@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { isNativeApp } from "@/lib/platform"
+import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -211,8 +212,10 @@ export default function StorePage() {
     setAdjustBlindLevels(p => {
       const lvs = [...(p[id] ?? [])]
       const last = [...lvs].reverse().find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
-      const sb = Math.round((last?.smallBlind ?? 100) * 1.5)
-      const bb = Math.round((last?.bigBlind ?? 200) * 1.5)
+      // 傾斜テンプレート(lib/blindTemplate.ts)の次の段。時間は直前と同じ
+      const first = lvs.find(l => l.type === 'level') as (AdjLevel & { type: 'level' }) | undefined
+      const nx = nextTemplateBlind(last?.bigBlind ?? 200, first?.bigBlind ?? undefined)
+      const sb = nx.sb, bb = nx.bb
       const dur = last?.duration ?? 20
       lvs.push({ type: 'level', smallBlind: sb, bigBlind: bb, ante: bb, duration: dur })
       return { ...p, [id]: lvs }

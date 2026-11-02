@@ -13,6 +13,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import AppleSheet from "@/components/AppleSheet"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
+import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
@@ -47,17 +48,6 @@ const emptyForm = {
 const emptyBlindLevel: Level = { type: "level", smallBlind: null, bigBlind: null, ante: null, duration: null }
 
 // ── AI ストラクチャー生成アルゴリズム ────────────────────────────────────────
-const AI_CHIP_OPTIONS = [1, 5, 10, 25, 50, 100, 500, 1000, 5000]
-const AI_CLEAN_BLINDS = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,800,1000,1200,1500,2000,2500,3000,4000,5000,6000,8000,10000,12000,15000,20000,25000,30000,40000,50000]
-
-function aiRoundBB(target: number, minChip: number): number {
-  const valid = AI_CLEAN_BLINDS.filter(v => v % minChip === 0)
-  if (!valid.length) return Math.round(target / minChip) * minChip
-  return valid.reduce((p, c) => Math.abs(c - target) < Math.abs(p - target) ? c : p)
-}
-function aiSB(bb: number, minChip: number): number {
-  return Math.max(minChip, Math.floor(bb / 2 / minChip) * minChip)
-}
 function aiSimulate(lt: number, available: number) {
   let clock = 0, play = 0, count = 0, lastBreak = 0
   const breaks: number[] = []
@@ -79,36 +69,30 @@ function aiBestLT(available: number): number {
   }
   return best
 }
-function aiGenerate(chips: number[], stack: number, rcHours: number): Level[] {
-  if (!chips.length || stack <= 0 || rcHours <= 0) return []
-  const sorted = [...chips].sort((a, b) => a - b)
-  const min = sorted[0]
+// 自動作成(オーナー指定): 使うチップは選ばない。ブラインドの並びは傾斜テンプレート(lib/blindTemplate.ts)。
+// 時間の割り振り(1 レベルの長さ・休憩)は、レジスト締切までの時間からこれまでどおり決める。
+function aiGenerate(stack: number, rcHours: number): Level[] {
+  if (stack <= 0 || rcHours <= 0) return []
   const available = rcHours * 60 - 10
   if (available <= 0) return []
   const lt = aiBestLT(available)
   const { n, breaks } = aiSimulate(lt, available)
   if (!n) return []
-  const targetBB = aiRoundBB(stack / 10, min)
-  const startBB = aiRoundBB(min * 2, min)
-  const mult = n > 0 ? Math.pow(Math.max(targetBB / startBB, 1.01), 1 / n) : 1
+  // 初期ブラインドは、スタックの 1/100 以下で一番大きいテンプレートの段(最低でも表の最初の段)
+  const all = buildTemplateLevels(100, 200)
+  const unit = 10 ** Math.floor(Math.log10(Math.max(stack / 100, 1) / 200) + 1e-9)
+  const scaled = all.map(l => ({ sb: l.smallBlind * unit, bb: l.bigBlind * unit }))
+  const start = [...scaled].reverse().find(l => l.bb <= stack / 100) ?? scaled[0]
   const brkSet = new Set(breaks)
   const levels: Level[] = []
-  let prevBB = 0
-  for (let i = 0; i < n; i++) {
-    let bb = aiRoundBB(startBB * Math.pow(mult, i), min)
-    if (bb <= prevBB) bb = AI_CLEAN_BLINDS.find(v => v % min === 0 && v > prevBB) ?? prevBB + min * 2
-    prevBB = bb
-    levels.push({ type: "level", smallBlind: aiSB(bb, min), bigBlind: bb, ante: null, duration: lt })
-    if (brkSet.has(i + 1)) levels.push({ type: "break", duration: 5 })
+  let sb = Math.round(start.sb * 100) / 100, bb = Math.round(start.bb * 100) / 100
+  const push = () => {
+    levels.push({ type: "level", smallBlind: sb, bigBlind: bb, ante: bb, duration: lt })
+    const nx = nextTemplateBlind(bb, start.bb); sb = nx.sb; bb = nx.bb
   }
+  for (let i = 0; i < n; i++) { push(); if (brkSet.has(i + 1)) levels.push({ type: "break", duration: 5 }) }
   levels.push({ type: "break", duration: 10 })
-  let postPrev = prevBB
-  for (let i = 0; i < 10; i++) {
-    let bb = i === 0 ? Math.max(targetBB, prevBB + min) : aiRoundBB(targetBB * Math.pow(mult, i), min)
-    if (bb <= postPrev) bb = AI_CLEAN_BLINDS.find(v => v % min === 0 && v > postPrev) ?? postPrev + min * 2
-    postPrev = bb
-    levels.push({ type: "level", smallBlind: aiSB(bb, min), bigBlind: bb, ante: null, duration: lt })
-  }
+  for (let i = 0; i < 10; i++) push()
   return levels
 }
 
@@ -155,7 +139,6 @@ export default function TournamentsPage() {
   const [isAiOpen, setIsAiOpen] = useState(false)
   const [aiView, setAiView] = useState<"input" | "preview">("input")
   const [aiPresetName, setAiPresetName] = useState("")
-  const [aiChips, setAiChips] = useState<number[]>([25, 100, 500])
   const [aiStack, setAiStack] = useState("")
   const [aiRcHours, setAiRcHours] = useState("")
   const [aiPreviewLevels, setAiPreviewLevels] = useState<Level[]>([])
@@ -420,10 +403,9 @@ export default function TournamentsPage() {
   const runAi = () => {
     setAiError("")
     const stack = Number(aiStack), rc = Number(aiRcHours)
-    if (!aiChips.length) { setAiError("使うチップを1つ以上選んでください"); return }
     if (!stack || stack <= 0) { setAiError("スタートスタックを入力してください"); return }
     if (!rc || rc <= 0) { setAiError("レジスト締切までの時間を入力してください"); return }
-    const result = aiGenerate(aiChips, stack, rc)
+    const result = aiGenerate(stack, rc)
     if (!result.length) { setAiError("この条件では構成を作れませんでした。時間かスタックを変えてください"); return }
     setAiPreviewLevels(result); setAiView("preview")
   }
@@ -913,19 +895,6 @@ export default function TournamentsPage() {
                   <span style={{ fontSize: 14, color: 'var(--label2)' }}>時間</span>
                 </span>
               </FormRow>
-            </div>
-            <GroupLabel small>使うチップ</GroupLabel>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
-              {AI_CHIP_OPTIONS.map(chip => {
-                const on = aiChips.includes(chip)
-                return (
-                  <button key={chip} type="button" role="checkbox" aria-checked={on} onClick={() => { setAiError(""); setAiChips(prev => on ? prev.filter(c => c !== chip) : [...prev, chip]) }} className="tp-press"
-                    style={{ minWidth: 64, minHeight: 44, padding: '0 16px', borderRadius: 999, fontSize: 13, fontWeight: 600, border: 'none',
-                      background: on ? 'var(--label)' : 'var(--fill)', color: on ? '#fff' : 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
-                    {chip.toLocaleString()}
-                  </button>
-                )
-              })}
             </div>
             <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
           </>

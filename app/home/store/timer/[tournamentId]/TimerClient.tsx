@@ -1,5 +1,6 @@
 "use client"
 
+import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiX } from "react-icons/fi"
 import { addDoc } from "firebase/firestore"
@@ -201,10 +202,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   }, [tournamentBlindPresetId, blindPresets, selectedPreset, customBlindLevels, timeRemaining, storeId])
 
   // ── Level helpers ────────────────────────────────────────────────────────
+  // 次のレベル: 傾斜テンプレート(lib/blindTemplate.ts)の次の段。時間は直前と同じ
   function generateNextLevel(prev: BlindLevel): BlindLevel {
-    const sb = Math.max(1, Math.round((prev.smallBlind ?? 0) * 1.5))
-    const bb = Math.max(1, Math.round((prev.bigBlind ?? 0) * 1.5))
-    return { type: "level", smallBlind: sb, bigBlind: bb, ante: bb, duration: prev.duration }
+    const first = levels.find(l => l.type === "level") as BlindLevel | undefined
+    const nx = nextTemplateBlind(prev.bigBlind ?? 200, first?.bigBlind ?? undefined)
+    return { type: "level", smallBlind: nx.sb, bigBlind: nx.bb, ante: nx.bb, duration: prev.duration }
   }
   function handleBbChange(idx: number, value: number | null) {
     const v = value !== null ? Math.max(1, Math.round(Number(value))) : null

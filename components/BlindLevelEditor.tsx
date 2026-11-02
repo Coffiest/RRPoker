@@ -1,8 +1,9 @@
 'use client'
 
+import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon } from 'lucide-react'
 
 /**
  * ブラインド表の編集。トーナメント作成・店舗ホームの調整・タイマー画面で同じものを使う
@@ -18,13 +19,18 @@ export type Level = BlindLevel | BreakLevel
 
 export const emptyLevel = (): BlindLevel => ({ type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null })
 
-/** 直前のレベルを 1.5 倍にした次のレベルを足す。 */
+/** 次のレベルを足す。値は傾斜テンプレート(lib/blindTemplate.ts)の次の段、時間は直前のレベルと同じ。 */
 export function withNextLevel(ls: Level[]): Level[] {
-  const last = [...ls].reverse().find(l => l.type === 'level') as BlindLevel | undefined
-  if (!last) return [...ls, { type: 'level', smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
-  const sb = Math.max(1, Math.round((last.smallBlind ?? 100) * 1.5))
-  const bb = Math.max(1, Math.round((last.bigBlind ?? 200) * 1.5))
-  return [...ls, { type: 'level', smallBlind: sb, bigBlind: bb, ante: bb, duration: last.duration ?? 20 }]
+  const lv = ls.filter(l => l.type === 'level') as BlindLevel[]
+  const last = lv[lv.length - 1]
+  if (!last) return [...ls, { type: 'level', smallBlind: 100, bigBlind: 200, ante: 200, duration: 40 }]
+  const nx = nextTemplateBlind(last.bigBlind ?? 200, lv[0]?.bigBlind ?? undefined)
+  return [...ls, { type: 'level', smallBlind: nx.sb, bigBlind: nx.bb, ante: nx.bb, duration: last.duration ?? 20 }]
+}
+/** 1 レベル目の SB/BB から、傾斜テンプレートで最後まで作り直す(時間は表どおり)。 */
+export function withTemplate(ls: Level[]): Level[] {
+  const first = ls.find(l => l.type === 'level') as BlindLevel | undefined
+  return buildTemplateLevels(first?.smallBlind || 100, first?.bigBlind || 200).map(l => ({ type: 'level' as const, ...l }))
 }
 export const withBreak = (ls: Level[]): Level[] => [...ls, { type: 'break', duration: 10 }]
 
@@ -148,6 +154,16 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
           <button type="button" onClick={() => onChange(withNextLevel(levels))} className="ble-press" style={addBtn}><PlusIcon size={20} /> レベル</button>
           <button type="button" onClick={() => onChange(withBreak(levels))} className="ble-press" style={addBtn}><CoffeeIcon size={20} /> 休憩</button>
         </div>
+      )}
+      {showAddButtons && (
+        <button type="button" className="ble-press" style={{ ...addBtn, width: '100%', marginBottom: 16 }}
+          onClick={() => {
+            // 1 レベル目の SB/BB に単位を合わせ、傾斜テンプレートで最後まで作る
+            if (levels.length > 1 && !window.confirm('1 レベル目のブラインドに合わせて、テンプレートで最後まで作り直します。今の表は置き換わります。よろしいですか？')) return
+            onChange(withTemplate(levels))
+          }}>
+          <LayersIcon size={20} /> テンプレートで最後まで作る
+        </button>
       )}
 
       <style>{`
