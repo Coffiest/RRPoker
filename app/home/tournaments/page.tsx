@@ -256,7 +256,7 @@ export default function TournamentHistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FFFBF5] px-4 pb-12">
+    <main className="min-h-screen px-4 pb-12">
       <style>{`
         @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         @keyframes fadeIn  { from { opacity:0; } to { opacity:1; } }

@@ -55,7 +55,7 @@ export default function StoreWelcomePage() {
   const orb3y = Math.cos(orbPhase * 0.5 + 1) * 22
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#0A0A14', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         @keyframes sw-fade-up {
           from { opacity: 0; transform: translateY(20px); }
@@ -107,7 +107,7 @@ export default function StoreWelcomePage() {
         .sw-btn {
           width:100%; height:58px; border-radius:18px; border:none; cursor:pointer;
           background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
-          font-size:17px; font-weight:900; color:#0A0A14;
+          font-size:17px; font-weight:900; color:#fff;
           display:flex; align-items:center; justify-content:center; gap:8px;
           animation: sw-btn-pulse 2.6s ease-in-out 1.8s infinite;
           transition:transform .13s, opacity .13s;
@@ -137,7 +137,7 @@ export default function StoreWelcomePage() {
             <div className="sw-ring2"/>
             <div className="sw-badge-anim" style={{ width:90, height:90, borderRadius:28, background:'linear-gradient(135deg,#F2A900 0%,#D4910A 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 0 18px rgba(242,169,0,0.06), 0 0 56px rgba(242,169,0,0.38)', position:'relative', zIndex:1 }}>
               <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
-                <path d="M12 24l8 8 16-16" stroke="#0A0A14" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
+                <path d="M12 24l8 8 16-16" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
                   style={{ strokeDasharray:50, strokeDashoffset:50, animation:'sw-check-draw .5s ease-out .55s forwards' }}
                 />
               </svg>
@@ -150,10 +150,10 @@ export default function StoreWelcomePage() {
             <span style={{ fontSize:11, fontWeight:800, color:'#34C759', letterSpacing: '0.16em', textTransform:'uppercase' }}>店舗登録完了</span>
           </div>
 
-          <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
+          <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color: 'var(--label)', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
             {name ? `${name}さん、` : ''}ようこそ！🎉
           </h1>
-          <p className="sw-appear sw-d2" style={{ fontSize:14, color:'rgba(255,255,255,0.4)', lineHeight:1.85 }}>
+          <p className="sw-appear sw-d2" style={{ fontSize:14, color:'var(--label2)', lineHeight:1.85 }}>
             あなたの店舗がRRPokerに登録されました。<br/>
             以下の機能がすぐに使えます。
           </p>
@@ -163,17 +163,17 @@ export default function StoreWelcomePage() {
         <div className="sw-appear sw-d3" style={{ marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
             <div style={{ width:3, height:14, borderRadius:2, background:'linear-gradient(#F2A900,#D4910A)' }}/>
-            <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.3)' }}>店舗でできること</p>
+            <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label3)' }}>店舗でできること</p>
           </div>
 
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
             {STORE_FEATURES.map((f, i) => (
-              <div key={i} className="sw-appear" style={{ animationDelay:`${0.8 + i * 0.1}s`, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'16px 14px', backdropFilter:'blur(8px)' }}>
+              <div key={i} className="sw-appear" style={{ animationDelay:`${0.8 + i * 0.1}s`, background:'#fff', border:'1px solid rgba(60,60,67,0.14)', borderRadius:18, padding:'16px 14px', backdropFilter:'blur(8px)' }}>
                 <div style={{ width:40, height:40, borderRadius:13, background:`rgba(${hexToRgb(f.color)},0.12)`, border:`1px solid rgba(${hexToRgb(f.color)},0.2)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, marginBottom:10 }}>
                   {f.icon}
                 </div>
-                <p style={{ fontSize:13, fontWeight:700, color:'rgba(255,255,255,0.85)', marginBottom:5, lineHeight:1.3 }}>{f.title}</p>
-                <p style={{ fontSize:10, color:'rgba(255,255,255,0.3)', lineHeight:1.6 }}>{f.desc}</p>
+                <p style={{ fontSize:13, fontWeight:700, color:'var(--label)', marginBottom:5, lineHeight:1.3 }}>{f.title}</p>
+                <p style={{ fontSize:10, color:'var(--label3)', lineHeight:1.6 }}>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -201,7 +201,7 @@ export default function StoreWelcomePage() {
             </svg>
             店舗管理をはじめる
           </button>
-          <p style={{ fontSize:11, color:'rgba(255,255,255,0.18)', textAlign:'center', marginTop:12 }}>
+          <p style={{ fontSize:11, color:'var(--label3)', textAlign:'center', marginTop:12 }}>
             各種設定はいつでも変更できます
           </p>
         </div>

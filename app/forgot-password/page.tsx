@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
 
   return (
-    <main className="tech-grid min-h-screen bg-white px-5">
+    <main className="min-h-screen px-5">
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
           <h1 className="font-display text-[28px] font-semibold leading-tight text-gray-900">

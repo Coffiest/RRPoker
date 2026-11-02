@@ -96,7 +96,7 @@ export default function TopPage() {
   const headerElevated = scrollY > 10
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         :root {
           --gold: #F2A900; --gold-dk: #D4910A;

@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import { FlagIcon, AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -14,6 +14,7 @@ import AppleSheet from "@/components/AppleSheet"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
+import { endClock, endLevelIndex } from "@/lib/endEstimate"
 import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
@@ -70,7 +71,7 @@ function aiBestLT(available: number): number {
   return best
 }
 // 自動作成(オーナー指定): 使うチップは選ばない。ブラインドの並びは傾斜テンプレート(lib/blindTemplate.ts)。
-// 時間の割り振り(1 レベルの長さ・休憩)は、レジスト締切までの時間からこれまでどおり決める。
+// 時間の割り振り(1 レベルの長さ・ブレイク)は、レジスト締切までの時間からこれまでどおり決める。
 function aiGenerate(stack: number, rcHours: number): Level[] {
   if (stack <= 0 || rcHours <= 0) return []
   const available = rcHours * 60 - 10
@@ -124,6 +125,9 @@ export default function TournamentsPage() {
   const [blindModalView, setBlindModalView] = useState<"list" | "edit">("list")
   const [editingBlindPresetId, setEditingBlindPresetId] = useState<string | null>(null)
   const [blindPresetName, setBlindPresetName] = useState("")
+  // 終了予定の計算に使う(任意)。プリセットに一緒に保存する
+  const [blindStartStack, setBlindStartStack] = useState("")
+  const [blindPlayers, setBlindPlayers] = useState("")
   const [blindLevels, setBlindLevels] = useState<Level[]>([{ ...emptyBlindLevel }])
   const [bulkDuration, setBulkDuration] = useState("")
   // 保存中・入力エラー・削除の確認
@@ -367,16 +371,17 @@ export default function TournamentsPage() {
   function openEditBlindPreset(preset: any) {
     const levels = Array.isArray(preset.levels) && preset.levels.length > 0 ? preset.levels : [{ ...emptyBlindLevel }]
     setEditingBlindPresetId(preset.id); setBlindPresetName(preset.name); setBlindLevels(levels)
+    setBlindStartStack(preset.startStack ? String(preset.startStack) : ""); setBlindPlayers(preset.players ? String(preset.players) : "")
     blindSnapshot.current = snapshotOf(preset.name, levels); setBlindError(""); setBlindModalView("edit")
   }
   function openNewBlindPreset() {
     const levels: Level[] = [{ type: "level", smallBlind: 100, bigBlind: 200, ante: 200, duration: 20 }]
-    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels)
+    setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels); setBlindStartStack(""); setBlindPlayers("")
     blindSnapshot.current = snapshotOf("", levels); setBlindError(""); setBlindModalView("edit")
   }
   const blindDirty = blindModalView === "edit" && snapshotOf(blindPresetName, blindLevels) !== blindSnapshot.current
   function resetBlindEditor() {
-    setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName("")
+    setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName(""); setBlindStartStack(""); setBlindPlayers("")
     setBlindLevels([{ ...emptyBlindLevel }]); setBlindError("")
   }
   /** 変更を捨ててよいか確かめてから進む。変更が無ければそのまま進む。 */
@@ -393,7 +398,7 @@ export default function TournamentsPage() {
     if (invalid) { setBlindError(invalid); return }
     setBlindSaving(true)
     try {
-      const data = { name: blindPresetName.trim(), levels: blindLevels }
+      const data = { name: blindPresetName.trim(), levels: blindLevels, startStack: Number(blindStartStack) > 0 ? Math.round(Number(blindStartStack)) : null, players: Number(blindPlayers) > 0 ? Math.round(Number(blindPlayers)) : null }
       if (editingBlindPresetId) await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), data)
       else await addDoc(collection(db, "stores", storeId, "blindPresets"), { ...data, createdAt: serverTimestamp() })
       await refreshPresets(storeId)
@@ -433,6 +438,12 @@ export default function TournamentsPage() {
     ? tournaments.filter(t => t.status === "finished" && (!historySearch || t.name.toLowerCase().includes(historySearch.toLowerCase())))
     : []
   const presetName = (id: string) => blindPresets.find(p => p.id === id)?.name
+  // 終了予定時刻(店舗側だけに出す)。ブラインドのプリセットに初期スタックと人数が入っているときだけ
+  const endOf = (t: { blindPresetId?: string; date?: string; startTime?: string }) => {
+    const pr = blindPresets.find(p => p.id === t.blindPresetId)
+    if (!pr || !Array.isArray(pr.levels)) return null
+    return endClock(t.date, t.startTime, pr.levels, pr.startStack, pr.players)
+  }
   const countsOf = (id: string) => {
     const entries = entriesMap[id] ?? []
     return {
@@ -446,7 +457,7 @@ export default function TournamentsPage() {
 
   // ── 描画 ───────────────────────────────────────────────────────────────
   return (
-    <main style={{ minHeight: '100dvh', paddingBottom: 128, background: 'var(--t-bg)', color: 'var(--label)' }}>
+    <main style={{ minHeight: '100dvh', paddingBottom: 128, background: "transparent", color: 'var(--label)' }}>
       <style>{`
         :root {
           --t-bg: #EDECE6;
@@ -508,6 +519,7 @@ export default function TournamentsPage() {
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 13, color: 'var(--label2)' }}>
                       <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
                       {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
+                      {endOf(t) && <span style={{ ...metaItem, color: 'var(--label3)' }}><FlagIcon size={14} /> 終了予定 {endOf(t)}</span>}
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
@@ -689,7 +701,7 @@ export default function TournamentsPage() {
           <FormRow label="開催日">
             <input type="date" value={form.date} onChange={e => handleChange('date', e.target.value)} style={rowInput} />
           </FormRow>
-          <FormRow label="開始時刻">
+          <FormRow label="開始時刻" hint={(() => { const e = endOf({ blindPresetId, date: form.date, startTime: form.startTime }); return e ? `終了予定 ${e}` : undefined })()}>
             <input type="time" value={form.startTime} onChange={e => handleChange('startTime', e.target.value)} style={rowInput} />
           </FormRow>
           <FormRow label="開始時刻にタイマースタート" hint={autoStart ? (form.date && form.startTime ? `${form.date} ${form.startTime} に自動で開催中にし、タイマーを動かします` : "開催日と開始時刻を入れてください") : "オフのときは、手動で開始します"}>
@@ -804,7 +816,7 @@ export default function TournamentsPage() {
                   <PlusIcon size={20} /> レベル
                 </button>
                 <button type="button" onClick={addBlindBreak} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
-                  <CoffeeIcon size={20} /> 休憩
+                  <CoffeeIcon size={20} /> ブレイク
                 </button>
               </div>
               <button type="button" onClick={saveBlindPreset} disabled={blindSaving} className="tp-press" style={{ ...btn.primary, width: '100%', opacity: blindSaving ? 0.6 : 1 }}>
@@ -830,7 +842,7 @@ export default function TournamentsPage() {
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
                         <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
-                          {lvCount} レベル ・ 休憩 {brkCount} 回 ・ {fmtMinutes(mins)}
+                          {lvCount} レベル ・ ブレイク {brkCount} 回 ・ {fmtMinutes(mins)}
                         </span>
                       </span>
                       <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
@@ -846,8 +858,14 @@ export default function TournamentsPage() {
         ) : (
           <>
             <div style={{ ...list, marginBottom: 16 }}>
-              <FormRow label="名前" last>
+              <FormRow label="名前">
                 <input value={blindPresetName} onChange={e => { setBlindError(""); setBlindPresetName(e.target.value) }} placeholder="例: 通常トーナメント" style={rowInput} />
+              </FormRow>
+              <FormRow label="初期スタック" hint="任意。人数と両方入れると終了予定が出ます">
+                <input type="number" inputMode="numeric" min={0} value={blindStartStack} onChange={e => setBlindStartStack(e.target.value)} placeholder="例: 300" className="no-spin" style={rowInput} />
+              </FormRow>
+              <FormRow label="人数" hint="任意" last>
+                <input type="number" inputMode="numeric" min={0} value={blindPlayers} onChange={e => setBlindPlayers(e.target.value)} placeholder="例: 30" className="no-spin" style={rowInput} />
               </FormRow>
             </div>
 
@@ -865,7 +883,8 @@ export default function TournamentsPage() {
               </button>
             </div>
 
-            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }} />
+            <BlindLevelEditor levels={blindLevels} onChange={ls => { setBlindError(""); setBlindLevels(ls) }}
+              endIdx={endLevelIndex(blindLevels, Number(blindStartStack), Number(blindPlayers))} />
           </>
         )}
       </AppleSheet>
@@ -877,8 +896,8 @@ export default function TournamentsPage() {
         maxWidth={560}
         zIndex={400}
         title={aiView === "input"
-          ? <SheetTitle title="ブラインドを自動で作る" sub="スタックと締切までの時間から、レベルと休憩を決めます" onClose={() => setIsAiOpen(false)} />
-          : <SheetTitle title="この構成で作りますか？" sub={`${aiPreviewLevels.filter(l => l.type === "level").length} レベル ・ 休憩 ${aiPreviewLevels.filter(l => l.type === "break").length} 回`} onBack={() => setAiView("input")} onClose={() => setIsAiOpen(false)} />}
+          ? <SheetTitle title="ブラインドを自動で作る" sub="スタックと締切までの時間から、レベルとブレイクを決めます" onClose={() => setIsAiOpen(false)} />
+          : <SheetTitle title="この構成で作りますか？" sub={`${aiPreviewLevels.filter(l => l.type === "level").length} レベル ・ ブレイク ${aiPreviewLevels.filter(l => l.type === "break").length} 回`} onBack={() => setAiView("input")} onClose={() => setIsAiOpen(false)} />}
         footer={aiView === "input" ? (
           <>
             {aiError && <InlineError>{aiError}</InlineError>}
@@ -913,7 +932,7 @@ export default function TournamentsPage() {
                 </span>
               </FormRow>
             </div>
-            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後の休憩(10分)が終わる時刻が締切になるよう調整します。</p>
+            <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 8px 24px' }}>最後のブレイク(10分)が終わる時刻が締切になるよう調整します。</p>
           </>
         ) : (
           <ol style={{ ...list, listStyle: 'none', padding: 0, margin: '0 0 16px' }}>
@@ -921,7 +940,7 @@ export default function TournamentsPage() {
               <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 16px', borderTop: i ? '1px solid var(--sep)' : 'none', fontVariantNumeric: 'tabular-nums',
                 color: lv.type === "break" ? 'var(--blue)' : 'var(--label)', background: lv.type === "break" ? 'rgba(10,108,214,0.06)' : 'transparent' }}>
                 {lv.type === "break" ? (
-                  <><CoffeeIcon size={20} /><span style={{ flex: 1, fontWeight: 600 }}>{lv.duration === 10 ? "締切前の休憩" : "休憩"}</span><span>{lv.duration}分</span></>
+                  <><CoffeeIcon size={20} /><span style={{ flex: 1, fontWeight: 600 }}>{lv.duration === 10 ? "締切前のブレイク" : "ブレイク"}</span><span>{lv.duration}分</span></>
                 ) : (
                   <>
                     <span style={{ width: 24, textAlign: 'center', fontWeight: 700, color: 'var(--gold-dk)' }}>{aiPreviewLevels.slice(0, i + 1).filter(l => l.type === "level").length}</span>

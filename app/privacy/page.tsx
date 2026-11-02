@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="tech-grid min-h-screen bg-[#FAFAFA] px-4 py-12">
+    <div className="min-h-screen px-4 py-12">
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"

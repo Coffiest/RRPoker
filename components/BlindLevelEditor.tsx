@@ -3,7 +3,7 @@
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon } from 'lucide-react'
+import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon, FlagIcon } from 'lucide-react'
 
 /**
  * ブラインド表の編集。トーナメント作成・店舗ホームの調整・タイマー画面で同じものを使う
@@ -60,10 +60,12 @@ const menuItem: React.CSSProperties = {
   fontSize: 14, color: 'var(--label)', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
 }
 
-export default function BlindLevelEditor({ levels, onChange, showAddButtons = false }: {
+export default function BlindLevelEditor({ levels, onChange, showAddButtons = false, endIdx = null }: {
   levels: Level[]
   onChange: (next: Level[]) => void
-  /** 表の下に「+ レベル」「+ 休憩」を出す(呼び出し側が固定の場所に置くなら false)。 */
+  /** 終了予定のレベルの位置(lib/endEstimate.ts)。その行を目立たせ「終了予定」と入れる */
+  endIdx?: number | null
+  /** 表の下に「+ レベル」「+ ブレイク」を出す(呼び出し側が固定の場所に置くなら false)。 */
   showAddButtons?: boolean
 }) {
   const [menuIdx, setMenuIdx] = useState<number | null>(null)
@@ -111,7 +113,12 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {levels.map((lv, idx) => (
-          <li key={idx} style={{ background: lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+          <li key={idx} style={{ background: idx === endIdx ? 'rgba(249,179,24,0.12)' : lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: idx === endIdx ? 'inset 0 0 0 2px #F9B318' : '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+            {idx === endIdx && (
+              <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px 4px', fontSize: 11, fontWeight: 700, color: '#995C00' }}>
+                <FlagIcon size={14} /> 終了予定(ヘッズアップのアベレージが 10BB を切る)
+              </p>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, alignItems: 'center' }}>
               {lv.type === 'level' ? (
                 <>
@@ -125,12 +132,12 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
               ) : (
                 <>
                   <span style={{ display: 'flex', justifyContent: 'center', color: '#1546D9' }}><CoffeeIcon size={20} /></span>
-                  <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>休憩</span>
-                  <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="休憩の分"
+                  <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>ブレイク</span>
+                  <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="ブレイクの分"
                     onChange={e => setField(idx, 'duration', e.target.value)} className="no-spin ble-input" style={numInput} />
                 </>
               )}
-              <button type="button" onClick={() => setMenuIdx(idx)} aria-label={lv.type === 'level' ? `レベル${levelNo(idx)}の操作` : 'この休憩の操作'}
+              <button type="button" onClick={() => setMenuIdx(idx)} aria-label={lv.type === 'level' ? `レベル${levelNo(idx)}の操作` : 'このブレイクの操作'}
                 className="ble-press" style={{ width: 44, height: 44, border: 'none', borderRadius: 22, background: 'transparent', color: 'var(--label2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <EllipsisIcon size={20} />
               </button>
@@ -152,7 +159,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
       {showAddButtons && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           <button type="button" onClick={() => onChange(withNextLevel(levels))} className="ble-press" style={addBtn}><PlusIcon size={20} /> レベル</button>
-          <button type="button" onClick={() => onChange(withBreak(levels))} className="ble-press" style={addBtn}><CoffeeIcon size={20} /> 休憩</button>
+          <button type="button" onClick={() => onChange(withBreak(levels))} className="ble-press" style={addBtn}><CoffeeIcon size={20} /> ブレイク</button>
         </div>
       )}
       {showAddButtons && (
@@ -185,7 +192,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
           [<PlusIcon key="b" size={20} />, 'この上にレベルを追加', () => insertAt(idx), false],
           [<PlusIcon key="a" size={20} />, 'この下にレベルを追加', () => insertAt(idx + 1), false],
           [<MessageSquareIcon key="c" size={20} />, lv.comment ? 'メモを編集' : 'メモを追加', () => setCommentIdx(idx), false],
-          [<CoffeeIcon key="t" size={20} />, lv.type === 'level' ? '休憩に変える' : 'レベルに変える', () => toggleBreak(idx), false],
+          [<CoffeeIcon key="t" size={20} />, lv.type === 'level' ? 'ブレイクに変える' : 'レベルに変える', () => toggleBreak(idx), false],
         ]
         return (
           <div role="dialog" aria-modal="true" aria-label="行の操作" style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 8px calc(8px + env(safe-area-inset-bottom, 0px))' }}>
@@ -193,7 +200,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div className="a-sheet" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'transparent', boxShadow: 'none', borderRadius: 0 }}>
               <div role="menu" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
                 <p style={{ fontSize: 11, color: 'var(--label2)', textAlign: 'center', margin: 0, padding: '16px 16px 8px' }}>
-                  {lv.type === 'level' ? `レベル ${levelNo(idx)}` : '休憩'}
+                  {lv.type === 'level' ? `レベル ${levelNo(idx)}` : 'ブレイク'}
                 </p>
                 {items.map(([icon, label, action, disabled]) => (
                   <button key={label} type="button" role="menuitem" onClick={() => run(action)} disabled={disabled} className="ble-row" style={{ ...menuItem, opacity: disabled ? 0.35 : 1 }}>

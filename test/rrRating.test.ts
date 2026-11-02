@@ -39,7 +39,8 @@ describe("computeRrRatings", () => {
     const without = computeRrRatings(sample.filter(p => p.userId !== "a"))
     expect(without).toHaveLength(4)
     expect(without.find(r => r.userId === "b")!.rrRating).not.toBe(all.find(r => r.userId === "b")!.rrRating)
-    expect(mean(without.map(r => r.rrRating))).toBeCloseTo(50, 1)
+    // 参加回数が少ない人の上限(rrCapForPlays)で上が削られるので、平均は 50 以下になる
+    expect(mean(without.map(r => r.rrRating))).toBeLessThanOrEqual(50.01)
   })
 
   it("同じ ROI なら、参加回数が多いほど平均から離れる(縮小)", () => {
@@ -62,5 +63,25 @@ describe("tournamentContribution", () => {
   it("参加していない・参加費が無い大会は数えない", () => {
     expect(tournamentContribution({ entryCount: 0, reentryCount: 0, addonCount: 0, entryFee: 1000, reentryFee: 0, addonFee: 0, prize: 0 })).toBeNull()
     expect(tournamentContribution({ entryCount: 1, reentryCount: 0, addonCount: 0, entryFee: 0, reentryFee: 0, addonFee: 0, prize: 0 })).toBeNull()
+  })
+})
+
+describe("参加 1 回で大勝ちした人が上位に来ない", () => {
+  it("1 回で ROI 3000% の人より、17 回で ROI 175% の人が必ず上", async () => {
+    const { computeRrRatings } = await import("../lib/rrRatingCompute")
+    const others = Array.from({ length: 40 }, (_, i) => ({ userId: "o" + i, totalCost: 5, totalReward: i % 4 === 0 ? 8 : 1, plays: 5 }))
+    const r = computeRrRatings([
+      { userId: "lucky30", totalCost: 1, totalReward: 30, plays: 1 },
+      { userId: "lucky17", totalCost: 1, totalReward: 17.5, plays: 1 },
+      { userId: "lucky6", totalCost: 1, totalReward: 6, plays: 1 },
+      { userId: "steady", totalCost: 17, totalReward: 29.86, plays: 17 },
+      ...others,
+    ])
+    const get = (id: string) => r.find(x => x.userId === id)!.rrRating
+    expect(get("steady")).toBeGreaterThan(get("lucky30"))
+    expect(get("steady")).toBeGreaterThan(get("lucky17"))
+    expect(get("lucky30")).toBeLessThanOrEqual(50)
+    const ranked = [...r].sort((a, b) => b.rrRating - a.rrRating)
+    expect(ranked[0].userId).toBe("steady")
   })
 })

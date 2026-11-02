@@ -226,7 +226,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
       {/* ブラインドとアンティ */}
       {isBreak ? (
         <p className="tech-label" style={{ textAlign: 'center', fontSize: 11, color: '#D4910A', letterSpacing: '0.2em' }}>
-          休憩中
+          BREAK
         </p>
       ) : (
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>

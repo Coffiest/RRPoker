@@ -402,8 +402,7 @@ export default function StoreMyPage() {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。プレイヤー側・店舗の他画面と同じものを敷く。 */}
-    <TechBackdrop base="#FFFBF5" />
-    <main className="store-mypage min-h-screen pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
+    <main className="store-mypage min-h-screen pb-32" style={{ background: "transparent", position: 'relative', zIndex: 1 }}>
       <style>{`
         @keyframes slideUp {
           from {

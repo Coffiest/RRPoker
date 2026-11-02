@@ -448,8 +448,7 @@ export default function MyPage() {
     <>
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#F2F2F7" />
-    <main style={{ minHeight: '100dvh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 120 }}>
+    <main style={{ minHeight: '100dvh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(12px); }

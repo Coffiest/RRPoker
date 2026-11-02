@@ -89,8 +89,10 @@ html, body {
 .text-label2 { color: var(--label2); }
 .text-label3 { color: var(--label3); }
 
+html { background: #F2F2F7; }
 body {
-  background: var(--background);
+  /* 下地は TechBackdrop(app/layout.tsx)が全画面に敷く。body は塗らない */
+  background: transparent;
   color: var(--foreground);
   font-family: var(--stack-mono);
   /* zero: スラッシュ付きゼロ。コンソール書体らしい字形を有効化 */

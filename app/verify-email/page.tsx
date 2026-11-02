@@ -67,7 +67,7 @@ export default function VerifyEmailPage() {
   const orb2y = Math.sin(orbPhase * 0.8) * 16
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: "transparent", overflowX: 'hidden' }}>
       <style>{`
         :root {
           --gold:#F2A900; --gold-dk:#D4910A;

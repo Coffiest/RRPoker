@@ -241,7 +241,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white pb-24">
+    <main className="min-h-screen pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
       <div className="mx-auto max-w-sm px-5 pt-6">
