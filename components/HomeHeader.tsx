@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { FiBell, FiCreditCard } from 'react-icons/fi'
 import { MdQrCode2 } from 'react-icons/md'
 import { auth, db } from '@/lib/firebase'
+import { signOut } from 'firebase/auth'
+import ConfirmDialog, { type ConfirmRequest } from './ConfirmDialog'
 import { collection, doc, getDoc, limit, onSnapshot, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from 'firebase/firestore'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 
@@ -254,6 +256,13 @@ export default function HomeHeader({
 		}
 	}, [isMenuOpen])
 
+	// ログアウト(プレイヤー・店舗どちらのメニューにも出す。押し間違いを防ぐため確認を挟む)
+	const [logoutConfirm, setLogoutConfirm] = useState<ConfirmRequest | null>(null)
+	const askLogout = () => setLogoutConfirm({
+		title: 'ログアウト', message: 'ログアウトしますか？', action: 'ログアウト', destructive: true,
+		run: async () => { await signOut(auth); router.replace('/login') },
+	})
+
 	const effectiveMenuItems =
 		menuItems && menuItems.length > 0 ? menuItems : getCommonMenuItems(router, variant)
 
@@ -262,6 +271,7 @@ export default function HomeHeader({
 	return (
 		<header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-md" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
 		<style>{`html { overflow-x: hidden; }`}</style>
+		<ConfirmDialog request={logoutConfirm} onClose={() => setLogoutConfirm(null)} />
 			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
 					type="button"
@@ -378,6 +388,13 @@ export default function HomeHeader({
 							className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
 						>
 							マイページ
+						</button>
+
+						<button
+							onClick={() => { setIsMenuOpen(false); askLogout() }}
+							className="w-full rounded-2xl border border-red-100 px-4 py-3 text-left text-[14px] font-semibold text-red-600"
+						>
+							ログアウト
 						</button>
 					</div>
 				</aside>
