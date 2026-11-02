@@ -61,19 +61,19 @@ export default function PlayerLiveTournaments(props: Props) {
   return (
     <div
       className="section-card home-boot"
-      style={{ marginTop: 24, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
+      style={{ marginTop: 20, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p className="tech-label" style={{ fontSize: 9.5, color: '#1C1C1E', letterSpacing: '0.04em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <p className="tech-label" style={{ fontSize: 10.5, color: '#1C1C1E', letterSpacing: '0.16em' }}>
           現在進行中のトナメ
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
           <span className="tech-label" style={{ fontSize: 9, color: '#34C759' }}>LIVE</span>
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {tournaments.map(t => (
           <LiveTournamentRow key={t.id} tournament={t} joined={joined[t.id] === true} {...props} />
         ))}
@@ -137,11 +137,11 @@ function LiveTournamentRow({
         disabled={short}
         style={{
           flex: 1, height: 50, borderRadius: 999, border: 'none',
-          background: short ? '#EDECE6' : '#F9B318',
+          background: short ? '#F2F2F7' : 'linear-gradient(135deg,#F2A900,#D4910A)',
           color: short ? 'var(--label3)' : '#fff',
           fontSize: 12.5, fontWeight: 800,
           cursor: short ? 'default' : 'pointer',
-          boxShadow: short ? 'none' : '0 3px 12px rgba(249,179,24,0.30)',
+          boxShadow: short ? 'none' : '0 3px 12px rgba(242,169,0,0.30)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
         }}
       >
@@ -165,7 +165,7 @@ function LiveTournamentRow({
       <LiveTournamentTimer tournament={tournament} />
 
       {(reentryBtn || addonBtn) && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
           {reentryBtn}
           {addonBtn}
         </div>
@@ -180,7 +180,7 @@ function LiveTournamentRow({
       {message && (
         <p style={{
           fontSize: 12, fontWeight: 600, marginTop: 8, textAlign: 'center',
-          color: message.tone === 'ok' ? '#995C00' : '#FF3B30',
+          color: message.tone === 'ok' ? '#D4910A' : '#FF3B30',
         }}>
           {message.text}
         </p>

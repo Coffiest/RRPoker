@@ -44,7 +44,7 @@ export default function Page() {
 
   if (!storeIdParam) {
     return (
-      <main className="min-h-screen bg-[#EDECE6] px-6">
+      <main className="min-h-screen bg-white px-5">
         <HomeHeader
           homePath="/home"
           myPagePath="/home/mypage"
@@ -55,9 +55,9 @@ export default function Page() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F9B318] text-[12px] font-semibold text-white"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
           >
-            Back
+            戻る
           </button>
         </div>
       </main>
@@ -65,7 +65,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EDECE6] px-6">
+    <main className="min-h-screen bg-white px-5">
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"
@@ -76,12 +76,12 @@ export default function Page() {
           <h1 className="text-[22px] font-semibold text-gray-900">入店中プレイヤー</h1>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-3">
           {players.length === 0 ? (
             <p className="text-center text-[13px] text-gray-500">入店中のプレイヤーがいません</p>
           ) : (
             players.map(player => (
-              <div key={player.id} className="flex items-center gap-4 rounded-[20px] border border-gray-200 p-4">
+              <div key={player.id} className="flex items-center gap-3 rounded-[20px] border border-gray-200 p-3">
                 {player.iconUrl ? (
                   <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
                 ) : (
@@ -100,7 +100,7 @@ export default function Page() {
           onClick={() => router.back()}
           className="mt-6 text-[13px] text-gray-500"
         >
-          Back
+          戻る
         </button>
       </div>
     </main>

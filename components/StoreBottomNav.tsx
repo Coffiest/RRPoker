@@ -1,8 +1,8 @@
 'use client'
-import { HouseIcon, PlusIcon, UserIcon } from 'lucide-react'
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { FiHome, FiUser, FiPlus } from 'react-icons/fi'
 import { hapticTap } from '@/lib/haptics'
 
 type ActiveTab = 'home' | 'action' | 'mypage'
@@ -55,7 +55,7 @@ export default function StoreBottomNav() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const col = (tab: ActiveTab) => ({
-    color: activeTab === tab ? '#1546D9' : '#3C3C43',
+    color: activeTab === tab ? '#F2A900' : '#3C3C43',
     fontWeight: activeTab === tab ? 700 : 400,
   })
 
@@ -63,7 +63,7 @@ export default function StoreBottomNav() {
     <nav className="fixed bottom-5 left-4 right-4 z-[80]">
       <div
         className="mx-auto max-w-sm relative grid grid-cols-3 items-center"
-        style={{ ...GLASS, padding: '16px 32px' }}
+        style={{ ...GLASS, padding: '12px 28px' }}
       >
         {/* Sliding indicator */}
         <div style={{
@@ -74,7 +74,7 @@ export default function StoreBottomNav() {
           width: 44,
           height: 44,
           borderRadius: '50%',
-          background: 'rgba(249,179,24,0.14)',
+          background: 'rgba(242,169,0,0.14)',
           opacity: indVisible ? 1 : 0,
           transition: transition
             ? 'left 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease'
@@ -86,11 +86,11 @@ export default function StoreBottomNav() {
         <button
           type="button"
           onClick={() => { hapticTap(); router.push('/home/store') }}
-          className="flex flex-col items-center gap-2"
+          className="flex flex-col items-center gap-1"
           style={{ ...col('home'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <HouseIcon size={22} />
-          <span style={{ fontSize: 9.5, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>HOME</span>
+          <FiHome size={22} />
+          <span style={{ fontSize: 10, fontWeight: col('home').fontWeight, letterSpacing: '0.06em' }}>ホーム</span>
         </button>
 
         {/* Center */}
@@ -98,21 +98,21 @@ export default function StoreBottomNav() {
           <button
             type="button"
             onClick={() => { hapticTap(); router.push('/home/store/tournaments') }}
-            className="flex items-center justify-center active:scale-[0.97] transition"
+            className="flex items-center justify-center active:scale-95 transition-all"
             style={{
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: '#F9B318',
+              background: 'linear-gradient(135deg,#F2A900,#D4910A)',
               border: 'none',
               cursor: 'pointer',
               boxShadow: activeTab === 'action'
-                ? '0 4px 20px rgba(249,179,24,0.70), 0 0 0 4px rgba(249,179,24,0.18)'
-                : '0 4px 16px rgba(249,179,24,0.45)',
+                ? '0 4px 20px rgba(242,169,0,0.70), 0 0 0 4px rgba(242,169,0,0.18)'
+                : '0 4px 16px rgba(242,169,0,0.45)',
               transition: 'box-shadow 0.35s ease',
             }}
           >
-            <PlusIcon size={24} style={{ color: '#fff' }} />
+            <FiPlus size={24} style={{ color: '#fff' }} />
           </button>
         </div>
 
@@ -120,11 +120,11 @@ export default function StoreBottomNav() {
         <button
           type="button"
           onClick={() => { hapticTap(); router.push('/home/store/mypage') }}
-          className="flex flex-col items-center gap-2"
+          className="flex flex-col items-center gap-1"
           style={{ ...col('mypage'), background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <UserIcon size={22} />
-          <span style={{ fontSize: 9.5, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>MY PAGE</span>
+          <FiUser size={22} />
+          <span style={{ fontSize: 10, fontWeight: col('mypage').fontWeight, letterSpacing: '0.06em' }}>マイページ</span>
         </button>
       </div>
     </nav>

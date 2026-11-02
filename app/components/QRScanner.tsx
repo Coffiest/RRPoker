@@ -1,8 +1,8 @@
 'use client'
-import { XIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import jsQR from 'jsqr'
+import { FiX } from 'react-icons/fi'
 
 interface Props {
   onScan: (uid: string) => void
@@ -111,39 +111,46 @@ export default function QRScanner({ onScan, onClose }: Props) {
         <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 0, width: 'calc(50% - 120px)', height: 240, background: 'rgba(0,0,0,0.6)' }} />
         <div style={{ position: 'absolute', top: 'calc(50% - 120px)', right: 0, width: 'calc(50% - 120px)', height: 240, background: 'rgba(0,0,0,0.6)' }} />
         {[
-          { top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderTop: '3px solid #F9B318', borderLeft: '3px solid #F9B318' },
-          { top: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderTop: '3px solid #F9B318', borderRight: '3px solid #F9B318' },
-          { bottom: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderBottom: '3px solid #F9B318', borderLeft: '3px solid #F9B318' },
-          { bottom: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderBottom: '3px solid #F9B318', borderRight: '3px solid #F9B318' },
+          { top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderTop: '3px solid #F2A900', borderLeft: '3px solid #F2A900' },
+          { top: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderTop: '3px solid #F2A900', borderRight: '3px solid #F2A900' },
+          { bottom: 'calc(50% - 120px)', left: 'calc(50% - 120px)', borderBottom: '3px solid #F2A900', borderLeft: '3px solid #F2A900' },
+          { bottom: 'calc(50% - 120px)', right: 'calc(50% - 120px)', borderBottom: '3px solid #F2A900', borderRight: '3px solid #F2A900' },
         ].map((s, i) => (
           <div key={i} style={{ position: 'absolute', width: 28, height: 28, animation: 'scan-frame-pulse 2s ease-in-out infinite', ...s }} />
         ))}
-        <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', width: 240, height: 2, background: 'linear-gradient(90deg, transparent, #F9B318, transparent)', animation: 'scan-beam 2s ease-in-out infinite', borderRadius: 2 }} />
+        <div style={{ position: 'absolute', top: 'calc(50% - 120px)', left: 'calc(50% - 120px)', width: 240, height: 2, background: 'linear-gradient(90deg, transparent, #F2A900, transparent)', animation: 'scan-beam 2s ease-in-out infinite', borderRadius: 2 }} />
 
+        {/* 照準線。光学系の測距レティクルを模した中央十字 */}
+        <div style={{ position: 'absolute', top: '50%', left: 'calc(50% - 10px)', width: 20, height: 1, background: 'rgba(242,169,0,0.5)' }} />
+        <div style={{ position: 'absolute', top: 'calc(50% - 10px)', left: '50%', width: 1, height: 20, background: 'rgba(242,169,0,0.5)' }} />
+
+        {/* 走査枠の目盛り */}
+        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', left: 'calc(50% - 120px)', color: 'rgba(242,169,0,0.75)' }}>SCAN</div>
+        <div className="tech-label" style={{ position: 'absolute', top: 'calc(50% - 142px)', right: 'calc(50% - 120px)', color: 'rgba(255,255,255,0.35)' }}>240×240</div>
       </div>
 
       {/* Header */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: 'calc(env(safe-area-inset-top, 0px) + 16px) 16px 16px', display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
-        <span />
-        <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', textAlign: 'center', margin: 0 }}>QRコードを読み取る</p>
-        <button type="button" aria-label="閉じる" onClick={() => { stopCamera(); onClose() }}
-          style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '52px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span className="tech-status-dot" />
+          <span className="tech-label" style={{ color: 'rgba(255,255,255,0.55)' }}>LIVE</span>
+        </div>
+        <p className="term-prompt-arrow" style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>QRスキャン</p>
+        <button type="button" onClick={() => { stopCamera(); onClose() }}
+          style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}
         >
-          <XIcon size={18} style={{ color: '#fff' }} />
+          <FiX size={18} style={{ color: '#fff' }} />
         </button>
       </div>
 
       {/* Instructions */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 24px calc(env(safe-area-inset-bottom, 0px) + 32px)', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px 48px', textAlign: 'center' }}>
         {error ? (
-          <>
-            <p role="alert" style={{ fontSize: 14, color: '#FF6961', fontWeight: 600, margin: 0 }}>{error}</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 8 }}>端末の「設定」でこのアプリのカメラを許可してください。</p>
-          </>
+          <p className="term-prompt" style={{ fontSize: 14, color: '#FF3B30', fontWeight: 600 }}>{error}</p>
         ) : (
           <>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>合わせると自動で読み取ります</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 6 }}>プレイヤーのQRコードを枠内に合わせてください</p>
+            <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
           </>
         )}
       </div>

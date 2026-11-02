@@ -1,7 +1,7 @@
 'use client'
-import { UserIcon, XIcon } from 'lucide-react'
 
 import { QRCodeSVG } from 'qrcode.react'
+import { FiX } from 'react-icons/fi'
 
 interface Props {
   uid: string
@@ -32,7 +32,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         .qr-sheet { animation: qr-sheet-up .38s cubic-bezier(.22,1,.36,1) both; }
         .qr-scan-line {
           position: absolute; left: 4px; right: 4px; height: 2px;
-          background: linear-gradient(90deg, transparent, #F9B318, transparent);
+          background: linear-gradient(90deg, transparent, #F2A900, transparent);
           animation: qr-scan-line 2.2s ease-in-out infinite;
           border-radius: 2px;
         }
@@ -41,31 +41,31 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
       {/* Sheet — stop click propagation so tapping inside doesn't close */}
       <div
         className="qr-sheet"
-        style={{ background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', borderRadius: '34px 34px 0 0', padding: '16px 24px 48px' }}
+        style={{ background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', borderRadius: '34px 34px 0 0', padding: '12px 24px 48px' }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="a-grabber" style={{ marginTop: 0, marginBottom: 16 }} />
+        <div className="a-grabber" style={{ marginTop: 0, marginBottom: 14 }} />
         {/* Handle bar */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 24px' }} />
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '0 auto 20px' }} />
 
         {/* Title row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
-            <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#995C00' }}>入店QRコード</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '5px 14px' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
+            <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#D4910A' }}>入店QRコード</span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(120,120,128,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(120,120,128,0.12)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <XIcon size={16} style={{ color: '#1C1C1E' }} />
+            <FiX size={16} style={{ color: '#1C1C1E' }} />
           </button>
         </div>
 
         {/* QR */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-          <div style={{ position: 'relative', padding: 16, background: '#fff', borderRadius: 18, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          <div style={{ position: 'relative', padding: 14, background: '#fff', borderRadius: 18, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
             <QRCodeSVG
               value={value}
               size={220}
@@ -79,11 +79,11 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         </div>
 
         {/* Player info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#EDECE6', borderRadius: 16, padding: '16px 16px' }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F9B318', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F2F2F7', borderRadius: 16, padding: '12px 16px' }}>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {iconUrl
               ? <img src={iconUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <UserIcon size={24} color="var(--label3)" />
+              : <span style={{ fontSize: 18 }}>👤</span>
             }
           </div>
           <div>

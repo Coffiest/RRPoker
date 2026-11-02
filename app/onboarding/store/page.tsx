@@ -1,5 +1,4 @@
 'use client'
-import { ArrowRightIcon, CameraIcon, FileTextIcon, HouseIcon, MapPinIcon, SquarePenIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -211,10 +210,10 @@ export default function StoreOnboardingPage() {
   const orb2y = Math.sin(orbPhase * 0.8) * 18
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#EDECE6', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100dvh', background: '#F2F2F7', overflowX: 'hidden' }}>
       <style>{`
         :root {
-          --gold: #F9B318; --gold-dk: #995C00;
+          --gold: #F2A900; --gold-dk: #D4910A;
           --label: #1C1C1E;
           --sep: rgba(60,60,67,0.12); --red: #FF3B30;
         }
@@ -227,12 +226,12 @@ export default function StoreOnboardingPage() {
           50%     { opacity: 1; }
         }
         @keyframes so-badge-pulse {
-          0%,100% { box-shadow: 0 6px 24px rgba(249,179,24,0.35); }
-          50%     { box-shadow: 0 6px 36px rgba(249,179,24,0.55); }
+          0%,100% { box-shadow: 0 6px 24px rgba(242,169,0,0.35); }
+          50%     { box-shadow: 0 6px 36px rgba(242,169,0,0.55); }
         }
         @keyframes so-icon-ring {
-          0%,100% { box-shadow: 0 0 0 3px rgba(249,179,24,0.25), 0 4px 20px rgba(249,179,24,0.18); }
-          50%     { box-shadow: 0 0 0 4px rgba(249,179,24,0.4),  0 4px 28px rgba(249,179,24,0.28); }
+          0%,100% { box-shadow: 0 0 0 3px rgba(242,169,0,0.25), 0 4px 20px rgba(242,169,0,0.18); }
+          50%     { box-shadow: 0 0 0 4px rgba(242,169,0,0.4),  0 4px 28px rgba(242,169,0,0.28); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .so-appear { opacity: 0; animation: so-fade-up .5s cubic-bezier(.22,1,.36,1) forwards; }
@@ -245,7 +244,7 @@ export default function StoreOnboardingPage() {
         .so-icon-ring { animation: so-icon-ring 3s ease-in-out infinite; }
         .so-field {
           position: relative; display: flex; align-items: center;
-          background: #EDECE6; border: 1.5px solid var(--sep);
+          background: #FAFAFA; border: 1.5px solid var(--sep);
           border-radius: 14px; transition: border-color .18s, box-shadow .18s, background .18s;
           overflow: hidden;
         }
@@ -254,7 +253,7 @@ export default function StoreOnboardingPage() {
         input[type=number] { -moz-appearance: textfield; }
         .so-field:focus-within {
           border-color: var(--gold);
-          box-shadow: 0 0 0 3px rgba(249,179,24,0.12);
+          box-shadow: 0 0 0 3px rgba(242,169,0,0.12);
           background: white;
         }
         .so-field.field-error {
@@ -264,31 +263,31 @@ export default function StoreOnboardingPage() {
         }
         .so-input {
           flex: 1; background: transparent; border: none; outline: none;
-          font-size: 14px; color: var(--label); padding: 0 16px;
+          font-size: 16px; color: var(--label); padding: 0 13px;
           font-family: inherit;
         }
         .so-input::placeholder { color: var(--label3); }
         .so-btn {
           width: 100%; height: 54px; border-radius: 16px; border: none; cursor: pointer;
-          background: #F9B318;
-          font-size: 14px; font-weight: 700; color: #fff;
+          background: linear-gradient(135deg, #F2A900 0%, #D4910A 100%);
+          font-size: 16px; font-weight: 800; color: #1a1a1a;
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          box-shadow: 0 4px 18px rgba(249,179,24,0.32);
+          box-shadow: 0 4px 18px rgba(242,169,0,0.32);
           transition: transform .13s, opacity .13s;
           font-family: inherit;
         }
         .so-btn:active { transform: scale(0.97); opacity: .88; }
         .so-btn:disabled { opacity: .55; pointer-events: none; }
         .so-spinner {
-          width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.35);
-          border-top-color: #fff; border-radius: 50%;
-          animation: spin .8s linear infinite;
+          width: 20px; height: 20px; border: 2.5px solid rgba(0,0,0,0.15);
+          border-top-color: #1a1a1a; border-radius: 50%;
+          animation: spin .7s linear infinite;
         }
       `}</style>
 
       {/* ヘッダー */}
-      <header style={{ position: 'sticky', top: 0, paddingTop: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 24px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)' }}>RRPOKER</span>
         </div>
@@ -296,7 +295,7 @@ export default function StoreOnboardingPage() {
 
       <div
         style={{
-          maxWidth: 440, margin: '0 auto', padding: '0 24px 64px',
+          maxWidth: 440, margin: '0 auto', padding: '0 20px 64px',
           opacity: isExiting ? 0 : 1,
           transform: isExiting ? 'translateY(-10px)' : 'none',
           transition: 'opacity .24s, transform .24s',
@@ -304,17 +303,20 @@ export default function StoreOnboardingPage() {
       >
 
         {/* Hero */}
-        <div className="so-appear so-d1" style={{ textAlign: 'center', padding: '32px 0 24px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(249,179,24,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(249,179,24,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
+        <div className="so-appear so-d1" style={{ textAlign: 'center', padding: '28px 0 20px', position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out infinite' }} />
+          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
 
-          <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', position: 'relative', zIndex: 1 }}>
-            <HouseIcon size={30} color="white" />
+          <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: 'linear-gradient(135deg,#F2A900 0%,#D4910A 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', position: 'relative', zIndex: 1 }}>
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points="9,22 9,12 15,12 15,22" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(249,179,24,0.1)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 99, padding: '8px 16px', marginBottom: 16, position: 'relative', zIndex: 1 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9B318', display: 'inline-block' }} />
-            <span style={{ fontSize: 9.5, fontWeight: 700, color: '#995C00', letterSpacing: '0.04em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '4px 12px', marginBottom: 12, position: 'relative', zIndex: 1 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#D4910A', letterSpacing: '0.16em', textTransform: 'uppercase' }}>店舗プロフィール設定</span>
           </div>
 
           <h1 style={{ fontSize: 23, fontWeight: 900, color: 'var(--label)', letterSpacing: '-0.5px', lineHeight: 1.3, position: 'relative', zIndex: 1 }}>
@@ -326,14 +328,14 @@ export default function StoreOnboardingPage() {
         </div>
 
         {/* アイコンピッカー */}
-        <div className="so-appear so-d2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+        <div className="so-appear so-d2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
           <button
             type="button"
             onClick={handlePickImage}
             className="so-icon-ring"
             style={{
               width: 90, height: 90, borderRadius: 28,
-              background: previewUrl ? 'transparent' : 'rgba(249,179,24,0.1)',
+              background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)',
               border: 'none', cursor: 'pointer', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               position: 'relative',
@@ -343,59 +345,73 @@ export default function StoreOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <CameraIcon size={30} color="#F9B318" />
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+                <path d="M7 7L9 5H15L17 7H20C21.1046 7 22 7.89543 22 9V18C22 19.1046 21.1046 20 20 20H4C2.89543 20 2 19.1046 2 18V9C2 7.89543 2.89543 7 4 7H7Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 16C13.6569 16 15 14.6569 15 13C15 11.3431 13.6569 10 12 10C10.3431 10 9 11.3431 9 13C9 14.6569 10.3431 16 12 16Z" stroke="#F2A900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             )}
-            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: '#F9B318', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(249,179,24,0.4)' }}>
-              <SquarePenIcon size={12} color="white" />
+            <div style={{ position: 'absolute', bottom: -3, right: -3, width: 26, height: 26, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.4)' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </button>
-          <p style={{ fontSize: 9.5, color: 'var(--label3)', marginTop: 8, fontWeight: 600 }}>タップしてアイコンを設定（任意）</p>
+          <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 10, fontWeight: 600 }}>タップしてアイコンを設定（任意）</p>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
         </div>
 
         {/* 基本情報カード */}
-        <div className="so-appear so-d3" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>基本情報</p>
+        <div className="so-appear so-d3" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>基本情報</p>
 
           {/* 店舗名 */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
               店舗名（正式名称）<span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>
             </label>
             <div className={`so-field${missingFields.name ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <HouseIcon size={15} />
+              <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
               <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="例: RRポーカークラブ" className="so-input" />
             </div>
           </div>
 
           {/* 住所は任意 */}
-          <p style={{ fontSize: 9.5, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 16, background: 'rgba(249,179,24,0.08)', border: '1px solid rgba(21,70,217,0.25)', borderRadius: 12, padding: '8px 16px' }}>
+          <p style={{ fontSize: 11, color: 'var(--label2)', lineHeight: 1.6, marginBottom: 14, background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 12, padding: '10px 12px' }}>
             {t('storeOnboarding.addressOptionalNote')}
           </p>
 
           {/* 郵便番号 */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
               郵便番号 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.postalCode ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <MapPinIcon size={15} />
+              <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" stroke="currentColor" strokeWidth="1.8" />
+                  <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.8" />
+                </svg>
               </div>
               <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="例: 100-0001" className="so-input" />
             </div>
           </div>
 
           {/* 住所 丁目 */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
               住所、丁目 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressLine ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <HouseIcon size={15} />
+              <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
               <input type="text" value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="例: 東京都千代田区丸の内1丁目" className="so-input" />
             </div>
@@ -403,12 +419,15 @@ export default function StoreOnboardingPage() {
 
           {/* 番地 etc */}
           <div>
-            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>
               番地、マンション名、号室など <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label3)' }}>（任意）</span>
             </label>
             <div className={`so-field${missingFields.addressDetail ? ' field-error' : ''}`} style={{ height: 50 }}>
-              <div style={{ paddingLeft: 16, color: 'var(--label3)', flexShrink: 0 }}>
-                <FileTextIcon size={15} />
+              <div style={{ paddingLeft: 14, color: 'var(--label3)', flexShrink: 0 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                  <rect x="4" y="2" width="16" height="20" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M9 7h6M9 12h6M9 17h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
               </div>
               <input type="text" value={addressDetail} onChange={e => setAddressDetail(e.target.value)} placeholder="例: 1-1 OOビル 201" className="so-input" />
             </div>
@@ -416,13 +435,13 @@ export default function StoreOnboardingPage() {
         </div>
 
         {/* 詳細情報カード */}
-        <div className="so-appear so-d4" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 16 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 16 }}>詳細情報</p>
+        <div className="so-appear so-d4" style={{ background: 'white', borderRadius: 24, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)', marginBottom: 12 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label2)', marginBottom: 18 }}>詳細情報</p>
 
           {/* 説明 */}
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 9.5, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>店舗の説明</label>
-            <div className="so-field" style={{ height: 'auto', alignItems: 'flex-start', padding: '16px 16px' }}>
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 6 }}>店舗の説明</label>
+            <div className="so-field" style={{ height: 'auto', alignItems: 'flex-start', padding: '12px 14px' }}>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
@@ -438,16 +457,16 @@ export default function StoreOnboardingPage() {
             <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.04em', marginBottom: 8 }}>
               リングゲームのブラインド <span style={{ fontSize: 10, fontWeight: 500 }}>（任意）</span>
             </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>SB</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>SB</div>
                 <div className="so-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindSb} onChange={e => setRingBlindSb(e.target.value)} placeholder="5" className="so-input" style={{ textAlign: 'center', minWidth: 0 }} />
                 </div>
               </div>
-              <div style={{ color: 'var(--label3)', fontSize: 15, marginTop: 16, flexShrink: 0 }}>—</div>
+              <div style={{ color: 'var(--label3)', fontSize: 18, marginTop: 18, flexShrink: 0 }}>—</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 9.5, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 8, textAlign: 'center' }}>BB</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--label3)', letterSpacing: '0.08em', marginBottom: 4, textAlign: 'center' }}>BB</div>
                 <div className="so-field" style={{ height: 48 }}>
                   <input type="number" min={0} value={ringBlindBb} onChange={e => setRingBlindBb(e.target.value)} placeholder="10" className="so-input" style={{ textAlign: 'center', minWidth: 0 }} />
                 </div>
@@ -458,7 +477,7 @@ export default function StoreOnboardingPage() {
 
         {/* エラー */}
         {error && (
-          <div style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 14, padding: '16px 16px', marginBottom: 16 }}>
+          <div style={{ background: 'rgba(255,59,48,0.06)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 14, padding: '12px 16px', marginBottom: 16 }}>
             <p style={{ fontSize: 13, color: 'var(--red)', fontWeight: 600, textAlign: 'center' }}>{error}</p>
           </div>
         )}
@@ -470,12 +489,14 @@ export default function StoreOnboardingPage() {
               <div className="so-spinner" />
             ) : (
               <>
-                <ArrowRightIcon size={16} color="#fff" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M12 5l7 7-7 7" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 次へ進む
               </>
             )}
           </button>
-          <p style={{ fontSize: 9.5, color: 'var(--label3)', textAlign: 'center', marginTop: 16 }}>
+          <p style={{ fontSize: 11, color: 'var(--label3)', textAlign: 'center', marginTop: 12 }}>
             * は必須項目です（店舗名のみ必須）
           </p>
         </div>

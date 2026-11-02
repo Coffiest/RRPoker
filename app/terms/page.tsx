@@ -1,4 +1,5 @@
-import BackLink from "@/components/BackLink"
+import Link from "next/link"
+import { FiChevronLeft } from "react-icons/fi"
 
 export const metadata = {
   title: "利用規約 | RRPoker",
@@ -6,9 +7,15 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="tech-grid min-h-screen bg-[#EDECE6] px-4 py-12">
+    <div className="tech-grid min-h-screen bg-[#FAFAFA] px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <BackLink />
+        <Link
+          href="/"
+          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-1 transition-colors"
+        >
+          <FiChevronLeft size={18} />
+          戻る
+        </Link>
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">利用規約</h1>
         <p className="text-xs text-label3 mb-8">最終更新日: 2026年8月31日</p>
@@ -29,7 +36,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">2. チップの性質</h2>
-            <ul className="list-disc pl-6 space-y-2">
+            <ul className="list-disc pl-5 space-y-1">
               <li>当サービス上の「チップ」（バイイン・キャッシュアウト・プライズ等の表示を含む）は、店舗内でのゲーム進行・成績を記録するための、店舗が独自に発行するポイントです。</li>
               <li>チップは現金その他の金銭的価値を有さず、当サービス上で現金・金券・仮想通貨その他の対価と交換・換金することはできません。</li>
               <li>利用者は、チップを金銭的価値のあるものとして第三者と売買・譲渡してはならないものとします。</li>
@@ -38,7 +45,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">3. サブスクリプション・料金</h2>
-            <ul className="list-disc pl-6 space-y-2">
+            <ul className="list-disc pl-5 space-y-1">
               <li>店舗アカウントの利用には有料サブスクリプションが必要です。料金プランはアプリ内の料金ページに表示されます。</li>
               <li>Web版はStripeを通じて決済され、いつでもキャンセル可能です。</li>
               <li>iOS版はApple In-App Purchaseを通じて決済され、自動更新されます。解約はiOSの「設定」アプリの サブスクリプション管理から行えます。</li>
@@ -48,7 +55,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-bold text-gray-900 mb-2">4. 禁止事項</h2>
-            <ul className="list-disc pl-6 space-y-2">
+            <ul className="list-disc pl-5 space-y-1">
               <li>法令または公序良俗に違反する行為</li>
               <li>不正アクセス、当サービスの運営を妨害する行為</li>
               <li>他の利用者・店舗に対する詐欺・不正行為</li>

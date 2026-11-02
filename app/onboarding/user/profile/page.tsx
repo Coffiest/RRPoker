@@ -1,8 +1,5 @@
 'use client'
 
-import { ArrowRightIcon, CameraIcon, ChevronLeftIcon, CircleAlertIcon, InfoIcon, LoaderCircleIcon, PencilIcon, UserIcon } from 'lucide-react'
-import { CheckIcon, XIcon } from 'lucide-react'
-
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
@@ -263,8 +260,8 @@ export default function UserProfileOnboardingPage() {
 
   return (
     <main
-      style={{ background: '#EDECE6' }}
-      className={`min-h-screen px-6 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
+      style={{ background: '#FFFBF5' }}
+      className={`min-h-screen px-5 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
     >
       <style>{`
         @keyframes slideUp {
@@ -278,7 +275,7 @@ export default function UserProfileOnboardingPage() {
 
         .profile-card {
           background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-          box-shadow: 0 2px 8px rgba(249,179,24,0.06), 0 8px 24px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 8px rgba(242,169,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
         }
         .field-input {
           height: 48px;
@@ -294,9 +291,9 @@ export default function UserProfileOnboardingPage() {
         }
         .field-input::placeholder { color: var(--label3); }
         .field-input:focus {
-          border-color: #F9B318;
+          border-color: #F2A900;
           background: #fffdf7;
-          box-shadow: 0 0 0 3px rgba(249,179,24,0.12);
+          box-shadow: 0 0 0 3px rgba(242,169,0,0.12);
         }
         .field-input.has-error {
           border-color: #f87171;
@@ -312,29 +309,29 @@ export default function UserProfileOnboardingPage() {
         }
         .divider-line {
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(249,179,24,0.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(242,169,0,0.18), transparent);
         }
         .btn-primary {
-          background: #F9B318;
-          box-shadow: 0 4px 16px rgba(249,179,24,0.28), 0 1px 3px rgba(0,0,0,0.08);
+          background: linear-gradient(135deg, #F2A900 0%, #D4910A 100%);
+          box-shadow: 0 4px 16px rgba(242,169,0,0.28), 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.13s ease, box-shadow 0.13s ease, opacity 0.13s ease;
           border-radius: 20px;
           height: 54px;
           width: 100%;
           font-size: 16px;
           font-weight: 600;
-          color: #fff;
+          color: #1a1a1a;
         }
-        .btn-primary:active { transform: scale(0.97); opacity: 0.88; }
-        .btn-primary:disabled { background: #E5E5EA; color: var(--label3); box-shadow: none; pointer-events: none; }
+        .btn-primary:active { transform: scale(0.977); opacity: 0.88; }
+        .btn-primary:disabled { opacity: 0.45; pointer-events: none; }
         .icon-ring {
           position: relative;
           width: 96px;
           height: 96px;
           border-radius: 9999px;
           overflow: hidden;
-          border: 2.5px dashed #F9B318;
-          background: #EDECE6;
+          border: 2.5px dashed #F2A900;
+          background: #fffbf5;
           cursor: pointer;
           transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
           display: flex;
@@ -342,13 +339,13 @@ export default function UserProfileOnboardingPage() {
           justify-content: center;
         }
         .icon-ring:hover, .icon-ring.hovered {
-          border-color: #995C00;
-          box-shadow: 0 0 0 4px rgba(249,179,24,0.12);
+          border-color: #D4910A;
+          box-shadow: 0 0 0 4px rgba(242,169,0,0.12);
           transform: scale(1.03);
         }
         .icon-ring.has-image {
           border-style: solid;
-          border-color: #F9B318;
+          border-color: #F2A900;
         }
         .icon-overlay {
           position: absolute;
@@ -374,8 +371,8 @@ export default function UserProfileOnboardingPage() {
           width: 26px;
           height: 26px;
           border-radius: 9999px;
-          background: #F9B318;
-          box-shadow: 0 2px 6px rgba(249,179,24,0.4);
+          background: linear-gradient(135deg, #F2A900, #D4910A);
+          box-shadow: 0 2px 6px rgba(242,169,0,0.4);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -389,25 +386,27 @@ export default function UserProfileOnboardingPage() {
           <button
             type="button"
             onClick={() => router.push('/onboarding')}
-            className="flex items-center gap-2 text-[12px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            aria-label="Back"
+            className="flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            aria-label="戻る"
           >
-            <ChevronLeftIcon size={18} />
-            Back
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M15.75 19.5L8.25 12l7.5-7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            戻る
           </button>
         </div>
 
         {/* Header */}
         <div className="mt-6 text-center animate-slideUp-d1">
           <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
-          <p className="mt-2 text-[12px] text-gray-500">あなたの情報を入力してください</p>
+          <p className="mt-1.5 text-[14px] text-gray-500">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
-            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#995C00] font-semibold">プライバシーポリシー</a>をご覧ください。
+            本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
         {/* Avatar picker */}
-        <div className="mt-8 flex flex-col items-center gap-4 animate-slideUp-d2">
+        <div className="mt-7 flex flex-col items-center gap-3 animate-slideUp-d2">
           <button
             type="button"
             onClick={handlePickImage}
@@ -419,26 +418,35 @@ export default function UserProfileOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="プレビュー" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-2">
-                <UserIcon size={28} color="#F9B318" />
+              <div className="flex flex-col items-center gap-1.5">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
+                  <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <span className="text-[10px] font-semibold text-[#F2A900] tracking-wide">TAP</span>
               </div>
             )}
 
             {/* Hover overlay (画像あり時) */}
             {previewUrl && (
               <div className="icon-overlay">
-                <CameraIcon size={22} color="white" />
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 7L9 5H15L17 7H20C21.1 7 22 7.9 22 9V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V9C2 7.9 2.9 7 4 7H7Z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="12" cy="13" r="3" stroke="white" strokeWidth="1.8"/>
+                </svg>
                 <span className="text-[10px] font-semibold text-white">変更</span>
               </div>
             )}
 
             {/* Edit badge */}
             <div className="badge-edit">
-              <PencilIcon size={13} color="white" />
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M15.232 5.232l3.536 3.536M9 11l6.5-6.5a2 2 0 012.828 2.829L11.828 13.828 7 15l1.172-4.828z" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
           </button>
 
-          <p className="text-[11px] text-label2">
+          <p className="text-[12px] text-label3">
             {previewUrl ? 'タップして画像を変更' : 'タップしてアイコンを設定'}
           </p>
 
@@ -448,13 +456,13 @@ export default function UserProfileOnboardingPage() {
         <div className="divider-line mt-6 animate-slideUp-d2" />
 
         {/* Form card */}
-        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp-d3">
+        <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp-d3">
 
           {/* Poker name */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[13px] font-semibold text-[color:var(--label)]">ポーカーネーム</label>
-              <span className="text-[11px] font-semibold text-[#995C00]">必須</span>
+              <label className="text-[14px] font-medium text-gray-700">ポーカーネーム</label>
+              <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
             <input
               type="text"
@@ -466,45 +474,46 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Player ID */}
-          <div className="mt-6">
+          <div className="mt-5">
             {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <label className="text-[13px] font-semibold text-[color:var(--label)]">Player ID</label>
+              <div className="flex items-center gap-1.5">
+                <label className="text-[14px] font-medium text-gray-700">Player ID</label>
 
                 
                 <button
                   type="button"
                   onClick={() => setShowIdInfo(v => !v)}
                   aria-label="Player IDの説明"
-                  aria-expanded={showIdInfo}
                   style={{
-                    width: 44, height: 44, minHeight: 44, margin: '-16px -8px', borderRadius: '50%',
-                    border: 'none', background: 'none',
+                    width: 18, height: 18, borderRadius: '50%',
+                    border: `1.5px solid ${showIdInfo ? '#F2A900' : '#d1d5db'}`,
+                    background: showIdInfo ? 'rgba(242,169,0,0.08)' : '#f3f4f6',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: showIdInfo ? '#995C00' : 'var(--label3)',
-                    cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
+                    fontSize: 10, fontWeight: 700,
+                    color: showIdInfo ? '#D4910A' : '#6b7280',
+                    cursor: 'pointer', transition: 'all 0.15s',
                     flexShrink: 0,
                   }}
-                ><InfoIcon size={18} /></button>
+                >?</button>
               </div>
-              <span className="text-[11px] font-semibold text-[#995C00]">必須</span>
+              <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-4 rounded-2xl p-4" style={{ background: '#F7F1E3', border: '1px solid rgba(21,70,217,0.25)' }}>
-                <p className="text-[12px] font-semibold mb-2" style={{ color: '#804D00' }}>Player ID とは？</p>
-                <ul className="space-y-2">
+              <div className="mb-3 rounded-2xl p-3.5" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
+                <p className="text-[12px] font-semibold mb-2" style={{ color: '#92610A' }}>Player ID とは？</p>
+                <ul className="space-y-1.5">
                   {[
                     '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
                     '一度設定すると変更できません。慎重に決めてください',
                     '好きな値で大丈夫です。何でも構いません',
                     '使える文字：半角英小文字 (a–z)・数字 (0–9)・アンダースコア (_)・ハイフン (-)',
                   ].map((txt, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span style={{ color: '#F9B318', flexShrink: 0, marginTop: 1 }}>•</span>
-                      <span className="text-[11px] leading-relaxed" style={{ color: '#804D00' }}>{txt}</span>
+                    <li key={i} className="flex items-start gap-1.5">
+                      <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 1 }}>•</span>
+                      <span className="text-[11px] leading-relaxed" style={{ color: '#92610A' }}>{txt}</span>
                     </li>
                   ))}
                 </ul>
@@ -518,7 +527,7 @@ export default function UserProfileOnboardingPage() {
 
             {/* @プレフィックス固定 + 入力フィールド */}
             <div
-              className="flex items-stretch overflow-hidden transition"
+              className="flex items-stretch overflow-hidden transition-all"
               style={{
                 height: 48, borderRadius: 16,
                 border: `1.5px solid ${idError ? '#f87171' : idStatus === 'available' ? '#34d399' : idStatus === 'unavailable' ? '#f87171' : '#e5e7eb'}`,
@@ -534,31 +543,36 @@ export default function UserProfileOnboardingPage() {
                 value={playerId.replace(/^@/, '')}
                 onChange={e => handlePlayerIdChange(e.target.value)}
                 placeholder="例: naoyuki"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 14, color: '#111827', padding: '0 16px', minWidth: 0 }}
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 12px', minWidth: 0 }}
               />
-              <div className="flex items-center pr-4 flex-shrink-0">
+              <div className="flex items-center pr-3 flex-shrink-0">
                 {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
-                {idStatus === 'available' && !idError && <span style={{ fontSize: 10, fontWeight: 600, color: '#1E7B34' }}><CheckIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 利用可</span>}
-                {idStatus === 'unavailable' && <span style={{ fontSize: 10, fontWeight: 600, color: '#D70015' }}><XIcon size={12} style={{ verticalAlign: '-0.15em', flexShrink: 0 }} /> 使用中</span>}
+                {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}>✓ 利用可</span>}
+                {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}>✗ 使用中</span>}
               </div>
             </div>
-            {idError && <p className="mt-2 text-[10px] text-red-400">{idError}</p>}
+            {idError && <p className="mt-1.5 text-[12px] text-red-400">{idError}</p>}
 
             {/* おすすめ + 自動取得 */}
-            <div className="mt-4">
+            <div className="mt-3">
               <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: 11, color: 'var(--label2)', fontWeight: 500 }}>おすすめ</span>
+                <span style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>おすすめ</span>
                 <button
                   type="button"
                   onClick={handleAutoGet}
                   disabled={autoGetLoading}
-                  className="flex items-center gap-2 transition-opacity"
-                  style={{ fontSize: 11, fontWeight: 600, color: '#1546D9', minHeight: 44, opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
+                  className="flex items-center gap-1 transition-opacity"
+                  style={{ fontSize: 11, fontWeight: 600, color: '#F2A900', opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
-                    <LoaderCircleIcon size={11} className="animate-spin" />
+                    <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/>
+                      <path fill="currentColor" opacity=".75" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
                   ) : (
-                    <ArrowRightIcon size={11} />
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 12a8 8 0 01-8 8m8-8a8 8 0 00-8-8m8 8H4m16 0l-3-3m3 3l-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
                   )}
                   自動で取得
                 </button>
@@ -569,7 +583,7 @@ export default function UserProfileOnboardingPage() {
               <div className="flex gap-2 flex-wrap">
                 
                 {suggestionsLoading ? (
-                  <span style={{ fontSize: 11, color: 'var(--label2)' }}>候補を検索中…</span>
+                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>候補を検索中…</span>
                 ) : suggestions.length > 0 ? (
                   suggestions.map(s => (
                     <button
@@ -577,20 +591,20 @@ export default function UserProfileOnboardingPage() {
                       type="button"
                       onClick={() => applyId(s)}
                       style={{
-                        padding: '8px 16px', borderRadius: 99,
+                        padding: '5px 12px', borderRadius: 99,
                         fontSize: 12, fontWeight: 500,
                         background: '#f3f4f6', color: '#374151',
                         border: '1px solid #e5e7eb',
-                        cursor: 'pointer', transition: 'transform 0.15s, opacity 0.15s, background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s',
+                        cursor: 'pointer', transition: 'all 0.15s',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F7F1E3'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F9B318'; (e.currentTarget as HTMLButtonElement).style.color = '#995C00' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FFFBF0'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#F2A900'; (e.currentTarget as HTMLButtonElement).style.color = '#D4910A' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e5e7eb'; (e.currentTarget as HTMLButtonElement).style.color = '#374151' }}
                     >
                       @{s}
                     </button>
                   ))
                 ) : (
-                  <span style={{ fontSize: 11, color: 'var(--label2)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
+                  <span style={{ fontSize: 11, color: 'var(--label3)' }}>ポーカーネームを入力するとおすすめが表示されます</span>
                 )}
               </div>
             </div>
@@ -598,9 +612,9 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Birthday */}
-          <div className="mt-6">
+          <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[13px] font-semibold text-[color:var(--label)]">誕生日</label>
+              <label className="text-[14px] font-medium text-gray-700">誕生日</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input
@@ -609,15 +623,18 @@ export default function UserProfileOnboardingPage() {
               onChange={e => setBirthday(e.target.value)}
               className="field-input"
             />
-            <p className="mt-2 text-[9.5px] text-amber-500 flex items-center gap-2">
-              <CircleAlertIcon size={12} style={{ flexShrink: 0 }} />
+            <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
               誕生日は登録後に変更できません
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-4">
+            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
               <p className="text-[13px] text-red-500 text-center">{error}</p>
             </div>
           )}
@@ -631,7 +648,10 @@ export default function UserProfileOnboardingPage() {
           >
             {loading ? (
               <>
-                <LoaderCircleIcon size={20} className="h-5 w-5 animate-spin" />
+                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
                 保存中…
               </>
             ) : '次へ'}
@@ -640,7 +660,7 @@ export default function UserProfileOnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 mb-8 text-center text-[10px] text-label3 animate-slideUp-d4">
+        <p className="mt-5 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
           プロフィールはあとから編集できます
         </p>
 

@@ -1,10 +1,10 @@
 'use client'
-import { ClockIcon, MapPinIcon, SpadeIcon, TrophyIcon, UserIcon } from 'lucide-react'
-import AppleSheet from "@/components/AppleSheet"
 
+import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, getDocs, collection } from 'firebase/firestore'
+import { FiUser } from 'react-icons/fi'
 
 type PlayerData = {
   name?: string
@@ -46,6 +46,8 @@ function calcStats(docs: any[]): Stats {
 }
 
 export default function PlayerProfileModal({ uid, onClose }: Props) {
+  // 下から出る画面を指で下に引いて閉じられるように(見た目は元のまま)
+  const sheetDrag = useDragToClose(() => onClose())
   const [loading, setLoading] = useState(true)
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [stats, setStats] = useState<Stats>({ plays: 0, itmCount: 0, totalCost: 0, totalReward: 0 })
@@ -97,13 +99,33 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
     : '—'
 
   return (
-    <AppleSheet open onClose={onClose} bare maxWidth={440} maxHeightVh={88} zIndex={500}>
-      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 500,
+        background: 'rgba(0,0,0,0.45)',
+        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+      onClick={onClose}
+    >
+      <div ref={sheetDrag}
+        style={{
+          width: '100%', maxWidth: 440,
+          background: '#fff',
+          borderRadius: '24px 24px 0 0',
+          maxHeight: '88vh',
+          display: 'flex', flexDirection: 'column',
+          paddingBottom: 'max(24px, env(safe-area-inset-bottom))',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* ドラッグハンドル */}
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6', margin: '12px auto 0', flexShrink: 0 }} />
 
-        <div style={{ overflowY: 'auto', flex: 1, minHeight: 0, padding: '24px 24px 8px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '20px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p className="term-comment" style={{ fontSize: 11, color: 'var(--label3)' }}>LOADING...</p>
+              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>読み込み中…</p>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
@@ -112,17 +134,17 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
           ) : (
             <>
               {/* ── アバター + 名前 */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginBottom: 22 }}>
                 <div style={{
                   width: 84, height: 84, borderRadius: '50%',
-                  overflow: 'hidden', background: '#EDECE6',
+                  overflow: 'hidden', background: '#F2F2F7',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '3px solid rgba(21,70,217,0.25)',
+                  border: '3px solid rgba(242,169,0,0.25)',
                   flexShrink: 0,
                 }}>
                   {player.iconUrl
                     ? <img src={player.iconUrl} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <UserIcon size={34} color="var(--label3)" />
+                    : <FiUser size={34} color="var(--label3)" />
                   }
                 </div>
                 <div style={{ textAlign: 'center' }}>
@@ -130,53 +152,53 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                     {player.name || 'プレイヤー'}
                   </p>
                   {player.playerId && (
-                    <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 8 }}>{player.playerId}</p>
+                    <p style={{ fontSize: 13, color: 'var(--label3)', marginTop: 4 }}>{player.playerId}</p>
                   )}
                 </div>
               </div>
 
               {/* ── RR Rating カード */}
               <div style={{
-                background: 'linear-gradient(135deg, #F7F1E3, #FFF3CC)',
-                border: '1px solid rgba(21,70,217,0.25)',
+                background: 'linear-gradient(135deg, #FFFBF0, #FFF3CC)',
+                border: '1px solid rgba(242,169,0,0.25)',
                 borderRadius: 20,
-                padding: '16px 24px',
-                marginBottom: 16,
+                padding: '18px 20px',
+                marginBottom: 14,
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
-                  <p className="tech-label tech-label-bracket" style={{ fontSize: 9.5, color: '#995C00', marginBottom: 8 }}>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize: 10, color: '#D4910A', marginBottom: 6 }}>
                     RR Rating
                   </p>
-                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1546D9', letterSpacing: '-1px', lineHeight: 1 }}>
+                  <p className="tech-num" style={{ fontSize: 34, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-1px', lineHeight: 1 }}>
                     {rrDisplay}
                   </p>
                 </div>
                 <div style={{
                   width: 54, height: 54, borderRadius: '50%',
-                  background: '#F9B318',
+                  background: 'linear-gradient(135deg, #F2A900, #D4910A)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <TrophyIcon size={24} color="#fff" />
+                  <span style={{ fontSize: 24 }}>🏆</span>
                 </div>
               </div>
 
               {/* ── トナメ統計グリッド */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 16 }}>
                 {[
                   { label: '参加回数', value: stats.plays > 0 ? `${stats.plays}回` : '—' },
                   { label: 'インマネ率', value: itmRate ? `${itmRate}%` : '—' },
                   { label: 'ROI', value: roi ? `${roi}%` : '—' },
                 ].map(({ label, value }) => (
                   <div key={label} style={{
-                    background: '#EDECE6', borderRadius: 16,
-                    padding: '16px 8px', textAlign: 'center',
+                    background: '#F2F2F7', borderRadius: 16,
+                    padding: '14px 8px', textAlign: 'center',
                   }}>
-                    <p style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 8 }}>
+                    <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.03em', marginBottom: 6 }}>
                       {label}
                     </p>
-                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1546D9', letterSpacing: '-0.4px' }}>
+                    <p className="tech-num" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px' }}>
                       {value}
                     </p>
                   </div>
@@ -185,16 +207,16 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
 
               {/* ── プロフィール詳細 */}
               {(player.region || player.favoriteHand || player.pokerHistory) && (
-                <div style={{ background: '#EDECE6', borderRadius: 20, overflow: 'hidden' }}>
+                <div style={{ background: '#F2F2F7', borderRadius: 20, overflow: 'hidden' }}>
                   {[
-                    { icon: <MapPinIcon size={20} />, label: '地域', value: player.region },
-                    { icon: <SpadeIcon size={20} />, label: '好きなハンド', value: player.favoriteHand },
-                    { icon: <ClockIcon size={20} />, label: 'ポーカー歴', value: player.pokerHistory },
+                    { icon: '📍', label: '地域', value: player.region },
+                    { icon: '🃏', label: '好きなハンド', value: player.favoriteHand },
+                    { icon: '⏰', label: 'ポーカー歴', value: player.pokerHistory },
                   ].filter(r => r.value).map(({ icon, label, value }, i, arr) => (
                     <div key={label} style={{
-                      padding: '16px 16px',
+                      padding: '14px 18px',
                       borderBottom: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-                      display: 'flex', alignItems: 'center', gap: 16,
+                      display: 'flex', alignItems: 'center', gap: 14,
                     }}>
                       <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
                       <div>
@@ -211,6 +233,6 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
           )}
         </div>
       </div>
-    </AppleSheet>
+    </div>
   )
 }
