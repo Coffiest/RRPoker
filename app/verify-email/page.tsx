@@ -1,5 +1,6 @@
 "use client"
 
+import { AtSign, FolderOpen, Mail, Timer, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { sendEmailVerification } from "firebase/auth"
@@ -304,10 +305,10 @@ export default function VerifyEmailPage() {
           <div style={{ padding:'18px 20px' }}>
             <p style={{ fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label2)', marginBottom:12 }}>メールが届かない場合</p>
             {[
-              { icon:'📁', text:'迷惑メールフォルダを確認する' },
-              { icon:'✉️', text:'入力したメールアドレスが正しいか確認する' },
-              { icon:'⏱️', text:'数分待ってから再送する' },
-              { icon:'📧', text:'GmailなどiCloud以外のアドレスを使う' },
+              { icon:<FolderOpen size={18} strokeWidth={2} color="#D4910A" aria-hidden />, text:'迷惑メールフォルダを確認する' },
+              { icon:<Mail size={18} strokeWidth={2} color="#D4910A" aria-hidden />, text:'入力したメールアドレスが正しいか確認する' },
+              { icon:<Timer size={18} strokeWidth={2} color="#D4910A" aria-hidden />, text:'数分待ってから再送する' },
+              { icon:<AtSign size={18} strokeWidth={2} color="#D4910A" aria-hidden />, text:'GmailなどiCloud以外のアドレスを使う' },
             ].map((item, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 0', borderBottom:i<3?'1px solid var(--sep)':'none' }}>
                 <span style={{ fontSize:18, flexShrink:0 }}>{item.icon}</span>
@@ -320,7 +321,7 @@ export default function VerifyEmailPage() {
         {/* ── iCloud注意 ── */}
         <div className="appear d3" style={{ marginTop:10 }}>
           <div style={{ borderRadius:14, padding:'12px 14px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
-            <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>⚠️</span>
+            <TriangleAlert size={16} strokeWidth={2} color="#A05000" aria-hidden style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize:12, color:'#A05000', fontWeight:500, lineHeight:1.65 }}>
               <strong>iCloudメールは確認メールが届かない</strong>または遅延する場合があります。Gmail、または別のメールアドレスの使用を推奨します。
             </p>

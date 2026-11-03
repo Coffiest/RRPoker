@@ -43,7 +43,7 @@ const dict = {
     'login.networkError': 'ネットワークエラーが発生しました。',
     'login.unsupportedBrowser': 'このブラウザではGoogleログインをご利用いただけません。SafariまたはChromeで開いてお試しください。',
     'login.homePreview': 'ログイン後のホーム画面',
-    'login.previewNote': '※ ログイン後、実際の残高が表示されます',
+    'login.previewNote': '※ これはイメージです。ログイン後、あなたの成績が表示されます',
 
     'register.title': 'Sign Up',
     'register.email': 'Email',
@@ -107,7 +107,7 @@ const dict = {
     'login.networkError': 'A network error occurred.',
     'login.unsupportedBrowser': "Google sign-in isn't available in this browser. Please open the page in Safari or Chrome.",
     'login.homePreview': 'Home screen after login',
-    'login.previewNote': '※ Your actual balance will be shown after logging in',
+    'login.previewNote': '* Sample only. Your own results appear after logging in',
 
     'register.title': 'Sign Up',
     'register.email': 'Email',

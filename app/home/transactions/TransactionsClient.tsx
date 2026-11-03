@@ -1,5 +1,6 @@
 'use client'
 
+import { User } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -299,7 +300,7 @@ export default function TransactionsClient() {
               <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {userIconUrl
                   ? <img src={userIconUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <span style={{ fontSize: 18 }}>👤</span>
+                  : <User size={18} strokeWidth={2} color="#6E6E73" aria-hidden />
                 }
               </div>
               <div>

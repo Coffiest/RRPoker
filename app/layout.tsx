@@ -1,9 +1,10 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google"
 import AuthGuard from '@/components/AuthGuard'
 import CapacitorBoot from '@/components/CapacitorBoot'
 import TechBackdrop from '@/components/TechBackdrop'
+import Toaster from '@/components/Toaster'
 import { LanguageProvider } from '@/lib/i18n'
 import "./globals.css"
 
@@ -63,6 +64,15 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
 }
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#F2A900',
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // フォント変数は必ず <html> に置く。globals.css の :root で
@@ -70,9 +80,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // :root 時点で未定義となり変数全体が無効化されて既定フォントに落ちる。
     <html lang="ja" suppressHydrationWarning className={`${mono.variable} ${grotesk.variable}`}>
       <head>
-        {/* Viewport and other meta tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-        <meta name="theme-color" content="#F2A900" />
+        {/* 拡大の禁止(オーナー指定)。viewport の指定は下の export const viewport で出す
+            (<head> に手で書くと Next.js の既定の viewport と 2 つ並び、どちらが効くか定まらない)。
+            iOS Safari は user-scalable=no を無視してピンチで拡大できてしまうため、
+            ピンチ(gesture* と 2 本指の touchmove)を止める。ダブルタップの拡大は globals.css の touch-action で止める
+            (touchend を止めると、ボタンを素早く 2 回押したときの 2 回目まで消えてしまうため使わない)。
+            maximum-scale=1 は、小さい文字の入力欄に触れたときの自動拡大も止める
+            (ブラインド作成で拡大されたまま戻せなくなっていたのはこれ)。 */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var p=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,p,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false})}catch(e){}})()` }} />
         {/* 画面は明るい表示だけで作っている。端末のダークモードで入力欄などが暗くならないようにする */}
         <meta name="color-scheme" content="light" />
         {/* PC の判定。広い画面(1024px 以上)で、マウスのように細かく指せて、ホバーできる端末を PC とみなす。
@@ -87,6 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* 全画面で同じ下地(店舗ホームと同じ: 方眼と金のにじみ)。各画面は背景を塗らない */}
         <TechBackdrop />
         <CapacitorBoot />
+        <Toaster />
         <LanguageProvider>
           <AuthGuard>
             <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">

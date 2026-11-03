@@ -1,44 +1,45 @@
 'use client'
 
+import { ChartColumn, ClipboardList, Lightbulb, Medal, NotebookPen, Store, Trophy, Wallet, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PlayingCard } from '@/components/PlayingCard'
 
 const FEATURES = [
   {
-    emoji: '🏪',
+    emoji: <Store size={18} strokeWidth={2} color="#D4910A" aria-hidden />,
     title: '店舗チェックイン',
     desc: '店舗コードを入力するだけで即入店。チップ残高をリアルタイム管理。',
     accent: '#F2A900',
     bg: 'rgba(242,169,0,0.08)',
   },
   {
-    emoji: '💳',
+    emoji: <Wallet size={18} strokeWidth={2} color="#D4910A" aria-hidden />,
     title: 'バンクロール管理',
     desc: 'チップの購入・引き出し履歴を自動記録。BB表示にも対応。',
-    accent: '#007AFF',
-    bg: 'rgba(0,122,255,0.07)',
+    accent: '#F2A900',
+    bg: 'rgba(242,169,0,0.08)',
   },
   {
-    emoji: '📊',
+    emoji: <ChartColumn size={18} strokeWidth={2} color="#D4910A" aria-hidden />,
     title: 'RR Rating',
     desc: 'ROI・インマネ率からトーナメントの実力を偏差値で可視化。',
-    accent: '#34C759',
-    bg: 'rgba(52,199,89,0.08)',
+    accent: '#F2A900',
+    bg: 'rgba(242,169,0,0.08)',
   },
   {
-    emoji: '🏆',
+    emoji: <Trophy size={18} strokeWidth={2} color="#D4910A" aria-hidden />,
     title: 'ランキング',
     desc: '純増ランキングで仲間と競う。店舗内の順位をリアルタイム確認。',
-    accent: '#AF52DE',
-    bg: 'rgba(175,82,222,0.08)',
+    accent: '#F2A900',
+    bg: 'rgba(242,169,0,0.08)',
   },
   {
-    emoji: '📋',
+    emoji: <ClipboardList size={18} strokeWidth={2} color="#D4910A" aria-hidden />,
     title: 'トーナメント履歴',
     desc: '参加トナメを自動記録。エントリー数・獲得チップ・チップ増減をいつでも確認。',
-    accent: '#FF3B30',
-    bg: 'rgba(255,59,48,0.07)',
+    accent: '#F2A900',
+    bg: 'rgba(242,169,0,0.08)',
   },
 ]
 
@@ -380,12 +381,12 @@ export default function TopPage() {
       <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
         <div className="d3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
           {[
-            { icon:'⚡', label:'残高管理', sub:'リアルタイム' },
-            { icon:'🏅', label:'ランキング', sub:'自動更新' },
-            { icon:'📝', label:'トナメ記録', sub:'自動保存' },
+            { icon:<Zap size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'残高管理', sub:'リアルタイム' },
+            { icon:<Medal size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'ランキング', sub:'自動更新' },
+            { icon:<NotebookPen size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'トナメ記録', sub:'自動保存' },
           ].map((s, i) => (
             <div key={i} className="ios-card tech-corners" style={{ padding:'14px 8px', textAlign:'center' }}>
-              <div style={{ fontSize:22, marginBottom:5 }}>{s.icon}</div>
+              <div style={{ display:'flex', justifyContent:'center', marginBottom:5 }}>{s.icon}</div>
               <p style={{ fontSize:11, fontWeight:700, color:'var(--label)', marginBottom:2 }}>{s.label}</p>
               <p className="tech-label" style={{ color:'var(--gold-dk)' }}>{s.sub}</p>
             </div>
@@ -401,7 +402,7 @@ export default function TopPage() {
         <div className="d4">
           {/* ハイライトカード */}
           <div className="ios-card feature-spotlight" style={{ overflow:'hidden', marginBottom:10 }}>
-            <div style={{ height:3, background:`linear-gradient(90deg,${f.accent},${f.accent}77,transparent)` }}/>
+            {/* カード上端の色の線は禁止(CLAUDE.md)。以前ここに 3px の帯があった */}
             <div style={{ padding:20 }}>
               <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:14 }}>
                 <div style={{ width:54, height:54, borderRadius:16, background:f.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, flexShrink:0, border:`1.5px solid ${f.accent}22` }}>
@@ -457,8 +458,8 @@ export default function TopPage() {
               <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom:18, fontWeight:500 }}>○○ ポーカークラブ</p>
-            <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>$ 24,500</p>
-            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+$ 4,500</p>
+            <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>24,500</p>
+            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
             <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
             <p style={{ marginTop:10, fontSize:9, color:'rgba(255,255,255,0.25)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
           </div>
@@ -498,7 +499,7 @@ export default function TopPage() {
       <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
         <div className="d6 ios-card" style={{ padding:'14px 16px', display:'flex', alignItems:'flex-start', gap:10 }}>
           <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(242,169,0,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
-            <span style={{ fontSize:14 }}>💡</span>
+            <Lightbulb size={16} strokeWidth={2} color="#D4910A" aria-hidden />
           </div>
           <p className="tip-txt" style={{ fontSize:13, color:'#8a6200', lineHeight:1.65, fontWeight:500 }}>
             {TIPS[tipIndex]}

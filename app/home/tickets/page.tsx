@@ -1,5 +1,6 @@
 "use client"
 
+import { Ticket } from 'lucide-react'
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
@@ -248,7 +249,7 @@ export default function TicketsPage() {
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
-              <div style={{ fontSize: 36, marginBottom: 10 }}>🎫</div>
+              <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}><Ticket size={36} strokeWidth={2} color="#6E6E73" aria-hidden /></div>
               <p style={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E", marginBottom: 4 }}>スタンプカードがありません</p>
               <p style={{ fontSize: 12, color: "var(--label3)", lineHeight: 1.5 }}>店舗に入店するとスタンプが貯まります</p>
             </div>

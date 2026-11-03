@@ -1,5 +1,6 @@
 'use client'
 
+import { TriangleAlert } from 'lucide-react'
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -436,7 +437,7 @@ export default function RegisterPage() {
               {/* iCloud警告 */}
               {email.includes('icloud') && (
                 <p style={{ fontSize:10, color:'#FF9500', fontWeight:600, marginTop:5, display:'flex', alignItems:'center', gap:4 }}>
-                  <span>⚠️</span> iCloudメールは確認メールが届かない場合があります
+                  <TriangleAlert size={12} strokeWidth={2} color="currentColor" aria-hidden /> iCloudメールは確認メールが届かない場合があります
                 </p>
               )}
             </div>
@@ -556,7 +557,7 @@ export default function RegisterPage() {
         {/* ── iCloud注意書き（カード外） ── */}
         <div className="appear d4" style={{ marginTop:12 }}>
           <div style={{ borderRadius:14, padding:'12px 14px', background:'rgba(255,149,0,0.07)', border:'1px solid rgba(255,149,0,0.2)', display:'flex', alignItems:'flex-start', gap:8 }}>
-            <span style={{ fontSize:16, flexShrink:0, marginTop:1 }}>⚠️</span>
+            <TriangleAlert size={16} strokeWidth={2} color="#A05000" aria-hidden style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize:12, color:'#A05000', fontWeight:500, lineHeight:1.6 }}>
               <strong>iCloudメールは確認メールが届かない場合があります。</strong><br/>
               Gmailなどのメールアドレスのご利用を推奨します。

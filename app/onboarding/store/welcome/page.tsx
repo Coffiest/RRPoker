@@ -1,17 +1,18 @@
 'use client'
 
+import { ChartColumn, Coins, Lightbulb, Megaphone, Store, Target, Timer, Trophy } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 
 const STORE_FEATURES = [
-  { icon: '🏆', title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計', color: '#F2A900' },
-  { icon: '💰', title: 'チップ残高管理', desc: '購入・引き出しをリアルタイムで管理', color: '#34C759' },
-  { icon: '📊', title: '純増ランキング', desc: 'プレイヤーの純増を自動ランキング表示', color: '#007AFF' },
-  { icon: '⏱', title: 'ブラインドタイマー', desc: 'カスタム構成を保存して即再利用', color: '#FF9500' },
-  { icon: '📢', title: 'お知らせ配信', desc: 'チェックイン中の全員に一斉送信', color: '#AF52DE' },
-  { icon: '🎯', title: 'RR Rating連携', desc: 'トナメ結果がプレイヤーの偏差値に反映', color: '#FF3B30' },
+  { icon: <Trophy size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計', color: '#F2A900' },
+  { icon: <Coins size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'チップ残高管理', desc: '購入・引き出しをリアルタイムで管理', color: '#F2A900' },
+  { icon: <ChartColumn size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: '純増ランキング', desc: 'プレイヤーの純増を自動ランキング表示', color: '#F2A900' },
+  { icon: <Timer size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'ブラインドタイマー', desc: 'カスタム構成を保存して即再利用', color: '#F2A900' },
+  { icon: <Megaphone size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'お知らせ配信', desc: 'チェックイン中の全員に一斉送信', color: '#F2A900' },
+  { icon: <Target size={22} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'RR Rating連携', desc: 'トナメ結果がプレイヤーの偏差値に反映', color: '#F2A900' },
 ]
 
 function hexToRgb(hex: string): string {
@@ -150,7 +151,7 @@ export default function StoreWelcomePage() {
           </div>
 
           <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color: 'var(--label)', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
-            {name ? `${name}さん、` : ''}ようこそ！🎉
+            {name ? `${name}さん、` : ''}ようこそ！
           </h1>
           <p className="sw-appear sw-d2" style={{ fontSize:14, color:'var(--label2)', lineHeight:1.85 }}>
             あなたの店舗がRRPokerに登録されました。<br/>
@@ -181,13 +182,13 @@ export default function StoreWelcomePage() {
         {/* ─── ヒントカード ─── */}
         <div className="sw-appear sw-d8" style={{ background:'rgba(242,169,0,0.07)', border:'1px solid rgba(242,169,0,0.15)', borderRadius:16, padding:'14px 16px', marginBottom:10 }}>
           <p style={{ fontSize:12, color:'rgba(242,169,0,0.85)', fontWeight:600, lineHeight:1.75 }}>
-            💡 プレイヤーに<strong style={{ color:'#F2A900' }}>6桁の店舗コード</strong>を共有するだけで、すぐにチェックインしてもらえます。コードは店舗管理画面で確認できます。
+            <Lightbulb size={12} strokeWidth={2} color="#F2A900" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />プレイヤーに<strong style={{ color:'#F2A900' }}>6桁の店舗コード</strong>を共有するだけで、すぐにチェックインしてもらえます。コードは店舗管理画面で確認できます。
           </p>
         </div>
 
         <div className="sw-appear sw-d8" style={{ background:'rgba(0,122,255,0.06)', border:'1px solid rgba(0,122,255,0.12)', borderRadius:16, padding:'14px 16px', marginBottom:28 }}>
           <p style={{ fontSize:12, color:'rgba(100,180,255,0.85)', fontWeight:600, lineHeight:1.75 }}>
-            🏪 設定画面からチップ単位・店舗情報・リングブラインドをいつでも変更できます。
+            <Store size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />設定画面からチップ単位・店舗情報・リングブラインドをいつでも変更できます。
           </p>
         </div>
 

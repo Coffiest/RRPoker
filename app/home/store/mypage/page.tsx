@@ -1,11 +1,13 @@
 "use client"
 
+import { showToast } from "@/lib/toast"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { deleteField, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
+import { Lock, LogOut, ChevronRight } from "lucide-react"
 import { FiUser, FiEdit2, FiAlertCircle, FiCheckCircle, FiMapPin, FiFileText, FiTarget, FiGlobe, FiCreditCard } from "react-icons/fi"
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import HomeHeader from "@/components/HomeHeader"
@@ -364,39 +366,26 @@ export default function StoreMyPage() {
   }
 
   const deleteAccount = async () => {
-    console.log("DELETE CLICKED")
-
     const user = auth.currentUser
-    console.log("CURRENT USER:", user)
-
     if (!user) {
-      console.log("USER IS NULL")
-      alert("ユーザー情報が取得できません。再ログインしてください。")
+      showToast("ユーザー情報が取得できません。もう一度ログインしてください。")
       return
     }
 
     try {
-      console.log("TRY START")
       setIsDeleting(true)
-
-      await setDoc(
-        doc(db, "users", user.uid),
-        { deletedAt: new Date() },
-        { merge: true }
-      )
-      console.log("FIRESTORE UPDATED")
-
+      await setDoc(doc(db, "users", user.uid), { deletedAt: new Date() }, { merge: true })
       await user.delete()
-      console.log("AUTH DELETE DONE")
-
-      alert("削除完了")
+      showToast("アカウントを削除しました", "ok")
       router.replace("/login")
-
     } catch (e) {
-      console.error("DELETE ERROR:", e)
-      alert("削除エラー")
+      console.error("delete account failed", e)
+      // Firebase はログインから時間が経つと削除を断る(auth/requires-recent-login)。理由を伝える。
+      const code = (e as { code?: string })?.code
+      showToast(code === "auth/requires-recent-login"
+        ? "安全のため、もう一度ログインしてから削除してください"
+        : "削除できませんでした。時間をおいてもう一度お試しください")
     } finally {
-      console.log("FINALLY")
       setIsDeleting(false)
     }
   }
@@ -436,7 +425,7 @@ export default function StoreMyPage() {
           overflow: hidden;
         }
         .profile-card::before {
-          content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          display:none; /* カード上端の線は禁止(CLAUDE.md・オーナー確定) */ content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
           background: linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
           opacity: .55; pointer-events: none;
         }
@@ -486,574 +475,590 @@ export default function StoreMyPage() {
           </span>
         </div>
 
-        {/* Profile Card */}
-        <div className="mt-6 profile-card p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
-          {/* Icon Section */}
-          <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
-            <div className="relative shrink-0">
-              {previewUrl || profile.iconUrl ? (
-                <img
-                  src={previewUrl ?? profile.iconUrl}
-                  alt="icon"
-                  className="h-20 w-20 rounded-2xl object-cover shadow-md border-2 border-white"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
-                  <FiUser size={32} />
-                </div>
-              )}
-              {savingIcon && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                </div>
-              )}
-              <button
-                type="button"
-                onClick={openIconPicker}
-                className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-lg flex items-center justify-center text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all active:scale-95"
-                aria-label="アイコンを編集"
-              >
-                <FiEdit2 size={14} />
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-            </div>
-
-            <div className="flex-1">
-              <p className="text-[18px] font-semibold text-gray-900">{profile.name ?? ""}</p>
-              <p className="mt-1 text-[13px] text-gray-500">{email}</p>
-            </div>
-          </div>
-
-          {/* Editable Fields */}
-          <div className="mt-5 space-y-4">
-            {/* Store Name */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">店舗名</p>
-                {editingField !== "name" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("name")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="店舗名を編集"
-                  >
-                    <FiEdit2 size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "name" ? (
-                <input
-                  type="text"
-                  value={draftName}
-                  onChange={e => setDraftName(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[15px] text-gray-900">{profile.name ?? ""}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <FiFileText size={14} className="text-label3" />
-                  <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
-                </div>
-                {editingField !== "description" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("description")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="店舗の説明を編集"
-                  >
-                    <FiEdit2 size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "description" ? (
-                <textarea
-                  value={draftDescription}
-                  onChange={e => setDraftDescription(e.target.value)}
-                  className="h-24 w-full px-4 py-3 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700 leading-relaxed">{profile.description ?? ""}</p>
-              )}
-            </div>
-
-            {/* Postal Code */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <FiMapPin size={14} className="text-label3" />
-                  <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
-                </div>
-                {editingField !== "postalCode" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("postalCode")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="郵便番号を編集"
-                  >
-                    <FiEdit2 size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "postalCode" ? (
-                <input
-                  type="text"
-                  value={draftPostalCode}
-                  onChange={e => setDraftPostalCode(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.postalCode ?? ""}</p>
-              )}
-            </div>
-
-            {/* Address Line */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">住所、丁目</p>
-                {editingField !== "addressLine" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("addressLine")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="住所を編集"
-                  >
-                    <FiEdit2 size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "addressLine" ? (
-                <input
-                  type="text"
-                  value={draftAddressLine}
-                  onChange={e => setDraftAddressLine(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.addressLine ?? ""}</p>
-              )}
-            </div>
-
-            {/* Address Detail */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[12px] font-medium text-gray-600">番地、マンション名、号室など</p>
-                {editingField !== "addressDetail" && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingField("addressDetail")}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                    aria-label="番地を編集"
-                  >
-                    <FiEdit2 size={14} />
-                  </button>
-                )}
-              </div>
-              {editingField === "addressDetail" ? (
-                <input
-                  type="text"
-                  value={draftAddressDetail}
-                  onChange={e => setDraftAddressDetail(e.target.value)}
-                  className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
-                  autoFocus
-                />
-              ) : (
-                <p className="text-[14px] text-gray-700">{profile.addressDetail ?? ""}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Messages */}
-          {error && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
-              <FiAlertCircle className="text-red-600 shrink-0" size={18} />
-              <p className="text-[13px] text-red-700 font-medium">{error}</p>
-            </div>
-          )}
-          {success && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-3 animate-slideUp">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={18} />
-              <p className="text-[13px] text-[#D4910A] font-medium">{success}</p>
-            </div>
-          )}
-
-          {/* Save Button */}
-          {editingField && (
-            <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingField(null)
-                  setError("")
-                }}
-                className="a-btn a-btn-glass" style={{ flex: 1 }}
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="a-btn a-btn-filled" style={{ flex: 1 }}
-              >
-                {saving ? "保存中..." : "保存する"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Blind Settings Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <FiTarget className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">ブラインド設定</p>
-          </div>
-          <p className="text-[13px] text-gray-500 mb-4">空欄で保存すると解除されます</p>
-          
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <label className="block text-[11px] font-medium text-gray-600 mb-2">SB</label>
-              <input
-                type="number"
-                min={0}
-                value={blindSb}
-                onChange={e => setBlindSb(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-                placeholder="例: 5"
-              />
-            </div>
-            <div className="pt-6 text-label3">-</div>
-            <div className="flex-1">
-              <label className="block text-[11px] font-medium text-gray-600 mb-2">BB</label>
-              <input
-                type="number"
-                min={0}
-                value={blindBb}
-                onChange={e => setBlindBb(e.target.value)}
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-                placeholder="例: 10"
-              />
-            </div>
-          </div>
-
-          {blindError && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <FiAlertCircle className="text-red-600 shrink-0" size={16} />
-              <p className="text-[12px] text-red-700 font-medium">{blindError}</p>
-            </div>
-          )}
-          {blindSuccess && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
-              <p className="text-[12px] text-[#D4910A] font-medium">{blindSuccess}</p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={saveBlindSettings}
-            className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 transition-all active:scale-98"
-          >
-            ブラインドを保存
-          </button>
-        </div>
-
-        {/* SNS Links Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <FiGlobe className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
-          </div>
-          <p className="text-[13px] text-gray-500 mb-4">入力したリンクはプレイヤーのスケジュール画面に表示されます</p>
-
-          <div className="space-y-3">
-            <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FaInstagram size={13} className="text-[#E1306C]" />Instagram URL
-              </label>
-              <input
-                type="url"
-                value={draftInstagram}
-                onChange={e => setDraftInstagram(e.target.value)}
-                placeholder="https://www.instagram.com/yourstore"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FaXTwitter size={13} className="text-gray-900" />X（旧Twitter）URL
-              </label>
-              <input
-                type="url"
-                value={draftSnsX}
-                onChange={e => setDraftSnsX(e.target.value)}
-                placeholder="https://x.com/yourstore"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
-                <FiGlobe size={13} className="text-blue-500" />Webサイト URL
-              </label>
-              <input
-                type="url"
-                value={draftSnsWeb}
-                onChange={e => setDraftSnsWeb(e.target.value)}
-                placeholder="https://yourstore.com"
-                className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
-              />
-            </div>
-          </div>
-
-          {snsError && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-              <FiAlertCircle className="text-red-600 shrink-0" size={16} />
-              <p className="text-[12px] text-red-700 font-medium">{snsError}</p>
-            </div>
-          )}
-          {snsSuccess && (
-            <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
-              <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
-              <p className="text-[12px] text-[#D4910A] font-medium">{snsSuccess}</p>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={saveSns}
-            disabled={snsSaving}
-            className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
-          >
-            {snsSaving ? "保存中..." : "SNSリンクを保存"}
-          </button>
-        </div>
-
-        {/* Subscription Card */}
-        <div className="mt-4 profile-card p-6 animate-slideUp">
-          <div className="flex items-center gap-2 mb-4">
-            <FiCreditCard className="text-[#F2A900]" size={18} />
-            <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
-          </div>
-
-          {subscription ? (
-            <>
-              <div className="space-y-3 mb-5">
-                <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-gray-500">プラン</span>
-                  <span className="text-[14px] font-semibold text-gray-900">
-                    {subscriptionPlanLabel(subscription)}
-                    {subscription.provider !== "admin_free" && (
-                      <span className="ml-2 text-[12px] font-normal text-gray-500">
-                        {subscription.interval === "yearly" ? "年払い" : "月払い"}
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-gray-500">ステータス</span>
-                  {isSubscriptionActive(subscription) && !subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">有効</span>
-                  )}
-                  {isSubscriptionActive(subscription) && subscription.cancelAtPeriodEnd && (
-                    <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full">キャンセル予定</span>
-                  )}
-                  {subscription.status === "past_due" && (
-                    <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-3 py-0.5 rounded-full">支払い失敗</span>
-                  )}
-                  {!isSubscriptionActive(subscription) && subscription.status !== "past_due" && (
-                    <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-3 py-0.5 rounded-full">停止中</span>
-                  )}
-                </div>
-                {subscription.currentPeriodEnd && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-[13px] text-gray-500">
-                      {subscription.provider === "admin_free"
-                        ? "無料期間終了日"
-                        : subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
-                    </span>
-                    <span className="text-[13px] text-gray-700">
-                      {new Date(subscription.currentPeriodEnd * 1000).toLocaleString("ja-JP", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </span>
+        {/* PC では左にプロフィールと SNS、右にブラインド・サブスクリプション・アカウント(オーナー指定)。
+            スマホでは囲みを display: contents にして、これまでどおり縦 1 列(並び順は CSS の order)。 */}
+        <div className="sm-col sm-col-left">
+          {/* Profile Card */}
+          <div className="sm-profile mt-6 profile-card p-6 animate-slideUp tech-corners" style={{ ['--tech-reveal-delay' as string]: '0.04s' } as React.CSSProperties}>
+            {/* Icon Section */}
+            <div className="flex items-center gap-4 pb-5 border-b border-gray-100">
+              <div className="relative shrink-0">
+                {previewUrl || profile.iconUrl ? (
+                  <img
+                    src={previewUrl ?? profile.iconUrl}
+                    alt="icon"
+                    className="h-20 w-20 rounded-2xl object-cover shadow-md border-2 border-white"
+                  />
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
+                    <FiUser size={32} />
                   </div>
                 )}
+                {savingIcon && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={openIconPicker}
+                  className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-gradient-to-br from-[#F2A900] to-[#D4910A] shadow-lg flex items-center justify-center text-white hover:from-[#D4910A] hover:to-[#C48509] transition-all active:scale-95"
+                  aria-label="アイコンを編集"
+                >
+                  <FiEdit2 size={14} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
 
-              {billingError && (
-                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
-                  <FiAlertCircle className="text-red-600 shrink-0" size={16} />
-                  <p className="text-[12px] text-red-700 font-medium">{billingError}</p>
-                </div>
-              )}
-              {billingSuccess && (
-                <div className="mb-3 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
-                  <FiCheckCircle className="text-green-600 shrink-0" size={16} />
-                  <p className="text-[12px] text-green-700 font-medium">{billingSuccess}</p>
-                </div>
-              )}
+              <div className="flex-1">
+                <p className="text-[18px] font-semibold text-gray-900">{profile.name ?? ""}</p>
+                <p className="mt-1 text-[13px] text-gray-500">{email}</p>
+              </div>
+            </div>
 
-              <div className="space-y-2">
-                {subscription.provider === "admin_free" ? (
-                  <p className="text-[12px] text-gray-500 text-center px-2">
-                    運営による無料期間が適用されています。終了日を過ぎると自動的に停止します。
-                  </p>
-                ) : subscription.provider === "apple_iap" ? (
-                  <>
-                    <a
-                      href="itms-apps://apps.apple.com/account/subscriptions"
-                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
-                    >
-                      サブスクリプションを管理（App Store）
-                    </a>
-                    <p className="text-[12px] text-gray-500 text-center px-2">
-                      ご契約はApp Storeで管理されています。変更・キャンセルはiOSの「設定」アプリまたはApp Storeから行えます。
-                    </p>
-                  </>
-                ) : subscription.provider === "google_play" ? (
-                  <>
-                    <a
-                      href="https://play.google.com/store/account/subscriptions"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
-                    >
-                      サブスクリプションを管理（Google Play）
-                    </a>
-                    <p className="text-[12px] text-gray-500 text-center px-2">
-                      ご契約はGoogle Playで管理されています。変更・キャンセルはPlayストアから行えます。
-                    </p>
-                  </>
-                ) : (
-                  <>
+            {/* Editable Fields */}
+            <div className="mt-5 space-y-4">
+              {/* Store Name */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[12px] font-medium text-gray-600">店舗名</p>
+                  {editingField !== "name" && (
                     <button
                       type="button"
-                      onClick={openPortal}
-                      disabled={billingLoading}
-                      className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                      onClick={() => setEditingField("name")}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      aria-label="店舗名を編集"
                     >
-                      {billingLoading ? "処理中..." : "カードを変更"}
+                      <FiEdit2 size={14} />
                     </button>
-                    {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
-                      <button
-                        type="button"
-                        onClick={() => setShowCancelConfirm(true)}
-                        disabled={billingLoading}
-                        className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
-                      >
-                        サブスクリプションをキャンセル
-                      </button>
-                    )}
-                    {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
-                      <button
-                        type="button"
-                        onClick={resumeSubscription}
-                        disabled={billingLoading}
-                        className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
-                      >
-                        {billingLoading ? "処理中..." : "サブスクリプションを再開"}
-                      </button>
-                    )}
-                  </>
-                )}
-                {!isSubscriptionActive(subscription) && (
-                  <button
-                    type="button"
-                    onClick={() => router.push("/home/store/billing")}
-                    disabled={billingLoading}
-                    className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
-                  >
-                    プランを再開する
-                  </button>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-[13px] text-gray-500 mb-3">有効なサブスクリプションがありません</p>
-              <button
-                type="button"
-                onClick={() => router.push("/home/store/billing")}
-                className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white"
-              >
-                プランを選択
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Cancel Subscription Confirm Modal */}
-        {showCancelConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
-            <div className="a-dialog w-full max-w-sm p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <FiAlertCircle className="text-orange-600" size={24} />
+                  )}
                 </div>
-                <h2 className="text-[18px] font-semibold text-gray-900">キャンセル確認</h2>
+                {editingField === "name" ? (
+                  <input
+                    type="text"
+                    value={draftName}
+                    onChange={e => setDraftName(e.target.value)}
+                    className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-[15px] text-gray-900">{profile.name ?? ""}</p>
+                )}
               </div>
-              <p className="text-[14px] text-gray-600 leading-relaxed">
-                サブスクリプションをキャンセルしますか？<br />
-                期間終了まで引き続きご利用いただけます。
-              </p>
+
+              {/* Description */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <FiFileText size={14} className="text-label3" />
+                    <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
+                  </div>
+                  {editingField !== "description" && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingField("description")}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      aria-label="店舗の説明を編集"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                  )}
+                </div>
+                {editingField === "description" ? (
+                  <textarea
+                    value={draftDescription}
+                    onChange={e => setDraftDescription(e.target.value)}
+                    className="h-24 w-full px-4 py-3 text-[15px] outline-none resize-none" style={{ borderRadius: 18, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-[14px] text-gray-700 leading-relaxed">{profile.description ?? ""}</p>
+                )}
+              </div>
+
+              {/* Postal Code */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <FiMapPin size={14} className="text-label3" />
+                    <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
+                  </div>
+                  {editingField !== "postalCode" && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingField("postalCode")}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      aria-label="郵便番号を編集"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                  )}
+                </div>
+                {editingField === "postalCode" ? (
+                  <input
+                    type="text"
+                    value={draftPostalCode}
+                    onChange={e => setDraftPostalCode(e.target.value)}
+                    className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-[14px] text-gray-700">{profile.postalCode ?? ""}</p>
+                )}
+              </div>
+
+              {/* Address Line */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[12px] font-medium text-gray-600">住所、丁目</p>
+                  {editingField !== "addressLine" && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingField("addressLine")}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      aria-label="住所を編集"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                  )}
+                </div>
+                {editingField === "addressLine" ? (
+                  <input
+                    type="text"
+                    value={draftAddressLine}
+                    onChange={e => setDraftAddressLine(e.target.value)}
+                    className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-[14px] text-gray-700">{profile.addressLine ?? ""}</p>
+                )}
+              </div>
+
+              {/* Address Detail */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[12px] font-medium text-gray-600">番地、マンション名、号室など</p>
+                  {editingField !== "addressDetail" && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingField("addressDetail")}
+                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                      aria-label="番地を編集"
+                    >
+                      <FiEdit2 size={14} />
+                    </button>
+                  )}
+                </div>
+                {editingField === "addressDetail" ? (
+                  <input
+                    type="text"
+                    value={draftAddressDetail}
+                    onChange={e => setDraftAddressDetail(e.target.value)}
+                    className="h-12 w-full px-4 text-[15px] outline-none" style={{ borderRadius: 16, border: 'none', background: 'rgba(120,120,128,0.10)', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.30)' }}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-[14px] text-gray-700">{profile.addressDetail ?? ""}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Messages */}
+            {error && (
+              <div className="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+                <FiAlertCircle className="text-red-600 shrink-0" size={18} />
+                <p className="text-[13px] text-red-700 font-medium">{error}</p>
+              </div>
+            )}
+            {success && (
+              <div className="mt-4 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-3 animate-slideUp">
+                <FiCheckCircle className="text-[#D4910A] shrink-0" size={18} />
+                <p className="text-[13px] text-[#D4910A] font-medium">{success}</p>
+              </div>
+            )}
+
+            {/* Save Button */}
+            {editingField && (
               <div className="mt-5 flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowCancelConfirm(false)}
-                  disabled={billingLoading}
-                  className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                  onClick={() => {
+                    setEditingField(null)
+                    setError("")
+                  }}
+                  className="a-btn a-btn-glass" style={{ flex: 1 }}
                 >
-                  戻る
+                  キャンセル
                 </button>
                 <button
                   type="button"
-                  onClick={cancelSubscription}
-                  disabled={billingLoading}
-                  className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all"
+                  onClick={saveProfile}
+                  disabled={saving}
+                  className="a-btn a-btn-filled" style={{ flex: 1 }}
                 >
-                  {billingLoading ? "処理中..." : "キャンセルする"}
+                  {saving ? "保存中..." : "保存する"}
                 </button>
               </div>
+            )}
+          </div>
+
+          {/* SNS Links Card */}
+          <div className="sm-sns mt-4 profile-card p-6 animate-slideUp">
+            <div className="flex items-center gap-2 mb-4">
+              <FiGlobe className="text-[#F2A900]" size={18} />
+              <p className="text-[16px] font-semibold text-gray-900">SNS・外部リンク</p>
+            </div>
+            <p className="text-[13px] text-gray-500 mb-4">入力したリンクはプレイヤーのスケジュール画面に表示されます</p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                  <FaInstagram size={13} className="text-[#E1306C]" />Instagram URL
+                </label>
+                <input
+                  type="url"
+                  value={draftInstagram}
+                  onChange={e => setDraftInstagram(e.target.value)}
+                  placeholder="https://www.instagram.com/yourstore"
+                  className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                  <FaXTwitter size={13} className="text-gray-900" />X（旧Twitter）URL
+                </label>
+                <input
+                  type="url"
+                  value={draftSnsX}
+                  onChange={e => setDraftSnsX(e.target.value)}
+                  placeholder="https://x.com/yourstore"
+                  className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-[11px] font-medium text-gray-600 mb-2">
+                  <FiGlobe size={13} className="text-blue-500" />Webサイト URL
+                </label>
+                <input
+                  type="url"
+                  value={draftSnsWeb}
+                  onChange={e => setDraftSnsWeb(e.target.value)}
+                  placeholder="https://yourstore.com"
+                  className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[13px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                />
+              </div>
+            </div>
+
+            {snsError && (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+                <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+                <p className="text-[12px] text-red-700 font-medium">{snsError}</p>
+              </div>
+            )}
+            {snsSuccess && (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
+                <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
+                <p className="text-[12px] text-[#D4910A] font-medium">{snsSuccess}</p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={saveSns}
+              disabled={snsSaving}
+              className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
+            >
+              {snsSaving ? "保存中..." : "SNSリンクを保存"}
+            </button>
+          </div>
+
+        </div>
+        <div className="sm-col sm-col-right">
+          {/* Blind Settings Card */}
+          <div className="sm-blind mt-4 profile-card p-6 animate-slideUp">
+            <div className="flex items-center gap-2 mb-4">
+              <FiTarget className="text-[#F2A900]" size={18} />
+              <p className="text-[16px] font-semibold text-gray-900">ブラインド設定</p>
+            </div>
+            <p className="text-[13px] text-gray-500 mb-4">空欄で保存すると解除されます</p>
+          
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <label className="block text-[11px] font-medium text-gray-600 mb-2">SB</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={blindSb}
+                  onChange={e => setBlindSb(e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                  placeholder="例: 5"
+                />
+              </div>
+              <div className="pt-6 text-label3">-</div>
+              <div className="flex-1">
+                <label className="block text-[11px] font-medium text-gray-600 mb-2">BB</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={blindBb}
+                  onChange={e => setBlindBb(e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-gray-200 bg-white px-4 text-[15px] outline-none focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                  placeholder="例: 10"
+                />
+              </div>
+            </div>
+
+            {blindError && (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+                <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+                <p className="text-[12px] text-red-700 font-medium">{blindError}</p>
+              </div>
+            )}
+            {blindSuccess && (
+              <div className="mt-3 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#F2A900]/10 to-[#D4910A]/10 border border-[#F2A900]/30 px-4 py-2">
+                <FiCheckCircle className="text-[#D4910A] shrink-0" size={16} />
+                <p className="text-[12px] text-[#D4910A] font-medium">{blindSuccess}</p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={saveBlindSettings}
+              className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 transition-all active:scale-98"
+            >
+              ブラインドを保存
+            </button>
+          </div>
+
+          {/* Subscription Card */}
+          <div className="sm-sub mt-4 profile-card p-6 animate-slideUp">
+            <div className="flex items-center gap-2 mb-4">
+              <FiCreditCard className="text-[#F2A900]" size={18} />
+              <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
+            </div>
+
+            {subscription ? (
+              <>
+                <div className="space-y-3 mb-5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-gray-500">プラン</span>
+                    <span className="text-[14px] font-semibold text-gray-900">
+                      {subscriptionPlanLabel(subscription)}
+                      {subscription.provider !== "admin_free" && (
+                        <span className="ml-2 text-[12px] font-normal text-gray-500">
+                          {subscription.interval === "yearly" ? "年払い" : "月払い"}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[13px] text-gray-500">ステータス</span>
+                    {isSubscriptionActive(subscription) && !subscription.cancelAtPeriodEnd && (
+                      <span className="text-[13px] font-semibold text-green-600 bg-green-50 px-3 py-0.5 rounded-full">有効</span>
+                    )}
+                    {isSubscriptionActive(subscription) && subscription.cancelAtPeriodEnd && (
+                      <span className="text-[13px] font-semibold text-orange-600 bg-orange-50 px-3 py-0.5 rounded-full">キャンセル予定</span>
+                    )}
+                    {subscription.status === "past_due" && (
+                      <span className="text-[13px] font-semibold text-red-600 bg-red-50 px-3 py-0.5 rounded-full">支払い失敗</span>
+                    )}
+                    {!isSubscriptionActive(subscription) && subscription.status !== "past_due" && (
+                      <span className="text-[13px] font-semibold text-gray-500 bg-gray-100 px-3 py-0.5 rounded-full">停止中</span>
+                    )}
+                  </div>
+                  {subscription.currentPeriodEnd && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-[13px] text-gray-500">
+                        {subscription.provider === "admin_free"
+                          ? "無料期間終了日"
+                          : subscription.cancelAtPeriodEnd ? "終了日" : "次回更新日"}
+                      </span>
+                      <span className="text-[13px] text-gray-700">
+                        {new Date(subscription.currentPeriodEnd * 1000).toLocaleString("ja-JP", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {billingError && (
+                  <div className="mb-3 flex items-center gap-2 rounded-2xl bg-red-50 border border-red-200 px-4 py-2">
+                    <FiAlertCircle className="text-red-600 shrink-0" size={16} />
+                    <p className="text-[12px] text-red-700 font-medium">{billingError}</p>
+                  </div>
+                )}
+                {billingSuccess && (
+                  <div className="mb-3 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-2">
+                    <FiCheckCircle className="text-green-600 shrink-0" size={16} />
+                    <p className="text-[12px] text-green-700 font-medium">{billingSuccess}</p>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {subscription.provider === "admin_free" ? (
+                    <p className="text-[12px] text-gray-500 text-center px-2">
+                      運営による無料期間が適用されています。終了日を過ぎると自動的に停止します。
+                    </p>
+                  ) : subscription.provider === "apple_iap" ? (
+                    <>
+                      <a
+                        href="itms-apps://apps.apple.com/account/subscriptions"
+                        className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
+                      >
+                        サブスクリプションを管理（App Store）
+                      </a>
+                      <p className="text-[12px] text-gray-500 text-center px-2">
+                        ご契約はApp Storeで管理されています。変更・キャンセルはiOSの「設定」アプリまたはApp Storeから行えます。
+                      </p>
+                    </>
+                  ) : subscription.provider === "google_play" ? (
+                    <>
+                      <a
+                        href="https://play.google.com/store/account/subscriptions"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-11 w-full flex items-center justify-center rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 transition-all"
+                      >
+                        サブスクリプションを管理（Google Play）
+                      </a>
+                      <p className="text-[12px] text-gray-500 text-center px-2">
+                        ご契約はGoogle Playで管理されています。変更・キャンセルはPlayストアから行えます。
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={openPortal}
+                        disabled={billingLoading}
+                        className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                      >
+                        {billingLoading ? "処理中..." : "カードを変更"}
+                      </button>
+                      {subscription.status === "active" && !subscription.cancelAtPeriodEnd && (
+                        <button
+                          type="button"
+                          onClick={() => setShowCancelConfirm(true)}
+                          disabled={billingLoading}
+                          className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
+                        >
+                          サブスクリプションをキャンセル
+                        </button>
+                      )}
+                      {subscription.status === "active" && subscription.cancelAtPeriodEnd && (
+                        <button
+                          type="button"
+                          onClick={resumeSubscription}
+                          disabled={billingLoading}
+                          className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                        >
+                          {billingLoading ? "処理中..." : "サブスクリプションを再開"}
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {!isSubscriptionActive(subscription) && (
+                    <button
+                      type="button"
+                      onClick={() => router.push("/home/store/billing")}
+                      disabled={billingLoading}
+                      className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                    >
+                      プランを再開する
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-[13px] text-gray-500 mb-3">有効なサブスクリプションがありません</p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/home/store/billing")}
+                  className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white"
+                >
+                  プランを選択
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Cancel Subscription Confirm Modal */}
+          {showCancelConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
+              <div className="a-dialog w-full max-w-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                    <FiAlertCircle className="text-orange-600" size={24} />
+                  </div>
+                  <h2 className="text-[18px] font-semibold text-gray-900">キャンセル確認</h2>
+                </div>
+                <p className="text-[14px] text-gray-600 leading-relaxed">
+                  サブスクリプションをキャンセルしますか？<br />
+                  期間終了まで引き続きご利用いただけます。
+                </p>
+                <div className="mt-5 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelConfirm(false)}
+                    disabled={billingLoading}
+                    className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelSubscription}
+                    disabled={billingLoading}
+                    className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all"
+                  >
+                    {billingLoading ? "処理中..." : "キャンセルする"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* アカウントの操作。ログアウトは黒い塊にせず、ほかのカードと同じ白い面にそろえる(オーナー指定)。
+              アカウント削除はボタンにせず、カードの下に小さな文字で置く(押し間違いを防ぎ、主役を奪わない)。 */}
+          <div className="sm-account mt-4">
+            <div className="profile-card animate-slideUp" style={{ padding: 0 }}>
+              <button
+                type="button"
+                onClick={() => router.push("/home/store/mypage/password")}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', borderBottom: '1px solid var(--sep)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+              >
+                <Lock size={18} strokeWidth={2} style={{ color: '#D4910A', flexShrink: 0 }} aria-hidden />
+                <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>パスワード変更</span>
+                <ChevronRight size={18} strokeWidth={2} style={{ color: 'var(--label3)' }} aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+              >
+                <LogOut size={18} strokeWidth={2} style={{ color: '#D4910A', flexShrink: 0 }} aria-hidden />
+                <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>ログアウト</span>
+                <ChevronRight size={18} strokeWidth={2} style={{ color: 'var(--label3)' }} aria-hidden />
+              </button>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 16 }}>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                style={{ minHeight: 44, padding: '0 16px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 12, color: '#C62828', textDecoration: 'underline', textUnderlineOffset: 3 }}
+              >
+                アカウントを削除
+              </button>
             </div>
           </div>
-        )}
 
-        {/* Action Buttons */}
-        <div className="mt-6 space-y-3">
-          <button
-            type="button"
-            onClick={() => router.push("/home/store/mypage/password")}
-            className="h-14 w-full rounded-2xl bg-white border border-gray-200 text-[16px] font-medium text-gray-900 hover:bg-gray-50 shadow-sm transition-all active:scale-98"
-          >
-            パスワード変更
-          </button>
-          <button
-            type="button"
-            onClick={logout}
-            className="h-14 w-full rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 text-[16px] font-semibold text-white shadow-md hover:shadow-lg transition-all active:scale-98"
-          >
-            ログアウト
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="h-12 w-full rounded-2xl bg-red-50 border border-red-200 text-[15px] font-medium text-red-600 hover:bg-red-100 transition-all active:scale-98"
-          >
-            アカウント削除
-          </button>
         </div>
 
         {/* Delete Confirmation Modal */}
@@ -1070,7 +1075,7 @@ export default function StoreMyPage() {
                 本当にアカウントを削除しますか？
               </p>
               <div className="mt-3 bg-red-50 rounded-2xl p-4 border border-red-100">
-                <p className="text-[13px] text-red-700 font-medium">⚠️ この操作は取り消せません</p>
+                <p className="text-[13px] text-red-700 font-medium">この操作は取り消せません</p>
                 <p className="text-[12px] text-gray-600 mt-1">• 保持チップやレートも失われます</p>
                 <p className="text-[12px] text-gray-600">• すべてのデータが完全に削除されます</p>
               </div>

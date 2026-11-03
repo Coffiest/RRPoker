@@ -11,8 +11,12 @@
    配色は既存テーマ（白基調・グレー階層・#F2A900 ゴールド）から一切追加しない。
    ========================================================================== */
 
+/* 拡大・縮小(ピンチ・ダブルタップ)は全画面で受け付けない(オーナー指定)。
+   pan-x pan-y はスクロールだけを許し、ピンチとダブルタップの拡大を止める。
+   touch-action は子に効く(先祖との重なりで決まる)ので html と body に置けば全体に効く。
+   iOS Safari は touch-action のピンチ指定を無視することがあるため、app/layout.tsx でも止める。 */
 html, body {
-  touch-action: manipulation;
+  touch-action: pan-x pan-y;
   overscroll-behavior: none;
 }
 
@@ -912,10 +916,9 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .a-app-bg {
   position: relative;
   min-height: 100%;
-  background:
-    radial-gradient(120% 52% at 50% -8%, rgba(242, 169, 0, 0.10) 0%, transparent 62%),
-    linear-gradient(180deg, #F6F5F2 0%, #F2F2F7 46%, #EFEFF4 100%);
-  background-attachment: fixed;
+  /* 地は塗らない。全画面の下地は TechBackdrop(app/layout.tsx)の方眼に統一する(オーナー指定)。
+     以前はここでベージュのグラデーションを敷いており、ログイン後の画面だけ方眼が隠れていた。 */
+  background: transparent;
 }
 
 
@@ -1019,6 +1022,8 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    見せるため。一周 48 秒。速いと視界の端で気が散る。
    -------------------------------------------------------------------------- */
 .a-app-bg::before {
+  /* ログイン後の画面だけ金のにじみが重なっていた。下地を全画面で揃えるため出さない。 */
+  display: none;
   content: "";
   position: fixed;
   inset: -20%;
@@ -1205,8 +1210,13 @@ html.pc .pc-wide .pc-card-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 24px !important;
-  align-items: start;
+  /* 横に並んだカードの高さをそろえ、下端(再生ボタンの段)を同じ高さにする */
+  align-items: stretch;
 }
+html.pc .pc-wide .pc-card-grid > div { display: flex; flex-direction: column }
+html.pc .pc-wide .pc-card-grid .pc-fill { flex: 1; display: flex; flex-direction: column }
+html.pc .pc-wide .pc-card-grid .pc-fill-inner { flex: 1; display: flex; flex-direction: column }
+html.pc .pc-wide .pc-card-grid .pc-push-bottom { margin-top: auto }
 
 /* プレイヤーホーム: カードを 2 列に。縦に積む余白(space-y)は列の間隔に置き換える。 */
 html.pc .pc-dash {
@@ -1240,3 +1250,17 @@ html.pc .pc-cols2 {
 }
 html.pc .pc-cols2 > * { margin-top: 0 !important; margin-bottom: 0 !important }
 html.pc .pc-cols2.pc-span-first > :first-child { grid-column: 1 / -1 }
+
+/* 店舗マイページ: 左の列(プロフィール・SNS)と右の列(ブラインド・サブスクリプション・アカウント)。
+   以前は 2 列に順番に流しただけで、右下が大きく空き、操作ボタンが左の下に縦に積まれていた。
+   スマホでは列の囲みを消し(display: contents)、元の順番(プロフィール→ブラインド→SNS→サブスク→アカウント)で縦に並べる。 */
+.store-mypage .pc-cols2 { display: flex; flex-direction: column }
+.store-mypage .sm-col { display: contents }
+.store-mypage .sm-profile { order: 1 }
+.store-mypage .sm-blind { order: 2 }
+.store-mypage .sm-sns { order: 3 }
+.store-mypage .sm-sub { order: 4 }
+.store-mypage .sm-account { order: 5 }
+html.pc .store-mypage .pc-cols2 { display: grid }
+html.pc .store-mypage .sm-col { display: flex; flex-direction: column; gap: 24px }
+html.pc .store-mypage .sm-col > * { margin-top: 0 !important }

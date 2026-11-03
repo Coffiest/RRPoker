@@ -640,19 +640,36 @@ export default function LoginPage() {
         {/* ── バンクロールプレビュー ── */}
         <div className="appear d4" style={{ marginTop:16 }}>
           <p className="section-hd" style={{ marginBottom:10 }}>{t('login.homePreview')}</p>
-          <div style={{ borderRadius:22, padding:20, position:'relative', overflow:'hidden', background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 55%,#1C1C1E 100%)', boxShadow:'0 8px 28px rgba(0,0,0,0.16)', animation:'card-float 4.5s ease-in-out infinite' }}>
-            <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.16) 0%,transparent 60%)', pointerEvents:'none' }}/>
-            <div style={{ position:'relative', zIndex:1 }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:3 }}>
-                <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>Bank Roll</p>
-                <span style={{ background:'rgba(52,199,89,0.18)', borderRadius:99, padding:'2px 7px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.85)' }}>● LIVE</span>
+          {/* 実際のホーム(app/home/page.tsx の統合カード)と同じ金の面・同じ並び。
+              以前は黒いバンクロールのカードで、ログイン後の画面と違っていた。 */}
+          <div className="section-card" style={{ padding:0, overflow:'hidden', animation:'card-float 4.5s ease-in-out infinite' }}>
+            <div style={{ background:'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding:'14px 20px 20px', position:'relative', overflow:'hidden' }}>
+              <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.14, pointerEvents:'none' }} />
+              <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.10, pointerEvents:'none' }} />
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12, position:'relative', zIndex:1 }}>
+                <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.62)', letterSpacing:'0.20em' }}>RATING / TOURNAMENT</span>
+                <span style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span className="tech-status-dot" style={{ background:'#fff' }} />
+                  <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.62)' }}>ONLINE</span>
+                </span>
               </div>
-              <p style={{ fontSize:10, color:'rgba(255,255,255,0.28)', marginBottom:14, fontWeight:500 }}>○○ ポーカークラブ</p>
-              <p style={{ fontSize:34, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}> 24,500</p>
-              <p style={{ fontSize:13, fontWeight:700, color:'#6EE7B7', marginTop:6 }}>+ 4,500</p>
-              <div style={{ marginTop:12, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.38),transparent)' }}/>
-              <p style={{ marginTop:8, fontSize:9, color:'rgba(255,255,255,0.2)', fontWeight:500 }}>{t('login.previewNote')}</p>
+              <p className="term-prompt-arrow" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing:'0.14em', color:'rgba(255,255,255,0.72)', marginBottom:6, position:'relative', zIndex:1 }}>トナメ偏差値</p>
+              <div style={{ display:'flex', alignItems:'flex-end', gap:10, position:'relative', zIndex:1 }}>
+                <p className="tech-num" style={{ fontSize:48, fontWeight:800, lineHeight:1, letterSpacing:'-1px', color:'#fff', textShadow:'0 2px 18px rgba(0,0,0,0.18)' }}>58.20</p>
+                <div style={{ marginBottom:6, background:'rgba(0,0,0,0.20)', border:'1px solid rgba(255,255,255,0.22)', borderRadius:8, padding:'4px 10px' }}>
+                  <p className="tech-num" style={{ fontSize:11.5, fontWeight:700, color:'#fff' }}><span className="tech-label" style={{ fontSize:9, opacity:0.6, marginRight:4 }}>RANK</span>12</p>
+                </div>
+              </div>
             </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, padding:'12px 16px' }}>
+              {[['参加数','14回'],['インマネ率','35.71%'],['ROI','122.4%']].map(([k,v]) => (
+                <div key={k} style={{ background:'var(--fill)', borderRadius:10, padding:'8px 4px', textAlign:'center' }}>
+                  <p className="tech-label tech-label-bracket" style={{ fontSize:9, color:'var(--label3)' }}>{k}</p>
+                  <p className="tech-num" style={{ fontSize:13, fontWeight:700, color:'var(--label)', marginTop:2 }}>{v}</p>
+                </div>
+              ))}
+            </div>
+            <p style={{ padding:'0 16px 12px', fontSize:9, color:'var(--label3)', fontWeight:500 }}>{t('login.previewNote')}</p>
           </div>
         </div>
 

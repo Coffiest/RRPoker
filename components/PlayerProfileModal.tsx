@@ -1,5 +1,6 @@
 'use client'
 
+import { Clock, MapPin, Spade, Trophy } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase'
@@ -180,7 +181,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}>
-                  <span style={{ fontSize: 24 }}>🏆</span>
+                  <Trophy size={24} strokeWidth={2} color="#D4910A" aria-hidden />
                 </div>
               </div>
 
@@ -209,16 +210,16 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
               {(player.region || player.favoriteHand || player.pokerHistory) && (
                 <div style={{ background: '#F2F2F7', borderRadius: 20, overflow: 'hidden' }}>
                   {[
-                    { icon: '📍', label: '地域', value: player.region },
-                    { icon: '🃏', label: '好きなハンド', value: player.favoriteHand },
-                    { icon: '⏰', label: 'ポーカー歴', value: player.pokerHistory },
+                    { icon: <MapPin size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: player.region },
+                    { icon: <Spade size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: player.favoriteHand },
+                    { icon: <Clock size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: 'ポーカー歴', value: player.pokerHistory },
                   ].filter(r => r.value).map(({ icon, label, value }, i, arr) => (
                     <div key={label} style={{
                       padding: '14px 18px',
                       borderBottom: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.06)' : 'none',
                       display: 'flex', alignItems: 'center', gap: 14,
                     }}>
-                      <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                      <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>
                       <div>
                         <p style={{ fontSize: 10, color: 'var(--label3)', fontWeight: 600, marginBottom: 3, letterSpacing: '0.03em' }}>
                           {label}
