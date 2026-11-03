@@ -123,6 +123,8 @@ function BlindList({ t }: { t: LiveTournament }) {
         <FiCopy size={14} /> COPY TEXT
       </button>
       {levels.map((l, i) => {
+        // 自動スタートの「Waiting for start」は表に出さない(lib/waitingLevel.ts)
+        if (l.type === 'waiting') return null
         const isBreak = l.type === 'break'
         if (!isBreak) lv++
         const now = i === live

@@ -7,7 +7,8 @@
 // than shared via a package because the Next.js app and Cloud Functions build separately.
 
 export type TimerLevel = {
-  type: "level" | "break"
+  /** waiting: 自動スタートの「Waiting for start」(lib/waitingLevel.ts)。進み方は普通のレベルと同じ */
+  type: "level" | "break" | "waiting"
   duration: number | null
   [key: string]: any
 }

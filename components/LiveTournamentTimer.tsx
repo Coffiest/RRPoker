@@ -1,5 +1,6 @@
 'use client'
 
+import { levelNumberAt } from '@/lib/waitingLevel'
 import KineticNumber from '@/components/KineticNumber'
 
 import { useEffect, useRef, useState } from 'react'
@@ -206,7 +207,7 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
           minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>{tournament.name}</p>
         <span className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', flexShrink: 0 }}>
-          {isBreak ? 'BREAK' : `LEVEL ${levelIndex + 1}`}
+          {isBreak ? 'BREAK' : level?.type === 'waiting' ? 'WAITING FOR START' : `LEVEL ${levelNumberAt(levels, levelIndex) ?? levelIndex + 1}`}
         </span>
       </div>
 
