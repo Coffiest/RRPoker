@@ -1,6 +1,6 @@
 "use client"
 
-import { Clock, MapPin, Spade } from 'lucide-react'
+import { Clock, MapPin, Spade, Users } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -8,6 +8,7 @@ import { signOut } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
+import AffiliationPicker, { type Affiliation } from "@/components/AffiliationPicker"
 import {
   FiUser,
   FiEdit2,
@@ -39,6 +40,10 @@ type UserProfile = {
   region?: string
   favoriteHand?: string
   pokerHistory?: string
+  affiliation?: string
+  affiliationStoreId?: string | null
+  affiliationIconUrl?: string | null
+  joinedStores?: string[]
 }
 
 // ── Canvas helpers ────────────────────────────────────────────
@@ -253,6 +258,7 @@ export default function MyPage() {
   const [draftRegion, setDraftRegion] = useState("")
   const [draftFavoriteHand, setDraftFavoriteHand] = useState("")
   const [draftPokerHistory, setDraftPokerHistory] = useState("")
+  const [draftAffiliation, setDraftAffiliation] = useState<Affiliation>({ affiliation: "", affiliationStoreId: null, affiliationIconUrl: null })
   const [isEditingExtProfile, setIsEditingExtProfile] = useState(false)
   const [savingExtProfile, setSavingExtProfile] = useState(false)
   const [sharingProfile, setSharingProfile] = useState(false)
@@ -382,8 +388,11 @@ export default function MyPage() {
         region: draftRegion.trim(),
         favoriteHand: draftFavoriteHand.trim(),
         pokerHistory: draftPokerHistory,
+        affiliation: draftAffiliation.affiliation.trim(),
+        affiliationStoreId: draftAffiliation.affiliationStoreId,
+        affiliationIconUrl: draftAffiliation.affiliationIconUrl,
       }, { merge: true })
-      setProfile(prev => ({ ...prev, region: draftRegion.trim(), favoriteHand: draftFavoriteHand.trim(), pokerHistory: draftPokerHistory }))
+      setProfile(prev => ({ ...prev, region: draftRegion.trim(), favoriteHand: draftFavoriteHand.trim(), pokerHistory: draftPokerHistory, affiliation: draftAffiliation.affiliation.trim(), affiliationStoreId: draftAffiliation.affiliationStoreId, affiliationIconUrl: draftAffiliation.affiliationIconUrl }))
       setSuccess("保存しました")
       setIsEditingExtProfile(false)
     } catch (e: any) { setError(e.message) }
@@ -622,7 +631,7 @@ export default function MyPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.06em' }}>プロフィール詳細</p>
               <button type="button"
-                onClick={() => { setDraftRegion(profile.region ?? ""); setDraftFavoriteHand(profile.favoriteHand ?? ""); setDraftPokerHistory(profile.pokerHistory ?? ""); setIsEditingExtProfile(true) }}
+                onClick={() => { setDraftRegion(profile.region ?? ""); setDraftFavoriteHand(profile.favoriteHand ?? ""); setDraftPokerHistory(profile.pokerHistory ?? ""); setDraftAffiliation({ affiliation: profile.affiliation ?? "", affiliationStoreId: profile.affiliationStoreId ?? null, affiliationIconUrl: profile.affiliationIconUrl ?? null }); setIsEditingExtProfile(true) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, background: '#F2F2F7', border: 'none', cursor: 'pointer' }}>
                 <FiEdit2 size={11} style={{ color: 'var(--label3)' }} />
                 <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>編集</span>
@@ -630,6 +639,10 @@ export default function MyPage() {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {[
+                { icon: profile.affiliationIconUrl
+                    // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
+                    ? <img src={profile.affiliationIconUrl} alt="" style={{ width: 16, height: 16, borderRadius: 4, objectFit: 'cover' }} />
+                    : <Users size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '所属', value: profile.affiliation },
                 { icon: <MapPin size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: profile.region },
                 { icon: <Spade size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: profile.favoriteHand },
                 { icon: <Clock size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: 'ポーカー歴', value: profile.pokerHistory },
@@ -723,10 +736,16 @@ export default function MyPage() {
       {isEditingExtProfile && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setIsEditingExtProfile(false)}>
-          <div ref={extSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 48px' }}
+          <div ref={extSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 48px', maxHeight: '92dvh', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}>
             <div className="a-grabber" style={{ marginTop: 0, marginBottom: 20 }} />
             <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 22 }}>プロフィール詳細を編集</p>
+
+            {/* 所属(オーナー指定・2026-11-03) */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><Users size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />所属</label>
+              <AffiliationPicker value={draftAffiliation} onChange={setDraftAffiliation} joinedStoreIds={Array.isArray(profile.joinedStores) ? profile.joinedStores : []} />
+            </div>
 
             {/* 地域 */}
             <div style={{ marginBottom: 18 }}>

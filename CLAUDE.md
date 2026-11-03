@@ -76,3 +76,8 @@
 - ブレイクは「RC ブレイク」にできる(`BreakLevel.rc`。表の中で 1 つだけ)。RC 時刻 = 開始時刻 + RC ブレイクが終わるまでの時間(`lib/endEstimate.ts` の `rcClock` / `tournamentClocks`)。店舗・プレイヤーの両方で終了予定の左隣に「RC HH:MM」と出す。
 - トナメのチラシは Storage に上げない(ルールに許可が無く保存できなかった)。`lib/flyer.ts` で端末の中で 350KB 以下に縮め、大会の `flyerUrl` に data URL で入れる。プレイヤーの予定一覧(入店前)にも出す。
 - ブラインドはテキストでコピーできる(`lib/blindText.ts`)。店舗の「+」のブラインド一覧と、プレイヤーの BLINDS のシート。
+
+## 所属・入店の表示(オーナー確定・2026-11-03)
+
+- プレイヤーのプロフィールに「所属」(`users.affiliation` / `affiliationStoreId` / `affiliationIconUrl`)。入店したことのある店舗・近くの店舗から選ぶとアイコン付き、自由入力はアイコンなし(`components/AffiliationPicker.tsx`)。アカウント作成時(任意)とマイページで入れられる。
+- 「入店しました」は同じ入店で 1 回だけ(端末の `rrpoker.checkinShownStore`。退店で消す)。プレイヤーホームの最上段は「入店中」のカード。

@@ -589,7 +589,15 @@ export default function HomePage() {
       // Also triggers on fresh redirect from QR scan (rrpoker.freshCheckin flag set by HomeHeader)
       const isFreshCheckin = isFirstSnapshot && status === "approved" && sessionStorage.getItem('rrpoker.freshCheckin') === '1'
       if (isFreshCheckin) sessionStorage.removeItem('rrpoker.freshCheckin')
-      if ((!isFirstSnapshot && (prevStatus === "pending" || prevStatus === "none") && status === "approved" && !hasShownCheckinComplete) || (isFreshCheckin && !hasShownCheckinComplete)) {
+      // 「入店しました」は入店した最初の 1 回だけ(オーナー指定)。以前はホームに戻るたびに出ていた
+      // (ヘッダーが立てる freshCheckin の印が残り、表示済みの印も入店中ずっと消されていたため)。
+      // どの店で表示したかを端末に残し、同じ入店ではもう出さない。退店したら印を消す。
+      let shownFor: string | null = null
+      try { shownFor = localStorage.getItem("rrpoker.checkinShownStore") } catch {}
+      const alreadyShownHere = !!data?.currentStoreId && shownFor === data.currentStoreId
+      if (!alreadyShownHere && ((!isFirstSnapshot && (prevStatus === "pending" || prevStatus === "none") && status === "approved" && !hasShownCheckinComplete) || (isFreshCheckin && !hasShownCheckinComplete))) {
+        try { if (data?.currentStoreId) localStorage.setItem("rrpoker.checkinShownStore", data.currentStoreId) } catch {}
+        try { sessionStorage.removeItem("rrpoker.freshCheckin") } catch {}
         setIsCheckinCompleteModalOpen(true)
         setHasShownCheckinComplete(true)
         localStorage.setItem("hasShownCheckinComplete", "true")
@@ -622,7 +630,10 @@ export default function HomePage() {
         setIsPendingModalOpen(false)
       }
       if (status === "pending") setIsPendingModalOpen(true)
-      if (status === "none") { setIsPendingModalOpen(false); setCurrentStoreId(null) }
+      if (status === "none") {
+        setIsPendingModalOpen(false); setCurrentStoreId(null)
+        try { localStorage.removeItem("rrpoker.checkinShownStore") } catch {}
+      }
       setJoinedStores(Array.isArray(data?.joinedStores) ? data.joinedStores : [])
       setFavoriteStores(Array.isArray(data?.favoriteStores) ? data.favoriteStores : [])
       setProfile({ name: data?.name, iconUrl: data?.iconUrl })
@@ -1670,8 +1681,53 @@ const medalClass = (rank: number) => {
 
       <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-5${currentStoreId && currentStore ? " pd-checked" : ""}`}>
 
+        {/* ════ 入店中(オーナー指定: ホームの最上段、偏差値カードの上) ════
+             上下のカードと重ならないよう、自分の上下に余白を持つ */}
+        {currentStoreId && currentStore && (
+          <div className="pd-full" style={{ marginTop: 24, marginBottom: 0, position: 'relative', zIndex: 1 }}>
+          {/* 入店中の店舗カード */}
+          <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
+            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
+              {currentStore.iconUrl
+                ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
+                : <div className="flex h-full w-full items-center justify-center"><FiHome className="text-label3" size={20} /></div>
+              }
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[#34C759]" />
+                <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-label3">入店中</p>
+              </div>
+              <p className="mt-0.5 truncate text-[15px] font-semibold text-gray-900 tracking-[-0.2px]">{currentStore.name}</p>
+            </div>
+            {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
+              <div className="flex flex-shrink-0 items-center gap-2">
+                {currentStore.snsInstagram && (
+                  <a href={currentStore.snsInstagram} target="_blank" rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm transition-transform active:scale-90">
+                    <FaInstagram size={16} />
+                  </a>
+                )}
+                {currentStore.snsX && (
+                  <a href={currentStore.snsX} target="_blank" rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-transform active:scale-90">
+                    <FaXTwitter size={15} />
+                  </a>
+                )}
+                {currentStore.snsWeb && (
+                  <a href={currentStore.snsWeb} target="_blank" rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-transform active:scale-90">
+                    <FiGlobe size={15} />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+          </div>
+        )}
+
         {/* ════ 統合カード（常時表示） ════ */}
-        <div className={`mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
+        <div className={`pd-full mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
           {/* 計器盤。金一色の面をやめ、黒地に金の数値だけを光らせる。
               いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
           {/* 面の色は元のテーマ(金)のまま。変えたのは意匠だけ:
@@ -1921,45 +1977,6 @@ const medalClass = (rank: number) => {
         {/* ════ 入店中 ════ */}
         {currentStoreId && currentStore ? (
           <>
-            {/* 入店中の店舗カード */}
-            <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
-              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
-                {currentStore.iconUrl
-                  ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
-                  : <div className="flex h-full w-full items-center justify-center"><FiHome className="text-label3" size={20} /></div>
-                }
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[#34C759]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-label3">入店中</p>
-                </div>
-                <p className="mt-0.5 truncate text-[15px] font-semibold text-gray-900 tracking-[-0.2px]">{currentStore.name}</p>
-              </div>
-              {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
-                <div className="flex flex-shrink-0 items-center gap-2">
-                  {currentStore.snsInstagram && (
-                    <a href={currentStore.snsInstagram} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm transition-transform active:scale-90">
-                      <FaInstagram size={16} />
-                    </a>
-                  )}
-                  {currentStore.snsX && (
-                    <a href={currentStore.snsX} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 text-white shadow-sm transition-transform active:scale-90">
-                      <FaXTwitter size={15} />
-                    </a>
-                  )}
-                  {currentStore.snsWeb && (
-                    <a href={currentStore.snsWeb} target="_blank" rel="noopener noreferrer"
-                      className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-transform active:scale-90">
-                      <FiGlobe size={15} />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
             {/* 退店ボタン。店舗が「退店を許可する」を OFF にしていたら出さない(既定は出す) */}
             {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
@@ -2958,7 +2975,7 @@ const medalClass = (rank: number) => {
               }}
             >
               <div className="space-y-2.5">
-                <button type="button" onClick={() => joinStore(selectedStore.id)} className="a-btn a-btn-filled a-btn-block">入店する</button>
+                <button type="button" onClick={async () => { const id = selectedStore.id; await joinStore(id); setSelectedStore(null) /* 入店したら店舗の詳細は閉じる(オーナー指定) */ }} className="a-btn a-btn-filled a-btn-block">入店する</button>
                 <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
                   className="a-btn a-btn-glass a-btn-block"
                 >現在入店中のプレイヤーを見る</button>
