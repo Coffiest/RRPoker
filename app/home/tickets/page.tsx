@@ -226,7 +226,7 @@ export default function TicketsPage() {
   const usedCoupons = coupons.filter(c => c.isUsed || isExpired(c.expiresAt))
 
   return (
-    <main className="min-h-screen pb-32" style={{ background: "#EDECE6" }}>
+    <main className="min-h-screen pb-32" style={{ background: "transparent" }}>
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"

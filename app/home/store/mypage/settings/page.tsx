@@ -110,7 +110,7 @@ export default function StoreSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EDECE6] px-6">
+    <main className="min-h-screen bg-transparent px-6">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[56px] text-center">

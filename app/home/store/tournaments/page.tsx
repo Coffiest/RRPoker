@@ -454,7 +454,7 @@ export default function TournamentsPage() {
 
   // ── 描画 ───────────────────────────────────────────────────────────────
   return (
-    <main style={{ minHeight: '100dvh', paddingBottom: 128, background: 'var(--t-bg)', color: 'var(--label)' }}>
+    <main style={{ minHeight: '100dvh', paddingBottom: 128, background: 'transparent', color: 'var(--label)' }}>
       <style>{`
         :root {
           --t-bg: #EDECE6;

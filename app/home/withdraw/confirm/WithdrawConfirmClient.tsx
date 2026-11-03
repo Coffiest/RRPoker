@@ -87,7 +87,7 @@ export default function WithdrawConfirmClient() {
 
   if (!amount) {
     return (
-      <main className="min-h-screen bg-[#EDECE6] px-6 pb-24">
+      <main className="min-h-screen bg-transparent px-6 pb-24">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
           <p className="text-[14px] text-gray-500">金額が指定されていません</p>
@@ -105,7 +105,7 @@ export default function WithdrawConfirmClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EDECE6] px-6 pb-24">
+    <main className="min-h-screen bg-transparent px-6 pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">

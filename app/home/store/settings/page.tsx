@@ -442,7 +442,7 @@ export default function StoreSettingsPage() {
   )
 
   return (
-    <main style={{ minHeight: '100dvh', background: '#EDECE6', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
+    <main style={{ minHeight: '100dvh', background: 'transparent', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"

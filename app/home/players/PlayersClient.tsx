@@ -44,7 +44,7 @@ export default function Page() {
 
   if (!storeIdParam) {
     return (
-      <main className="min-h-screen bg-[#EDECE6] px-6">
+      <main className="min-h-screen bg-transparent px-6">
         <HomeHeader
           homePath="/home"
           myPagePath="/home/mypage"
@@ -65,7 +65,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EDECE6] px-6">
+    <main className="min-h-screen bg-transparent px-6">
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"

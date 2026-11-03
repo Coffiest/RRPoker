@@ -9,7 +9,6 @@ import { auth, db } from "@/lib/firebase"
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"
 import { resizeImageToDataUrl } from "@/lib/image"
 import HomeHeader from "@/components/HomeHeader"
-import TechBackdrop from "@/components/TechBackdrop"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { useSearchParams } from "next/navigation"
@@ -432,7 +431,6 @@ export default function MyPage() {
     <>
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#EDECE6" />
     <main style={{ minHeight: '100dvh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 120 }}>
       <style>{`
         @keyframes slideUp {

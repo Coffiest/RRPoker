@@ -14,7 +14,6 @@ import { getCommonMenuItems } from "@/components/commonMenuItems"
 import { getNetGainRanking, getUserRank, RankingPlayer } from "@/lib/ranking"
 import { getNetGainRankingFromUsers, getMyNetGainRank, getMonthlyNetGainRanking, getMultiMonthNetGainRanking, getYearlyNetGainRanking, NetGainPlayer } from "@/lib/netGainRanking"
 import HandHistoryModal from "./HandHistoryModal"
-import TechBackdrop from "@/components/TechBackdrop"
 import PlayerLiveTournaments from "@/components/PlayerLiveTournaments"
 import KineticNumber from "@/components/KineticNumber"
 import { useRiseOnView } from "@/lib/useRiseOnView"
@@ -1363,7 +1362,6 @@ const medalClass = (rank: number) => {
   return (
     <>
     {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-    <TechBackdrop base="#EDECE6" />
     <main className="min-h-screen pb-32" style={{ background: "transparent", position: "relative", zIndex: 1 }}>
       <style>{`
         /* ── アニメーション ── */

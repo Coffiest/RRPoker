@@ -25,7 +25,6 @@ import { BootLog, TermBar } from "@/components/Terminal"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
 import BlindLevelEditor, { validateLevels } from "@/components/BlindLevelEditor"
-import TechBackdrop from "@/components/TechBackdrop"
 import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
@@ -1105,7 +1104,7 @@ export default function StorePage() {
   }
 
   if (role === null) return (
-    <div style={{ minHeight: '100dvh', background: '#EDECE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100dvh', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(21,70,217,0.2)', borderTopColor: '#F9B318', animation: 'spin .8s linear infinite' }}/>
     </div>
   )
@@ -1115,8 +1114,6 @@ export default function StorePage() {
 
   return (
     <>
-    {/* 下地(方眼 + 金のにじみ)。プレイヤー側と同じものを敷く。 */}
-    <TechBackdrop base="#EDECE6" />
     <main className="min-h-[100dvh] w-full max-w-full overflow-x-hidden pb-32" style={{ background: 'transparent', position: 'relative', zIndex: 1 }}>
       <style>{`
         :root {

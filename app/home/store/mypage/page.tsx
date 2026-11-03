@@ -418,7 +418,7 @@ export default function StoreMyPage() {
   const note = (text: string, color: string) => <p role={color === '#D70015' ? 'alert' : 'status'} style={{ fontSize: 13, color, margin: '-16px 16px 16px' }}>{text}</p>
 
   return (
-    <main style={{ minHeight: '100dvh', background: '#EDECE6', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
+    <main style={{ minHeight: '100dvh', background: 'transparent', paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} hidden />
 

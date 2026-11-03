@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
+import TechBackdrop from '@/components/TechBackdrop'
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -27,7 +28,12 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   }, [router])
 
   if (!ready) return null
-  // 地を敷く。真っ白のままではガラスの面が透ける先を持てず、素材に見えない。
-  // タイマー画面は自前で全面に背景を敷いているので、ここの影響を受けない。
-  return <div className="a-app-bg">{children}</div>
+  // 店舗側ホームと同じ下地(方眼 + 金のにじみ)を、/home 以下の全画面に1か所で敷く。
+  // 各画面は背景を塗らず透かす。タイマー画面は自前で全面に背景を敷くので、その上に重なる。
+  return (
+    <>
+      <TechBackdrop base="#EDECE6" />
+      <div style={{ position: 'relative', zIndex: 1, minHeight: '100dvh' }}>{children}</div>
+    </>
+  )
 }

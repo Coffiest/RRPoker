@@ -8,7 +8,6 @@ import HomeHeader from "@/components/HomeHeader"
 import AppleSheet from '@/components/AppleSheet'
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
-import TechBackdrop from "@/components/TechBackdrop"
 import {
   collection,
   doc,
@@ -232,7 +231,6 @@ export default function TransactionsClient() {
     return (
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#EDECE6" />
       <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
@@ -248,7 +246,6 @@ export default function TransactionsClient() {
     return (
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#EDECE6" />
       <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
@@ -321,7 +318,6 @@ export default function TransactionsClient() {
   return (
     <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <TechBackdrop base="#EDECE6" />
       <main style={{ minHeight: '100svh', background: 'transparent', position: 'relative', zIndex: 1, paddingBottom: 'calc(136px + env(safe-area-inset-bottom, 0px))' }}>
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />

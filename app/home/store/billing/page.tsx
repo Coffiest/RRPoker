@@ -185,7 +185,7 @@ function BillingContent() {
   if (success) {
     const isActive = isSubscriptionActive(subscription) || isFree
     return (
-      <div className="min-h-screen bg-[#EDECE6] flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-transparent flex flex-col items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-sm w-full text-center">
           {isActive ? (
             <>
@@ -255,7 +255,7 @@ function BillingContent() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#EDECE6] flex flex-col items-center px-4 py-12">
+    <div className="min-h-screen bg-transparent flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-2xl">
         <button
           type="button"
@@ -394,7 +394,7 @@ function BillingContent() {
 
 export default function BillingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#EDECE6]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-transparent" />}>
       <BillingContent />
     </Suspense>
   )

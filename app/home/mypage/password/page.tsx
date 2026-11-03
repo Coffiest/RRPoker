@@ -47,7 +47,7 @@ export default function PasswordChangePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EDECE6] px-6">
+    <main className="min-h-screen bg-transparent px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="mx-auto max-w-sm">
         <div className="pt-[72px] text-center">

@@ -3,7 +3,7 @@ import TransactionsClient from "./TransactionsClient"
 
 export default function TransactionsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#EDECE6]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-transparent" />}>
       <TransactionsClient />
     </Suspense>
   )
