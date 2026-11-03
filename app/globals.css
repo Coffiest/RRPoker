@@ -851,21 +851,10 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    1px の罫で切らず、内容が薄れて潜り込むように見せる。
    -------------------------------------------------------------------------- */
 .a-edge-bottom { position: relative }
-.a-edge-bottom::after {
-  /* 下端のぼかし。以前は position: absolute で、スクロールする中身と一緒に動き、
-     ブラインド作成などで行の途中に白い帯が残っていた。sticky にして、いつも見えている下端に貼り付ける。 */
-  content: "";
-  position: sticky;
-  display: block;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin-top: -26px;
-  height: 26px;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(to top, rgba(255,255,255,0.92), transparent);
-}
+/* 下端の白いぼかしは使わない(オーナー指定・2026-11-03)。
+   スクロールする中身の中に描くと、端末やスクロールの位置によって行の途中に白い帯として残った
+   (ブラインド作成・プレイヤーの BLINDS など)。sticky にしても iOS で再発したため、ぼかし自体をやめる。 */
+.a-edge-bottom::after { content: none; display: none }
 
 /* --------------------------------------------------------------------------
    7. 字間と行間
