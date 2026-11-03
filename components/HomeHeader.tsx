@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowLeftRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
@@ -314,11 +315,11 @@ export default function HomeHeader({
 				<button
 					type="button"
 					onClick={() => router.push(homePath)}
-					className="flex items-center gap-0 text-left"
+					className="flex min-w-0 items-center gap-0 text-left"
 				>
-					<img src="/icon-192x192.png" alt="RRPoker logo" className="h-[60px] w-[60px]" />
-					<span className="flex flex-col leading-none">
-						<span className="font-display text-[18px] font-bold tracking-tight text-gray-900">RRPOKER</span>
+					<img src="/icon-192x192.png" alt="RRPoker logo" className="h-[60px] w-[60px] shrink-0" />
+					<span className="flex min-w-0 flex-col leading-none">
+						<span className="font-display text-[18px] font-bold tracking-tight text-gray-900 truncate">RRPOKER</span>
 						{/* 稼働中であることを示す計器風のサブラベル */}
 						<span className="mt-[3px] flex items-center gap-1.5">
 							<span className="tech-status-dot" />
@@ -327,13 +328,15 @@ export default function HomeHeader({
 					</span>
 				</button>
 
-				<div className="flex items-center gap-2">
+				<div className="flex shrink-0 items-center gap-2">
 					{/* 権限のある店舗の画面 ⇄ 自分のプレイヤー画面 */}
 					{switchTarget && (
 						<button type="button" onClick={switchTarget.onClick} aria-label={switchTarget.label === 'STORE' ? '店舗の画面へ切り替え' : 'プレイヤーの画面へ切り替え'}
-							className="flex h-10 items-center justify-center whitespace-nowrap rounded-full px-3 font-mono text-[10px] font-bold tracking-[0.12em] text-white"
+							title={switchTarget.label === 'STORE' ? '店舗の画面へ' : 'プレイヤーの画面へ'}
+							className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white"
 							style={{ background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 3px 10px rgba(242,169,0,0.35)' }}>
-							⇄ {switchTarget.label}
+							{/* 以前は「⇄ STORE」の文字入りで幅を取り、狭い画面でロゴの文字に重なっていた。ほかの丸ボタンと同じ 40px の丸にする */}
+							<ArrowLeftRight size={18} strokeWidth={2} aria-hidden />
 						</button>
 					)}
 					{isUserVariant && (

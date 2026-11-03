@@ -1,6 +1,6 @@
 'use client'
 
-import { Clock, MapPin, Spade, Trophy } from 'lucide-react'
+import { Clock, MapPin, Spade, Trophy, Users } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase'
@@ -15,6 +15,10 @@ type PlayerData = {
   region?: string
   favoriteHand?: string
   pokerHistory?: string
+  /** 所属(サークル・よく行く店舗など)。店舗を選んだときは店舗 ID とアイコンも持つ */
+  affiliation?: string
+  affiliationStoreId?: string
+  affiliationIconUrl?: string
 }
 
 type Stats = {
@@ -61,11 +65,16 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
 
     const load = async () => {
       try {
-        const [userSnap, histSnap] = await Promise.all([
+        // 他の人の大会履歴(users/{uid}/tournamentHistory)は、以前のルールでは本人しか読めなかった。
+        // 2 つを Promise.all でまとめて読んでいたため、履歴で断られるとプロフィールごと出なかった。
+        // 本人の文書と履歴を別々に読み、履歴が読めないときは偏差値の集計(rrLeaderboard)で代わりに出す。
+        const [userRes, histRes, lbRes] = await Promise.allSettled([
           getDoc(doc(db, 'users', uid)),
           getDocs(collection(db, 'users', uid, 'tournamentHistory')),
+          getDoc(doc(db, 'rrLeaderboard', uid)),
         ])
-        const data = userSnap.data() ?? {}
+        if (userRes.status !== 'fulfilled' || !userRes.value.exists()) return
+        const data = userRes.value.data() ?? {}
         // 利用停止(BAN)中の人のプロフィールは出さない
         if (data.banned === true) return
         setPlayer({
@@ -76,9 +85,16 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
           region: data.region,
           favoriteHand: data.favoriteHand,
           pokerHistory: data.pokerHistory,
+          affiliation: typeof data.affiliation === 'string' ? data.affiliation : undefined,
+          affiliationStoreId: typeof data.affiliationStoreId === 'string' ? data.affiliationStoreId : undefined,
+          affiliationIconUrl: typeof data.affiliationIconUrl === 'string' ? data.affiliationIconUrl : undefined,
         })
-        const docs = histSnap.docs.map(d => d.data())
-        setStats(calcStats(docs))
+        if (histRes.status === 'fulfilled') {
+          setStats(calcStats(histRes.value.docs.map(d => d.data())))
+        } else if (lbRes.status === 'fulfilled' && lbRes.value.exists()) {
+          const lb = lbRes.value.data() ?? {}
+          setStats({ plays: Number(lb.plays ?? 0), itmCount: NaN, totalCost: Number(lb.totalCost ?? 0), totalReward: Number(lb.totalReward ?? 0) })
+        }
       } catch { /* ignore */ } finally {
         setLoading(false)
       }
@@ -88,7 +104,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
 
   if (!uid) return null
 
-  const itmRate = stats.plays > 0 ? (stats.itmCount / stats.plays * 100).toFixed(1) : null
+  const itmRate = stats.plays > 0 && Number.isFinite(stats.itmCount) ? (stats.itmCount / stats.plays * 100).toFixed(1) : null
   const roi = stats.totalCost > 0
     ? ((stats.totalReward / stats.totalCost) * 100).toFixed(1)
     : null
@@ -207,9 +223,13 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
               </div>
 
               {/* ── プロフィール詳細 */}
-              {(player.region || player.favoriteHand || player.pokerHistory) && (
+              {(player.affiliation || player.region || player.favoriteHand || player.pokerHistory) && (
                 <div style={{ background: '#F2F2F7', borderRadius: 20, overflow: 'hidden' }}>
                   {[
+                    { icon: player.affiliationIconUrl
+                        // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
+                        ? <img src={player.affiliationIconUrl} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover' }} />
+                        : <Users size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '所属', value: player.affiliation },
                     { icon: <MapPin size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: player.region },
                     { icon: <Spade size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: player.favoriteHand },
                     { icon: <Clock size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: 'ポーカー歴', value: player.pokerHistory },

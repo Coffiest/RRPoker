@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { watchAuthState } from '@/lib/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
+import AffiliationPicker, { type Affiliation } from '@/components/AffiliationPicker'
 import { resizeImageToDataUrl } from '@/lib/image'
 import { isPlayerIdAvailable, validatePlayerId } from '@/lib/playerId'
 
@@ -75,6 +76,11 @@ export default function UserProfileOnboardingPage() {
   const idCheckTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const idCheckCache = useRef<Map<string, boolean>>(new Map())
   const [birthday, setBirthday] = useState('')
+  // プロフィール詳細(任意。あとからマイページでも入れられる。オーナー指定・2026-11-03)
+  const [affiliation, setAffiliation] = useState<Affiliation>({ affiliation: '', affiliationStoreId: null, affiliationIconUrl: null })
+  const [region, setRegion] = useState('')
+  const [favoriteHand, setFavoriteHand] = useState('')
+  const [pokerHistory, setPokerHistory] = useState('')
   const [iconHovered, setIconHovered] = useState(false)
   const [showIdInfo, setShowIdInfo] = useState(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -246,7 +252,13 @@ export default function UserProfileOnboardingPage() {
         iconUrl = dataUrl
       }
       const finalPlayerId = `@${playerId.replace(/^@/, '')}`
-      await setDoc(doc(db, 'users', userId), { name: name.trim(), playerId: finalPlayerId, birthday, ...(iconUrl ? { iconUrl } : {}) }, { merge: true })
+      await setDoc(doc(db, 'users', userId), {
+        name: name.trim(), playerId: finalPlayerId, birthday, ...(iconUrl ? { iconUrl } : {}),
+        ...(affiliation.affiliation.trim() ? { affiliation: affiliation.affiliation.trim(), affiliationStoreId: affiliation.affiliationStoreId, affiliationIconUrl: affiliation.affiliationIconUrl } : {}),
+        ...(region.trim() ? { region: region.trim() } : {}),
+        ...(favoriteHand.trim() ? { favoriteHand: favoriteHand.trim() } : {}),
+        ...(pokerHistory ? { pokerHistory } : {}),
+      }, { merge: true })
       setIsExiting(true)
       window.setTimeout(() => router.replace('/onboarding/user/step-2'), 240)
     } catch (e: any) {
@@ -630,6 +642,43 @@ export default function UserProfileOnboardingPage() {
               </svg>
               誕生日は登録後に変更できません
             </p>
+          </div>
+
+          {/* プロフィール詳細(すべて任意) */}
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[14px] font-medium text-gray-700">所属</label>
+              <span className="text-[11px] text-label3">任意</span>
+            </div>
+            <AffiliationPicker value={affiliation} onChange={setAffiliation} joinedStoreIds={[]} />
+          </div>
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[14px] font-medium text-gray-700">地域</label>
+              <span className="text-[11px] text-label3">任意</span>
+            </div>
+            <input type="text" value={region} onChange={e => setRegion(e.target.value)} placeholder="例: 東京都" maxLength={30} className="field-input" />
+          </div>
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[14px] font-medium text-gray-700">好きなハンド</label>
+              <span className="text-[11px] text-label3">任意</span>
+            </div>
+            <input type="text" value={favoriteHand} onChange={e => setFavoriteHand(e.target.value)} placeholder="例: AA, KK, AKs" maxLength={20} className="field-input" />
+          </div>
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[14px] font-medium text-gray-700">ポーカー歴</label>
+              <span className="text-[11px] text-label3">任意</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
+                <button key={opt} type="button" onClick={() => setPokerHistory(p => p === opt ? '' : opt)}
+                  style={{ minHeight: 44, padding: '0 16px', borderRadius: 999, border: 'none', background: pokerHistory === opt ? 'rgba(242,169,0,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: pokerHistory === opt ? 'inset 0 0 0 1.5px #F2A900' : 'none', fontSize: 13, fontWeight: 600, color: pokerHistory === opt ? '#995C00' : 'var(--label)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {opt}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Error */}
