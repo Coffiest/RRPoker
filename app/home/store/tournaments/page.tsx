@@ -6,15 +6,17 @@ import {
   collection, onSnapshot, doc, getDoc, getDocs,
   addDoc, updateDoc, deleteDoc, serverTimestamp, arrayUnion
 } from "firebase/firestore"
-import { db, auth, storage } from "@/lib/firebase"
+import { db, auth } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+import { flyerToDataUrl } from "@/lib/flyer"
 import AppleSheet from "@/components/AppleSheet"
+import { blindsToText, copyText } from "@/lib/blindText"
+import { showToast } from "@/lib/toast"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
-import { endClock, endLevelIndex } from "@/lib/endEstimate"
+import { endClock, endLevelIndex, tournamentClocks } from "@/lib/endEstimate"
 import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
@@ -264,13 +266,29 @@ export default function TournamentsPage() {
 
   // ── フォーム ───────────────────────────────────────────────────────────
   const handleChange = (key: string, value: string) => { setFormError(""); setForm(prev => ({ ...prev, [key]: value })) }
-  const handleImageSelect = (file: File) => { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }
-  const uploadImageIfNeeded = async (): Promise<string> => {
-    if (!imageFile || !storeId) return imagePreview ? (form.flyerUrl || "") : ""
-    const fileRef = ref(storage, `tournaments/${storeId}/${Date.now()}_${imageFile.name}`)
-    await uploadBytes(fileRef, imageFile)
-    return await getDownloadURL(fileRef)
+  // チラシは選んだ瞬間に端末の中で縮めて、そのまま大会の文書に入れる(lib/flyer.ts)。
+  // 以前は Storage に上げていたが、ルールに許可が無く保存できなかった。
+  const [imageBusy, setImageBusy] = useState(false)
+  const handleImageSelect = async (file: File) => {
+    setImageBusy(true); setFormError("")
+    try {
+      const dataUrl = await flyerToDataUrl(file)
+      setImageFile(file); setImagePreview(dataUrl); setForm(prev => ({ ...prev, flyerUrl: dataUrl }))
+    } catch (e) {
+      setFormError(e instanceof Error ? e.message : "画像を読み込めませんでした")
+    } finally { setImageBusy(false) }
   }
+  // 作成画面を開いている間は、コピーした画像の貼り付け(Ctrl/⌘+V)でも入れられる
+  useEffect(() => {
+    if (!openModal) return
+    const onPaste = (e: ClipboardEvent) => {
+      const f = Array.from(e.clipboardData?.files ?? []).find(x => x.type.startsWith("image/"))
+      if (f) { e.preventDefault(); void handleImageSelect(f) }
+    }
+    window.addEventListener("paste", onPaste)
+    return () => window.removeEventListener("paste", onPaste)
+  }, [openModal]) // eslint-disable-line react-hooks/exhaustive-deps
+  const uploadImageIfNeeded = async (): Promise<string> => imagePreview ? (form.flyerUrl || "") : ""
   const openCreate = () => {
     setEditData(null); setRepeatWeekly(false); setAutoStart(false); setBlindPresetId(""); setImageFile(null); setImagePreview(null)
     setForm({ ...emptyForm, date: todayStr() }); setFormError(""); setOpenModal(true)
@@ -519,6 +537,8 @@ export default function TournamentsPage() {
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 13, color: 'var(--label2)' }}>
                       <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
                       {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
+                      {/* RC 時刻(RC ブレイクが終わった瞬間)は終了予定の左隣(オーナー指定) */}
+                      {tournamentClocks(t, blindPresets.find(p => p.id === t.blindPresetId)).rc && <span style={{ ...metaItem, color: '#D4910A', fontWeight: 700 }}>RC {tournamentClocks(t, blindPresets.find(p => p.id === t.blindPresetId)).rc}</span>}
                       {endOf(t) && <span style={{ ...metaItem, color: 'var(--label3)' }}><FlagIcon size={14} /> 終了予定 {endOf(t)}</span>}
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
                     </div>
@@ -768,14 +788,16 @@ export default function TournamentsPage() {
               </button>
             </div>
           ) : (
-            <label className="tp-press" style={{ ...list, display: 'flex', alignItems: 'center', gap: 16, padding: 16, minHeight: 56 }}>
+            <label className="tp-press" style={{ ...list, display: 'flex', alignItems: 'center', gap: 16, padding: 16, minHeight: 56, opacity: imageBusy ? 0.6 : 1 }}
+              onDragOver={e => e.preventDefault()}
+              onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) void handleImageSelect(f) }}>
               <CameraIcon size={24} style={{ color: 'var(--label2)', flexShrink: 0 }} />
               <span style={{ flex: 1 }}>
-                <span style={{ display: 'block', fontSize: 14 }}>画像を選ぶ</span>
-                <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)</span>
+                <span style={{ display: 'block', fontSize: 14 }}>{imageBusy ? "画像を読み込んでいます…" : "画像を選ぶ"}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)。ドラッグ・貼り付けでも入れられます</span>
               </span>
               <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
-              <input type="file" accept="image/*" hidden onChange={e => { if (e.target.files?.[0]) handleImageSelect(e.target.files[0]) }} />
+              <input type="file" accept="image/*" hidden disabled={imageBusy} onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void handleImageSelect(f) }} />
             </label>
           )}
         </div>
@@ -846,6 +868,11 @@ export default function TournamentsPage() {
                         </span>
                       </span>
                       <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
+                    </button>
+                    {/* テキストでコピー(LINE や SNS に貼る用。オーナー指定) */}
+                    <button type="button" onClick={async () => { const ok = await copyText(blindsToText(preset.name ?? '', lvs)); showToast(ok ? 'ブラインドをコピーしました' : 'コピーできませんでした', ok ? 'ok' : 'error') }}
+                      className="tp-press" aria-label={`${preset.name}をテキストでコピー`} style={{ ...btn.icon, background: 'transparent', color: 'var(--label2)' }}>
+                      <CopyIcon size={20} />
                     </button>
                     <button type="button" onClick={() => askDeletePreset(preset)} className="tp-press" aria-label={`${preset.name}を削除`} style={{ ...btn.icon, background: 'transparent', color: '#D70015', marginRight: 8 }}>
                       <Trash2Icon size={20} />

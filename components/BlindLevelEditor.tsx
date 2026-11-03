@@ -15,7 +15,8 @@ import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon
  */
 
 export type BlindLevel = { type: 'level'; smallBlind: number | null; bigBlind: number | null; ante: number | null; duration: number | null; comment?: string | null }
-export type BreakLevel = { type: 'break'; duration: number | null; comment?: string | null }
+/** rc: RC ブレイク(このブレイクが終わった瞬間にレジストクローズ)。表の中で 1 つだけ */
+export type BreakLevel = { type: 'break'; duration: number | null; comment?: string | null; rc?: boolean }
 export type Level = BlindLevel | BreakLevel
 
 export const emptyLevel = (): BlindLevel => ({ type: 'level', smallBlind: null, bigBlind: null, ante: null, duration: null })
@@ -100,6 +101,12 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
     if (lv.type === 'level') return { type: 'break', duration: lv.duration, comment: lv.comment ?? null }
     return { ...emptyLevel(), duration: lv.duration, comment: lv.comment ?? null }
   }))
+  // RC ブレイクは 1 つだけ。付けたら他のブレイクからは外す(オーナー指定・2026-11-03)
+  const toggleRc = (idx: number) => update(ls => ls.map((l, i) => {
+    if (l.type !== 'break') return l
+    if (i === idx) return { ...l, rc: !l.rc }
+    return l.rc ? { ...l, rc: false } : l
+  }))
   const remove = (idx: number) => update(ls => ls.filter((_, i) => i !== idx))
   const run = (fn: () => void) => { fn(); setMenuIdx(null) }
 
@@ -116,7 +123,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
         {levels.map((lv, idx) => (
-          <li key={idx} style={{ background: idx === endIdx ? 'rgba(249,179,24,0.12)' : lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: idx === endIdx ? 'inset 0 0 0 2px #F9B318' : '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+          <li key={idx} style={{ background: lv.type === 'break' && lv.rc ? 'rgba(242,169,0,0.18)' : idx === endIdx ? 'rgba(249,179,24,0.12)' : lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: lv.type === 'break' && lv.rc ? 'inset 0 0 0 2px #D4910A' : idx === endIdx ? 'inset 0 0 0 2px #F9B318' : '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
             {idx === endIdx && (
               <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px 4px', fontSize: 11, fontWeight: 700, color: '#995C00' }}>
                 <FlagIcon size={14} /> 終了予定(ヘッズアップのアベレージが 10BB を切る)
@@ -134,8 +141,16 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                 </>
               ) : (
                 <>
-                  <span style={{ display: 'flex', justifyContent: 'center', color: '#1546D9' }}><CoffeeIcon size={20} /></span>
-                  <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>ブレイク</span>
+                  <span style={{ display: 'flex', justifyContent: 'center', color: lv.rc ? '#995C00' : '#1546D9' }}><CoffeeIcon size={20} /></span>
+                  {lv.rc ? (
+                    <span style={{ gridColumn: '2 / span 3', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#995C00', paddingLeft: 8 }}>
+                      {/* 金の面の上の文字は白(CLAUDE.md) */}
+                      <span style={{ background: '#F2A900', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em' }}>RC</span>
+                      RC ブレイク
+                    </span>
+                  ) : (
+                    <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>ブレイク</span>
+                  )}
                   <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="ブレイクの分"
                     onChange={e => setField(idx, 'duration', e.target.value)} className="no-spin ble-input" style={numInput} />
                 </>
@@ -204,6 +219,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
           [<PlusIcon key="a" size={20} />, 'この下にレベルを追加', () => insertAt(idx + 1), false],
           [<MessageSquareIcon key="c" size={20} />, lv.comment ? 'メモを編集' : 'メモを追加', () => setCommentIdx(idx), false],
           [<CoffeeIcon key="t" size={20} />, lv.type === 'level' ? 'ブレイクに変える' : 'レベルに変える', () => toggleBreak(idx), false],
+          ...(lv.type === 'break' ? [[<FlagIcon key="rc" size={20} />, lv.rc ? 'RC ブレイクをやめる' : 'RC ブレイクにする(ここで締め切り)', () => toggleRc(idx), false] as [React.ReactNode, string, () => void, boolean]] : []),
         ]
         return (
           <div role="dialog" aria-modal="true" aria-label="行の操作" style={{ position: 'fixed', inset: 0, zIndex: 20000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 8px calc(8px + env(safe-area-inset-bottom, 0px))' }}>
@@ -211,7 +227,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
             <div className="a-sheet" style={{ position: 'relative', width: '100%', maxWidth: 420, background: 'transparent', boxShadow: 'none', borderRadius: 0 }}>
               <div role="menu" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
                 <p style={{ fontSize: 11, color: 'var(--label2)', textAlign: 'center', margin: 0, padding: '16px 16px 8px' }}>
-                  {lv.type === 'level' ? `レベル ${levelNo(idx)}` : 'ブレイク'}
+                  {lv.type === 'level' ? `レベル ${levelNo(idx)}` : lv.rc ? 'RC ブレイク' : 'ブレイク'}
                 </p>
                 {items.map(([icon, label, action, disabled]) => (
                   <button key={label} type="button" role="menuitem" onClick={() => run(action)} disabled={disabled} className="ble-row" style={{ ...menuItem, opacity: disabled ? 0.35 : 1 }}>

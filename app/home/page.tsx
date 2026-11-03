@@ -1,5 +1,6 @@
 "use client"
 
+import { tournamentClocks } from "@/lib/endEstimate"
 import { Clock, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -876,10 +877,19 @@ export default function HomePage() {
         const top = sorted.slice(0, 20)
         const all: any[] = []
         await Promise.all(top.map(async store => {
-          const snap = await getDocs(collection(db, "stores", store.id, "tournaments"))
+          const [snap, presetSnap] = await Promise.all([
+            getDocs(collection(db, "stores", store.id, "tournaments")),
+            // RC 時刻・終了予定の計算用(オーナー指定)。読めなくても予定は出す
+            getDocs(collection(db, "stores", store.id, "blindPresets")).catch(() => null),
+          ])
+          const presets: Record<string, any> = {}
+          presetSnap?.forEach(p => { presets[p.id] = p.data() })
           snap.forEach(d => {
             const data = d.data()
+            const clk = tournamentClocks(data as any, typeof data.blindPresetId === "string" ? presets[data.blindPresetId] : null)
             all.push({
+              rcClockText: clk.rc,
+              endClockText: clk.end,
               id: d.id,
               storeId: store.id,
               storeName: store.name,
@@ -2432,6 +2442,12 @@ const medalClass = (rank: number) => {
                           onClick={() => setCalDetailTournament({ date: calScheduleTab, entries: [entry] })}
                           style={{ width: '100%', textAlign: 'left', background: '#fff', borderRadius: 16, border: '0.5px solid rgba(60,60,67,0.1)', boxShadow: '0 1px 6px rgba(0,0,0,0.05)', padding: 0, overflow: 'hidden', cursor: 'pointer', display: 'block' }}
                         >
+                          {/* チラシ(店舗がトナメ作成で入れた画像)。入店前でも一覧で見られるように(オーナー指定) */}
+                          {entry.flyerUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element -- data URL / 外部 URL のチラシ
+                            <img src={entry.flyerUrl} alt={`${entry.name || 'トーナメント'}のチラシ`} loading="lazy"
+                              style={{ display: 'block', width: '100%', maxHeight: 220, objectFit: 'cover', background: '#F2F2F7' }} />
+                          )}
                           <div style={{ display: 'flex', alignItems: 'stretch', gap: 0 }}>
                             {/* ゴールドサイドバー */}
                             <div style={{ width: 4, background: 'linear-gradient(180deg,#F2A900,#C97D00)', flexShrink: 0, borderRadius: '0 0 0 0' }} />
@@ -2465,6 +2481,12 @@ const medalClass = (rank: number) => {
                                     <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
+                                {(entry.rcClockText || entry.endClockText) && (
+                                  <div className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, fontSize: 10.5 }}>
+                                    {entry.rcClockText && <span style={{ fontWeight: 700, color: '#D4910A' }}>RC {entry.rcClockText}</span>}
+                                    {entry.endClockText && <span style={{ color: 'var(--label2)' }}>終了予定 {entry.endClockText}</span>}
+                                  </div>
+                                )}
                               </div>
 
                               {/* 矢印 */}
