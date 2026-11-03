@@ -5,10 +5,7 @@
 - ルールは `CLAUDE.md` にすべて書いてある。最初に必ず読むこと(デザイン・文字色・「ブレイク」・カード上端の線禁止・+画面は触らない・プレイヤーはタイマーを操作できない など)。
 
 ## オーナーの手作業が要るもの(未完了)
-1. **Firestore ルールと Cloud Functions の本番反映**: `firebase deploy --only firestore:rules,functions`
-   - 店舗の権限(#49)はこれが終わるまで本番で効かない(ルールと functions がオーナーしか許さないまま)。
-   - 大会の自動スタート(lib/autoStart.ts 関連の functions)も同じ。
-   - `deploy.log` に「Blaze プランが必要」というエラーが残っている。functions のデプロイには Firebase を Blaze プランにする必要がある可能性が高い。ルールだけなら `--only firestore:rules` で出せる。
+1. ~~Firestore ルールと Cloud Functions の本番反映~~ → 2026-11-03 にオーナーが Mac から実施済み(Functions は Node.js 22 に上げて全 11 個を更新)。以後 functions を変えたら `cd ~/RRPoker && git pull` → `cd functions && npm install && npm run build && cd .. && firebase deploy --only functions`。
 2. **偏差値の再計算**: 管理者の rr-recompute API を一度叩く(または次の大会確定で更新される)。
 
 ## 次にやる作業
