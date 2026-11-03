@@ -62,9 +62,10 @@ export function tournamentClocks(
   t: { date?: string; startTime?: string; customBlindLevels?: AnyLevel[] | null },
   preset?: { levels?: AnyLevel[] | null; startStack?: number | null; players?: number | null } | null,
 ): { rc: string | null; end: string | null } {
-  const levels = Array.isArray(preset?.levels) && preset!.levels!.length > 0
+  // 自動スタートの「Waiting for start」(lib/waitingLevel.ts)は計算に入れない
+  const levels = (Array.isArray(preset?.levels) && preset!.levels!.length > 0
     ? preset!.levels!
-    : Array.isArray(t.customBlindLevels) ? t.customBlindLevels : []
+    : Array.isArray(t.customBlindLevels) ? t.customBlindLevels : []).filter(l => l.type !== 'waiting')
   return {
     rc: rcClock(t.startTime, levels),
     end: preset ? endClock(t.date, t.startTime, levels, preset.startStack, preset.players) : null,

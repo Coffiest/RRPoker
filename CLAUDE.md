@@ -82,3 +82,9 @@
 
 - プレイヤーのプロフィールに「所属」(`users.affiliation` / `affiliationStoreId` / `affiliationIconUrl`)。入店したことのある店舗・近くの店舗から選ぶとアイコン付き、自由入力はアイコンなし(`components/AffiliationPicker.tsx`)。アカウント作成時(任意)とマイページで入れられる。
 - 「入店しました」は同じ入店で 1 回だけ(端末の `rrpoker.checkinShownStore`。退店で消す)。プレイヤーホームの最上段は「入店中」のカード。
+
+## Waiting for start(オーナー確定・2026-11-03)
+
+- 「開始時刻にタイマースタート」の大会は、開始の 30 分前に自動でタイマーを動かす。ブラインド表(`customBlindLevels`)の先頭に `{ type: 'waiting', duration: 30 }` を入れ、開始時刻ちょうどにレベル 1 に上がる(`lib/waitingLevel.ts`・`lib/autoStart.ts`・functions の自動スタート)。30 分を切ってから ON にしたときは残りの時間だけ待つ。
+- 待機中は開催中(LIVE)扱い。タイマー画面だけ「WAITING FOR START」と開始までの残り時間・最初のブラインドを出す。ストラクチャ表・ブラインド一覧・テキストコピー・RC/終了予定の計算・店舗の調整画面には出さない(`withoutWaiting`)。表を差し替えるときは `keepWaiting` で残す(消すとレベルの位置がずれる)。
+- 一時停止・次のレベルは普通のレベルと同じ(次を押すとその場でレベル 1)。前のレベルで待機には戻さない。レベル番号は type === 'level' だけを数える(`levelNumberAt`)。

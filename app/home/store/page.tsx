@@ -1,5 +1,6 @@
 "use client"
 
+import { hasWaiting, keepWaiting, withoutWaiting } from "@/lib/waitingLevel"
 import { showToast } from "@/lib/toast"
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
@@ -193,7 +194,8 @@ export default function StorePage() {
     setAdjustModalOpen(p => ({ ...p, [id]: true }))
     setAdjustSeconds(p => ({ ...p, [id]: s }))
     setAdjustTab(p => ({ ...p, [id]: 'time' }))
-    setAdjustBlindLevels(p => ({ ...p, [id]: blindLevels ? JSON.parse(JSON.stringify(blindLevels)) : [] }))
+    // 「Waiting for start」は表に出さない(lib/waitingLevel.ts)。保存のときに元の位置へ戻す
+    setAdjustBlindLevels(p => ({ ...p, [id]: blindLevels ? JSON.parse(JSON.stringify(withoutWaiting(blindLevels))) : [] }))
   }
   const closeAdjustModal = (id: string) => setAdjustModalOpen(p => ({ ...p, [id]: false }))
   const updateAdjustTime = (id: string, diff: number) =>
@@ -210,7 +212,8 @@ export default function StorePage() {
   }
   const confirmAdjustBlinds = async (id: string) => {
     if (!storeId) return
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: adjustBlindLevels[id] ?? [] })
+    const orig = activeTournaments.find(x => x.id === id)?.customBlindLevels
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: keepWaiting(orig, adjustBlindLevels[id] ?? []) })
     closeAdjustModal(id)
   }
   const updateAdjBlind = (id: string, idx: number, fields: Partial<AdjLevel>) =>
@@ -347,7 +350,9 @@ export default function StorePage() {
     const live = getLiveLevelState(t)
     hapticTap()
     try {
-      await setTournamentLevel(storeId, id, Math.max(0, live.levelIndex - 1))
+      // 自動スタートの「Waiting for start」(先頭)には戻さない。戻れるのはレベル 1 まで
+      const floor = hasWaiting(t.customBlindLevels) && live.levelIndex >= 1 ? 1 : 0
+      await setTournamentLevel(storeId, id, Math.max(floor, live.levelIndex - 1))
     } catch (error) {
       console.error("Failed to go to previous level:", error)
       hapticError()

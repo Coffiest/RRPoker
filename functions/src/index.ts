@@ -514,23 +514,27 @@ export const recoverStuckTournamentTimers = onSchedule(
         if (d.status !== "scheduled" && d.status !== "active") continue
         if (typeof d.date !== "string" || typeof d.startTime !== "string" || !d.date || !d.startTime) continue
         const at = new Date(`${d.date}T${d.startTime}:00+09:00`).getTime()
-        if (!Number.isFinite(at) || Date.now() < at) continue
+        // 開始の 30 分前から「Waiting for start」(30 分の待機レベル)を動かす。lib/waitingLevel.ts と同じ
+        const WAITING_MS = 30 * 60 * 1000
+        if (!Number.isFinite(at) || Date.now() < at - WAITING_MS) continue
         try {
-          const levels = await resolveLevels(d, storeId)
-          const firstDur = typeof levels[0]?.duration === "number" && levels[0].duration > 0 ? levels[0].duration * 60 : 1200
+          const base = (await resolveLevels(d, storeId)).filter((l: any) => l?.type !== "waiting")
+          const levels: any[] = [{ type: "waiting", duration: 30, comment: null as string | null }, ...base]
           await db.runTransaction(async (tx) => {
             const cur = (await tx.get(tDoc.ref)).data()
             if (!cur || cur.autoStartedAt || cur.timerRunning || !cur.autoStart) return
             const startTs = Timestamp.fromMillis(at)
+            const anchor = Timestamp.fromMillis(at - WAITING_MS)
             tx.update(tDoc.ref, {
               status: "active",
               startedAt: cur.startedAt ?? startTs,
               timerRunning: true,
               currentLevelIndex: 0,
-              levelStartedAt: startTs,
-              levelStartedRemaining: firstDur,
-              timeRemaining: firstDur,
-              autoStartedAt: startTs,
+              levelStartedAt: anchor,
+              levelStartedRemaining: 30 * 60,
+              timeRemaining: 30 * 60,
+              autoStartedAt: anchor,
+              customBlindLevels: levels,
             })
           })
         } catch (e) {

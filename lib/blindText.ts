@@ -22,6 +22,7 @@ export function blindsToText(name: string, levels: TextLevel[]): string {
   if (name.trim()) lines.push(name.trim())
   let lv = 0
   for (const l of levels) {
+    if (l.type === 'waiting') continue // 自動スタートの待機(lib/waitingLevel.ts)は表に出さない
     const min = typeof l.duration === 'number' ? `${l.duration}分` : ''
     const note = l.comment && l.comment.trim() ? `  ${l.comment.trim()}` : ''
     if (l.type === 'break') {

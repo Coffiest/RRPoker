@@ -10,6 +10,7 @@ import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firestore"
 import { createPortal } from "react-dom"
 import { computeLiveLevelState } from "@/lib/timerCompute"
+import { hasWaiting, keepWaiting, levelNumberAt } from "@/lib/waitingLevel"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
@@ -59,7 +60,9 @@ async function playSound(name: string) {
 // ── Types ──────────────────────────────────────────────────────────────────
 type BlindLevel = { type: "level"; smallBlind: number | null; bigBlind: number | null; ante: number | null; duration: number | null; comment?: string | null}
 type BreakLevel = { type: "break"; duration: number | null; comment?: string | null}
-type Level = BlindLevel | BreakLevel
+// 自動スタートの「Waiting for start」(lib/waitingLevel.ts)。表には出さず、タイマーの表示だけに使う
+type WaitingLevel = { type: "waiting"; duration: number | null; comment?: string | null; smallBlind?: undefined; bigBlind?: undefined; ante?: undefined }
+type Level = BlindLevel | BreakLevel | WaitingLevel
 
 // ══════════════════════════════════════════════════════════════════════════
 export default function TimerClient() {
@@ -192,6 +195,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       autoAppliedRef.current = true
       return
     }
+    // 自動スタートで「Waiting for start」(lib/waitingLevel.ts)を入れた表は、すでに正しい表が入っている。
+    // ここでプリセットの表に置き換えると待機レベルが消え、レベルの位置が 1 つずれる
+    if (hasWaiting(customBlindLevels)) { autoAppliedRef.current = true; return }
     const preset = blindPresets.find((p: any) => p.id === tournamentBlindPresetId)
     if (!preset || !Array.isArray(preset.levels) || preset.levels.length === 0) return
     const lvs = preset.levels as Level[]
@@ -256,7 +262,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       if (!current) return
       const updated = presets.find((p: any) => p.id === current) as any
       if (!updated || !Array.isArray(updated.levels) || updated.levels.length === 0) return
-      const newLevels = updated.levels as Level[]
+      // 進行中の表に「Waiting for start」があれば残す(消すとレベルの位置がずれる)
+      const newLevels = keepWaiting(levelsToUseRef.current, updated.levels as Level[]) as Level[]
       setCustomBlindLevels(newLevels)
       // tournament doc を更新: 現在レベルの時間も新しい設定値にリセット
       const levelIdx = currentLevelIndexRef.current
@@ -546,7 +553,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
                   <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#C8820A] flex-shrink-0">
-                    LEVEL&nbsp;{liveLevelIndex + 1}
+                    {/* 番号はレベルだけを数える(ブレイク・待機を数えない) */}
+                    LEVEL&nbsp;{levelNumberAt(levelsToUse, liveLevelIndex) ?? liveLevelIndex + 1}
+                  </span>
+                )}
+                {level?.type === "waiting" && (
+                  <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#C8820A] flex-shrink-0">
+                    WAITING&nbsp;FOR&nbsp;START
                   </span>
                 )}
                 {level?.type === "break" && (
@@ -615,7 +628,26 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   {level.comment}
                 </p>
               )}
-              {level?.type === "break" ? (
+              {level?.type === "waiting" ? (
+                /* ── WAITING FOR START(自動スタートの開始前 30 分。lib/waitingLevel.ts) ── */
+                <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr", columnGap: infoColGap, rowGap: "clamp(32px, 5vh, 64px)", alignItems: "center" }}>
+                  <p style={{ gridColumn: "1 / -1" }} className="text-[56px] font-bold tracking-[0.3em] text-[#C8820A] text-center">
+                    WAITING FOR START
+                  </p>
+                  <div style={{ gridColumn: "1 / -1", height: "1px", background: "#C4C4C4" }} />
+                  {nextLevel && nextLevel.type === "level" && (
+                    <>
+                      <span className="flex flex-col items-center text-[30px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
+                        <span>FIRST</span><span>BLIND</span>
+                      </span>
+                      <span className="text-[54px] font-medium text-gray-600 timer-num leading-none whitespace-nowrap">
+                        {nextLevel.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel.bigBlind?.toLocaleString()}
+                        {nextLevel.ante ? <span className="text-[40px] font-medium text-label3 ml-3">({nextLevel.ante.toLocaleString()})</span> : null}
+                      </span>
+                    </>
+                  )}
+                </div>
+              ) : level?.type === "break" ? (
                 /* ── BREAK SCREEN ─────────────────────────────────────────────── */
                 <div style={{ display: "grid", gridTemplateColumns: "max-content 1fr 1px auto", columnGap: infoColGap, rowGap: "clamp(32px, 5vh, 64px)", alignItems: "center" }}>
                   <p style={{ gridColumn: "1 / -1" }} className="text-[60px] font-bold tracking-[0.5em] text-[#C8820A] text-center">
@@ -880,7 +912,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                               onChange={e => {
                                 const v = Math.max(1, Math.round(Number(e.target.value)))
                                 const bb = Math.max(1, Math.round(v * 2))
-                                setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, smallBlind: v, bigBlind: bb, ante: bb }))
+                                setLevels(ls => ls.map((l, i) => i !== idx ? l : ({ ...l, smallBlind: v, bigBlind: bb, ante: bb } as Level)))
                               }}
                               className={`${modalInput} w-14`} />
                             <span className="text-label3 text-[13px]">/</span>
@@ -889,11 +921,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                               className={`${modalInput} w-14`} />
                             <span className="text-label3 text-[13px]">(</span>
                             <input type="number" min={1} step={1} value={lv.ante ?? ""} placeholder="ANTE"
-                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, ante: Math.max(1, Math.round(Number(e.target.value))) }))}
+                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : ({ ...l, ante: Math.max(1, Math.round(Number(e.target.value))) } as Level)))}
                               className={`${modalInput} w-14`} />
                             <span className="text-label3 text-[13px]">)</span>
                             <input type="number" min={1} step={1} value={lv.duration ?? ""} placeholder="分"
-                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
+                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : ({ ...l, duration: Math.max(1, Math.round(Number(e.target.value))) } as Level)))}
                               className={`${modalInput} w-12`} />
                             <span className="text-[11px] text-label3">min</span>
                           </>
@@ -901,7 +933,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                           <>
                             <span className="text-[11px] font-bold text-gray-500 w-12">Break</span>
                             <input type="number" min={1} step={1} value={lv.duration ?? ""} placeholder="分"
-                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, duration: Math.max(1, Math.round(Number(e.target.value))) }))}
+                              onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : ({ ...l, duration: Math.max(1, Math.round(Number(e.target.value))) } as Level)))}
                               className={`${modalInput} w-14`} />
                             <span className="text-[11px] text-label3">min</span>
                           </>

@@ -1,5 +1,6 @@
 "use client"
 
+import { withoutWaiting } from "@/lib/waitingLevel"
 import { tournamentClocks } from "@/lib/endEstimate"
 import { Clock, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
@@ -3231,7 +3232,8 @@ const medalClass = (rank: number) => {
                       const avgStack = alivePlayers > 0 ? Math.floor(totalChips / alivePlayers) : 0
                       const levelIndex = live.currentLevelIndex ?? 0
                       const presetLevels = calAutoPresets[key]?.levels
-                      const levels: any[] = presetLevels ?? live.customBlindLevels ?? []
+                      // 位置(currentLevelIndex)は大会に入っている表のもの。待機レベル(lib/waitingLevel.ts)も含むので、大会の表を優先する
+                      const levels: any[] = (Array.isArray(live.customBlindLevels) && live.customBlindLevels.length > 0 ? live.customBlindLevels : presetLevels) ?? []
                       const currentLevel = levels[levelIndex]
                       const isActive = live.status === "active"
                       return (
@@ -3240,7 +3242,7 @@ const medalClass = (rank: number) => {
                             {isActive && <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />}
                             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{isActive ? "ライブ" : "終了"}</p>
                           </div>
-                          {currentLevel && (
+                          {currentLevel && currentLevel.type !== "waiting" && (
                             <div className="mb-1.5">
                               <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
                                 <p className="text-[8px] text-label3">現在のブラインド</p>
@@ -3269,7 +3271,7 @@ const medalClass = (rank: number) => {
                       const key = `${entry.storeId}_${entry.id}`
                       const live = calLiveData[key]
                       const autoPreset = calAutoPresets[key]
-                      const levels: any[] | undefined = autoPreset?.levels ?? live?.customBlindLevels ?? undefined
+                      const levels: any[] | undefined = autoPreset?.levels ?? (live?.customBlindLevels ? withoutWaiting(live.customBlindLevels) : undefined)
                       if (!entry.blindPresetId && !levels?.length) return null
                       return (
                         <>
