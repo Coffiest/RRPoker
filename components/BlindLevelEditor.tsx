@@ -3,6 +3,7 @@
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import ConfirmDialog, { type ConfirmRequest } from '@/components/ConfirmDialog'
 import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon, FlagIcon } from 'lucide-react'
 
 /**
@@ -70,6 +71,8 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 }) {
   const [menuIdx, setMenuIdx] = useState<number | null>(null)
   const [commentIdx, setCommentIdx] = useState<number | null>(null)
+  // 確認はブラウザ標準の小窓ではなく、アプリの確認画面で出す(オーナー確定・2026-11-03)
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
 
   const levelNo = (idx: number) => levels.slice(0, idx + 1).filter(l => l.type === 'level').length
   const update = (fn: (ls: Level[]) => Level[]) => onChange(fn(levels))
@@ -166,8 +169,14 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
         <button type="button" className="ble-press" style={{ ...addBtn, width: '100%', marginBottom: 16 }}
           onClick={() => {
             // 1 レベル目の SB/BB に単位を合わせ、傾斜テンプレートで最後まで作る
-            if (levels.length > 1 && !window.confirm('1 レベル目のブラインドに合わせて、テンプレートで最後まで作り直します。今の表は置き換わります。よろしいですか？')) return
-            onChange(withTemplate(levels))
+            if (levels.length <= 1) { onChange(withTemplate(levels)); return }
+            setConfirmReq({
+              title: 'テンプレートで作り直す',
+              message: '1 レベル目のブラインドに合わせて、テンプレートで最後まで作り直します。今の表は置き換わります。',
+              action: '作り直す',
+              destructive: true,
+              run: () => onChange(withTemplate(levels)),
+            })
           }}>
           <LayersIcon size={20} /> テンプレートで最後まで作る
         </button>
@@ -181,6 +190,8 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
         .no-spin::-webkit-inner-spin-button, .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spin { -moz-appearance: textfield; }
       `}</style>
+
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} zIndex={20001} />
 
       {/* 行の操作(iOS のアクションシート) */}
       {menuIdx !== null && levels[menuIdx] && typeof document !== 'undefined' && createPortal((() => {
