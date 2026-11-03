@@ -17,12 +17,12 @@ export type ConfirmRequest = {
   run: () => Promise<void> | void
 }
 
-export default function ConfirmDialog({ request, onClose }: { request: ConfirmRequest | null; onClose: () => void }) {
+export default function ConfirmDialog({ request, onClose, zIndex = 2000 }: { request: ConfirmRequest | null; onClose: () => void; /** 下から出る画面の上に重ねるときは大きくする */ zIndex?: number }) {
   if (!request || typeof document === 'undefined') return null
   const { title, message, action, destructive, run } = request
   return createPortal(
     <div role="alertdialog" aria-modal="true" aria-label={title}
-      style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      style={{ position: 'fixed', inset: 0, zIndex, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div className="a-scrim" onClick={onClose} style={{ position: 'absolute', inset: 0 }} />
       <div className="a-dialog" style={{ position: 'relative', width: '100%', maxWidth: 320, overflow: 'hidden' }}>
         <div style={{ padding: '24px 16px 16px', textAlign: 'center' }}>

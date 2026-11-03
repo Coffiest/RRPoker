@@ -425,10 +425,14 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     ...localPlayers.filter(p => !p.isTemp && (p.name ?? "").toLowerCase().includes(search.toLowerCase())),
   ]
   const [tempMenuId, setTempMenuId] = useState<string | null>(null)
+  // 名前の変更はブラウザ標準の入力小窓(window.prompt)ではなく、アプリの入力画面で行う
+  const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(null)
   const renameTempPlayer = (id: string) => {
-    const cur = localPlayers.find(p => p.id === id)?.name ?? ""
-    const name = window.prompt("仮プレイヤーの名前", cur)
-    if (name && name.trim()) updateTempPlayerName(id, name.trim())
+    setRenaming({ id, name: localPlayers.find(p => p.id === id)?.name ?? "" })
+  }
+  const submitRename = () => {
+    if (renaming && renaming.name.trim()) updateTempPlayerName(renaming.id, renaming.name.trim())
+    setRenaming(null)
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -437,6 +441,28 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.28)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}
       onClick={onClose}
     >
+      {renaming && (
+        <div role="dialog" aria-modal="true" aria-label="仮プレイヤーの名前"
+          style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={e => { e.stopPropagation(); setRenaming(null) }}>
+          <div className="a-scrim" style={{ position: 'absolute', inset: 0 }} />
+          <form className="a-dialog" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); submitRename() }}
+            style={{ position: 'relative', width: '100%', maxWidth: 320, overflow: 'hidden' }}>
+            <div style={{ padding: '24px 16px 16px', textAlign: 'center' }}>
+              <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: 'var(--label)' }}>仮プレイヤーの名前</p>
+              <input autoFocus value={renaming.name} maxLength={30}
+                onChange={e => setRenaming(r => r && { ...r, name: e.target.value })}
+                style={{ width: '100%', height: 44, marginTop: 16, borderRadius: 12, border: '1px solid var(--sep)', padding: '0 12px', fontSize: 16, color: 'var(--label)', background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid rgba(60,60,67,0.12)' }}>
+              <button type="button" onClick={() => setRenaming(null)}
+                style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 14, color: 'var(--label2)', fontFamily: 'inherit', borderRight: '1px solid rgba(60,60,67,0.12)', cursor: 'pointer' }}>キャンセル</button>
+              <button type="submit" disabled={!renaming.name.trim()}
+                style={{ minHeight: 48, border: 'none', background: 'none', fontSize: 14, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit', cursor: 'pointer', opacity: renaming.name.trim() ? 1 : 0.4 }}>保存</button>
+            </div>
+          </form>
+        </div>
+      )}
       <div ref={sheetDrag}
         style={{ width: '100%', maxWidth: 480, background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)', borderRadius: '34px 34px 0 0', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(0,0,0,0.06), 0 28px 68px rgba(0,0,0,0.16)', maxHeight: '92vh', display: 'flex', flexDirection: 'column', paddingBottom: 'max(8px, env(safe-area-inset-bottom, 8px))' }}
         onClick={e => e.stopPropagation()}

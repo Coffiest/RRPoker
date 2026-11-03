@@ -108,12 +108,10 @@ export default function PcSidebar({ variant }: { variant: 'store' | 'player' }) 
           <nav className="pc-side-list">{PLAYER_TOOLS.map(row)}</nav>
         </>
       )}
-      {qr && typeof document !== 'undefined' && createPortal(
-        <PlayerQRModal uid={qr.uid} name={qr.name} iconUrl={qr.iconUrl} onClose={() => setQr(null)} />,
-        document.body,
-      )}
-      {/* ログアウトはいつも一番下に置く(オーナー指定)。 */}
-      <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+      {/* ログアウト(オーナー指定)。以前は一番下(margin-top: auto)に置いていたが、
+          背の高い画面では目に入らなかった。メニューのすぐ下に見出し付きで置く。 */}
+      <p className="pc-side-section term-comment">ACCOUNT</p>
+      <nav className="pc-side-list">
         <button type="button" className="pc-side-item" onClick={async () => { await signOut(auth); router.replace('/login') }}>
           <LogOut size={20} strokeWidth={2} aria-hidden />
           <span className="pc-side-text">
@@ -121,7 +119,11 @@ export default function PcSidebar({ variant }: { variant: 'store' | 'player' }) 
             <span className="pc-side-sub">ログアウト</span>
           </span>
         </button>
-      </div>
+      </nav>
+      {qr && typeof document !== 'undefined' && createPortal(
+        <PlayerQRModal uid={qr.uid} name={qr.name} iconUrl={qr.iconUrl} onClose={() => setQr(null)} />,
+        document.body,
+      )}
     </aside>
   )
 }
