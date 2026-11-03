@@ -1271,3 +1271,19 @@ html.pc .pc-dash.pd-checked > .pd-full { grid-column: 1 / -1 }
 html.pc .pc-dash.pd-checked > .pd-live { grid-column: 1; grid-row: 3 / span 12 }
 html.pc .pc-dash .pd-live-list { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px !important }
 html.pc .pc-dash > .pd-full { grid-column: 1 / -1 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   タイマー画面の背景色(lib/timerTheme.ts)。濃い色・画像のときだけ文字の色を差し替える。
+   白のときは何も変えない(今までの見た目のまま)。モーダルは body に出すので影響しない。
+   ─────────────────────────────────────────────────────────────────────────── */
+.tt-dark .bg-white { background: transparent !important }
+.tt-dark .text-gray-900, .tt-dark .text-gray-800 { color: var(--tt-fg) !important }
+.tt-dark .text-gray-700, .tt-dark .text-gray-600, .tt-dark .text-gray-500, .tt-dark .text-label3 { color: var(--tt-sub) !important }
+.tt-dark .text-gray-200 { color: rgba(255, 255, 255, 0.55) !important } /* contrast-ok: 80px の飾り文字(WELCOME) */
+.tt-dark .text-\[\#C8820A\] { color: var(--tt-accent) !important }
+.tt-dark .bg-\[\#C8820A\] { background: var(--tt-accent) !important }
+.tt-dark .tech-grid { opacity: 0.12 !important }
+.tt-dark .pause-badge { background: rgba(0, 0, 0, 0.45) !important }
+/* 画像はそのまま敷く(オーナー指定)。文字に影を付けて読めるようにする */
+.tt-image .tech-grid { display: none }
+.tt-image * { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65), 0 0 12px rgba(0, 0, 0, 0.35) }

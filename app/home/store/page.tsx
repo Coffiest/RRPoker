@@ -2,6 +2,7 @@
 
 import { hasWaiting, keepWaiting, withoutWaiting } from "@/lib/waitingLevel"
 import { showToast } from "@/lib/toast"
+import TimerBgPicker from "@/components/TimerBgPicker"
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
@@ -17,6 +18,7 @@ import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
 import AppleSheet from "@/components/AppleSheet"
+import BlindLevelEditor, { type Level } from "@/components/BlindLevelEditor"
 import { computeLiveLevelState, type TimerLevel } from "@/lib/timerCompute"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 import { hapticAction, hapticTap, hapticError } from "@/lib/haptics"
@@ -213,7 +215,8 @@ export default function StorePage() {
   const confirmAdjustBlinds = async (id: string) => {
     if (!storeId) return
     const orig = activeTournaments.find(x => x.id === id)?.customBlindLevels
-    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: keepWaiting(orig, adjustBlindLevels[id] ?? []) })
+    // この大会だけブラインドを変えた印。以後プリセットを編集してもこの大会の表は変えない(lib/presetSync.ts)
+    await updateDoc(doc(db, "stores", storeId, "tournaments", id), { customBlindLevels: keepWaiting(orig, adjustBlindLevels[id] ?? []), blindsCustomized: true })
     closeAdjustModal(id)
   }
   const updateAdjBlind = (id: string, idx: number, fields: Partial<AdjLevel>) =>
@@ -408,6 +411,8 @@ export default function StorePage() {
           timerRunning: data.timerRunning ?? false,
           levelStartedAtMs: data.levelStartedAt?.toMillis?.() ?? null,
           levelStartedRemaining: typeof data.levelStartedRemaining === "number" ? data.levelStartedRemaining : null,
+          timerBg: typeof data.timerBg === "string" ? data.timerBg : null,
+          blindsCustomized: data.blindsCustomized === true,
         })
       }
       setActiveTournaments(list)
@@ -1096,6 +1101,12 @@ export default function StorePage() {
           ))}
         </div>
 
+        {/* タイマーの背景(lib/timerTheme.ts)。小さな丸いペイントボタンから選ぶ(オーナー指定) */}
+        {storeId && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '-4px 0 4px' }}>
+            <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} compact />
+          </div>
+        )}
         {/* Timer Display — full TimerClient view scaled to card width */}
         <div style={{
           position: 'relative',
@@ -1129,7 +1140,7 @@ export default function StorePage() {
           <button className="action-btn btn-gold pc-show" onClick={() => openTimer(t.id)}>
             <FiClock size={14}/> Timer
           </button>
-          <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
+          <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, (t.customBlindLevels && t.customBlindLevels.length > 0) ? t.customBlindLevels : presetMap[t.blindPresetId]?.levels ?? null)}>
             <FiEdit3 size={14}/> Adjust
           </button>
           <button className="action-btn btn-gold" onClick={() => setShowPlayerModal(t.id)}>
@@ -1235,6 +1246,7 @@ export default function StorePage() {
               <ClockLine t={t} style={{ margin: '0 0 4px' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                {storeId && <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} compact />}
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>
                 <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ ...smallBtn, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none' }}>
                   {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 2 }}/>}
@@ -1243,7 +1255,7 @@ export default function StorePage() {
               </div>
               {/* 単体のカードと同じ操作 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
-                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}><FiEdit2 size={13}/> ADJUST</button>
+                <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, (t.customBlindLevels && t.customBlindLevels.length > 0) ? t.customBlindLevels : presetMap[t.blindPresetId]?.levels ?? null)}><FiEdit2 size={13}/> ADJUST</button>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPlayerModal(t.id)}><FiUsers size={13}/> PLAYERS</button>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPrizeModal(t.id)}><FiDollarSign size={13}/> PAY OUT</button>
               </div>
@@ -1920,228 +1932,71 @@ export default function StorePage() {
           )
         })()}
 
-        {/* ── Adjust Modal — Apple Bottom-Sheet ── */}
-        {activeTournaments.map(t => adjustModalOpen[t.id] && (() => {
+        {/* ── Adjust(オーナー指定・2026-11-03): ブラインドのプリセット作成と同じ下から出る画面・同じ編集部品にそろえる。
+             ブラインドは開いた時点の大会の表(プリセットを編集すれば lib/presetSync.ts で即座に更新済み)。 ── */}
+        {activeTournaments.map(t => {
           const tab = adjustTab[t.id] ?? 'time'
-          const adjLvs = adjustBlindLevels[t.id] ?? []
+          const adjLvs = (adjustBlindLevels[t.id] ?? []) as Level[]
+          const segBtn = (tb: 'time' | 'blind', label: string) => (
+            <button key={tb} type="button" onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))} aria-pressed={tab === tb}
+              style={{ flex: 1, minHeight: 36, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+                background: tab === tb ? '#fff' : 'transparent', color: tab === tb ? 'var(--label)' : 'var(--label2)', boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none' }}>{label}</button>
+          )
           return (
-            <div key={`adj-${t.id}`} style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}
-              onClick={() => closeAdjustModal(t.id)}>
-              <div
-                style={{
-                  width: ADJ_MODAL_W, maxHeight: `min(${ADJ_MODAL_H}px, 92vh)`,
-                  borderRadius: '24px 24px 0 0', background: '#fff',
-                  display: 'flex', flexDirection: 'column',
-                  boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
-                  transform: `scale(${adjustModalScale})`, transformOrigin: 'center bottom',
-                  overflow: 'hidden',
-                }}
-                onClick={e => e.stopPropagation()}
-              >
-                {/* Drag Handle */}
-                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, flexShrink: 0 }}>
-                  <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
-                </div>
-
-                {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
-                  <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>Adjust</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
-                    <button onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
-                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
-                    ><FiEdit2 size={13}/> 詳細</button>
-                    <button onClick={() => closeAdjustModal(t.id)}
-                      style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
-                    <button onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
-                      style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
-                    ><FiCheck size={16} style={{ color: '#fff' }}/></button>
+            <AppleSheet key={`adj-${t.id}`} open={!!adjustModalOpen[t.id]} onClose={() => closeAdjustModal(t.id)} maxWidth={640} maxHeightVh={94} zIndex={300}
+              title={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--label)', margin: 0 }}>Adjust</p>
+                    <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                   </div>
+                  {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
+                  <button type="button" onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
+                    style={{ minHeight: 44, padding: '0 14px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                  ><FiEdit2 size={13}/> 詳細</button>
+                  <button type="button" aria-label="閉じる" onClick={() => closeAdjustModal(t.id)}
+                    style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  ><FiX size={18} style={{ color: 'var(--label)' }}/></button>
                 </div>
-
-                {/* Tab switcher — Apple segmented control */}
-                <div style={{ padding: '12px 20px 0', flexShrink: 0 }}>
-                  <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 3 }}>
-                    {(['time', 'blind'] as const).map(tb => (
-                      <button key={tb} onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))}
-                        style={{
-                          flex: 1, height: 34, borderRadius: 9, border: 'none', cursor: 'pointer',
-                          fontSize: 13, fontWeight: 700, transition: 'all 0.15s',
-                          background: tab === tb ? '#fff' : 'transparent',
-                          color: tab === tb ? '#1C1C1E' : 'var(--label3)',
-                          boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none',
-                        }}
-                      >{tb === 'time' ? 'タイム調整' : 'ブラインド設定'}</button>
+              }
+              footer={
+                <button type="button" onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
+                  style={{ width: '100%', minHeight: 48, borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 4px 14px rgba(242,169,0,0.3)' }}>
+                  {tab === 'time' ? 'この時間にする' : '保存する'}
+                </button>
+              }
+            >
+              <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 3, marginBottom: 16 }}>
+                {segBtn('time', 'タイム調整')}{segBtn('blind', 'ブラインド設定')}
+              </div>
+              {tab === 'time' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 16 }}>
+                  <p className="tech-num" style={{ textAlign: 'center', fontSize: 56, fontWeight: 800, color: 'var(--label)', letterSpacing: '-1px', lineHeight: 1, margin: '8px 0 0' }}>
+                    {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
+                    <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
+                    {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
+                  </p>
+                  <input type="range" min={0} max={7200} step={10} aria-label="残り時間"
+                    value={adjustSeconds[t.id] ?? 0}
+                    onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
+                    style={{ width: '100%', accentColor: '#F2A900', cursor: 'pointer' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map(b => (
+                      <button key={b.label} type="button" onClick={() => updateAdjustTime(t.id, b.diff)}
+                        style={{ minHeight: 48, borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
+                          /* 金の面の上の文字は白(CLAUDE.md) */
+                          background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#fff', color: b.diff > 0 ? '#fff' : 'var(--label)',
+                          boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'inset 0 0 0 1px rgba(60,60,67,0.12)' }}
+                      >{b.label}</button>
                     ))}
                   </div>
                 </div>
-
-                {/* ── Time tab ── */}
-                {tab === 'time' && (
-                  <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-                    {/* Time display */}
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: 56, fontWeight: 900, color: '#1C1C1E', letterSpacing: '-2px', lineHeight: 1, margin: 0, fontVariantNumeric: 'tabular-nums' }}>
-                        {String(Math.floor((adjustSeconds[t.id] ?? 0) / 60)).padStart(2, "0")}
-                        <span style={{ color: 'var(--label3)', fontWeight: 400 }}>:</span>
-                        {String((adjustSeconds[t.id] ?? 0) % 60).padStart(2, "0")}
-                      </p>
-                    </div>
-                    {/* Slider */}
-                    <input type="range" min={0} max={7200} step={10}
-                      value={adjustSeconds[t.id] ?? 0}
-                      onChange={e => setAdjustSeconds(p => ({ ...p, [t.id]: Number(e.target.value) }))}
-                      style={{ width: '100%', accentColor: '#F2A900', height: 5, borderRadius: 2.5, cursor: 'pointer' }}
-                    />
-                    {/* Quick buttons */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
-                        <button key={i} onClick={() => updateAdjustTime(t.id, b.diff)}
-                          style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#F2F2F7', color: '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s' }}
-                        >{b.label}</button>
-                      ))}
-                    </div>
-                    {/* Safe area spacer */}
-                    <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
-                  </div>
-                )}
-
-                {/* ── Blind tab ── */}
-                {tab === 'blind' && (() => {
-                  const bInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/15 transition-all w-full"
-                  let lvCount = 0
-                  return (
-                    <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '12px 20px' }}>
-                      {adjLvs.length === 0 && (
-                        <p className="text-center text-[13px] text-label3 py-6">ブラインドが設定されていません</p>
-                      )}
-                      <div className="space-y-2">
-                        {adjLvs.map((lv, idx) => {
-                          if (lv.type === 'level') lvCount++
-                          const lvNum = lvCount
-                          return (
-                            <div key={idx} className="relative">
-                              <div
-                                className="rounded-2xl overflow-hidden border border-gray-100"
-                                draggable
-                                onDragStart={() => setAdjDragIdx(p => ({ ...p, [t.id]: idx }))}
-                                onDragEnter={() => setAdjDropIdx(p => ({ ...p, [t.id]: idx }))}
-                                onDragEnd={() => adjDragEnd(t.id)}
-                                onDragOver={e => e.preventDefault()}
-                                style={{ opacity: adjDragIdx[t.id] === idx ? 0.5 : 1, background: lv.type === 'break' ? '#F0F7FF' : '#F9F9F9' }}
-                              >
-                                {/* Row 1: drag + label + comment + controls */}
-                                <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5 gap-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="cursor-move text-label3 text-[16px] select-none">≡</span>
-                                    {lv.type === 'level'
-                                      ? <span className="text-[11px] font-bold text-[#F2A900] min-w-[40px]">Lv {lvNum}</span>
-                                      : <span className="text-[11px] font-bold text-blue-400 min-w-[40px]">Break</span>
-                                    }
-                                    <button type="button"
-                                      onClick={() => setAdjCommentIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
-                                      className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${lv.comment ? "bg-[#F2A900]/15 text-[#F2A900] border border-[#F2A900]/30" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
-                                    >{lv.comment ? lv.comment : "＋"}</button>
-                                  </div>
-                                  <div className="flex-shrink-0 flex items-center gap-0.5">
-                                    <button type="button"
-                                      onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: p[t.id] === idx ? null : idx }))}
-                                      className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                                    ><FiMoreHorizontal size={15} className="text-label3" /></button>
-                                    <button onClick={() => removeAdjLevel(t.id, idx)}
-                                      className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
-                                    ><FiTrash2 size={14} className="text-red-400" /></button>
-                                  </div>
-                                </div>
-
-                                {/* Row 2: inputs */}
-                                {lv.type === 'level' ? (
-                                  <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 px-3 pb-2.5">
-                                    {([
-                                      { label: 'SB',   field: 'smallBlind', val: lv.smallBlind },
-                                      { label: 'BB',   field: 'bigBlind',   val: lv.bigBlind   },
-                                      { label: 'Ante', field: 'ante',       val: lv.ante       },
-                                      { label: 'min',  field: 'duration',   val: lv.duration   },
-                                    ] as const).map(({ label, field, val }) => (
-                                      <div key={field} className="flex flex-col gap-0.5">
-                                        <span className="text-[10px] text-label3 font-semibold text-center">{label}</span>
-                                        <input type="number" min={1} value={val ?? ''} placeholder="-"
-                                          onChange={e => updateAdjBlind(t.id, idx, { [field]: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) } as Partial<AdjLevel>)}
-                                          className={bInput} />
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2 px-3 pb-2.5">
-                                    <div className="flex flex-col gap-0.5" style={{ width: 120 }}>
-                                      <span className="text-[10px] text-blue-400 font-semibold text-center">min</span>
-                                      <input type="number" min={1} value={lv.duration ?? ''} placeholder="10"
-                                        onChange={e => updateAdjBlind(t.id, idx, { duration: e.target.value === '' ? null : Math.max(1, Math.round(Number(e.target.value))) })}
-                                        className={bInput} />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Comment input */}
-                                {(adjCommentIdx[t.id] === idx || lv.comment) && (
-                                  <div className="px-3 pb-2.5 flex items-center gap-2">
-                                    <input type="text" placeholder="コメントを入力..."
-                                      value={lv.comment ?? ''}
-                                      onChange={e => updateAdjBlind(t.id, idx, { comment: e.target.value || null })}
-                                      autoFocus={adjCommentIdx[t.id] === idx && !lv.comment}
-                                      className="flex-1 text-[12px] rounded-xl px-3 py-1.5 border border-gray-200 bg-white focus:border-[#F2A900] focus:outline-none transition-all"
-                                    />
-                                    <button type="button"
-                                      onClick={() => { updateAdjBlind(t.id, idx, { comment: null }); setAdjCommentIdx(p => ({ ...p, [t.id]: null })) }}
-                                      className="h-7 w-7 flex-shrink-0 rounded-full bg-gray-200 hover:bg-red-50 flex items-center justify-center transition-colors"
-                                    ><FiX size={11} className="text-gray-500" /></button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Context menu */}
-                              {adjContextMenuIdx[t.id] === idx && (
-                                <>
-                                  <div className="fixed inset-0 z-[199]" onClick={() => setAdjContextMenuIdx(p => ({ ...p, [t.id]: null }))} />
-                                  <div className="a-dialog absolute right-9 top-1 z-[200] overflow-hidden min-w-[168px]" style={{ transformOrigin: 'top right' }}>
-                                    <button type="button" onClick={() => insertAdjLevelBefore(t.id, idx)}
-                                      className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                    >この前にレベルを追加</button>
-                                    <button type="button" onClick={() => insertAdjLevelAfter(t.id, idx)}
-                                      className="w-full px-4 py-3 text-left text-[13px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                                    >この後にレベルを追加</button>
-                                    <div className="border-t border-gray-100" />
-                                    <button type="button" onClick={() => toggleAdjLevelBreak(t.id, idx)}
-                                      className="w-full px-4 py-3 text-left text-[13px] text-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-colors"
-                                    >{lv.type === 'level' ? 'ブレイクに変更' : 'レベルに変更'}</button>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Add buttons */}
-                      <div style={{ display: 'flex', gap: 8, marginTop: 12, paddingBottom: 4 }}>
-                        <button onClick={() => addAdjLevel(t.id)}
-                          style={{ flex: 1, height: 42, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#D4910A', cursor: 'pointer', border: '1.5px dashed rgba(242,169,0,0.5)', background: 'rgba(242,169,0,0.04)' }}
-                        >＋ レベル</button>
-                        <button onClick={() => addAdjBreak(t.id)}
-                          style={{ flex: 1, height: 42, borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#3B82F6', cursor: 'pointer', border: '1.5px dashed rgba(59,130,246,0.4)', background: 'rgba(59,130,246,0.04)' }}
-                        >＋ ブレイク</button>
-                      </div>
-                      {/* Safe area spacer */}
-                      <div style={{ height: 'max(8px, env(safe-area-inset-bottom, 8px))' }} />
-                    </div>
-                  )
-                })()}
-
-              </div>
-            </div>
+              ) : (
+                <BlindLevelEditor levels={adjLvs} showAddButtons onChange={ls => setAdjustBlindLevels(p => ({ ...p, [t.id]: ls as AdjLevel[] }))} />
+              )}
+            </AppleSheet>
           )
-        })())}
+        })}
 
         {/* ── Withdraw Requests ── */}
         {withdrawRequests.length > 0 && (

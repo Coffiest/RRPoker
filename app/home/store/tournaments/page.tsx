@@ -10,6 +10,8 @@ import { db, auth } from "@/lib/firebase"
 import HomeHeader from "@/components/HomeHeader"
 import StoreBottomNav from "@/components/StoreBottomNav"
 import { flyerToDataUrl } from "@/lib/flyer"
+import { syncPresetToTournaments } from "@/lib/presetSync"
+import { keepWaiting } from "@/lib/waitingLevel"
 import AppleSheet from "@/components/AppleSheet"
 import { blindsToText, copyText } from "@/lib/blindText"
 import { showToast } from "@/lib/toast"
@@ -216,6 +218,7 @@ export default function TournamentsPage() {
           autoStartedAt: data.autoStartedAt ?? null,
           timerRunning: data.timerRunning ?? false,
           blindPresetId: typeof data.blindPresetId === "string" ? data.blindPresetId : "",
+          customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
           templateId: typeof data.templateId === "string" ? data.templateId : undefined,
           skipDates: Array.isArray(data.skipDates) ? data.skipDates : [],
           createdAt: normalize(data.createdAt)?.toLocaleDateString?.() ?? "",
@@ -319,8 +322,14 @@ export default function TournamentsPage() {
         // 編集では、開催中に変わり続ける値(バスト数・状態・作成日時)を上書きしない
         ...(editData ? {} : { bustCount: 0, status: "scheduled", createdAt: serverTimestamp() }),
       }
-      if (editData) await updateDoc(doc(db, "stores", storeId, "tournaments", editData.id), payload)
-      else await addDoc(collection(db, "stores", storeId, "tournaments"), payload)
+      // プリセットを選び直したら、大会の表もそのプリセットにする(以前は古い表が残り、タイマーと BLINDS が更新されなかった)
+      const presetChanged = !editData || editData.blindPresetId !== blindPresetId
+      const pr = blindPresets.find(p => p.id === blindPresetId)
+      const presetFields = presetChanged
+        ? { customBlindLevels: pr && Array.isArray(pr.levels) ? keepWaiting(editData?.customBlindLevels, pr.levels) : null, blindsCustomized: false }
+        : {}
+      if (editData) await updateDoc(doc(db, "stores", storeId, "tournaments", editData.id), { ...payload, ...presetFields })
+      else await addDoc(collection(db, "stores", storeId, "tournaments"), { ...payload, ...presetFields })
       setSaving(false)
       closeModal()
     } catch {
@@ -417,7 +426,11 @@ export default function TournamentsPage() {
     setBlindSaving(true)
     try {
       const data = { name: blindPresetName.trim(), levels: blindLevels, startStack: Number(blindStartStack) > 0 ? Math.round(Number(blindStartStack)) : null, players: Number(blindPlayers) > 0 ? Math.round(Number(blindPlayers)) : null }
-      if (editingBlindPresetId) await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), data)
+      if (editingBlindPresetId) {
+        await updateDoc(doc(db, "stores", storeId, "blindPresets", editingBlindPresetId), data)
+        // このプリセットを選んでいる大会の表もすぐ同じにする(lib/presetSync.ts)
+        await syncPresetToTournaments(storeId, editingBlindPresetId, blindLevels).catch(e => console.error("preset sync failed", e))
+      }
       else await addDoc(collection(db, "stores", storeId, "blindPresets"), { ...data, createdAt: serverTimestamp() })
       await refreshPresets(storeId)
       resetBlindEditor()
