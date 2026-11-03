@@ -112,7 +112,7 @@ export default function StoreSettingsPage() {
   return (
     <main className="min-h-screen px-5">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
-      <div className="mx-auto max-w-sm">
+      <div className="pc-form mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
           <h1 className="text-[24px] font-semibold text-gray-900">設定</h1>
         </div>

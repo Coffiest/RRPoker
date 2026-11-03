@@ -1135,3 +1135,85 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   .a-kinetic-col > span { transition: none }
   .a-rise { opacity: 1; transform: none; transition: none }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   PC 版のレイアウト
+   判定は app/layout.tsx のスクリプト(1024px 以上・マウス操作・ホバー可)で <html class="pc"> を付ける。
+   スマホ・タブレットの表示は一切変えない(ここのルールはすべて html.pc の下)。
+   - 左に常に見えるサイドバー(components/PcSidebar.tsx)。下に浮かぶフッターは隠す。
+   - 中身の幅を広げる。読み物・一覧は 880px、ダッシュボード(ホーム)は 1280px で複数列。
+   - 設定やパスワードなどの入力画面は 1 行が長すぎると読みにくいので 640px にとどめる。
+   色・書体・コンソール風の装飾はスマホ版のまま。カード上端の線は使わない。
+   ─────────────────────────────────────────────────────────────────────────── */
+.pc-only { display: none !important }
+html.pc .pc-only { display: flex !important }
+html.pc .pc-hide { display: none !important }
+
+html.pc .pc-shell { padding-left: 248px }
+
+html.pc .pc-sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 90;
+  width: 248px; flex-direction: column; gap: 4px;
+  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid var(--sep, rgba(60, 60, 67, 0.12));
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.04);
+  overflow-y: auto;
+}
+.pc-side-brand {
+  display: flex; align-items: center; gap: 8px; min-height: 48px;
+  padding: 0 8px; margin-bottom: 16px;
+  background: none; border: none; cursor: pointer; text-align: left;
+}
+.pc-side-brand > span { display: flex; flex-direction: column; line-height: 1 }
+.pc-side-brand-name { font-family: var(--stack-display); font-size: 16px; font-weight: 700; color: var(--label) }
+.pc-side-brand-sub { font-size: 9px; color: #D4910A; margin-top: 4px }
+.pc-side-section { font-size: 10px; color: var(--label3); padding: 0 8px; margin: 16px 0 4px; font-family: var(--stack-mono) }
+.pc-side-list { display: flex; flex-direction: column; gap: 2px }
+.pc-side-item {
+  display: flex; align-items: center; gap: 16px; width: 100%; min-height: 48px;
+  padding: 0 16px; border: none; border-radius: 12px; background: none;
+  color: var(--label2); cursor: pointer; text-align: left; font-family: inherit;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+.pc-side-item:hover { background: rgba(60, 60, 67, 0.06); color: var(--label) }
+.pc-side-item:active { transform: scale(0.98) }
+.pc-side-item:focus-visible { outline: 2px solid #F2A900; outline-offset: 2px }
+/* 選ばれている項目は、白地に金の文字(ブランドの金・オーナー確定)と淡い金の面で示す。 */
+.pc-side-item.is-active { background: rgba(242, 169, 0, 0.12); color: #D4910A }
+.pc-side-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0 }
+.pc-side-label { font-family: var(--stack-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em }
+.pc-side-sub { font-size: 11px; color: var(--label3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+
+/* ヘッダーは中身の幅に合わせて広げる。 */
+html.pc .pc-header-inner { max-width: 1280px; padding-left: 32px; padding-right: 32px }
+
+/* 中身の幅 */
+html.pc .pc-page { max-width: 880px !important; padding-left: 32px !important; padding-right: 32px !important }
+html.pc .pc-form { max-width: 640px !important }
+html.pc .pc-wide { max-width: 1280px !important; padding-left: 32px !important; padding-right: 32px !important }
+
+/* 店舗ホーム: 大会のカードを横に並べる(1 枚の幅は 360px 以上)。 */
+html.pc .pc-wide .pc-card-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 24px !important;
+  align-items: start;
+}
+
+/* プレイヤーホーム: カードを 2 列に。縦に積む余白(space-y)は列の間隔に置き換える。 */
+html.pc .pc-dash {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+  padding-top: 24px;
+}
+html.pc .pc-dash > * { margin-top: 0 !important; margin-bottom: 0 !important }
+/* いちばん上の成績カード(偏差値)は横いっぱいに置き、ページの主役にする。 */
+html.pc .pc-dash > :first-child { grid-column: 1 / -1 }
+
+/* フッターが無いので、下の余白(フッターの逃げ)を減らす。 */
+html.pc .pc-shell main { padding-bottom: 48px !important }

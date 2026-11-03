@@ -49,7 +49,9 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
       if (currentStep === 0) await new Promise(r => setTimeout(r, 300))
       if (aborted) return
 
-      const el = document.querySelector(`[data-tutorial="${s.target}"]`) as HTMLElement | null
+      // 同じ印が 2 つある場合(PC のサイドバーと、隠れているスマホのフッター)は、見えているほうを指す。
+      const el = (Array.from(document.querySelectorAll(`[data-tutorial="${s.target}"]`)) as HTMLElement[])
+        .find(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 }) ?? null
       if (!el) {
         // No element found: show tooltip centered
         setTooltipPos({ top: Math.round(window.innerHeight * 0.38) })

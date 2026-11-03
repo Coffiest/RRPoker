@@ -1452,7 +1452,7 @@ export default function StorePage() {
       {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
+      <div className="pc-wide" style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
 
         {/* ── Store Header Card ── */}
         <div ref={headerCardRef} className="su d0" style={{ marginTop: 16, position: 'relative' }}>

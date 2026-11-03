@@ -222,6 +222,15 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
     const onHandRecord = () => { reset(); setView("record"); setIsOpen(true) }
     window.addEventListener('rrpoker:tool:itm', onItm)
     window.addEventListener('rrpoker:tool:hand-record', onHandRecord)
+    // PC のサイドバーで、ツールの無い画面から押されたときは、ホームへ移ってから開く。
+    try {
+      const pending = sessionStorage.getItem('rrpoker.pendingTool')
+      if (pending) {
+        sessionStorage.removeItem('rrpoker.pendingTool')
+        if (pending === 'rrpoker:tool:itm') onItm()
+        else if (pending === 'rrpoker:tool:hand-record') onHandRecord()
+      }
+    } catch {}
     return () => {
       window.removeEventListener('rrpoker:tool:itm', onItm)
       window.removeEventListener('rrpoker:tool:hand-record', onHandRecord)

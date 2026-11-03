@@ -77,7 +77,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
         variant="store"
         menuItems={getCommonMenuItems(router, "store")}
       />
-      <div className="mx-auto max-w-sm mt-6">
+      <div className="pc-page mx-auto max-w-sm mt-6">
         <h2 className="text-[16px] font-semibold text-gray-900 mb-1">チップ引出申請一覧</h2>
         <ChipDisclaimer className="mb-4" />
         {withdrawals.length === 0 ? (

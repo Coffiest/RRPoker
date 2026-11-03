@@ -244,7 +244,7 @@ export default function FriendsPage() {
     <main className="min-h-screen pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
-      <div className="mx-auto max-w-sm px-5 pt-6">
+      <div className="pc-page mx-auto max-w-sm px-5 pt-6">
         {/* Search Bar */}
         <div className="flex gap-2">
           <input

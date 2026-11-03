@@ -476,7 +476,7 @@ export default function StoreMyPage() {
       `}</style>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
-      <div className="mx-auto max-w-sm px-5">
+      <div className="pc-page mx-auto max-w-sm px-5">
         {/* 端末の見出し。稼働ドットで「開いている」ことを示す。 */}
         <div className="pt-[28px] flex items-center justify-between">
           <h1 className="con-title text-[22px] font-semibold text-gray-900 tech-caret">店舗設定</h1>

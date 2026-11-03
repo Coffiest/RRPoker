@@ -234,7 +234,7 @@ export default function TicketsPage() {
         menuItems={getCommonMenuItems(router, "user")}
       />
 
-      <div className="mx-auto max-w-sm px-4 pt-6 space-y-6">
+      <div className="pc-page mx-auto max-w-sm px-4 pt-6 space-y-6">
 
         {/* ── スタンプカード ──────────────────────────────────── */}
         <section>

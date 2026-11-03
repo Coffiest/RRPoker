@@ -68,13 +68,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // フォント変数は必ず <html> に置く。globals.css の :root で
     // --stack-mono / --stack-display がこれらを参照しており、<body> に付けると
     // :root 時点で未定義となり変数全体が無効化されて既定フォントに落ちる。
-    <html lang="ja" className={`${mono.variable} ${grotesk.variable}`}>
+    <html lang="ja" suppressHydrationWarning className={`${mono.variable} ${grotesk.variable}`}>
       <head>
         {/* Viewport and other meta tags */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#F2A900" />
         {/* 画面は明るい表示だけで作っている。端末のダークモードで入力欄などが暗くならないようにする */}
         <meta name="color-scheme" content="light" />
+        {/* PC の判定。広い画面(1024px 以上)で、マウスのように細かく指せて、ホバーできる端末を PC とみなす。
+            画面の幅だけで決めると大きなタブレットまで PC になるため、入力の種類も見る(Media Queries Level 4 の hover / pointer)。
+            描画前に <html class="pc"> を付けて、表示が一瞬スマホ版になるのを防ぐ。ウィンドウの幅を変えたら付け外しする。 */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var m=window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)');var f=function(){document.documentElement.classList.toggle('pc',m.matches)};f();m.addEventListener?m.addEventListener('change',f):m.addListener(f)}catch(e){}})()` }} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="RRPoker" />
