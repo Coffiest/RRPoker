@@ -1,5 +1,6 @@
 "use client"
 
+import { Clock, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
@@ -1477,7 +1478,7 @@ const medalClass = (rank: number) => {
           position:relative; overflow:hidden;
         }
         .rr-rate-card::before {
-          content:""; position:absolute; top:0; left:0; right:0; height:1px;
+          display:none; /* カード上端の線は禁止(CLAUDE.md・オーナー確定) */ content:""; position:absolute; top:0; left:0; right:0; height:1px;
           background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.6) 50%,transparent 100%);
         }
         .rr-rate-card::after {
@@ -1550,7 +1551,7 @@ const medalClass = (rank: number) => {
           background-position:0 0, 5.5px 5.5px;
         }
         .bank-card-front::after {
-          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          display:none; /* カード上端の線は禁止(CLAUDE.md・オーナー確定) */ content:""; position:absolute; top:0; left:0; right:0; height:2px;
           background:linear-gradient(90deg,transparent 0%,#E09000 15%,#F2A900 40%,#FFD060 50%,#F2A900 60%,#E09000 85%,transparent 100%);
         }
         .bank-card-glow {
@@ -1574,7 +1575,7 @@ const medalClass = (rank: number) => {
           background-size:22px 22px;
         }
         .bank-card-back::after {
-          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          display:none; /* カード上端の線は禁止(CLAUDE.md・オーナー確定) */ content:""; position:absolute; top:0; left:0; right:0; height:2px;
           background:linear-gradient(90deg,transparent 0%,rgba(80,140,255,0.7) 20%,rgba(140,190,255,0.9) 50%,rgba(80,140,255,0.7) 80%,transparent 100%);
           opacity:0.75;
         }
@@ -2441,7 +2442,7 @@ const medalClass = (rank: number) => {
                               <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', flexShrink: 0, border: '2px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {entry.storeIconUrl
                                   ? <img src={entry.storeIconUrl} alt={entry.storeName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                  : <span style={{ fontSize: 18 }}>🏠</span>
+                                  : <Store size={18} strokeWidth={2} color="#6E6E73" aria-hidden />
                                 }
                               </div>
 
@@ -2458,7 +2459,7 @@ const medalClass = (rank: number) => {
                                 <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>{entry.storeName}</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
                                   {entry.startTime && (
-                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43' }}>🕐 {formatDateTime(entry.startTime)}</span>
+                                    <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={11} strokeWidth={2} color="currentColor" aria-hidden />{formatDateTime(entry.startTime)}</span>
                                   )}
                                   {entry.entryFee != null && (
                                     <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>

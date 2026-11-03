@@ -1,5 +1,6 @@
 "use client"
 
+import { Pause, Play } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useMemo, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
@@ -729,7 +730,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       <button type="button" onClick={() => setShowNoteInput(htSeat)}
                         className="flex items-center gap-1 mt-2 active:scale-95 transition-transform"
                         style={{background:'none',border:'none',cursor:'pointer',padding:0,color:htNotes[htSeat]?CLR.goldDk:CLR.gray3,fontSize:11,fontFamily:'inherit'}}>
-                        ✏️ {htNotes[htSeat] ? 'メモを編集' : 'メモを追加'}
+                        {htNotes[htSeat] ? 'メモを編集' : 'メモを追加'}
                       </button>
                     )}
                   </div>
@@ -1146,7 +1147,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   <button type="button" onClick={() => setReplayPlaying(p => !p)}
                     className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95"
                     style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
-                    {replayPlaying ? '⏸' : '▶'}
+                    {replayPlaying ? <Pause size={16} strokeWidth={2} aria-hidden /> : <Play size={16} strokeWidth={2} aria-hidden />}
                   </button>
                   <button type="button" onClick={() => setReplayStep(s => Math.min(s+1,totalSteps))}
                     className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"

@@ -1,3 +1,4 @@
+import { TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { FiEdit2, FiMoreHorizontal, FiTrash2 } from "react-icons/fi"
 import { useDragToClose } from "@/lib/useDragToClose"
@@ -616,7 +617,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
             <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
               onClick={e => e.stopPropagation()}>
               <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}>⚠️</div>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}><TriangleAlert size={26} strokeWidth={2} color="#C62828" aria-hidden /></div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>所持バンクロール不足</p>
                 <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.5 }}>会計をしてください</p>
               </div>

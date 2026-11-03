@@ -13,11 +13,12 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { doc, getDoc } from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import PlayerQRModal from '@/app/components/PlayerQRModal'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Home, Plus, User, Settings, QrCode, Calculator, NotebookPen, Users,
+  Home, Plus, User, LogOut, Settings, QrCode, Calculator, NotebookPen, Users,
   History, Ticket, Trophy, Tv, ArrowLeftRight,
 } from 'lucide-react'
 
@@ -111,6 +112,16 @@ export default function PcSidebar({ variant }: { variant: 'store' | 'player' }) 
         <PlayerQRModal uid={qr.uid} name={qr.name} iconUrl={qr.iconUrl} onClose={() => setQr(null)} />,
         document.body,
       )}
+      {/* ログアウトはいつも一番下に置く(オーナー指定)。 */}
+      <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+        <button type="button" className="pc-side-item" onClick={async () => { await signOut(auth); router.replace('/login') }}>
+          <LogOut size={20} strokeWidth={2} aria-hidden />
+          <span className="pc-side-text">
+            <span className="pc-side-label">LOG OUT</span>
+            <span className="pc-side-sub">ログアウト</span>
+          </span>
+        </button>
+      </div>
     </aside>
   )
 }

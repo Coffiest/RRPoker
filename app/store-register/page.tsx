@@ -1,5 +1,6 @@
 'use client'
 
+import { ChartColumn, Coins, Mail, Store, Timer, TriangleAlert, Trophy } from 'lucide-react'
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -118,8 +119,8 @@ export default function StoreRegisterPage() {
           </p>
           <div style={{ background: 'rgba(242,169,0,0.08)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '14px 16px', marginBottom: 24, textAlign: 'left' }}>
             <p style={{ fontSize: 12, color: 'rgba(242,169,0,0.85)', fontWeight: 600, lineHeight: 1.7 }}>
-              ✉️ メールが届かない場合は迷惑メールフォルダをご確認ください。<br />
-              🏪 メール認証後、ログインすると店舗情報の登録に進みます。
+              <Mail size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />メールが届かない場合は迷惑メールフォルダをご確認ください。<br />
+              <Store size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />メール認証後、ログインすると店舗情報の登録に進みます。
             </p>
           </div>
           <button onClick={() => router.push('/login')}
@@ -329,7 +330,7 @@ export default function StoreRegisterPage() {
             </div>
             {email.includes('icloud') && (
               <p style={{ fontSize: 10, color: '#FF9500', fontWeight: 600, marginTop: 5 }}>
-                ⚠️ iCloudメールは確認メールが届かない場合があります
+                <TriangleAlert size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />iCloudメールは確認メールが届かない場合があります
               </p>
             )}
           </div>
@@ -432,10 +433,10 @@ export default function StoreRegisterPage() {
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)' }}>店舗向け機能</p>
           </div>
           {[
-            { icon: '🏆', title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計' },
-            { icon: '💰', title: 'チップ残高管理', desc: 'プレイヤーの購入・引き出し履歴をリアルタイムで管理' },
-            { icon: '📊', title: 'ランキング', desc: '店舗内の純増ランキングを自動生成' },
-            { icon: '⏱', title: 'ブラインドタイマー', desc: 'プリセット管理付きのスマートタイマー' },
+            { icon: <Trophy size={18} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'トーナメント管理', desc: 'エントリー・リエントリー・アドオンを自動集計' },
+            { icon: <Coins size={18} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'チップ残高管理', desc: 'プレイヤーの購入・引き出し履歴をリアルタイムで管理' },
+            { icon: <ChartColumn size={18} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'ランキング', desc: '店舗内の純増ランキングを自動生成' },
+            { icon: <Timer size={18} strokeWidth={2} color="#D4910A" aria-hidden />, title: 'ブラインドタイマー', desc: 'プリセット管理付きのスマートタイマー' },
           ].map((f, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < 3 ? '1px solid rgba(60,60,67,0.14)' : 'none' }}>
               <div style={{ width: 36, height: 36, borderRadius: 11, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{f.icon}</div>

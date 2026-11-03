@@ -216,7 +216,7 @@ export default function UserWelcomePage() {
               <br />ようこそ！
             </h1>
             <p className="mt-3 text-[14px] text-gray-500 leading-relaxed">
-              セットアップ完了。あなたのポーカーライフが<br />今日からはじまります🎉
+              セットアップ完了。あなたのポーカーライフが<br />今日からはじまります
             </p>
           </div>
         </div>

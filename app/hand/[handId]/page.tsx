@@ -1,5 +1,6 @@
 "use client"
 
+import { Pause, Play, Spade } from 'lucide-react'
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { doc, getDoc } from "firebase/firestore"
@@ -91,7 +92,7 @@ export default function HandPage() {
   if (!hand) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
       <div className="text-center px-6">
-        <p className="text-[40px] mb-3">🃏</p>
+        <div className="mb-3 flex justify-center"><Spade size={40} strokeWidth={2} color="#6E6E73" aria-hidden /></div>
         <p className="term-comment text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
         <p className="text-[13px] mt-1" style={{ color: CLR.gray3 }}>このリンクは無効です</p>
       </div>
@@ -248,7 +249,7 @@ export default function HandPage() {
           <button onClick={() => setReplayPlaying(p => !p)}
             className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, fontSize: 16, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
-            {replayPlaying ? "⏸" : "▶"}
+            {replayPlaying ? <Pause size={16} strokeWidth={2} aria-hidden /> : <Play size={16} strokeWidth={2} aria-hidden />}
           </button>
           <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))}
             className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"

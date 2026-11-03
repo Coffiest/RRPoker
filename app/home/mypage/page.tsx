@@ -1,5 +1,6 @@
 "use client"
 
+import { Clock, MapPin, Spade } from 'lucide-react'
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -145,9 +146,9 @@ async function generateProfileCard(opts: {
 
   // Profile info badges
   const badges: Array<[string, string, string]> = [
-    ['地域', opts.region || '未設定', '📍'],
-    ['好きなハンド', opts.favoriteHand || '未設定', '🃏'],
-    ['ポーカー歴', opts.pokerHistory || '未設定', '⏰'],
+    ['地域', opts.region || '未設定', 'AREA'],
+    ['好きなハンド', opts.favoriteHand || '未設定', 'HAND'],
+    ['ポーカー歴', opts.pokerHistory || '未設定', 'CAREER'],
   ]
   const bW = (W - 56) / 3
   badges.forEach(([label, value, icon], i) => {
@@ -155,8 +156,9 @@ async function generateProfileCard(opts: {
     const bY = 220
     ctx.fillStyle = 'rgba(255,255,255,0.06)'
     roundRectCanvas(ctx, bx, bY, bW, 60, 12); ctx.fill()
-    ctx.font = `400 16px sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#FFFFFF'
-    ctx.fillText(icon, bx + bW / 2, bY + 23)
+    // 絵文字は使わない(デザインルール)。等幅の英字ラベルを金で置く
+    ctx.font = `700 9px ${FONT}`; ctx.textAlign = 'center'; ctx.fillStyle = '#F2A900'
+    ctx.fillText(icon, bx + bW / 2, bY + 21)
     ctx.font = `600 10px ${FONT}`; ctx.fillStyle = '#FFFFFF'
     let v = value
     if (ctx.measureText(v).width > bW - 8) {
@@ -628,12 +630,12 @@ export default function MyPage() {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {[
-                { icon: '📍', label: '地域', value: profile.region },
-                { icon: '🃏', label: '好きなハンド', value: profile.favoriteHand },
-                { icon: '⏰', label: 'ポーカー歴', value: profile.pokerHistory },
+                { icon: <MapPin size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: profile.region },
+                { icon: <Spade size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: profile.favoriteHand },
+                { icon: <Clock size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: 'ポーカー歴', value: profile.pokerHistory },
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F2F2F7', borderRadius: 10, padding: '7px 12px' }}>
-                  <span style={{ fontSize: 14 }}>{item.icon}</span>
+                  <span style={{ display: 'flex', flexShrink: 0 }}>{item.icon}</span>
                   <div>
                     <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
                     <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : 'var(--label3)' }}>{item.value || '未設定'}</p>
@@ -728,7 +730,7 @@ export default function MyPage() {
 
             {/* 地域 */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}>📍 地域</label>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><MapPin size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />地域</label>
               <input type="text" value={draftRegion} onChange={e => setDraftRegion(e.target.value)}
                 placeholder="例: 東京都" maxLength={30}
                 style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 14px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
@@ -736,7 +738,7 @@ export default function MyPage() {
 
             {/* 好きなハンド */}
             <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}>🃏 好きなハンド</label>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><Spade size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />好きなハンド</label>
               <input type="text" value={draftFavoriteHand} onChange={e => setDraftFavoriteHand(e.target.value)}
                 placeholder="例: AA, KK, AKs" maxLength={20}
                 style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 14px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
@@ -744,7 +746,7 @@ export default function MyPage() {
 
             {/* ポーカー歴 */}
             <div style={{ marginBottom: 28 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 10, display: 'block' }}>⏰ ポーカー歴</label>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 10, display: 'block' }}><Clock size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />ポーカー歴</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
@@ -780,7 +782,7 @@ export default function MyPage() {
               </div>
             </div>
             <div style={{ background: 'rgba(74,16,16,0.06)', border: '1px solid rgba(74,16,16,0.15)', borderRadius: 14, padding: '12px 14px', marginBottom: 22 }}>
-              <p style={{ fontSize: 13, color: '#7A2020', fontWeight: 600, marginBottom: 4 }}>⚠️ 以下のデータが失われます</p>
+              <p style={{ fontSize: 13, color: '#7A2020', fontWeight: 600, marginBottom: 4 }}>以下のデータが失われます</p>
               <p style={{ fontSize: 12, color: '#3C3C43', lineHeight: 1.7 }}>• 保持チップ・レート・戦績<br/>• すべてのアカウント情報</p>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>

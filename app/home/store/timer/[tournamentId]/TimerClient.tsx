@@ -1,5 +1,6 @@
 "use client"
 
+import { showToast } from "@/lib/toast"
 import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { FiTrash2, FiX } from "react-icons/fi"
@@ -234,8 +235,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
   // ── Preset CRUD ──────────────────────────────────────────────────────────
   async function savePreset() {
-    if (!presetName) { alert("ブラインド名を入力してください"); return }
-    if (!storeId) { alert("店舗IDが取得できません"); return }
+    if (!presetName) { showToast("ブラインド名を入力してください"); return }
+    if (!storeId) { showToast("店舗IDが取得できません"); return }
     if (editingPresetId) {
       await updateDoc(doc(db, "stores", storeId, "blindPresets", editingPresetId), { name: presetName, levels })
     } else {

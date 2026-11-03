@@ -1,5 +1,6 @@
 "use client"
 
+import { showToast } from "@/lib/toast"
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
@@ -204,7 +205,7 @@ export default function StorePage() {
       closeAdjustModal(id)
     } catch (error) {
       console.error("Failed to adjust time:", error)
-      alert("時間調整に失敗しました")
+      showToast("時間調整に失敗しました")
     }
   }
   const confirmAdjustBlinds = async (id: string) => {
@@ -280,7 +281,7 @@ export default function StorePage() {
       await startTournamentTimer(storeId, id)
     } catch (error) {
       console.error("Failed to start timer:", error)
-      alert("タイマー開始に失敗しました")
+      showToast("タイマー開始に失敗しました")
     }
   }
   // 再生・一時停止は Firestore に直接書く。サーバー関数を経由すると起動待ちで数秒遅れていた。
@@ -302,7 +303,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to resume timer:", error)
       setTimerRunning(m => ({ ...m, [id]: false }))
-      alert("タイマー再開に失敗しました")
+      showToast("タイマー再開に失敗しました")
     }
   }
   async function nextLevel(id: string) {
@@ -316,7 +317,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to advance level:", error)
       hapticError()
-      alert("レベル変更に失敗しました")
+      showToast("レベル変更に失敗しました")
     }
   }
   async function pauseTimer(id: string) {
@@ -336,7 +337,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to pause timer:", error)
       setTimerRunning(m => ({ ...m, [id]: true }))
-      alert("タイマー一時停止に失敗しました")
+      showToast("タイマー一時停止に失敗しました")
     }
   }
   async function prevLevel(id: string) {
@@ -350,7 +351,7 @@ export default function StorePage() {
     } catch (error) {
       console.error("Failed to go to previous level:", error)
       hapticError()
-      alert("レベル変更に失敗しました")
+      showToast("レベル変更に失敗しました")
     }
   }
 
@@ -891,7 +892,7 @@ export default function StorePage() {
       await setDoc(doc(db, "users", qrPlayer.uid), { joinedStores: arrayUnion(storeId) }, { merge: true })
       await approvePlayer(qrPlayer.uid)
       await loadQrPlayer(qrPlayer.uid)
-    } catch { alert("入店できませんでした") } finally { setQrBusy(false) }
+    } catch { showToast("入店できませんでした") } finally { setQrBusy(false) }
   }
   const qrCheckOut = async () => {
     if (!qrPlayer) return
@@ -899,7 +900,7 @@ export default function StorePage() {
     try {
       await setDoc(doc(db, "users", qrPlayer.uid), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }, { merge: true })
       await loadQrPlayer(qrPlayer.uid)
-    } catch { alert("退店できませんでした") } finally { setQrBusy(false) }
+    } catch { showToast("退店できませんでした") } finally { setQrBusy(false) }
   }
 
   const formatDateTime = (date?: Date | null) => {
@@ -1007,7 +1008,7 @@ export default function StorePage() {
     setTimerGroups(groups)
     if (!storeId) return
     try { await updateDoc(doc(db, "stores", storeId), { timerGroups: groups.map(ids => ({ ids })) }) }
-    catch { alert("合体を保存できませんでした") }
+    catch { showToast("合体を保存できませんでした") }
   }
   const mergeTimers = (sourceKey: string, targetKey: string) => {
     const src = mergeItems.find(i => i.key === sourceKey), dst = mergeItems.find(i => i.key === targetKey)
@@ -1045,8 +1046,8 @@ export default function StorePage() {
 
   // ── 開催中トーナメントのカード(単体) ──
   const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => (
-    <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
-      <div style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
+    <div className="ios-card con-live-panel pc-fill" style={{ overflow: 'hidden' }}>
+      <div className="pc-fill-inner" style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
 
         {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
@@ -1138,8 +1139,8 @@ export default function StorePage() {
           unitBefore={store?.chipUnitBefore !== false}
         />
 
-        {/* Timer controls */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
+        {/* Timer controls(PC で横に並べたとき、カードの下端にそろえる) */}
+        <div className="pc-push-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
           <button className="timer-btn" onClick={() => prevLevel(t.id)}
             style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
           ><FiSkipBack size={17} style={{ color: 'var(--label)' }}/></button>
@@ -1192,8 +1193,8 @@ export default function StorePage() {
     const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
     const smallBtn: React.CSSProperties = { width: 38, height: 38, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
     return (
-      <div className="ios-card con-live-panel" style={{ overflow: 'hidden' }}>
-        <div style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
+      <div className="ios-card con-live-panel pc-fill" style={{ overflow: 'hidden' }}>
+        <div className="pc-fill-inner" style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
             <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)' }}>SPLIT · {ts.length}</p>
             <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -1301,7 +1302,7 @@ export default function StorePage() {
           overflow:hidden;
         }
         .ios-card::before {
-          content:""; position:absolute; top:0; left:0; right:0; height:2px;
+          display:none; /* カード上端の線は禁止(CLAUDE.md・オーナー確定) */ content:""; position:absolute; top:0; left:0; right:0; height:2px;
           background:linear-gradient(90deg,transparent,#F2A900 40%,#FFE07A 50%,#F2A900 60%,transparent);
           opacity:0.55; pointer-events:none;
         }
