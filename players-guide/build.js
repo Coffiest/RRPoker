@@ -61,11 +61,10 @@ const schedule = `
 const blindRows = (t) => {
   let time = t.start, lv = 0;
   return t.levels.map((l) => {
-    if (typeof l === 'string') {
-      const m = Number(l.replace(/\D/g, ''));
-      const rc = l.startsWith('RC');
-      const row = `<tr class="brk ${rc ? 'rc' : ''}"><td>${time}</td><td colspan="4">Break ${m}min${rc ? ' &nbsp;/&nbsp; Registration Close' : ''}</td></tr>`;
-      time = addMin(time, m);
+    if (!Array.isArray(l)) {
+      const extra = [l.rc && 'Registration Close', l.note].filter(Boolean).join(' &nbsp;/&nbsp; ');
+      const row = `<tr class="brk ${l.rc ? 'rc' : ''}"><td>${time}</td><td colspan="4">Break ${l.m}min${extra ? ' &nbsp;/&nbsp; ' + extra : ''}</td></tr>`;
+      time = addMin(time, l.m);
       return row;
     }
     lv++;
@@ -76,10 +75,10 @@ const blindRows = (t) => {
 };
 
 const tPage = (t) => {
-  const rcIdx = t.levels.findIndex((l) => typeof l === 'string' && l.startsWith('RC'));
+  const rcIdx = t.levels.findIndex((l) => !Array.isArray(l) && l.rc);
   let rcTime = t.start;
-  t.levels.slice(0, rcIdx + 1).forEach((l) => { rcTime = addMin(rcTime, typeof l === 'string' ? Number(l.replace(/\D/g, '')) : l[3]); });
-  const dense = t.levels.length > 36 ? 'dense' : '';
+  t.levels.slice(0, rcIdx + 1).forEach((l) => { rcTime = addMin(rcTime, Array.isArray(l) ? l[3] : l.m); });
+  const dense = t.levels.length > 46 ? 'dense xdense' : t.levels.length > 36 ? 'dense' : '';
   return `
 <section class="page">
   ${header(`${t.no} ${t.name}`, `${D.event.dayLabel} ${D.event.dow} ${t.start} START${t.note ? ' &nbsp;/&nbsp; ' + t.note : ''}`)}
@@ -159,6 +158,8 @@ table { border-collapse: collapse; width: 100%; }
 .blind th { background: #fff; color: var(--dark); font-size: 12px; padding: 4px 0; }
 .blind td { text-align: center; font-size: 12.5px; font-weight: 500; padding: 2.6px 0; border: 1px solid rgba(255,255,255,.4); font-variant-numeric: tabular-nums; }
 .blind.dense td { font-size: 11.5px; padding: 1.6px 0; }
+.blind.xdense td { font-size: 10.5px; padding: 0.4px 0; line-height: 1.25; }
+.blind.xdense tr.brk td { padding: 0; font-size: 9.5px; }
 .blind td:first-child { color: var(--cream); width: 16%; }
 .blind td:nth-child(2) { width: 10%; }
 .blind tr.brk td { background: rgba(255,255,255,.18); font-size: 10.5px; letter-spacing: .08em; padding: 1.5px 0; }
