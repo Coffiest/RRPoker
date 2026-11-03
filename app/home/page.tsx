@@ -1658,7 +1658,7 @@ const medalClass = (rank: number) => {
       {/* ヘッダー（変更なし） */}
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
-      <div className="pc-wide pc-dash mx-auto max-w-sm px-4 space-y-5">
+      <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-5${currentStoreId && currentStore ? " pd-checked" : ""}`}>
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
@@ -2482,7 +2482,7 @@ const medalClass = (rank: number) => {
         )}
 
         {/* フッター（バージョン・製作者情報） */}
-        <footer style={{ padding: '24px 0 8px', textAlign: 'center' }}>
+        <footer className="pd-full" style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
           <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.11.0</p>
           <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>

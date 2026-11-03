@@ -1264,3 +1264,16 @@ html.pc .pc-cols2.pc-span-first > :first-child { grid-column: 1 / -1 }
 html.pc .store-mypage .pc-cols2 { display: grid }
 html.pc .store-mypage .sm-col { display: flex; flex-direction: column; gap: 24px }
 html.pc .store-mypage .sm-col > * { margin-top: 0 !important }
+
+/* プレイヤーホーム(PC・入店中)。以前は 2 列に順番に流しただけで、背の高い「進行中のトナメ」と
+   短いカードが同じ段に並び、大きな空白ができていた。
+   左の列: 進行中のトナメ(タイマーを 2 列に並べる)。右の列: 入店中の店舗・バンクロール・グラフ・ランキング。
+   左の列は右の列の段をまとめてまたぐ。段の間の隙間(row-gap)を 0 にして余白はカードの下に付け、
+   またいだ空の段が隙間を作らないようにする。 */
+html.pc .pc-dash.pd-checked { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); row-gap: 0 }
+html.pc .pc-dash.pd-checked > * { grid-column: 2; margin-bottom: 24px !important }
+html.pc .pc-dash.pd-checked > :first-child,
+html.pc .pc-dash.pd-checked > .pd-full { grid-column: 1 / -1 }
+html.pc .pc-dash.pd-checked > .pd-live { grid-column: 1; grid-row: 2 / span 12 }
+html.pc .pc-dash .pd-live-list { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px !important }
+html.pc .pc-dash > .pd-full { grid-column: 1 / -1 }
