@@ -11,6 +11,8 @@ import { doc, getDoc, updateDoc, onSnapshot, collection } from "firebase/firesto
 import { createPortal } from "react-dom"
 import { computeLiveLevelState } from "@/lib/timerCompute"
 import { hasWaiting, keepWaiting, levelNumberAt } from "@/lib/waitingLevel"
+import { resolveTimerTheme } from "@/lib/timerTheme"
+import { syncPresetToTournaments } from "@/lib/presetSync"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
@@ -245,6 +247,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     if (!storeId) { showToast("店舗IDが取得できません"); return }
     if (editingPresetId) {
       await updateDoc(doc(db, "stores", storeId, "blindPresets", editingPresetId), { name: presetName, levels })
+      // このプリセットを選んでいる大会の表もすぐ同じにする(lib/presetSync.ts)
+      await syncPresetToTournaments(storeId, editingPresetId, levels).catch(e => console.error("preset sync failed", e))
     } else {
       await addDoc(collection(db, "stores", storeId, "blindPresets"), { name: presetName, levels, createdAt: new Date() })
     }
@@ -258,19 +262,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     const unsub = onSnapshot(collection(db, "stores", storeId, "blindPresets"), (snap) => {
       const presets = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       setBlindPresets(presets)
-      const current = selectedPresetRef.current
-      if (!current) return
-      const updated = presets.find((p: any) => p.id === current) as any
-      if (!updated || !Array.isArray(updated.levels) || updated.levels.length === 0) return
-      // 進行中の表に「Waiting for start」があれば残す(消すとレベルの位置がずれる)
-      const newLevels = keepWaiting(levelsToUseRef.current, updated.levels as Level[]) as Level[]
-      setCustomBlindLevels(newLevels)
-      // tournament doc を更新: 現在レベルの時間も新しい設定値にリセット
-      const levelIdx = currentLevelIndexRef.current
-      const newDur = newLevels[levelIdx]?.duration
-      const update: Record<string, any> = { customBlindLevels: newLevels }
-      if (typeof newDur === "number" && newDur > 0) update.timeRemaining = newDur * 60
-      if (!viewOnly) void updateDoc(doc(db, "stores", storeId, "tournaments", tournamentId), update)
+      // プリセットの変更を大会の表へ反映するのは、保存した側(lib/presetSync.ts)が行う。
+      // ここで書き換えると、Adjust で個別に変えた大会まで上書きし、残り時間も最初に戻してしまっていた。
+      // 大会の表が変われば、下の大会の購読で画面もすぐ変わる。
     })
     return () => unsub()
   }, [storeId])
@@ -301,6 +295,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       if (typeof d.selectedPreset === "string") setSelectedPreset(d.selectedPreset)
       if (Array.isArray(d.customBlindLevels)) setCustomBlindLevels(d.customBlindLevels)
       if (typeof d.blindPresetId === "string") setTournamentBlindPresetId(d.blindPresetId)
+      // 背景(lib/timerTheme.ts)。選んでいなければ店舗のデフォルト
+      setTimerBg(typeof d.timerBg === "string" ? d.timerBg : null)
+      setTimerBgImage(typeof d.timerBgImage === "string" ? d.timerBgImage : null)
       // When levelStartedAt changes, snapshot levelStartedRemaining at that instant.
       // This makes the display immune to any external writes to timeRemaining during running.
       const newLsAtMs = d.levelStartedAt?.toMillis?.() ?? null
@@ -315,6 +312,36 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     })
     return () => unsub()
   }, [storeId, tournamentId])
+
+  // ── 背景(lib/timerTheme.ts)─────────────────────────────────────────────────
+  const [timerBg, setTimerBg] = useState<string | null>(null)
+  const [timerBgImage, setTimerBgImage] = useState<string | null>(null)
+  const [storeBgDefault, setStoreBgDefault] = useState<string | null>(null)
+  const [storeOwnerUid, setStoreOwnerUid] = useState<string | null>(null)
+  const [defaultBgImage, setDefaultBgImage] = useState<string | null>(null)
+  useEffect(() => {
+    if (!storeId) return
+    return onSnapshot(doc(db, "stores", storeId), snap => {
+      const d = snap.data()
+      setStoreBgDefault(typeof d?.timerBgDefault === "string" ? d.timerBgDefault : null)
+      setStoreOwnerUid(typeof d?.ownerUid === "string" ? d.ownerUid : null)
+    }, () => {})
+  }, [storeId])
+  // 店舗のデフォルトが画像のときだけ、画像を読む(大きいので店舗の文書ではなくオーナーの文書に置いている)
+  const needDefaultImage = !timerBg && storeBgDefault === "image"
+  useEffect(() => {
+    if (!needDefaultImage || !storeOwnerUid) return
+    return onSnapshot(doc(db, "users", storeOwnerUid), snap => {
+      const v = snap.data()?.timerBgDefaultImage
+      setDefaultBgImage(typeof v === "string" ? v : null)
+    }, () => {})
+  }, [needDefaultImage, storeOwnerUid])
+  const theme = resolveTimerTheme(timerBg, storeBgDefault)
+  const bgImage = theme.id === "image" ? (timerBg === "image" ? timerBgImage : defaultBgImage) : null
+  const themeStyle: React.CSSProperties = {
+    background: bgImage ? `#1C1C1E url("${bgImage}") center / cover no-repeat` : theme.bg,
+    ["--tt-fg" as string]: theme.fg, ["--tt-sub" as string]: theme.sub, ["--tt-accent" as string]: theme.accent,
+  } as React.CSSProperties
 
   // ── Timer actions ────────────────────────────────────────────────────────
   const updatePrize = async (place: string, value: any) => {
@@ -486,9 +513,9 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
   // ════════════════════════════════════════════════════════════════════════
   return (
-    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: "#fff" }} onClick={unlockAudio} onTouchStart={unlockAudio}>
+    <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: bgImage ? "#1C1C1E" : theme.bg }} onClick={unlockAudio} onTouchStart={unlockAudio}>
       <div style={{ width: DESIGN_W, height: DESIGN_H, marginLeft: scaleOffset.x, marginTop: scaleOffset.y, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-      <main className="overflow-hidden relative" style={{ background: "#fff", width: DESIGN_W, height: DESIGN_H }}>
+      <main className={`overflow-hidden relative${theme.dark ? " tt-dark" : ""}${theme.id === "image" ? " tt-image" : ""}`} style={{ ...themeStyle, width: DESIGN_W, height: DESIGN_H }}>
         {/* 方眼の下地。投影時に計器盤らしい奥行きを与える */}
         <div className="tech-grid" aria-hidden style={{ position: "absolute", inset: 0, opacity: 0.5, pointerEvents: "none", backgroundSize: "48px 48px" }} />
         <style>{`

@@ -1,5 +1,6 @@
 "use client"
 
+import TimerBgDefaultSetting from "@/components/TimerBgDefaultSetting"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
@@ -545,7 +546,7 @@ export default function StoreSettingsPage() {
                   className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
                   style={{
                     background: language === opt.v ? CLR.gold : CLR.surface,
-                    color: language === opt.v ? CLR.ink : CLR.gray2,
+                    color: language === opt.v ? '#fff' : CLR.gray2, /* 金の面の上の文字は白(CLAUDE.md) */
                     border: `1.5px solid ${language === opt.v ? CLR.goldDk : CLR.border}`,
                   }}
                 >
@@ -554,6 +555,14 @@ export default function StoreSettingsPage() {
               ))}
             </div>
           </SectionCard>
+
+          {/* ── タイマーの背景(デフォルト)。背景を選んでいない大会はこれで始まる ── */}
+          {storeId && (
+            <SectionCard>
+              <SectionTitle title="タイマーの背景" subtitle="大会ごとに選んでいないときの背景です。店舗ホームのタイマーのペイントボタンから大会ごとに変えられます" />
+              <TimerBgDefaultSetting storeId={storeId} />
+            </SectionCard>
+          )}
 
           {/* ── プライバシー ── */}
           <SectionCard>
