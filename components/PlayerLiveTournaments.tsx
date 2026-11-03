@@ -33,7 +33,7 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
 
   return (
     <div
-      className="section-card home-boot"
+      className="section-card home-boot pd-live"
       style={{ marginTop: 20, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -46,7 +46,7 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
         </span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="pd-live-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {tournaments.map(t => (
           <div key={t.id}>
             {/* 店舗のタイマー画面(1440×900)を、幅に合わせてそのまま縮める */}
