@@ -18,6 +18,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders })
   }
 
+  // TVと連携は店舗アカウントだけ(プレイヤーの端末からは連携させない)。
+  const role = (await adminDb.doc(`users/${uid}`).get()).data()?.role
+  if (role !== "store") {
+    return NextResponse.json({ error: "TVと連携は店舗アカウントだけが使えます" }, { status: 403, headers: corsHeaders })
+  }
+
   const { code } = await req.json()
   if (!code) return NextResponse.json({ error: "code is required" }, { status: 400, headers: corsHeaders })
 

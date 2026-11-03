@@ -1148,6 +1148,11 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
 .pc-only { display: none !important }
 html.pc .pc-only { display: flex !important }
 html.pc .pc-hide { display: none !important }
+/* PC 版だけに出すもの(店舗ホームの TIMER / TIMER · SPLIT)。スマホでは隠す。 */
+html:not(.pc) .pc-show { display: none !important }
+/* スマホでは TIMER が無いので、残り 3 つのうち最後(PAY OUT)を横いっぱいにして段を揃える。 */
+html:not(.pc) .tc-actions > :last-child { grid-column: 1 / -1 }
+html:not(.pc) .tc-split-row { justify-content: center }
 
 html.pc .pc-shell { padding-left: 248px }
 
@@ -1217,3 +1222,21 @@ html.pc .pc-dash > :first-child { grid-column: 1 / -1 }
 
 /* フッターが無いので、下の余白(フッターの逃げ)を減らす。 */
 html.pc .pc-shell main { padding-bottom: 48px !important }
+
+/* トーナメント一覧(店舗の「+」の画面)は PC で 2 列に並べる。中身のデザインは変えない。 */
+html.pc .pc-list-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px !important;
+  align-items: start;
+}
+
+/* 店舗の設定・マイページは、カードを PC で 2 列に並べる。見出し(最初の要素)は横いっぱい。 */
+html.pc .pc-cols2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+html.pc .pc-cols2 > * { margin-top: 0 !important; margin-bottom: 0 !important }
+html.pc .pc-cols2.pc-span-first > :first-child { grid-column: 1 / -1 }

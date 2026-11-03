@@ -3,9 +3,10 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
 import HomeHeader from '@/components/HomeHeader'
-import PlayerBottomNav from '@/components/PlayerBottomNav'
+import StoreBottomNav from '@/components/StoreBottomNav'
 import { getCommonMenuItems } from '@/components/commonMenuItems'
 
 const COLORS = {
@@ -60,10 +61,19 @@ function PairPageInner() {
     }
   }
 
+  // TVと連携は店舗アカウントだけ。以前はプレイヤーの画面(ヘッダー・フッター)で開いていたため、
+  // 店舗がここから戻るとプレイヤーのホームに入ってしまっていた。店舗でなければプレイヤーのホームへ戻す。
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, () => setAuthReady(true))
+    const unsub = onAuthStateChanged(auth, async user => {
+      if (!user) { setAuthReady(true); return }
+      try {
+        const role = (await getDoc(doc(db, 'users', user.uid))).data()?.role
+        if (role !== 'store') { router.replace('/home'); return }
+      } catch { router.replace('/home'); return }
+      setAuthReady(true)
+    })
     return unsub
-  }, [])
+  }, [router])
 
   // QRコード経由（?code=）でアクセスした場合はログイン確認後に自動送信
   useEffect(() => {
@@ -78,9 +88,10 @@ function PairPageInner() {
   return (
     <div style={{ minHeight: '100vh', background: "transparent", display: 'flex', flexDirection: 'column' }}>
       <HomeHeader
-        homePath="/home"
-        myPagePath="/home/mypage"
-        menuItems={getCommonMenuItems(router, 'user')}
+        homePath="/home/store"
+        myPagePath="/home/store/mypage"
+        variant="store"
+        menuItems={getCommonMenuItems(router, 'store')}
       />
       <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div className="pc-form" style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
@@ -160,7 +171,7 @@ function PairPageInner() {
           )}
         </div>
       </div>
-      <PlayerBottomNav />
+      <StoreBottomNav />
     </div>
   )
 }
