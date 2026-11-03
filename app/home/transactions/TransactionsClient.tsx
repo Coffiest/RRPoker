@@ -326,7 +326,7 @@ export default function TransactionsClient() {
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
-      <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 16px' }}>
+      <div className="pc-page" style={{ maxWidth: 390, margin: '0 auto', padding: '0 16px' }}>
 
         {/* Header row */}
         <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 20 }}>

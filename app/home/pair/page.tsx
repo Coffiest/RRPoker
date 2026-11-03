@@ -83,7 +83,7 @@ function PairPageInner() {
         menuItems={getCommonMenuItems(router, 'user')}
       />
       <div style={{ flex: 1, padding: '24px 20px 100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
+        <div className="pc-form" style={{ width: '100%', maxWidth: 420, marginTop: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 6 }}>
             <span className="tech-status-dot" />
             <span className="tech-label" style={{ color: 'var(--label3)' }}>DEVICE LINK</span>

@@ -509,7 +509,7 @@ export default function MyPage() {
         </div>
       )}
 
-      <div style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
+      <div className="pc-page" style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
 
         {/* ── プロフィールカード ── */}
         <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>

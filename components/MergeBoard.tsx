@@ -142,7 +142,7 @@ export default function MergeBoard({ items, editing, setEditing, onMerge, render
   }, [editing, items, hitTest, onMerge])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="pc-card-grid" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {items.map((item, i) => {
         const isDrag = dragKey === item.key
         const isTarget = target === item.key

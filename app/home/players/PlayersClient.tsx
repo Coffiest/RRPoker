@@ -71,7 +71,7 @@ export default function Page() {
         myPagePath="/home/mypage"
         menuItems={getCommonMenuItems(router, 'user')}
       />
-      <div className="mx-auto max-w-sm">
+      <div className="pc-page mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
           <h1 className="text-[22px] font-semibold text-gray-900">入店中プレイヤー</h1>
         </div>

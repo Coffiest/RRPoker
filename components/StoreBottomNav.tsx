@@ -60,7 +60,7 @@ export default function StoreBottomNav() {
   })
 
   return (
-    <nav className="fixed bottom-5 left-4 right-4 z-[80]">
+    <nav className="pc-hide fixed bottom-5 left-4 right-4 z-[80]">
       <div
         className="mx-auto max-w-sm relative grid grid-cols-3 items-center"
         style={{ ...GLASS, padding: '12px 28px' }}

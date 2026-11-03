@@ -310,7 +310,7 @@ export default function HomeHeader({
 		<GrantAccessSheet open={grantOpen} onClose={() => setGrantOpen(false)} uid={me?.uid ?? null} />
 		<ManageAccessSheet open={manageOpen} onClose={() => setManageOpen(false)} storeId={me?.storeId ?? null} />
 		<StoreChooserSheet open={chooserOpen} onClose={() => setChooserOpen(false)} stores={managedStores} onPick={id => void openStore(id)} />
-			<div className="mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
+			<div className="pc-header-inner mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
 				<button
 					type="button"
 					onClick={() => router.push(homePath)}

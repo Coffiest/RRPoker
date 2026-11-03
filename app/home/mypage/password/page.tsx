@@ -49,7 +49,7 @@ export default function PasswordChangePage() {
   return (
     <main className="min-h-screen px-5">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
-      <div className="mx-auto max-w-sm">
+      <div className="pc-form mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
           <h1 className="text-[22px] font-semibold text-gray-900">パスワード変更</h1>
         </div>

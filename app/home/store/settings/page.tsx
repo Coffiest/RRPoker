@@ -518,7 +518,7 @@ export default function StoreSettingsPage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="mx-auto max-w-sm px-5">
+      <div className="pc-page mx-auto max-w-sm px-5">
         <button
           type="button"
           onClick={() => router.push("/home/store")}

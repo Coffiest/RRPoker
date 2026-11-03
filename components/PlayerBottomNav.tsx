@@ -171,7 +171,7 @@ export default function PlayerBottomNav() {
         左右の余白は EDGE_PADDING に加えてノッチぶん(safe-area)も足す。横向きや
         パンチホールのある端末で縁に食い込ませないため。
       */}
-      <nav style={{
+      <nav className="pc-hide" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 80,
         transform: 'translateZ(0)',
         willChange: 'transform',

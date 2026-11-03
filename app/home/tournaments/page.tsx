@@ -273,7 +273,7 @@ export default function TournamentHistoryPage() {
         .tour-card-tap:active { transform: scale(0.98); }
       `}</style>
 
-      <div className="mx-auto max-w-sm">
+      <div className="pc-page mx-auto max-w-sm">
         {/* Header */}
         <div className="flex items-center justify-between pt-6 mb-6">
           <button onClick={() => router.back()}

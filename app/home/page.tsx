@@ -1657,7 +1657,7 @@ const medalClass = (rank: number) => {
       {/* ヘッダー（変更なし） */}
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
-      <div className="mx-auto max-w-sm px-4 space-y-5">
+      <div className="pc-wide pc-dash mx-auto max-w-sm px-4 space-y-5">
 
         {/* ════ 統合カード（常時表示） ════ */}
         <div className={`mt-6 section-card home-boot${showStatsDelta ? ' delta-glow' : ''}`} style={{ padding: 0, overflow: 'hidden', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
