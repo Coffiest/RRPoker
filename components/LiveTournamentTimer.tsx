@@ -53,6 +53,10 @@ export type LiveTournament = {
   levelStartedAtMs: number | null
   levelStartedRemaining: number | null
   customBlindLevels: TimerLevel[] | null
+  /** RC 時刻・終了予定の計算用(lib/endEstimate.ts の tournamentClocks) */
+  date?: string
+  startTime?: string
+  blindPresetId?: string
 }
 
 /** Firestore のトーナメント文書を、画面が使う形へそろえる。 */
@@ -64,6 +68,9 @@ export function toLiveTournament(id: string, data: Record<string, any>): LiveTou
     id,
     name: data.name ?? '',
     status: data.status ?? 'scheduled',
+    date: typeof data.date === 'string' ? data.date : undefined,
+    startTime: typeof data.startTime === 'string' ? data.startTime : undefined,
+    blindPresetId: typeof data.blindPresetId === 'string' ? data.blindPresetId : undefined,
     entry,
     reentry,
     addon,

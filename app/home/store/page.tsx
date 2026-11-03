@@ -11,7 +11,7 @@ import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { isNativeApp } from "@/lib/platform"
 import { nextTemplateBlind } from "@/lib/blindTemplate"
-import { endClock } from "@/lib/endEstimate"
+import { tournamentClocks, endClock } from "@/lib/endEstimate"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -1040,9 +1040,15 @@ export default function StorePage() {
     if (!pr || !Array.isArray(pr.levels)) return null
     return endClock(t.date, t.startTime, pr.levels, pr.startStack, pr.players)
   }
-  const EndBadge = ({ t }: { t: any }) => endOf(t)
-    ? <p className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--label3)', margin: '-4px 0 8px' }}><FiFlag size={11} /> 終了予定 {endOf(t)}</p>
+  // RC 時刻(RC ブレイクが終わった瞬間)。終了予定の左隣に出す(オーナー指定)
+  const rcOf = (t: any) => tournamentClocks(t, presetMap[t.blindPresetId]).rc
+  const ClockLine = ({ t, style }: { t: any; style: React.CSSProperties }) => (endOf(t) || rcOf(t))
+    ? <p className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontSize: 10, color: 'var(--label3)', ...style }}>
+        {rcOf(t) && <span style={{ fontWeight: 700, color: '#D4910A', marginRight: 8 }}>RC {rcOf(t)}</span>}
+        {endOf(t) && <><FiFlag size={11} /> 終了予定 {endOf(t)}</>}
+      </p>
     : null
+  const EndBadge = ({ t }: { t: any }) => <ClockLine t={t} style={{ margin: '-4px 0 8px' }} />
 
   // ── 開催中トーナメントのカード(単体) ──
   const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => (
@@ -1221,7 +1227,7 @@ export default function StorePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
               <div key={t.id} style={{ padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
-              {endOf(t) && <p className="con-mono" style={{ fontSize: 10, color: 'var(--label3)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 4 }}><FiFlag size={11} /> 終了予定 {endOf(t)}</p>}
+              <ClockLine t={t} style={{ margin: '0 0 4px' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>

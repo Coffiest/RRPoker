@@ -23,3 +23,19 @@ describe("終了予定", () => {
     expect(endClock("2026-11-02", "23:30", ls, 100, 5)).toBe("翌00:40")
   })
 })
+
+import { rcClock, rcBreakIndex } from '../lib/endEstimate'
+describe('rcClock', () => {
+  const lv = (d: number) => ({ type: 'level', bigBlind: 2, duration: d })
+  it('RC ブレイクが終わった瞬間を締め切りにする', () => {
+    const ls = [lv(20), lv(20), { type: 'break', duration: 5, rc: true }, lv(10)]
+    expect(rcBreakIndex(ls)).toBe(2)
+    expect(rcClock('19:00', ls)).toBe('19:45')
+  })
+  it('RC ブレイクが無ければ出さない', () => {
+    expect(rcClock('19:00', [lv(20), { type: 'break', duration: 5 }])).toBeNull()
+  })
+  it('日をまたぐ', () => {
+    expect(rcClock('23:30', [lv(30), { type: 'break', duration: 10, rc: true }])).toBe('翌00:10')
+  })
+})

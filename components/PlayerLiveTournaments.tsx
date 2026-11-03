@@ -1,7 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { FiList } from 'react-icons/fi'
+import { useEffect, useState } from 'react'
+import { collection, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { tournamentClocks } from '@/lib/endEstimate'
+import { FiList, FiCopy } from 'react-icons/fi'
+import { blindsToText, copyText } from '@/lib/blindText'
+import { showToast } from '@/lib/toast'
 import AppleSheet from '@/components/AppleSheet'
 import { useLiveTournaments, type LiveTournament } from '@/components/LiveTournamentTimer'
 import { computeLiveLevelState, type TimerLevel } from '@/lib/timerCompute'
@@ -28,6 +33,13 @@ const DESIGN_H = 900
 export default function PlayerLiveTournaments({ storeId }: Props) {
   const tournaments = useLiveTournaments(storeId)
   const [blindsOf, setBlindsOf] = useState<LiveTournament | null>(null)
+  // RC 時刻・終了予定(オーナー指定)。店舗のブラインドのプリセットから計算する(読むだけ)
+  const [presets, setPresets] = useState<Record<string, any>>({})
+  useEffect(() => {
+    return onSnapshot(collection(db, 'stores', storeId, 'blindPresets'), snap => {
+      const m: Record<string, any> = {}; snap.forEach(d => { m[d.id] = d.data() }); setPresets(m)
+    }, () => {})
+  }, [storeId])
 
   if (tournaments.length === 0) return null
 
@@ -47,8 +59,17 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
       </div>
 
       <div className="pd-live-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {tournaments.map(t => (
+        {tournaments.map(t => {
+          const clk = tournamentClocks(t, t.blindPresetId ? presets[t.blindPresetId] : null)
+          return (
           <div key={t.id}>
+            {(clk.rc || clk.end) && (
+              <p className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 11, color: 'var(--label2)', margin: '0 0 8px' }}>
+                <span style={{ fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{t.name}</span>
+                {clk.rc && <span style={{ fontWeight: 700, color: '#D4910A' }}>RC {clk.rc}</span>}
+                {clk.end && <span>終了予定 {clk.end}</span>}
+              </p>
+            )}
             {/* 店舗のタイマー画面(1440×900)を、幅に合わせてそのまま縮める */}
             <div style={{ position: 'relative', width: '100%', aspectRatio: `${DESIGN_W} / ${DESIGN_H}`, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff' }}>
               <iframe
@@ -71,7 +92,8 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
               <FiList size={14} /> BLINDS
             </button>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       <AppleSheet open={blindsOf !== null} onClose={() => setBlindsOf(null)} zIndex={1300}
@@ -93,6 +115,13 @@ function BlindList({ t }: { t: LiveTournament }) {
   let lv = 0
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 16 }}>
+      {/* テキストでコピー(オーナー指定)。見るだけの機能で、大会には何も書き込まない */}
+      <button type="button"
+        onClick={async () => { const ok = await copyText(blindsToText(t.name ?? '', levels)); showToast(ok ? 'ブラインドをコピーしました' : 'コピーできませんでした', ok ? 'ok' : 'error') }}
+        className="gl-press"
+        style={{ alignSelf: 'flex-end', minHeight: 44, padding: '0 16px', marginBottom: 8, borderRadius: 12, border: '1px solid var(--sep)', background: '#fff', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--label)', cursor: 'pointer' }}>
+        <FiCopy size={14} /> COPY TEXT
+      </button>
       {levels.map((l, i) => {
         const isBreak = l.type === 'break'
         if (!isBreak) lv++
