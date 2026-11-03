@@ -518,7 +518,7 @@ export default function StoreSettingsPage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="pc-page mx-auto max-w-sm px-5">
+      <div className="pc-wide mx-auto max-w-sm px-5">
         <button
           type="button"
           onClick={() => router.push("/home/store")}
@@ -531,7 +531,7 @@ export default function StoreSettingsPage() {
 
         <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
-        <div className="mt-6 space-y-4">
+        <div className="pc-cols2 mt-6 space-y-4">
 
           {/* ── 表示言語 ── */}
           <SectionCard>

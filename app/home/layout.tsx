@@ -35,7 +35,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   // タイマー画面は全画面で使うので出さない。店舗の画面かどうかはパスで決める。
   const isTimer = pathname.startsWith('/home/store/timer')
   if (isTimer) return <div className="a-app-bg">{children}</div>
-  const variant = pathname.startsWith('/home/store') ? 'store' : 'player'
+  // TVと連携(/home/pair)は店舗だけの画面なので、店舗のメニューを出す。
+  const variant = pathname.startsWith('/home/store') || pathname.startsWith('/home/pair') ? 'store' : 'player'
   return (
     <div className="a-app-bg pc-shell">
       <PcSidebar variant={variant} />

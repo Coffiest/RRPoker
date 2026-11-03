@@ -1112,8 +1112,9 @@ export default function StorePage() {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
-          <button className="action-btn btn-gold" onClick={() => openTimer(t.id)}>
+        <div className="tc-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+          {/* TIMER(タイマー画面を開く)は PC 版だけ。スマホは下の拡大ボタンを使う(オーナー指定)。 */}
+          <button className="action-btn btn-gold pc-show" onClick={() => openTimer(t.id)}>
             <FiClock size={14}/> Timer
           </button>
           <button className="action-btn btn-gold" onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, t.customBlindLevels)}>
@@ -1153,7 +1154,8 @@ export default function StorePage() {
             style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
           ><FiSkipForward size={17} style={{ color: 'var(--label)' }}/></button>
 
-          <button className="timer-btn" onClick={() => setExpandedTimerId(t.id)}
+          {/* 拡大はスマホ版だけ。PC 版は上の TIMER を使う(オーナー指定)。 */}
+          <button className="timer-btn pc-hide" aria-label="タイマーを拡大表示" onClick={() => setExpandedTimerId(t.id)}
             style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
           ><FiMaximize2 size={16} style={{ color: 'var(--label)' }}/></button>
         </div>
@@ -1206,11 +1208,12 @@ export default function StorePage() {
               style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
           </div>
           {/* 合体したタイマーの拡大は、ここの 1 つだけ(分割のまま全画面で見る) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <button className="action-btn btn-gold" style={{ flex: 1, minWidth: 0 }} onClick={() => openSplit(ts.map(t => t.id))}>
+          {/* TIMER · SPLIT は PC 版だけ、拡大ボタンはスマホ版だけ(オーナー指定)。 */}
+          <div className="tc-split-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <button className="action-btn btn-gold pc-show" style={{ flex: 1, minWidth: 0 }} onClick={() => openSplit(ts.map(t => t.id))}>
               <FiClock size={15}/> TIMER · SPLIT
             </button>
-            <button className="timer-btn" aria-label="分割タイマーを拡大表示" onClick={() => { setExpandSplitCtrl(true); setExpandedSplitIds(ts.map(t => t.id)) }}
+            <button className="timer-btn pc-hide" aria-label="分割タイマーを拡大表示" onClick={() => { setExpandSplitCtrl(true); setExpandedSplitIds(ts.map(t => t.id)) }}
               style={{ ...smallBtn, width: 44, height: 44 }}><FiMaximize2 size={16} style={{ color: 'var(--label)' }}/></button>
           </div>
           {/* トーナメントごとの操作 */}

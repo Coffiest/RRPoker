@@ -480,7 +480,7 @@ export default function TournamentsPage() {
 
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
+      <div className="pc-page" style={{ maxWidth: 560, margin: '0 auto', padding: '0 16px' }}>
 
         {/* 大見出し + 主な操作 */}
         <header style={{ padding: '16px 0 24px' }}>
@@ -504,7 +504,7 @@ export default function TournamentsPage() {
             body="「トーナメントを作成」から追加できます。"
           />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+          <div className="pc-list-grid" style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
             {currentTournaments.map(t => {
               const c = countsOf(t.id)
               const isActive = t.status === "active"
@@ -584,7 +584,7 @@ export default function TournamentsPage() {
             {tabHistory.length === 0 ? (
               <EmptyCard icon={<SearchIcon size={32} />} title={historySearch ? "見つかりませんでした" : "終了したトーナメントはまだありません"} />
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div className="pc-list-grid" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {tabHistory.map(t => {
                   const c = countsOf(t.id)
                   const players = (entriesMap[t.id] ?? []).filter((e: any) => (e.entryCount ?? 0) > 0 || (e.reentryCount ?? 0) > 0 || (e.addonCount ?? 0) > 0)
