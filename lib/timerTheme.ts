@@ -9,7 +9,7 @@
  */
 
 export type TimerBgId =
-  | 'white' | 'spacegray' | 'midnight' | 'navy' | 'alpine' | 'teal' | 'burgundy' | 'purple' | 'brown' | 'slate'
+  | 'white' | 'orange' | 'midnight' | 'navy' | 'alpine' | 'teal' | 'burgundy' | 'purple' | 'brown' | 'slate'
 
 export type TimerTheme = {
   id: TimerBgId | 'image'
@@ -28,7 +28,8 @@ const DARK = { dark: true, fg: '#FFFFFF', sub: '#E5E5EA', accent: '#F7CF6A' } //
 
 export const TIMER_COLORS: TimerTheme[] = [
   { id: 'white', label: 'ホワイト', bg: '#FFFFFF', dark: false, fg: '#1C1C1E', sub: '#545458', accent: '#C8820A' },
-  { id: 'spacegray', label: 'スペースグレイ', bg: '#3A3A3C', ...DARK },
+  // スペースグレイの代わり(オーナー指定・2026-11-03)。白・灰・金の文字がどれも 5:1 以上で読める焦げたオレンジ
+  { id: 'orange', label: 'オレンジ', bg: '#8A3B12', ...DARK },
   { id: 'midnight', label: 'ミッドナイト', bg: '#1E2A3A', ...DARK },
   { id: 'navy', label: 'ネイビー', bg: '#1F3A5F', ...DARK },
   { id: 'alpine', label: 'アルパイングリーン', bg: '#2E4D3A', ...DARK },
@@ -43,7 +44,9 @@ export const IMAGE_THEME: TimerTheme = { id: 'image', label: '画像', bg: '#1C1
 
 /** 大会の選択 → 店舗のデフォルト → 白 の順に決める。 */
 export function resolveTimerTheme(tournamentBg?: string | null, storeDefault?: string | null): TimerTheme {
-  const pick = tournamentBg || storeDefault || 'white'
+  // 以前のスペースグレイ(spacegray)を選んでいた大会・店舗はオレンジにする
+  const raw = tournamentBg || storeDefault || 'white'
+  const pick = raw === 'spacegray' ? 'orange' : raw
   if (pick === 'image') return IMAGE_THEME
   return TIMER_COLORS.find(c => c.id === pick) ?? TIMER_COLORS[0]
 }

@@ -93,4 +93,4 @@
 
 - ブラインドのプリセットを保存したら、そのプリセットを選んでいる終わっていない大会の表(`customBlindLevels`)をすぐ同じにする(`lib/presetSync.ts`)。Adjust でその大会だけ変えた大会(`blindsCustomized`)は変えない。いま動いているレベルの残り時間はそのまま。大会の編集でプリセットを選び直したら、表もそのプリセットにする。
 - Adjust は AppleSheet(幅 640・高さ 94%)と `BlindLevelEditor` で、プリセット作成と同じ見た目・使い方。
-- タイマーの背景は白+濃い 9 色+任意の画像(`lib/timerTheme.ts`)。大会ごとに `timerBg`(画像は `timerBgImage`)、選んでいなければ店舗のデフォルト(`stores.timerBgDefault`。画像はオーナーの `users.timerBgDefaultImage`)。店舗ホームのタイマーのプレビューの上の丸いペイントボタンで選び、設定画面でデフォルトを決める。タイマー画面(店舗・TV・分割・プレイヤーの埋め込み)すべてに出る。濃い色・画像では文字の色を `.tt-dark` / `.tt-image` で差し替える。
+- タイマーの背景は白+濃い 9 色(オレンジ・ミッドナイト・ネイビー・アルパイングリーン・ティール・バーガンディ・ディープパープル・ブラウン・スレート)+任意の画像(`lib/timerTheme.ts`)。大会ごとに `timerBg`(画像は `timerBgImage`)、選んでいなければ店舗のデフォルト(`stores.timerBgDefault`。画像はオーナーの `users.timerBgDefaultImage`)。店舗ホームのタイマーのプレビューの上の丸いペイントボタンで選び、設定画面でデフォルトを決める。タイマー画面(店舗・TV・分割・プレイヤーの埋め込み)すべてに出る。濃い色・画像では文字の色を `.tt-dark` / `.tt-image` で差し替える。

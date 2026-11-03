@@ -27,6 +27,8 @@ export function TimerBgSwatches({ value, onPick, onImage, busy, defaultLabel }: 
   defaultLabel?: string
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
+  // 以前のスペースグレイはオレンジとして選択中に見せる(lib/timerTheme.ts)
+  if (value === 'spacegray') value = 'orange'
   const sw = (key: string, selected: boolean, onClick: () => void, inner: React.ReactNode, bg: string, label: string) => (
     <button key={key} type="button" onClick={onClick} aria-label={label} aria-pressed={selected} title={label}
       style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minHeight: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
