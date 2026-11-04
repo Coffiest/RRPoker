@@ -4,6 +4,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 const D = require('./data');
 
+const QR = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, D.event.app.qr)).toString('base64');
 const n = (v) => v.toLocaleString('en-US');
 const yen = (v) => '¥' + n(v);
 const addMin = (t, m) => {
@@ -53,6 +54,13 @@ const schedule = `
     <tbody>${D.schedule.map((r) => `<tr class="${r.main ? 'hl' : ''}"><td>${r.start}</td><td>${r.close}</td><td>${r.no}</td><td class="nm">${r.name}</td><td>${r.entry}${r.note ? `<small class="cap">${r.note}</small>` : ''}</td><td>${r.stack}</td></tr>`).join('')}</tbody>
   </table>
   <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <div class="notice">
+    <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>¥${n(D.event.facilityFee)}</b> をいただきます(参加費とは別)。</div>
+    <div class="app">
+      <img src="${QR}" alt="">
+      <div><span class="pill">APP</span><b>${D.event.app.name}</b> の登録が必須です。<br><small>当日スムーズに参加できるよう、事前に登録をお済ませください。</small><span class="url">${D.event.app.url}</span></div>
+    </div>
+  </div>
   <div class="venue-box">
     <div><span class="pill">VENUE</span><b>${D.event.venue}</b><small>${D.event.address}</small></div>
   </div>
@@ -99,7 +107,7 @@ const tPage = (t) => {
         <tr><th>Total</th><td>${yen(t.prize.total)}</td></tr>
         <tr><th>In Money</th><td>${t.prize.inMoney}${['', 'st', 'nd', 'rd'][t.prize.inMoney] || 'th'}</td></tr>
       </table>
-      <table class="places">${t.prize.places.map((p) => `<tr><th>${p[0]}</th><td>${p[1].replace(/PokerART Platinum 1ヶ月/, '<span class="plat">PokerART Platinum 1ヶ月</span>')}${p[2] ? '<span class="tro">+ Trophy</span>' : ''}</td></tr>`).join('')}</table>
+      <table class="places">${t.prize.places.map((p) => `<tr><th>${p[0]}</th><td>${p[1].replace(/PokerART Platinum 1ヶ月/, '<span class="plat">PokerART Platinum 1ヶ月</span>')}${p[2] ? '<span class="tro">+ Trophy</span>' : ''}${(p[3] || []).map((x) => `<span class="tkt">+ ${x}</span>`).join('')}</td></tr>`).join('')}</table>
     </aside>
   </div>
 </section>`;
@@ -151,6 +159,13 @@ table { border-collapse: collapse; width: 100%; }
 .max small { display: block; font-family: 'Noto Sans JP'; font-size: 10px; letter-spacing: .05em; }
 .day span { font-family: Oswald; font-size: 26px; color: var(--dark); }
 .note { font-family: 'Noto Sans JP'; font-size: 11px; font-weight: 500; margin-top: 4mm; }
+.notice { margin-top: 8mm; font-family: 'Noto Sans JP'; display: grid; gap: 4mm; }
+.notice .fee, .notice .app { background: rgba(36,16,10,.5); border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 700; line-height: 1.6; }
+.notice b { color: var(--cream); font-size: 16px; }
+.notice .app { display: flex; gap: 16px; align-items: center; }
+.notice .app img { width: 96px; height: 96px; background: #fff; border-radius: 6px; padding: 4px; image-rendering: pixelated; }
+.notice .app small { font-size: 11.5px; font-weight: 500; }
+.notice .url { display: block; font-family: Oswald; letter-spacing: .05em; font-size: 14px; color: var(--cream); margin-top: 4px; }
 .venue-box { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-size: 18px; }
 /* tournament */
 .grid { display: grid; grid-template-columns: 58% 1fr; gap: 8mm; }
@@ -180,6 +195,7 @@ aside dd small { font-size: 12px; }
 .places td { font-size: 15px; }
 .places th, .places td { padding: 5px 10px; }
 .cap { display: block; font-size: 10px; color: var(--cream); font-family: 'Noto Sans JP'; }
+.tkt { display: block; width: fit-content; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: #fff; background: #1546D9; border-radius: 4px; padding: 1px 6px; }
 .tro { font-size: 11px; color: var(--dark); background: var(--cream); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 </style></head><body>
 ${cover}${schedule}${D.tournaments.map(tPage).join('')}

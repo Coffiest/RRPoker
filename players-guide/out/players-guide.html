@@ -44,6 +44,13 @@ table { border-collapse: collapse; width: 100%; }
 .max small { display: block; font-family: 'Noto Sans JP'; font-size: 10px; letter-spacing: .05em; }
 .day span { font-family: Oswald; font-size: 26px; color: var(--dark); }
 .note { font-family: 'Noto Sans JP'; font-size: 11px; font-weight: 500; margin-top: 4mm; }
+.notice { margin-top: 8mm; font-family: 'Noto Sans JP'; display: grid; gap: 4mm; }
+.notice .fee, .notice .app { background: rgba(36,16,10,.5); border-radius: 10px; padding: 12px 16px; font-size: 14px; font-weight: 700; line-height: 1.6; }
+.notice b { color: var(--cream); font-size: 16px; }
+.notice .app { display: flex; gap: 16px; align-items: center; }
+.notice .app img { width: 96px; height: 96px; background: #fff; border-radius: 6px; padding: 4px; image-rendering: pixelated; }
+.notice .app small { font-size: 11.5px; font-weight: 500; }
+.notice .url { display: block; font-family: Oswald; letter-spacing: .05em; font-size: 14px; color: var(--cream); margin-top: 4px; }
 .venue-box { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-size: 18px; }
 /* tournament */
 .grid { display: grid; grid-template-columns: 58% 1fr; gap: 8mm; }
@@ -73,6 +80,7 @@ aside dd small { font-size: 12px; }
 .places td { font-size: 15px; }
 .places th, .places td { padding: 5px 10px; }
 .cap { display: block; font-size: 10px; color: var(--cream); font-family: 'Noto Sans JP'; }
+.tkt { display: block; width: fit-content; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: #fff; background: #1546D9; border-radius: 4px; padding: 1px 6px; }
 .tro { font-size: 11px; color: var(--dark); background: var(--cream); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 </style></head><body>
 
@@ -111,9 +119,16 @@ aside dd small { font-size: 12px; }
   </table>
   <div class="day">11/7 <span>sat</span><em class="max">ALL TABLES 8-MAX<small>全席固定 8人テーブル</small></em></div>
   <table class="sched">
-    <tbody><tr class=""><td>11:00</td><td>14:15</td><td>#2</td><td class="nm">High Roller</td><td>¥1,500 / ¥3,000<small class="cap">10名限定</small></td><td>30,000</td></tr><tr class="hl"><td>11:00</td><td>17:20</td><td>#1</td><td class="nm">Main Event</td><td>¥300 / ¥1,500</td><td>500</td></tr><tr class=""><td>17:00</td><td>19:10</td><td>#3</td><td class="nm">RR Super Turbo</td><td>¥300 / ¥1,500</td><td>300</td></tr><tr class=""><td>19:30</td><td>20:05</td><td>#4</td><td class="nm">RR Double Stack AoF</td><td>¥300 (一律)</td><td>30,000</td></tr></tbody>
+    <tbody><tr class=""><td>11:00</td><td>14:15</td><td>#2</td><td class="nm">High Roller</td><td>¥1,500 / ¥3,000<small class="cap">16名限定</small></td><td>30,000</td></tr><tr class="hl"><td>11:00</td><td>17:20</td><td>#1</td><td class="nm">Main Event</td><td>¥300 / ¥1,500</td><td>500</td></tr><tr class=""><td>17:00</td><td>19:10</td><td>#3</td><td class="nm">RR Super Turbo</td><td>¥300 / ¥1,500</td><td>300</td></tr><tr class=""><td>19:30</td><td>20:05</td><td>#4</td><td class="nm">RR Double Stack AoF</td><td>¥300 (一律)</td><td>30,000</td></tr></tbody>
   </table>
   <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <div class="notice">
+    <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>¥1,000</b> をいただきます(参加費とは別)。</div>
+    <div class="app">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATYAAAE2AQAAAADDx4MEAAACPElEQVR4nO2aXYrdMAxGj+pAH2OYBXQpvjsbZmfJUrqAgvN4wUF9kO3k0hYGynhyPc6Dyc+BRBG2pM8S5T3H/u1dGAzu/zh0qWeqqrrMCdUIMKfyaE5Xt6MXDl1mVVVNqEanZ6doOnx0dTt64nYR8WBnN3aR158TrB5YReSzv+8rcdPDlUus4pT1R5oIcf+49w7u78eDP+a7wBx5dMWHvHdw/+acWgBf5btlWyLeqdwAgqp+9vd9MW4TEZEJmO+iC3se3jyIiIjcnsKOLricQR3HgrNJUhIvy76ubkcvnP12QgTLcvOgqhqdEoY/mnK19lMllCLEHiz21I36oyFXfrum882gqQzRLq9uRy9cLsMXcmlOsAmRi3QTTYY/mnE5Viw8zBRzCpTla6xXrbhSD86x3Nk8rB4BXII5oUPfbcZZPC+qbgnlGmugB8b8aMedZVxbqmoQqeFkxI+m3DZlGdf0km1CF3aR2zZRN0GewI4uuAnmNGGxgl3K4BJwF9hekq7+19Xt6IUr9bmWXcFglYjTYyEb8aMd90eCW/drTckKwx9NOY692aMUzHIWYPnu0K+acWd9t65cZVacivSr29EL99BfEiF7AaeH0jvy3aZc6S+xBoYQd5HXCIBT2ET0zT+DHV1wHLLhacOjalrVW1e3o0du9Xn5sn4fAF02EdYxP1px5/6SEL0o20syPTGcW0mvbkcv3GN/IgDnSqRuHF7djo642l+yesCaFEvrbs2+nsCOLjgZ/e2X4n4DirjdCe17hrEAAAAASUVORK5CYII=" alt="">
+      <div><span class="pill">APP</span><b>RRPoker</b> の登録が必須です。<br><small>当日スムーズに参加できるよう、事前に登録をお済ませください。</small><span class="url">https://rrpoker.vercel.app/</span></div>
+    </div>
+  </div>
   <div class="venue-box">
     <div><span class="pill">VENUE</span><b>eスタジアムコミュニティハウス福岡</b><small>福岡県福岡市中央区薬院4丁目2-11</small></div>
   </div>
@@ -149,7 +164,7 @@ aside dd small { font-size: 12px; }
         <tr><th>Total</th><td>¥20,000</td></tr>
         <tr><th>In Money</th><td>4th</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥10,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tro">+ Trophy</span></td></tr><tr><th>2nd</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥3,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥2,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥10,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tro">+ Trophy</span><span class="tkt">+ FST Satellite Ticket ×1</span><span class="tkt">+ XPT Satellite Ticket ×2</span></td></tr><tr><th>2nd</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tkt">+ FST Satellite Ticket ×1</span></td></tr><tr><th>3rd</th><td>¥3,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥2,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
@@ -177,14 +192,14 @@ aside dd small { font-size: 12px; }
       <table class="prize entry"><tr><th>学生</th><td>¥1,500</td></tr><tr><th>一般</th><td>¥3,000</td></tr></table>
       <dl>
         <dt>Starting Chips</dt><dd>30,000 <small>(150BB)</small></dd>
-        <dt>Late Reg</dt><dd>14:15</dd><dt>Cap</dt><dd>10名限定</dd>
+        <dt>Late Reg</dt><dd>14:15</dd><dt>Cap</dt><dd>16名限定</dd>
       </dl>
       <div class="big">Prize</div>
       <table class="prize">
         <tr><th>Total</th><td>¥15,000</td></tr>
         <tr><th>In Money</th><td>3rd</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥8,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>2nd</th><td>¥4,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥3,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥8,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tkt">+ FST Satellite Ticket ×1</span><span class="tkt">+ XPT Satellite Ticket ×2</span></td></tr><tr><th>2nd</th><td>¥4,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥3,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
@@ -219,7 +234,7 @@ aside dd small { font-size: 12px; }
         <tr><th>Total</th><td>¥10,000</td></tr>
         <tr><th>In Money</th><td>4th</td></tr>
       </table>
-      <table class="places"><tr><th>1st</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>2nd</th><td>¥2,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥1,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥1,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
+      <table class="places"><tr><th>1st</th><td>¥5,000 + <span class="plat">PokerART Platinum 1ヶ月</span><span class="tkt">+ FST Satellite Ticket ×1</span><span class="tkt">+ XPT Satellite Ticket ×2</span></td></tr><tr><th>2nd</th><td>¥2,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>3rd</th><td>¥1,500 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>4th</th><td>¥1,000 + <span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>5th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>6th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>7th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr><tr><th>8th</th><td><span class="plat">PokerART Platinum 1ヶ月</span></td></tr></table>
     </aside>
   </div>
 </section>
