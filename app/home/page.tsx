@@ -6,7 +6,7 @@ import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
-import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiFileText, FiShare2, FiGlobe } from "react-icons/fi"
+import { FiHome, FiCreditCard, FiUser, FiX, FiSearch, FiStar, FiLogOut, FiArrowLeft, FiClock, FiHelpCircle, FiAward, FiEdit2, FiBarChart2, FiCalendar, FiChevronLeft, FiChevronRight, FiChevronDown, FiFileText, FiShare2, FiGlobe } from "react-icons/fi"
 import { FaInstagram, FaXTwitter } from "react-icons/fa6"
 import { BsQrCodeScan } from "react-icons/bs"
 import HomeHeader from "@/components/HomeHeader"
@@ -307,6 +307,8 @@ export default function HomePage() {
   const [checkoutAllowed, setCheckoutAllowed] = useState(true)
   const [isRankingModalOpen, setIsRankingModalOpen] = useState(false)
   const [isHistoryFlipped, setIsHistoryFlipped] = useState(false)
+  // 履歴は新しい順に 10 件ずつ(オーナー指定・2026-11-05)
+  const [historyLimit, setHistoryLimit] = useState(10)
   const [isDetailedRankingModalOpen, setIsDetailedRankingModalOpen] = useState(false)
   const [favoriteMessage, setFavoriteMessage] = useState("")
   const [favoritePulse, setFavoritePulse] = useState("")
@@ -1083,7 +1085,9 @@ export default function HomePage() {
     if (comment && (type === "manual_adjustment" || type === "manual_adjustment_net_gain")) return `${label}：${comment}`
     return label
   }
-  const getHistoryAmount = (item: any) => { if (item.type === "withdraw") return formatSignedChipValue(-item.amount); if (item.type === "manual_adjustment") { const signedValue = item.direction === "subtract" ? -item.amount : item.amount; return formatSignedChipValue(signedValue) }; return formatSignedChipValue(item.amount) }
+  // 符号は記録の向き(direction)で決める。以前は引き出しと手動の調整だけ見ていたため、
+  // エントリー・リエントリー・アドオン(チップが減る記録)まで + で出ていた
+  const getHistoryAmount = (item: any) => { if (item.type === "withdraw") return formatSignedChipValue(-item.amount); const signedValue = item.direction === "subtract" ? -item.amount : item.amount; return formatSignedChipValue(signedValue) }
   
   function toDateSafe(t: any): Date | null {
   if (!t) return null
@@ -1985,122 +1989,99 @@ const medalClass = (rank: number) => {
               <FiLogOut className="text-[15px]" />退店する
             </button>}
 
-            {/* バンクロールカード */}
-            <div data-tutorial="balance-card" className={`bank-card ${isHistoryFlipped ? "is-flipped" : ""}`}>
-              <div className="bank-card-inner">
+            {/* バンクロールカード(オーナー指定・2026-11-05)。
+                 以前は裏返し(3D)のために固定の高さ・濃い影・光の反射を持ち、上下のカードに食い込んでいた。
+                 黒い端末の面はそのまま、影・反射・裏返しをやめて平らにし、履歴はカードの中で下に開く。 */}
+            <div data-tutorial="balance-card" style={{ position: 'relative', borderRadius: 24, background: '#0B0B0D', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+              {/* ドットマトリクス。基板・計器のテクスチャ */}
+              <div className="tech-dots" aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.18, pointerEvents: 'none' }} />
+              <div style={{ position: 'relative', padding: '16px 20px 20px' }}>
 
-                {/* ── Front ── */}
-                <div className="bank-card-face bank-card-front">
-                  <div className="bank-card-shine" />
-                  {/* ドットマトリクス。基板・計器のテクスチャを与える */}
-                  <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.22, pointerEvents:'none' }} />
-                  <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
+                {/* 端末のタイトルバー */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <svg width="38" height="8" viewBox="0 0 38 8" aria-hidden="true" style={{ flexShrink: 0 }}>
+                      <circle cx="4" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
+                      <circle cx="17" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
+                      <circle cx="30" cy="4" r="4" fill="#F2A900" />
+                    </svg>
+                    <p className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>BANKROLL.SH</p>
+                  </div>
+                  <button type="button" onClick={() => { setIsHistoryFlipped(v => !v); setHistoryLimit(10) }} aria-expanded={isHistoryFlipped}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 36, padding: '0 12px', borderRadius: 8, background: isHistoryFlipped ? 'rgba(242,169,0,0.16)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isHistoryFlipped ? 'rgba(242,169,0,0.45)' : 'rgba(255,255,255,0.14)'}`, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <FiClock style={{ fontSize: 11, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)' }} />
+                    <span className="tech-label" style={{ fontSize: 9, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)' }}>LOG</span>
+                    <FiChevronDown style={{ fontSize: 12, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)', transform: isHistoryFlipped ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease-out' }} />
+                  </button>
+                </div>
 
-                    {/* 端末のタイトルバー。カードの「券面」をやめ、出力を読む面にする。 */}
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                        <svg width="38" height="8" viewBox="0 0 38 8" aria-hidden="true" style={{ flexShrink:0 }}>
-                          <circle cx="4" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
-                          <circle cx="17" cy="4" r="4" fill="rgba(255,255,255,0.16)" />
-                          <circle cx="30" cy="4" r="4" fill="#F2A900" />
-                        </svg>
-                        <p className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.34)', letterSpacing:'0.18em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                          BANKROLL.SH
-                        </p>
-                      </div>
-                      <button type="button" onClick={() => setIsHistoryFlipped(true)}
-                        style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:8, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer', flexShrink:0 }}>
-                        <FiClock style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }} />
-                        <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.55)' }}>LOG</span>
-                      </button>
-                    </div>
+                {/* 打ち込んだ命令。どの店の残高かをそのまま見せる */}
+                <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 12, display: 'flex', gap: 8, minWidth: 0 }}>
+                  <span style={{ color: '#F2A900', flexShrink: 0 }}>$</span>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>balance --store {currentStore.name}</span>
+                </p>
 
-                    {/* 打ち込んだ命令。どの店の残高を出しているのかをそのまま見せる。 */}
-                    <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.40)', marginTop:12, display:'flex', gap:7, minWidth:0 }}>
-                      <span style={{ opacity:0.55, flexShrink:0 }}>$</span>
-                      <span style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>balance --store {currentStore.name}</span>
+                {/* 残高(タップで chips ⇄ bb) */}
+                <button type="button" onClick={() => setShowBB(v => !v)} aria-label="チップ数と bb の表示を切り替える"
+                  style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 16, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  <span style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', display: 'flex', gap: 8 }}>
+                    <span>&gt;</span><span>{showBB && blindBb ? 'bb' : 'chips'}</span>
+                  </span>
+                  <span className="tech-num" style={{ display: 'block', marginTop: 4, fontSize: 44, fontWeight: 800, color: '#fff', lineHeight: 1.05, letterSpacing: '-1px' }}>
+                    <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
+                  </span>
+                </button>
+                {displayNetGain !== 0 && (
+                  <p className="tech-num" style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: displayNetGain > 0 ? '#34C759' : '#FF6B6B', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)' }}>NET</span>
+                    <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
+                  </p>
+                )}
+                <p style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, minWidth: 0 }}>
+                  {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
+                    <span className="tech-num" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.06em' }}>
+                      <span className="tech-label" style={{ fontSize: 9, marginRight: 4 }}>RATE</span>{currentStore.ringBlindSb}/{currentStore.ringBlindBb}
+                    </span>
+                  )}
+                  <span className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9, color: 'rgba(255,255,255,0.55)' }}>tap to switch bb</span>
+                </p>
+
+                {/* 履歴(LOG を押すとカードの中で下に開く。新しい順に 10 件ずつ) */}
+                {isHistoryFlipped && (
+                  <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px dashed rgba(255,255,255,0.18)' }}>
+                    <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <span style={{ color: '#F2A900' }}>$</span><span>log --limit {historyLimit}</span>
                     </p>
-
-                    {/* Balance hero */}
-                    <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'flex-start', justifyContent:'center', cursor:'pointer', userSelect:'none' }} onClick={() => setShowBB(v => !v)}>
-                      <p style={{ fontFamily:'var(--stack-mono)', fontSize:11, color:'rgba(255,255,255,0.34)', display:'flex', gap:7, marginBottom:6 }}>
-                        <span style={{ opacity:0.55 }}>&gt;</span>
-                        <span>{showBB && blindBb ? 'bb' : 'chips'}</span>
-                      </p>
-                      {/* 面の中でここだけが明るい。金は数値にだけ使う。 */}
-                      {/* 数値の色は元のまま(白 + 金のにじみ)。変えたのは並べ方だけ。 */}
-                      <p className="tech-num" style={{ fontSize:46, fontWeight:800, color:'#fff', lineHeight:1, letterSpacing:'-1.5px', textShadow:'0 2px 28px rgba(242,169,0,0.22)' }}>
-                        <span key={balance} className="ticker-animate">{formatChipValue(displayBalance)}</span>
-                      </p>
-                      {displayNetGain !== 0 && (
-                        <p className="tech-num" style={{ marginTop:10, fontSize:13, fontWeight:700, color:displayNetGain > 0 ? '#34C759' : '#FF6060', display:'flex', alignItems:'center', gap:7 }}>
-                          <span className="tech-label" style={{ fontSize:9, color:'rgba(255,255,255,0.30)' }}>NET</span>
-                          <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Bottom row */}
-                    <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
-                        {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
-                          <span className="tech-num" style={{ fontSize:10, color:'rgba(255,255,255,0.30)', letterSpacing:'0.06em' }}>
-                            <span className="tech-label" style={{ fontSize:8.5, opacity:0.6, marginRight:4 }}>RATE</span>
-                            {currentStore.ringBlindSb}/{currentStore.ringBlindBb}
-                          </span>
-                        )}
-                        <span className="term-comment" style={{ fontFamily:'var(--stack-mono)', fontSize:9, color:'rgba(255,255,255,0.20)' }}>tap to switch bb</span>
-                      </div>
-                      <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                        {[0,1,2].map(i => <div key={i} style={{ width:5, height:5, borderRadius:'50%', background:'rgba(255,255,255,0.13)' }} />)}
-                        <div style={{ width:5, height:5, marginLeft:3, borderRadius:'50%', background:'rgba(242,169,0,0.65)' }} />
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* ── Back ── */}
-                <div className="bank-card-face bank-card-back">
-                  <div style={{ display:'flex', flexDirection:'column', height:'100%', padding:'20px 22px', position:'relative', zIndex:1 }}>
-
-                    {/* Header */}
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:13 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-                        <FiClock style={{ color:'rgba(255,255,255,0.42)', fontSize:13 }} />
-                        <span className="tech-label tech-label-bracket" style={{ fontSize:11, color:'rgba(255,255,255,0.52)' }}>History</span>
-                      </div>
-                      <button type="button" onClick={() => setIsHistoryFlipped(false)}
-                        style={{ display:'flex', alignItems:'center', gap:4, padding:'6px 13px', borderRadius:18, background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.1)', fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.58)', cursor:'pointer' }}>
-                        <FiArrowLeft style={{ fontSize:10 }} />戻る
-                      </button>
-                    </div>
-
-                    {/* Transaction list */}
-                    <div className="bank-card-history" style={{ flex:1 }}>
-                      {sortedTransactionItems.length === 0 ? (
-                        <div style={{ textAlign:'center', paddingTop:32 }}>
-                          <p className="term-comment" style={{ fontSize:12, color:'rgba(255,255,255,0.26)' }}>履歴がありません</p>
+                    {sortedTransactionItems.length === 0 ? (
+                      <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, color: 'rgba(255,255,255,0.6)', padding: '8px 0' }}>履歴がありません</p>
+                    ) : (
+                      <>
+                        <div>
+                          {sortedTransactionItems.slice(0, historyLimit).map((item, i) => {
+                            const amtStr = getHistoryAmount(item)
+                            const isPlus = amtStr.startsWith('+')
+                            const isMinus = amtStr.startsWith('-')
+                            return (
+                              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 48, padding: '8px 0', borderTop: i ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+                                <span style={{ flex: 1, minWidth: 0 }}>
+                                  <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</span>
+                                  <span className="tech-num" style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{formatDateTime(item.createdAt)}</span>
+                                </span>
+                                <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: isPlus ? '#34C759' : isMinus ? '#FF6B6B' : 'rgba(255,255,255,0.85)', flexShrink: 0 }}>{amtStr}</span>
+                              </div>
+                            )
+                          })}
                         </div>
-                      ) : sortedTransactionItems.map(item => {
-                        const amtStr = getHistoryAmount(item)
-                        const isPlus = amtStr.startsWith('+')
-                        const isMinus = amtStr.startsWith('-')
-                        return (
-                          <div key={item.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 12px', borderRadius:13, background:'rgba(255,255,255,0.042)', border:'1px solid rgba(255,255,255,0.07)', marginBottom:7 }}>
-                            <div style={{ minWidth:0, flex:1 }}>
-                              <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.72)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</p>
-                              <p className="tech-num" style={{ fontSize:9, color:'rgba(255,255,255,0.28)', marginTop:2 }}>{formatDateTime(item.createdAt)}</p>
-                            </div>
-                            <p className="tech-num" style={{ fontSize:13, fontWeight:700, color:isPlus ? '#34C759' : isMinus ? '#FF6060' : 'rgba(255,255,255,0.62)', flexShrink:0, marginLeft:10 }}>{amtStr}</p>
-                          </div>
-                        )
-                      })}
-                    </div>
-
+                        {sortedTransactionItems.length > historyLimit && (
+                          <button type="button" onClick={() => setHistoryLimit(n => n + 10)}
+                            style={{ width: '100%', minHeight: 44, marginTop: 8, borderRadius: 10, border: '1px solid rgba(255,255,255,0.14)', background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer' }}>
+                            もっと見る({sortedTransactionItems.length - historyLimit} 件)
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
-                </div>
-
+                )}
               </div>
             </div>
 
