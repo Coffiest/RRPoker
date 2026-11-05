@@ -8,6 +8,8 @@ import { db } from "@/lib/firebase"
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from "firebase/firestore"
 import { FiX, FiShare2, FiTrash2, FiChevronRight } from "react-icons/fi"
 import { PlayingCard } from "@/components/PlayingCard"
+import HandTable, { actionBadge, type HandSeatView } from "@/components/HandTable"
+import { buildHandReplay } from "@/lib/handReplay"
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const HAND_RANKS = ["A","K","Q","J","T","9","8","7","6","5","4","3","2"]
@@ -34,13 +36,6 @@ const CLR = {
 function htGetPositions(n: number): string[] {
   if (n === 2) return ["BTN","BB"]
   return HT_ALL_POS.slice(10 - n)
-}
-
-function seatXY(posIdx: number, total: number, btnIdx: number, cx: number, cy: number, rx: number, ry: number) {
-  const btn = btnIdx < 0 ? 0 : btnIdx
-  const rel = (posIdx - btn + total) % total
-  const angle = Math.PI + (rel / total) * Math.PI * 2
-  return { x: cx + Math.sin(angle) * rx, y: cy - Math.cos(angle) * ry }
 }
 
 function computeOrder(
@@ -388,8 +383,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
-  const btnIdx = positions.indexOf("BTN")
-  const cx=160, cy=110, rx=126, ry=80
 
   return (
     <>
@@ -466,154 +459,33 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   </div>
                 )}
 
-                {/* ── Table ── */}
-                <div className="relative mx-4 mb-3 rounded-[999px]"
-                  style={{ height:220, background:"#F2EDE4", border:`1.5px solid #D8CEBD`, boxShadow:"inset 0 2px 8px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.06)" }}>
-
-                  {/* Inner decorative ring */}
-                  <div className="absolute rounded-[999px] pointer-events-none"
-                    style={{ inset:8, border:"1px solid rgba(200,185,160,0.35)" }} />
-
-                  {/* Board + pot */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
-                    {htStreet!=="preflop" && (
-                      <div className="flex items-center gap-1">
-                        {[0,1,2].map(i => {
-                          const c=htBoard[i]
-                          return (
-                            <button key={i} type="button" onClick={() => setHtPick(`b|${i}`)}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95 transition-all"
-                              style={{ width:24, height:32,
-                                background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
-                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
-                            </button>
-                          )
-                        })}
-
-                        {(htStreet==="turn"||htStreet==="river") && <>
-                          <div className="w-px h-4 mx-0.5" style={{ background:"rgba(170,155,135,0.4)" }} />
-                          {(() => {const c=htBoard[3]; return (
-                            <button type="button" onClick={() => setHtPick("b|3")}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
-                              style={{ width:24,height:32, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
-                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
-                            </button>
-                          )})()}
-                        </>}
-
-                        {htStreet==="river" && <>
-                          <div className="w-px h-4 mx-0.5" style={{ background:"rgba(170,155,135,0.4)" }} />
-                          {(() => {const c=htBoard[4]; return (
-                            <button type="button" onClick={() => setHtPick("b|4")}
-                              className="flex flex-col items-center justify-center rounded-lg font-bold active:scale-95"
-                              style={{ width:24,height:32, background:c?"transparent":"rgba(255,255,255,0.45)", border:c?"none":"1.5px dashed rgba(170,155,135,0.6)", color:"rgba(155,140,115,0.7)" }}>
-                              {c?<PlayingCard card={c} height={32}/>:<span className="text-[8px]">?</span>}
-                            </button>
-                          )})()}
-                        </>}
-                      </div>
-                    )}
-
-                    <div className="rounded-full px-2.5 py-0.5" style={{ background:"rgba(29,29,31,0.12)" }}>
-                      <span className="text-[9px] font-bold tracking-wide" style={{ color:"var(--label2)" }}>
-                        POT {pot%1===0?pot:pot.toFixed(1)} BB
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action labels near seats */}
-                  {positions.filter(p=>!allFolded.has(p)).map(pos => {
-                    const pi={x:0,y:0}
-                    const posIdx=positions.indexOf(pos)
-                    const {x,y}=seatXY(posIdx,positions.length,btnIdx,cx,cy,rx,ry)
-                    const dx=cx-x,dy=cy-y,dist=Math.sqrt(dx*dx+dy*dy)||1
-                    const bx=x+(dx/dist)*28, by=y+(dy/dist)*28
-                    let label:string|null=null, bg="#fff", fg=CLR.gray2, bd=CLR.border
-                    if (htStreet==="preflop"&&pos==="SB"){label="SB";fg="#2563EB";bd="#BFDBFE";bg="#EFF6FF"}
-                    if (htStreet==="preflop"&&pos==="BB"){label="BB";fg="#2563EB";bd="#BFDBFE";bg="#EFF6FF"}
-                    const sActs=htActions.filter(a=>a.street===htStreet&&a.position===pos)
-                    const last=sActs[sActs.length-1]
-                    if (last&&last.action!=="fold"){
-                      const amtS=last.amount!=null?` ${last.amount}`:""
-                      label=`${ACT_JP[last.action]}${amtS}`
-                      if (last.action==="bet"||last.action==="raise"){fg="#B45309";bd="#FDE68A";bg="#FFFBEB"}
-                      else if (last.action==="allin"){fg=CLR.red;bd="#FCA5A5";bg="#FFF5F5"}
-                      else {fg=CLR.gray2;bd=CLR.border;bg="#fff"}
-                    }
-                    if (!label) return null
-                    return (
-                      <div key={`lbl_${pos}`} className="absolute pointer-events-none"
-                        style={{left:bx,top:by,transform:"translate(-50%,-50%)",zIndex:5}}>
-                        <div className="rounded-full px-1.5 py-0.5 text-[7px] font-semibold whitespace-nowrap"
-                          style={{background:bg,border:`1px solid ${bd}`,color:fg,boxShadow:"0 1px 4px rgba(0,0,0,0.07)"}}>
-                          {label}
-                        </div>
-                      </div>
-                    )
-                  })}
-
-                  {/* Seats */}
-                  {positions.map((pos,posIdx) => {
-                    const isPerm=permFolded.has(pos)
-                    const isCurr=currFolded.has(pos)
-                    const isFolded=isPerm||isCurr
-                    if (isPerm) return null
-                    const {x,y}=seatXY(posIdx,positions.length,btnIdx,cx,cy,rx,ry)
-                    const isTurn=htQueue[0]===pos&&!isFolded
-                    const isSel=htSeat===pos&&!isFolded
-                    const isHero=pos===htHero
-                    const hasActed=htActions.some(a=>a.street===htStreet&&a.position===pos)
-                    const cards=htCards[pos]??[null,null]
-
-                    return (
-                      <button key={pos} type="button"
-                        onClick={() => tapSeat(pos)}
-                        className="absolute flex flex-col items-center active:scale-95 transition-all"
-                        style={{ left:x-22, top:y-28, width:44, opacity:isCurr?0.25:1 }}>
-
-                        {/* Turn pulse ring */}
-                        {isTurn && (
-                          <div className="absolute pointer-events-none" style={{left:2,top:0,width:40,height:40}}>
-                            <div className="w-full h-full rounded-full animate-ping"
-                              style={{border:`2px solid ${CLR.gold}`,opacity:0.4}} />
-                          </div>
-                        )}
-
-                        {/* Hero star */}
-                        {isHero && <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] z-10" style={{color:CLR.gold}}>★</div>}
-
-                        {/* Dealer button */}
-                        {pos==="BTN" && (
-                          <div className="absolute -right-1.5 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-                            style={{background:CLR.white,border:`1px solid ${CLR.border}`,boxShadow:"0 1px 3px rgba(0,0,0,0.1)"}}>
-                            <span className="text-[6px] font-black" style={{color:CLR.ink}}>D</span>
-                          </div>
-                        )}
-
-                        {/* Seat circle */}
-                        <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center transition-all"
-                          style={{
-                            background: isSel||isTurn ? "#FFF8E7" : CLR.white,
-                            border: isSel||isTurn ? `2px solid ${CLR.gold}`
-                                  : isHero ? `1.5px solid ${CLR.gold}`
-                                  : `1.5px solid ${hasActed?"rgba(210,200,185,0.8)":CLR.border}`,
-                            boxShadow: isTurn ? `0 0 0 3px rgba(242,169,0,0.18), 0 2px 8px rgba(0,0,0,0.1)`
-                                      : `0 1px 4px rgba(0,0,0,0.07)`,
-                          }}>
-                          <div className="flex gap-[2px]">
-                            {[0,1].map(i => (
-                              <PlayingCard key={i} card={cards[i]} height={16}/>
-                            ))}
-                          </div>
-                        </div>
-
-                        <span className="text-[8px] font-bold mt-0.5 leading-none"
-                          style={{ color:isHero?CLR.gold:hasActed&&!isFolded?CLR.gray3:CLR.gray2 }}>
-                          {pos}
-                        </span>
-                      </button>
-                    )
-                  })}
+                {/* ── Table(PokerART の卓を金・白で。components/HandTable.tsx) ── */}
+                <div className="mx-2 mb-2">
+                  <HandTable
+                    height={372}
+                    anchorPos={htHero ?? "BTN"}
+                    board={htBoard}
+                    boardCount={htStreet==="preflop"?0:htStreet==="flop"?3:htStreet==="turn"?4:5}
+                    onBoardClick={i => setHtPick(`b|${i}`)}
+                    pot={`POT ${pot%1===0?pot:pot.toFixed(1)} BB`}
+                    seats={positions.map(pos => {
+                      const isPerm=permFolded.has(pos), isCurr=currFolded.has(pos)
+                      const sActs=htActions.filter(a=>a.street===htStreet&&a.position===pos)
+                      const last=sActs[sActs.length-1]
+                      let badge: HandSeatView["badge"] = null
+                      if (htStreet==="preflop"&&(pos==="SB"||pos==="BB")) badge={text:pos,tone:"blind"}
+                      if (last) badge = actionBadge(last)
+                      return {
+                        pos, cards: htCards[pos] ?? [null,null],
+                        hidden: isPerm, dim: isCurr,
+                        turn: htQueue[0]===pos && !isCurr,
+                        selected: htSeat===pos && !isCurr,
+                        hero: pos===htHero,
+                        badge,
+                        onClick: () => tapSeat(pos),
+                      }
+                    })}
+                  />
                 </div>
 
                 {/* Queue */}
@@ -751,7 +623,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                       </div>
                       <button type="button" onClick={() => share(htSavedId!,htTitle)}
                         className="w-full h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-2 active:scale-95"
-                        style={{background:CLR.gold,color:CLR.ink}}>
+                        style={{background:CLR.gold,color:"#fff"}}>
                         <FiShare2 size={14}/> シェアする
                       </button>
                       <button type="button" onClick={() => {setIsOpen(false);reset()}}
@@ -763,7 +635,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   ) : (
                     <button type="button" disabled={htSaving} onClick={handleSaveClick}
                       className="flex-1 h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 transition-all"
-                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:"#fff",boxShadow:'0 4px 16px rgba(242,169,0,0.35)'}}>
                       {htSaving ? '保存中...' : '✓ 保存する'}
                     </button>
                   )}
@@ -790,7 +662,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <p className="text-[12px] mb-5" style={{color:CLR.gray3}}>記録タブからハンドを作成できます</p>
                     <button type="button" onClick={() => setView("record")}
                       className="h-10 px-6 rounded-full text-[13px] font-bold active:scale-95"
-                      style={{background:CLR.gold,color:CLR.ink}}>記録を始める</button>
+                      style={{background:CLR.gold,color:"#fff"}}>記録を始める</button>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -878,7 +750,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                               <div className="flex items-center gap-1.5 px-4 pb-3">
                                 <button type="button" onClick={() => share(h.id,h.title)}
                                   className="flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-bold active:scale-95"
-                                  style={{background:CLR.gold,color:CLR.ink}}>
+                                  style={{background:CLR.gold,color:"#fff"}}>
                                   <FiShare2 size={10}/> シェア
                                 </button>
                                 <button type="button"
@@ -927,7 +799,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     <button type="button"
                       onClick={() => { setShowTitlePopup(false); save() }}
                       className="flex-1 h-11 rounded-2xl text-[13px] font-bold active:scale-95"
-                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
+                      style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:"#fff",boxShadow:'0 3px 12px rgba(242,169,0,0.35)'}}>
                       保存
                     </button>
                   </div>
@@ -1018,8 +890,6 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
           const shownActs  = allActs.slice(0, replayStep)
           const curAct     = replayStep > 0 ? allActs[replayStep - 1] : null
           const rPositions = viewingHand.playerPositions ?? [...new Set(allActs.map(a => a.position))]
-          const rBtnIdx    = rPositions.indexOf("BTN")
-          const rcx=160, rcy=100, rrx=126, rry=76
 
           // per-seat latest action in shownActs
           const seatActMap: Record<string,HAction> = {}
@@ -1061,79 +931,28 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     style={{background:CLR.surface,color:CLR.gray2}}><FiX size={15}/></button>
                 </div>
 
-                {/* Table */}
-                <div className="shrink-0 relative mx-4 mt-3 rounded-[999px]"
-                  style={{height:204,background:"#F2EDE4",border:"1.5px solid #D8CEBD",boxShadow:"inset 0 2px 8px rgba(0,0,0,0.04)"}}>
-                  <div className="absolute rounded-[999px] pointer-events-none" style={{inset:8,border:"1px solid rgba(200,185,160,0.35)"}} />
-
-                  {/* Board */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-                    {(flop.length>0||turn||river) && (
-                      <div className="flex items-center gap-1">
-                        {flop.map((c,i) => c ? (
-                          <PlayingCard key={i} card={c} height={30}/>
-                        ) : null)}
-                        {turn && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
-                          <PlayingCard card={turn} height={30}/></>}
-                        {river && <><div style={{width:1,height:16,background:"rgba(170,155,135,0.4)",margin:"0 2px"}}/>
-                          <PlayingCard card={river} height={30}/></>}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Seats */}
-                  {rPositions.map((pos,posIdx) => {
-                    const {x,y} = seatXY(posIdx,rPositions.length,rBtnIdx,rcx,rcy,rrx,rry)
-                    const act   = seatActMap[pos]
-                    const isFolded = foldedSeats.has(pos)
-                    const isCur  = curAct?.position === pos
-                    const isHero = pos === viewingHand.heroPosition
-                    const hCards = isHero ? (viewingHand.heroCards??[]) : (viewingHand.villainCards?.[pos]??[])
-                    return (
-                      <div key={pos} className="absolute flex flex-col items-center"
-                        style={{left:x-20,top:y-26,width:40,opacity:isFolded?0.25:1,transition:'opacity 0.3s'}}>
-                        {/* Pulse ring on current action */}
-                        {isCur && (
-                          <div className="absolute pointer-events-none" style={{left:0,top:0,width:40,height:40}}>
-                            <div className="w-full h-full rounded-full animate-ping"
-                              style={{border:`2px solid ${CLR.gold}`,opacity:0.5}}/>
-                          </div>
-                        )}
-                        {isHero && <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] z-10" style={{color:CLR.gold}}>★</div>}
-                        {pos==="BTN" && (
-                          <div className="absolute -right-1 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-                            style={{background:CLR.white,border:`1px solid ${CLR.border}`,fontSize:6,fontWeight:900,color:CLR.ink}}>D</div>
-                        )}
-                        <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-                          style={{
-                            background: isCur?"#FFF8E7":CLR.white,
-                            border: isCur?`2px solid ${CLR.gold}`:isHero?`1.5px solid ${CLR.gold}`:`1.5px solid ${CLR.border}`,
-                            boxShadow: isCur?`0 0 0 3px rgba(242,169,0,0.18)`:undefined,
-                          }}>
-                          <div className="flex gap-[2px]">
-                            {[0,1].map(i => {
-                              const c = hCards[i]
-                              return (
-                                <PlayingCard key={i} card={c} height={15}/>
-                              )
-                            })}
-                          </div>
-                        </div>
-                        {/* Action label */}
-                        {act && !isFolded && (
-                          <div className="rounded-full px-1 py-px text-[7px] font-semibold mt-0.5 whitespace-nowrap"
-                            style={{
-                              background:act.action==="bet"||act.action==="raise"?"#FFFBEB":act.action==="allin"?"#FFF5F5":CLR.white,
-                              border:`1px solid ${act.action==="bet"||act.action==="raise"?"#FDE68A":act.action==="allin"?"#FCA5A5":CLR.border}`,
-                              color:act.action==="bet"||act.action==="raise"?"#B45309":act.action==="allin"?CLR.red:CLR.gray2,
-                            }}>
-                            {ACT_JP[act.action]}{act.amount!=null?` ${act.amount}`:""}
-                          </div>
-                        )}
-                        <span className="text-[7px] font-bold mt-0.5" style={{color:isHero?CLR.gold:CLR.gray2}}>{pos}</span>
-                      </div>
-                    )
-                  })}
+                {/* Table(記録画面と同じ卓。components/HandTable.tsx) */}
+                <div className="shrink-0 mx-2 mt-2">
+                  <HandTable
+                    height={340}
+                    anchorPos={viewingHand.heroPosition || "BTN"}
+                    board={[...(flop ?? []), turn, river]}
+                    boardCount={river ? 5 : turn ? 4 : flop.length > 0 ? 3 : 0}
+                    pot={(() => { const st = buildHandReplay(viewingHand)[replayStep]; return st ? `POT ${st.snapshot.pot} BB` : null })()}
+                    seats={rPositions.map(pos => {
+                      const act = seatActMap[pos]
+                      const isHero = pos === viewingHand.heroPosition
+                      return {
+                        pos,
+                        cards: isHero ? (viewingHand.heroCards ?? []) : (viewingHand.villainCards?.[pos] ?? []),
+                        dim: foldedSeats.has(pos),
+                        turn: curAct?.position === pos,
+                        hero: isHero,
+                        // 札はいまのストリートのアクションだけ(PokerART と同じ)
+                        badge: act && (act.street === curAct?.street || act.action === "fold") ? actionBadge(act) : null,
+                      }
+                    })}
+                  />
                 </div>
 
                 {/* Replay controls */}
@@ -1146,7 +965,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                     style={{background:CLR.surface,color:CLR.gray2,fontSize:14}}>‹</button>
                   <button type="button" onClick={() => setReplayPlaying(p => !p)}
                     className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95"
-                    style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:CLR.ink,fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
+                    style={{background:`linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`,color:"#fff",fontSize:16,boxShadow:'0 3px 12px rgba(242,169,0,0.4)'}}>
                     {replayPlaying ? <Pause size={16} strokeWidth={2} aria-hidden /> : <Play size={16} strokeWidth={2} aria-hidden />}
                   </button>
                   <button type="button" onClick={() => setReplayStep(s => Math.min(s+1,totalSteps))}
@@ -1188,7 +1007,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                                   {ACT_JP[a.action]}{a.amount!=null?` ${a.amount} BB`:""}
                                 </span>
                                 {isCurrent && <span className="ml-auto text-[9px] font-bold rounded-full px-1.5 py-px"
-                                  style={{background:CLR.gold,color:CLR.ink}}>NOW</span>}
+                                  style={{background:CLR.gold,color:"#fff"}}>NOW</span>}
                               </div>
                             )
                           })}
