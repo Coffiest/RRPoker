@@ -1983,7 +1983,9 @@ const medalClass = (rank: number) => {
         {currentStoreId && currentStore ? (
           <>
             {/* 退店ボタン。店舗が「退店を許可する」を OFF にしていたら出さない(既定は出す) */}
-            {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)}
+            {/* このページの外枠の縦の間隔の指定(space-y の 5)は、クラス名の直後に ${ が続くため Tailwind に拾われず効いていない。
+                 退店ボタン・バンクロールカード・グラフの前は、それぞれ自分で 24px あける(くっついていた・2026-11-05) */}
+            {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)} style={{ marginTop: 24 }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
             >
               <FiLogOut className="text-[15px]" />退店する
@@ -1992,7 +1994,7 @@ const medalClass = (rank: number) => {
             {/* バンクロールカード(オーナー指定・2026-11-05)。
                  以前は裏返し(3D)のために固定の高さ・濃い影・光の反射を持ち、上下のカードに食い込んでいた。
                  黒い端末の面はそのまま、影・反射・裏返しをやめて平らにし、履歴はカードの中で下に開く。 */}
-            <div data-tutorial="balance-card" style={{ position: 'relative', borderRadius: 24, background: '#0B0B0D', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
+            <div data-tutorial="balance-card" style={{ position: 'relative', marginTop: 24, borderRadius: 24, background: '#0B0B0D', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
               {/* ドットマトリクス。基板・計器のテクスチャ */}
               <div className="tech-dots" aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.18, pointerEvents: 'none' }} />
               <div style={{ position: 'relative', padding: '16px 20px 20px' }}>
@@ -2087,6 +2089,7 @@ const medalClass = (rank: number) => {
 
             {/* チップ増減グラフ（Apple Music風シェルフUI：総増減/トナメ/リングを横スクロール） */}
             {chipGraphData.length >= 2 && (
+              <div style={{ marginTop: 24 }}>
               <GraphShelf
                 sectionTitle="チップ増減グラフ"
                 periodTab={chipGraphTab}
@@ -2097,9 +2100,10 @@ const medalClass = (rank: number) => {
                   { key: "ring", label: "リング増減", points: ringGraphData },
                 ]}
               />
+              </div>
             )}
 
-            <ChipDisclaimer className="px-1 pb-2" />
+            <ChipDisclaimer className="px-1 pt-4 pb-2" />
 
             {/* ランキング */}
             <div data-tutorial="store-ranking" className="section-card a-rise">
