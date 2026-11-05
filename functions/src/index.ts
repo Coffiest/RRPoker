@@ -206,6 +206,34 @@ type BlindLevel = {
   comment?: string | null
 }
 
+// ── RC 後の終了予定の再計算(オーナー指定・2026-11-05)──────────────────────
+// アプリ側の lib/endEstimate.ts の computeRcEstimate と同じ計算(functions はアプリの lib を読めないので写し)。
+// RC ブレイクが終わった瞬間の卓の合計チップ(= 残り人数 × アベレージ)で、ヘッズアップのアベレージが
+// 10BB を切る最初のレベルを探し、「実際に RC ブレイクが終わった時刻 + その後のレベルの時間」を終了予定にする。
+type AnyLevelRc = { type: string; bigBlind?: number | null; duration?: number | null; rc?: boolean | null }
+function rcBreakIdx(levels: AnyLevelRc[]): number | null {
+  const i = levels.findIndex(l => l.type === "break" && l.rc === true)
+  return i >= 0 ? i : null
+}
+function computeRcEstimateServer(levels: AnyLevelRc[], d: any, rcEndAtMs: number) {
+  const rc = rcBreakIdx(levels)
+  if (rc === null) return null
+  const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0)
+  const totalChips = n(d.totalEntry) * n(d.entryStack) + n(d.totalReentry) * n(d.reentryStack) + n(d.totalAddon) * n(d.addonStack)
+  if (totalChips <= 0) return null
+  const players = Math.max(0, n(d.totalEntry) + n(d.totalReentry) - n(d.bustCount))
+  const avgHeadsUp = totalChips / 2
+  let minutes = 0
+  for (let i = rc + 1; i < levels.length; i++) {
+    const l = levels[i]
+    minutes += l.duration ?? 0
+    if (l.type === "level" && (l.bigBlind ?? 0) > 0 && avgHeadsUp / (l.bigBlind as number) < 10) {
+      return { endAtMs: rcEndAtMs + minutes * 60_000, rcEndAtMs, players, avgStack: players > 0 ? Math.floor(totalChips / players) : 0, totalChips }
+    }
+  }
+  return null
+}
+
 // Helper: resolve blind levels from customBlindLevels or preset
 async function resolveLevels(
   data: any,
@@ -422,8 +450,20 @@ export const setTournamentLevel = onCall(
 
       const isRunning = data.timerRunning ?? false
 
+      // RC ブレイクをまたいで進めたら、その瞬間で終了予定を再計算する。RC ブレイク以前に戻したら消す
+      const rcIdx = rcBreakIdx(levels as AnyLevelRc[])
+      const prevIdx = data.currentLevelIndex ?? 0
+      const rcPatch: Record<string, any> = {}
+      if (rcIdx !== null && !data.rcEstimate && prevIdx <= rcIdx && clampedIdx > rcIdx) {
+        const est = computeRcEstimateServer(levels as AnyLevelRc[], data, Date.now())
+        if (est) rcPatch.rcEstimate = est
+      } else if (rcIdx !== null && data.rcEstimate && clampedIdx <= rcIdx) {
+        rcPatch.rcEstimate = FieldValue.delete()
+      }
+
       if (isRunning) {
         tx.update(tournamentRef, {
+          ...rcPatch,
           currentLevelIndex: clampedIdx,
           levelStartedAt: FieldValue.serverTimestamp(),
           levelStartedRemaining: dur,
@@ -433,6 +473,7 @@ export const setTournamentLevel = onCall(
       } else {
         // Just update level and time if stopped
         tx.update(tournamentRef, {
+          ...rcPatch,
           currentLevelIndex: clampedIdx,
           timeRemaining: dur,
           levelStartedRemaining: dur,
@@ -574,8 +615,22 @@ export const recoverStuckTournamentTimers = onSchedule(
           continue
         }
 
+        // RC ブレイクが終わったら、その瞬間(表どおりの境目の時刻)で終了予定を再計算する
+        const rcPatch: Record<string, any> = {}
+        const rcIdx = rcBreakIdx(levels as AnyLevelRc[])
+        if (rcIdx !== null && !data.rcEstimate && currentIdx <= rcIdx && catchUp.newLevelIndex > rcIdx) {
+          let sec = levelStartedRemaining
+          for (let i = currentIdx + 1; i <= rcIdx; i++) {
+            const d = levels[i]?.duration
+            sec += typeof d === "number" && d > 0 ? d * 60 : 1
+          }
+          const est = computeRcEstimateServer(levels as AnyLevelRc[], data, levelStartedAtMs + sec * 1000)
+          if (est) rcPatch.rcEstimate = est
+        }
+
         // Advance to the caught-up level
         await tournamentRef.update({
+          ...rcPatch,
           currentLevelIndex: catchUp.newLevelIndex,
           levelStartedAt: FieldValue.serverTimestamp(),
           levelStartedRemaining: catchUp.newTimeRemaining,

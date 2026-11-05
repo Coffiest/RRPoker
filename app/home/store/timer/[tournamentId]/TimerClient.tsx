@@ -14,6 +14,7 @@ import { hasWaiting, keepWaiting, levelNumberAt } from "@/lib/waitingLevel"
 import { resolveTimerTheme } from "@/lib/timerTheme"
 import { syncPresetToTournaments } from "@/lib/presetSync"
 import { ensureClockCalibrated, getServerNow } from "@/lib/serverClock"
+import { maybeWriteRcEstimate } from "@/lib/rcEstimateWriter"
 
 // ── Audio ──────────────────────────────────────────────────────────────────
 const AudioContextClass =
@@ -136,6 +137,8 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   const [reentry, setReentry] = useState(0)
   const [addon, setAddon] = useState(0)
   const [bust, setBust] = useState(0)
+  // RC 後の再計算(lib/endEstimate.ts)がもう大会に書かれているか
+  const [hasRcEstimate, setHasRcEstimate] = useState(false)
   const [entryStack, setEntryStack] = useState(0)
   const [reentryStack, setReentryStack] = useState(0)
   const [addonStack, setAddonStack] = useState(0)
@@ -290,6 +293,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
       setTournamentName(d.name ?? "")
       setEntry(d.totalEntry ?? 0); setReentry(d.totalReentry ?? 0); setAddon(d.totalAddon ?? 0); setBust(d.bustCount ?? 0)
       setEntryStack(d.entryStack ?? 0); setReentryStack(d.reentryStack ?? 0); setAddonStack(d.addonStack ?? 0)
+      setHasRcEstimate(!!d.rcEstimate)
       setPrizePool(Object.fromEntries(Object.entries(d.prizePool ?? {}).map(([k, v]: any) => [k, { amount: typeof v?.amount === "number" ? v.amount : 0, text: v?.text ?? "" }])))
       if (typeof d.currentLevelIndex === "number") setCurrentLevelIndex(d.currentLevelIndex)
       if (typeof d.selectedPreset === "string") setSelectedPreset(d.selectedPreset)
@@ -441,6 +445,15 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
     if (prev === undefined) return
     if (liveLevelIndex > prev) void playSound("levelup")
   }, [liveLevelIndex])
+  // RC ブレイクが終わった瞬間に、その時点のチップで終了予定を再計算して大会に書く(lib/rcEstimateWriter.ts)。
+  // 店舗のタイマーだけ。view=1(プレイヤーの埋め込み)は書かない
+  useEffect(() => {
+    if (viewOnly || !storeId || hasRcEstimate || !isRunning) return
+    maybeWriteRcEstimate(storeId, tournamentId, {
+      timerRunning: isRunning, currentLevelIndex, levelStartedAtMs, levelStartedRemaining,
+      totalEntry: entry, totalReentry: reentry, totalAddon: addon, bustCount: bust, entryStack, reentryStack, addonStack,
+    }, levelsToUse, getServerNow())
+  }, [liveLevelIndex, viewOnly, storeId, tournamentId, hasRcEstimate, isRunning, currentLevelIndex, levelStartedAtMs, levelStartedRemaining, entry, reentry, addon, bust, entryStack, reentryStack, addonStack, levelsToUse])
   const minutes = Math.floor(displaySeconds / 60)
   const seconds = displaySeconds % 60
   const totalLevelSeconds = typeof level?.duration === "number" ? level.duration * 60 : 1

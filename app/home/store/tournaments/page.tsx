@@ -1,5 +1,5 @@
 "use client"
-import { FlagIcon, AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -19,6 +19,7 @@ import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { endClock, endLevelIndex, tournamentClocks } from "@/lib/endEstimate"
+import ClockRow from "@/components/ClockRow"
 import BlindLevelEditor, { type Level, fmtMinutes, validateLevels, withBreak, withNextLevel } from "@/components/BlindLevelEditor"
 
 const DAYS = ["日", "月", "火", "水", "木", "金", "土"] as const
@@ -219,6 +220,7 @@ export default function TournamentsPage() {
           timerRunning: data.timerRunning ?? false,
           blindPresetId: typeof data.blindPresetId === "string" ? data.blindPresetId : "",
           customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
+          rcEstimate: data.rcEstimate ?? null,
           templateId: typeof data.templateId === "string" ? data.templateId : undefined,
           skipDates: Array.isArray(data.skipDates) ? data.skipDates : [],
           createdAt: normalize(data.createdAt)?.toLocaleDateString?.() ?? "",
@@ -549,12 +551,11 @@ export default function TournamentsPage() {
                     <h2 style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, overflowWrap: 'anywhere' }}>{t.name || "名称なし"}</h2>
                     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 8, fontSize: 13, color: 'var(--label2)' }}>
                       <span style={metaItem}><CalendarIcon size={16} /> {t.date || "日付未定"}</span>
-                      {t.startTime && <span style={metaItem}><ClockIcon size={16} /> {t.startTime} 開始</span>}
-                      {/* RC 時刻(RC ブレイクが終わった瞬間)は終了予定の左隣(オーナー指定) */}
-                      {tournamentClocks(t, blindPresets.find(p => p.id === t.blindPresetId)).rc && <span style={{ ...metaItem, color: '#D4910A', fontWeight: 700 }}>RC {tournamentClocks(t, blindPresets.find(p => p.id === t.blindPresetId)).rc}</span>}
-                      {endOf(t) && <span style={{ ...metaItem, color: 'var(--label3)' }}><FlagIcon size={14} /> 終了予定 {endOf(t)}</span>}
                       {t.rcTime && <span style={metaItem}>締切 {t.rcTime}</span>}
                     </div>
+                    {/* 開始・RC・終了は次の行に横並び(オーナー指定・2026-11-05。components/ClockRow.tsx)。
+                         RC 後は再計算した終了と、何分遅れたか(早まったか) */}
+                    <ClockRow clocks={tournamentClocks(t as any, blindPresets.find(p => p.id === t.blindPresetId))} store fontSize={13} style={{ marginTop: 8 }} />
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 16 }}>
                       <Stat label="Entry" value={c.entry} />
                       <Stat label="Re-entry" value={c.reentry} />
