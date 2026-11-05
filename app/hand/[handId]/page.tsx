@@ -7,6 +7,8 @@ import { doc, getDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { FiShare2 } from "react-icons/fi"
 import { PlayingCard } from "@/components/PlayingCard"
+import HandTable, { actionBadge } from "@/components/HandTable"
+import { buildHandReplay } from "@/lib/handReplay"
 
 const ACT_JP: Record<string, string> = {
   fold: "fold", check: "check", call: "call", bet: "bet", raise: "raise", allin: "All-in",
@@ -29,13 +31,6 @@ type HandData = {
   board: { flop: string[] | null; turn: string | null; river: string | null }
   actions: HAction[]
   notes?: Record<string, string>
-}
-
-function seatXY(posIdx: number, total: number, btnIdx: number, cx: number, cy: number, rx: number, ry: number) {
-  const btn = btnIdx < 0 ? 0 : btnIdx
-  const rel = (posIdx - btn + total) % total
-  const angle = Math.PI + (rel / total) * Math.PI * 2
-  return { x: cx + Math.sin(angle) * rx, y: cy - Math.cos(angle) * ry }
 }
 
 function formatDate(seconds?: number) {
@@ -102,8 +97,6 @@ export default function HandPage() {
   const allActs    = hand.actions ?? []
   const totalSteps = allActs.length
   const rPositions = hand.playerPositions ?? [...new Set(allActs.map(a => a.position))]
-  const rBtnIdx    = rPositions.indexOf("BTN")
-  const cx = 160, cy = 100, rx = 126, ry = 76
 
   const shownActs = allActs.slice(0, replayStep)
   const curAct    = replayStep > 0 ? allActs[replayStep - 1] : null
@@ -154,88 +147,28 @@ export default function HandPage() {
             style={{ background: CLR.surface, color: CLR.gray2 }}>{rPositions.length}人</span>
         </div>
 
-        {/* Oval table */}
-        <div className="relative mb-3 rounded-[999px]"
-          style={{ height: 204, background: "#F2EDE4", border: "1.5px solid #D8CEBD", boxShadow: "inset 0 2px 8px rgba(0,0,0,0.04)" }}>
-          <div className="absolute rounded-[999px] pointer-events-none"
-            style={{ inset: 8, border: "1px solid rgba(200,185,160,0.35)" }} />
-
-          {/* Board cards */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-            {(flop.length > 0 || turn || river) && (
-              <div className="flex items-center gap-1">
-                {flop.map((c, i) => c ? (
-                  <PlayingCard key={i} card={c} height={30} />
-                ) : null)}
-                {turn && (
-                  <>
-                    <div style={{ width: 1, height: 16, background: "rgba(170,155,135,0.4)", margin: "0 2px" }} />
-                    <PlayingCard card={turn} height={30} />
-                  </>
-                )}
-                {river && (
-                  <>
-                    <div style={{ width: 1, height: 16, background: "rgba(170,155,135,0.4)", margin: "0 2px" }} />
-                    <PlayingCard card={river} height={30} />
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Seats */}
-          {rPositions.map((pos, posIdx) => {
-            const { x, y } = seatXY(posIdx, rPositions.length, rBtnIdx, cx, cy, rx, ry)
-            const act      = seatActMap[pos]
-            const isFolded = foldedSeats.has(pos)
-            const isCur    = curAct?.position === pos
-            const isHero   = pos === hand.heroPosition
-            const hCards   = isHero ? (hand.heroCards ?? []) : (hand.villainCards?.[pos] ?? [])
-            return (
-              <div key={pos} className="absolute flex flex-col items-center"
-                style={{ left: x - 20, top: y - 26, width: 40, opacity: isFolded ? 0.25 : 1, transition: "opacity 0.3s" }}>
-                {isCur && (
-                  <div className="absolute pointer-events-none" style={{ left: 0, top: 0, width: 40, height: 40 }}>
-                    <div className="w-full h-full rounded-full animate-ping"
-                      style={{ border: `2px solid ${CLR.gold}`, opacity: 0.5 }} />
-                  </div>
-                )}
-                {isHero && (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] z-10" style={{ color: CLR.gold }}>★</div>
-                )}
-                {pos === "BTN" && (
-                  <div className="absolute -right-1 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
-                    style={{ background: CLR.white, border: `1px solid ${CLR.border}`, fontSize: 6, fontWeight: 900, color: CLR.ink }}>D</div>
-                )}
-                <div className="w-[40px] h-[40px] rounded-full flex items-center justify-center"
-                  style={{
-                    background: isCur ? "#FFF8E7" : CLR.white,
-                    border: isCur ? `2px solid ${CLR.gold}` : isHero ? `1.5px solid ${CLR.gold}` : `1.5px solid ${CLR.border}`,
-                    boxShadow: isCur ? `0 0 0 3px rgba(242,169,0,0.18)` : undefined,
-                  }}>
-                  <div className="flex gap-[2px]">
-                    {[0, 1].map(i => {
-                      const c = hCards[i]
-                      return (
-                        <PlayingCard key={i} card={c} height={15} />
-                      )
-                    })}
-                  </div>
-                </div>
-                {act && !isFolded && (
-                  <div className="rounded-full px-1 py-px text-[7px] font-semibold mt-0.5 whitespace-nowrap"
-                    style={{
-                      background: act.action === "bet" || act.action === "raise" ? "#FFFBEB" : act.action === "allin" ? "#FFF5F5" : CLR.white,
-                      border: `1px solid ${act.action === "bet" || act.action === "raise" ? "#FDE68A" : act.action === "allin" ? "#FCA5A5" : CLR.border}`,
-                      color: act.action === "bet" || act.action === "raise" ? "#B45309" : act.action === "allin" ? CLR.red : CLR.gray2,
-                    }}>
-                    {ACT_JP[act.action]}{act.amount != null ? ` ${act.amount}` : ""}
-                  </div>
-                )}
-                <span className="text-[7px] font-bold mt-0.5" style={{ color: isHero ? CLR.gold : CLR.gray2 }}>{pos}</span>
-              </div>
-            )
-          })}
+        {/* 卓(ハンド記録と同じ。PokerART の卓を金・白で。components/HandTable.tsx) */}
+        <div className="mb-3 -mx-2">
+          <HandTable
+            height={360}
+            anchorPos={hand.heroPosition || "BTN"}
+            board={[...flop, turn, river]}
+            boardCount={river ? 5 : turn ? 4 : flop.length > 0 ? 3 : 0}
+            pot={(() => { const st = buildHandReplay(hand)[replayStep]; return st ? `POT ${st.snapshot.pot} BB` : null })()}
+            seats={rPositions.map(pos => {
+              const act = seatActMap[pos]
+              const isHero = pos === hand.heroPosition
+              return {
+                pos,
+                cards: isHero ? (hand.heroCards ?? []) : (hand.villainCards?.[pos] ?? []),
+                dim: foldedSeats.has(pos),
+                turn: curAct?.position === pos,
+                hero: isHero,
+                // 札はいまのストリートのアクションだけ(PokerART と同じ)
+                badge: act && (act.street === curAct?.street || act.action === "fold") ? actionBadge(act) : null,
+              }
+            })}
+          />
         </div>
 
         {/* Replay controls */}
@@ -248,7 +181,7 @@ export default function HandPage() {
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 14 }}>‹</button>
           <button onClick={() => setReplayPlaying(p => !p)}
             className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, fontSize: 16, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: "#fff", fontSize: 16, boxShadow: "0 3px 12px rgba(242,169,0,0.4)" }}>
             {replayPlaying ? <Pause size={16} strokeWidth={2} aria-hidden /> : <Play size={16} strokeWidth={2} aria-hidden />}
           </button>
           <button onClick={() => setReplayStep(s => Math.min(s + 1, totalSteps))}
@@ -291,7 +224,7 @@ export default function HandPage() {
                         </span>
                         {isCurrent && (
                           <span className="ml-auto text-[9px] font-bold rounded-full px-1.5 py-px"
-                            style={{ background: CLR.gold, color: CLR.ink }}>NOW</span>
+                            style={{ background: CLR.gold, color: "#fff" }}>NOW</span>
                         )}
                       </div>
                     )
@@ -308,7 +241,7 @@ export default function HandPage() {
           <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/home"
             className="inline-flex items-center gap-1.5 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition-all"
-            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: CLR.ink, textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
+            style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: "#fff", textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
             RRPOKERを使ってみる ›
           </a>
         </div>

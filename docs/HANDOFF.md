@@ -9,12 +9,10 @@
 2. **偏差値の再計算**: 管理者の rr-recompute API を一度叩く(または次の大会確定で更新される)。
 
 ## 次にやる作業
-### #28 ハンド記録を PokerART から移植(未着手)
-- 依頼: プレイヤーのフッター「＋ツール → ハンド記録」に、PokerART(Coffiest/Meta---GEO)のハンド記録 UI を移す。テーブル・席の配置/トランプの絵/アクション入力/リプレイの全部。色は RRPoker の金(#F2A900)と白に合わせる。
-- 移植元: `apps/web/src/components/PokerTable.tsx`(731 行)、`apps/web/src/components/GameHandHistorySheet.tsx`(446 行)、`apps/web/src/lib/replay.ts`(258 行)、`apps/web/src/app/review/`。元はダーク基調・差し色 #26c2a3。
-- 移植先: `app/home/HandHistoryModal.tsx`(1279 行)と公開ページ `app/hand/[handId]/page.tsx`、`components/PlayingCard.tsx`。
-- 進め方の案: (1) replay.ts をそのまま lib に移しテストを書く (2) 今の保存形式(handHistories の文書)を読んで replay の入力に変換する関数を作る(既存データを壊さない) (3) PokerTable を金/白・JetBrains Mono で描き直す (4) 入力 UI を差し替える (5) /hand の公開ページも同じ表示に。
-- 着手前にオーナーへ確認すること: 既存のハンド記録データをそのまま読めるようにするか / 保存形式を変えてよいか。
+### #28 ハンド記録の PokerART 化(2026-11-05 済み)
+- 卓は `components/HandTable.tsx`(記録・履歴のリプレイ・共有ページ /hand/[id] の3か所で共通)。PokerART と同じ縦長の卓、フェルト白・レール金、Hero を一番下。
+- 卓中央のロゴ・ディーラーボタン・チップ・オールインの印は PokerART の画像をそのまま使用(オーナー指定)。`public/table/`。ロゴは PokerART の卓画像から切り出して黒文字にしたもの。
+- 保存形式(handHistories の文書)は変えていない。過去のハンドもそのまま新しい卓で再生できる。リプレイのポットは lib/handReplay.ts で計算。
 
 ## 手元での確認の仕方
 - エミュレーター: `/tmp/claude-0/emu`(コンテナが変わると消える)。firebase.json の rules は**同じフォルダに置いた firestore.rules を相対パスで**指定すること(絶対パスだと読まれず、全部許可になる)。ルールを変えたらコピーし直して再起動。
