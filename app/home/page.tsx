@@ -2,7 +2,7 @@
 
 import { withoutWaiting } from "@/lib/waitingLevel"
 import { tournamentClocks } from "@/lib/endEstimate"
-import { Clock, Store } from 'lucide-react'
+import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
 import { arrayRemove, arrayUnion, collection, deleteField, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, addDoc } from "firebase/firestore"
@@ -2520,6 +2520,22 @@ const medalClass = (rank: number) => {
 
           </>
         )}
+
+        {/* Poker ART へのリンク(オーナー指定・2026-11-05)。別タブ(アプリでは外のブラウザ)で開く。
+             見た目は Poker ART の濃い緑の面と青緑の差し色に寄せ、書体と角丸は RRPoker に合わせる */}
+        <a href="https://web-pearl-chi-34.vercel.app/" target="_blank" rel="noopener noreferrer" className="pd-full"
+          aria-label="Poker ART を開く(別のタブ)"
+          style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 72, padding: '16px 20px', marginTop: 24, borderRadius: 24, textDecoration: 'none',
+            background: 'linear-gradient(135deg,#0B1F1E 0%,#0E2A28 100%)', border: '1px solid rgba(38,194,163,0.45)', boxShadow: '0 10px 30px rgba(0,0,0,0.14)' }}>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span className="tech-label" style={{ display: 'block', fontSize: 9, color: '#26C2A3', letterSpacing: '0.18em' }}>PLAY</span>
+            <span style={{ display: 'block', fontFamily: 'var(--stack-mono)', fontSize: 18, fontWeight: 700, color: '#FFFFFF', marginTop: 4 }}>
+              Poker <span style={{ color: '#26C2A3' }}>ART</span>
+            </span>
+            <span style={{ display: 'block', fontSize: 11, color: '#E5E5EA' /* contrast-ok: 濃い緑の面の上 */, marginTop: 4, lineHeight: 1.5 }}>純粋なトナメの実力を競う競技ポーカー</span>
+          </span>
+          <ExternalLink size={20} strokeWidth={2} color="#26C2A3" aria-hidden style={{ flexShrink: 0 }} />
+        </a>
 
         {/* フッター（バージョン・製作者情報） */}
         <footer className="pd-full" style={{ padding: '24px 0 8px', textAlign: 'center' }}>
