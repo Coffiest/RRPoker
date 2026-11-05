@@ -3,6 +3,7 @@
 import { hasWaiting, keepWaiting, withoutWaiting } from "@/lib/waitingLevel"
 import { showToast } from "@/lib/toast"
 import TimerBgPicker from "@/components/TimerBgPicker"
+import RotatedFullscreen from "@/components/RotatedFullscreen"
 import PlayerHistoryModal from "@/app/components/PlayerHistoryModal"
 import dynamic from "next/dynamic"
 const PlayerProfileModal = dynamic(() => import("@/components/PlayerProfileModal"), { ssr: false })
@@ -1667,8 +1668,7 @@ export default function StorePage() {
           })
           const close = () => { setExpandedSplitIds(null); setExpandSplitCtrl(false) }
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100vh', height: '100vw', transform: 'translate(-50%, -50%) rotate(90deg)', transformOrigin: 'center center', overflow: 'hidden' }}>
+            <RotatedFullscreen>
                 <iframe src={`/home/store/timer/split?ids=${expandedSplitIds.join(',')}&preview=1`} title="split-expanded" allow="autoplay"
                   style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }} />
                 {!expandSplitCtrl && (
@@ -1699,8 +1699,7 @@ export default function StorePage() {
                     ))}
                   </div>
                 )}
-              </div>
-            </div>
+            </RotatedFullscreen>
           )
         })()}
 
@@ -1720,17 +1719,7 @@ export default function StorePage() {
           })
           const labelStyle: React.CSSProperties = { fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em' }
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#000', overflow: 'hidden' }}>
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: '100vh',
-                height: '100vw',
-                transform: 'translate(-50%, -50%) rotate(90deg)',
-                transformOrigin: 'center center',
-                overflow: 'hidden',
-              }}>
+            <RotatedFullscreen>
                 <iframe
                   src={`/home/store/timer/${expandedTimerId}`}
                   style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }}
@@ -1822,8 +1811,7 @@ export default function StorePage() {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+            </RotatedFullscreen>
           )
         })()}
 
