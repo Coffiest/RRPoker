@@ -14,7 +14,9 @@ import { auth, db } from "@/lib/firebase"
 import { startTournamentTimer, setTournamentLevel, adjustTournamentTime } from "@/lib/timerControl"
 import { isNativeApp } from "@/lib/platform"
 import { nextTemplateBlind } from "@/lib/blindTemplate"
-import { tournamentClocks, endClock } from "@/lib/endEstimate"
+import { tournamentClocks } from "@/lib/endEstimate"
+import ClockRow from "@/components/ClockRow"
+import { levelsOf, maybeWriteRcEstimate } from "@/lib/rcEstimateWriter"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -40,7 +42,7 @@ import {
 import {
   FiPlus, FiMinus, FiCopy, FiHome, FiUser, FiPlay, FiPause,
   FiSkipForward, FiSkipBack, FiUsers, FiDollarSign, FiLink2, FiGrid, FiEdit2,
-  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2, FiFlag,
+  FiClock, FiCheck, FiX, FiSearch, FiLogOut, FiLogIn, FiEdit3, FiChevronRight, FiMaximize2,
   FiChevronDown, FiMenu, FiMoreHorizontal, FiTrash2, FiAlertTriangle,
   FiCreditCard, FiRefreshCw, FiPlusCircle, FiAward, FiMessageSquare, FiSend, FiInbox,
 } from "react-icons/fi"
@@ -333,6 +335,8 @@ export default function StorePage() {
     if (!t) return
     // 今の画面に出ているレベルと残り時間で止める(途中でレベルが進んでいても正しく止まる)
     const live = getLiveLevelState(t)
+    // RC ブレイクが終わった直後に止めても、再計算を取りこぼさない(lib/rcEstimateWriter.ts)
+    if (!t.rcEstimate) maybeWriteRcEstimate(storeId, id, { ...t, totalEntry: t.entry, totalReentry: t.reentry, totalAddon: t.addon }, levelsOf(t, presetMap[t.blindPresetId]?.levels), getServerNow())
     setTimerRunning(m => ({ ...m, [id]: false }))
     try {
       await updateDoc(doc(db, "stores", storeId, "tournaments", id), {
@@ -414,6 +418,8 @@ export default function StorePage() {
           levelStartedRemaining: typeof data.levelStartedRemaining === "number" ? data.levelStartedRemaining : null,
           timerBg: typeof data.timerBg === "string" ? data.timerBg : null,
           blindsCustomized: data.blindsCustomized === true,
+          // RC 後に再計算した終了予定(lib/endEstimate.ts)
+          rcEstimate: data.rcEstimate ?? null,
         })
       }
       setActiveTournaments(list)
@@ -1046,19 +1052,26 @@ export default function StorePage() {
       const m: Record<string, any> = {}; snap.forEach(d => { m[d.id] = d.data() }); setPresetMap(m)
     })
   }, [storeId])
-  const endOf = (t: any) => {
-    const pr = presetMap[t.blindPresetId]
-    if (!pr || !Array.isArray(pr.levels)) return null
-    return endClock(t.date, t.startTime, pr.levels, pr.startStack, pr.players)
-  }
-  // RC 時刻(RC ブレイクが終わった瞬間)。終了予定の左隣に出す(オーナー指定)
-  const rcOf = (t: any) => tournamentClocks(t, presetMap[t.blindPresetId]).rc
-  const ClockLine = ({ t, style }: { t: any; style: React.CSSProperties }) => (endOf(t) || rcOf(t))
-    ? <p className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', fontSize: 10, color: 'var(--label3)', ...style }}>
-        {rcOf(t) && <span style={{ fontWeight: 700, color: '#D4910A', marginRight: 8 }}>RC {rcOf(t)}</span>}
-        {endOf(t) && <><FiFlag size={11} /> 終了予定 {endOf(t)}</>}
-      </p>
-    : null
+  // RC ブレイクが終わった瞬間に、その時点のチップで終了予定を再計算して大会に書く(lib/rcEstimateWriter.ts)。
+  // サーバーの毎分の巡回より早く、店舗・プレイヤーの画面に出せる
+  useEffect(() => {
+    if (!storeId) return
+    const run = () => {
+      const now = getServerNow()
+      for (const t of activeTournaments) {
+        if (t.rcEstimate || !t.timerRunning) continue
+        const d = { ...t, totalEntry: t.entry, totalReentry: t.reentry, totalAddon: t.addon }
+        maybeWriteRcEstimate(storeId, t.id, d, levelsOf(t, presetMap[t.blindPresetId]?.levels), now)
+      }
+    }
+    run()
+    const id = setInterval(run, 5000)
+    return () => clearInterval(id)
+  }, [storeId, activeTournaments, presetMap])
+
+  // 開始・RC・終了の行(components/ClockRow.tsx)。店舗だけ、RC 後の再計算で何分遅れたか(早まったか)も出す
+  const ClockLine = ({ t, style }: { t: any; style: React.CSSProperties }) =>
+    <ClockRow clocks={tournamentClocks(t, presetMap[t.blindPresetId])} store fontSize={10} style={style} />
   const EndBadge = ({ t }: { t: any }) => <ClockLine t={t} style={{ margin: '-4px 0 8px' }} />
 
   // ── 開催中トーナメントのカード(単体) ──
@@ -1244,7 +1257,6 @@ export default function StorePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {ts.map(t => (
               <div key={t.id} style={{ padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
-              <ClockLine t={t} style={{ margin: '0 0 4px' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <p style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                 {storeId && <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} compact />}
@@ -1254,6 +1266,8 @@ export default function StorePage() {
                 </button>
                 <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={smallBtn}><FiSkipForward size={15} style={{ color: 'var(--label)' }}/></button>
               </div>
+              {/* 大会名の下に、開始・RC・終了 */}
+              <ClockLine t={t} style={{ margin: '0 0 0 4px' }} />
               {/* 単体のカードと同じ操作 */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, (t.customBlindLevels && t.customBlindLevels.length > 0) ? t.customBlindLevels : presetMap[t.blindPresetId]?.levels ?? null)}><FiEdit2 size={13}/> ADJUST</button>

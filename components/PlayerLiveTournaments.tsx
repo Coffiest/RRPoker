@@ -7,6 +7,7 @@ import { auth, db } from '@/lib/firebase'
 import { ChevronDown, Maximize2, X } from 'lucide-react'
 import RotatedFullscreen from '@/components/RotatedFullscreen'
 import { tournamentClocks } from '@/lib/endEstimate'
+import ClockRow from '@/components/ClockRow'
 import { FiList, FiCopy } from 'react-icons/fi'
 import { blindsToText, copyText } from '@/lib/blindText'
 import { showToast } from '@/lib/toast'
@@ -143,10 +144,10 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
               <button type="button" onClick={() => toggle(t.id)} aria-expanded={open} aria-label={`${t.name}のタイマーを${open ? 'たたむ' : '開く'}`}
                 style={{ flex: 1, minWidth: 0, minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
                 <ChevronDown size={18} strokeWidth={2} color="var(--label2)" aria-hidden style={{ flexShrink: 0, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 160ms ease-out' }} />
-                <span className="con-mono" style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 11, color: 'var(--label2)' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--label)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0 }}>{t.name}</span>
-                  {clk.rc && <span style={{ fontWeight: 700, color: '#D4910A' }}>RC {clk.rc}</span>}
-                  {clk.end && <span>終了予定 {clk.end}</span>}
+                {/* 大会名の下の行に、開始・RC・終了をいつも横に並べる(components/ClockRow.tsx) */}
+                <span className="con-mono" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '6px 0' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--label)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{t.name}</span>
+                  <ClockRow clocks={clk} />
                 </span>
               </button>
               {/* 横向き全画面(スマホ版だけ。店舗と同じ) */}

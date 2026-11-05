@@ -2,6 +2,7 @@
 
 import { withoutWaiting } from "@/lib/waitingLevel"
 import { tournamentClocks } from "@/lib/endEstimate"
+import ClockRow from "@/components/ClockRow"
 import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -902,8 +903,7 @@ export default function HomePage() {
             const data = d.data()
             const clk = tournamentClocks(data as any, typeof data.blindPresetId === "string" ? presets[data.blindPresetId] : null)
             all.push({
-              rcClockText: clk.rc,
-              endClockText: clk.end,
+              clocks: clk,
               id: d.id,
               storeId: store.id,
               storeName: store.name,
@@ -2484,12 +2484,8 @@ const medalClass = (rank: number) => {
                                     <span style={{ fontSize: 12, fontWeight: 800, color: '#D4910A' }}>{fmtChip(Number(entry.entryFee))}</span>
                                   )}
                                 </div>
-                                {(entry.rcClockText || entry.endClockText) && (
-                                  <div className="con-mono" style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4, fontSize: 10.5 }}>
-                                    {entry.rcClockText && <span style={{ fontWeight: 700, color: '#D4910A' }}>RC {entry.rcClockText}</span>}
-                                    {entry.endClockText && <span style={{ color: 'var(--label2)' }}>終了予定 {entry.endClockText}</span>}
-                                  </div>
-                                )}
+                                {/* 開始・RC・終了を 1 行に横並び(components/ClockRow.tsx)。RC 後は再計算した終了 */}
+                                {entry.clocks && <ClockRow clocks={entry.clocks} fontSize={10.5} style={{ marginTop: 4 }} />}
                               </div>
 
                               {/* 矢印 */}
