@@ -38,7 +38,7 @@ module.exports = {
     { name: 'XPT', logo: 'xpt.png', dark: true },
     { name: 'FST', logo: 'fst.png', dark: true },
     { name: 'Runner Runner', logo: 'rr.png' },
-    { name: 'こうだい', logo: 'koudai.png', round: true },
+    { name: 'こうだい', logo: 'koudai.png', photo: true },
   ],
   // 3ページ目以降。levels: [SB, BB, Ante, 分] / ブレイクは { m: 分, rc: レジクロか, note: CU などの補足 }
   tournaments: [

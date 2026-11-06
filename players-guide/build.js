@@ -119,8 +119,8 @@ const thanks = `
   ${header('SPECIAL THANKS', 'OFFICIAL SPONSORS &nbsp;/&nbsp; 協賛企業一覧')}
   <p class="thx-lead">本大会の開催にあたり、ご協賛いただいた皆様に心より感謝申し上げます。</p>
   <div class="thx">${D.sponsors.map((s, i) => `
-    <div class="sp ${i === 0 ? 'wide' : ''}">
-      <div class="lg ${s.dark ? 'dark' : ''} ${s.round ? 'round' : ''}"><img src="${img(s.logo)}" alt=""></div>
+    <div class="sp">
+      <div class="lg ${s.dark ? 'dark' : ''} ${s.photo ? 'photo' : ''}"><img src="${img(s.logo)}" alt=""></div>
       <div class="nm">${s.name}</div>
     </div>`).join('')}</div>
   <div class="thx-foot">${logo(30)}</div>
@@ -180,16 +180,14 @@ table { border-collapse: collapse; width: 100%; }
 .notice .app small { font-size: 11.5px; font-weight: 500; }
 .notice .url { display: block; font-family: Oswald; letter-spacing: .05em; font-size: 14px; color: var(--cream); margin-top: 4px; }
 .thx-lead { font-family: 'Noto Sans JP'; font-weight: 700; font-size: 15px; margin: 2mm 0 8mm; }
-.thx { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
-.sp { background: rgba(36,16,10,.45); border-radius: 12px; padding: 14px; text-align: center; }
-.sp.wide { grid-column: 1 / -1; }
-.sp .lg { height: 140px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 12px; }
-.sp.wide .lg { height: 200px; }
+.thx { display: flex; flex-wrap: wrap; justify-content: center; gap: 6mm; }
+.sp { width: calc((100% - 6mm) / 2); background: rgba(36,16,10,.45); border-radius: 12px; padding: 14px; text-align: center; }
+.sp .lg { height: 170px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 16px; overflow: hidden; }
 .sp .lg.dark { background: #0b0b0b; }
-.sp .lg img { max-width: 100%; max-height: 100%; object-fit: contain; }
-.sp .lg.round { background: transparent; }
-.sp .lg.round img { height: 130px; width: 130px; border-radius: 50%; border: 3px solid #fff; }
-.sp .nm { font-family: Anton; font-size: 22px; letter-spacing: .04em; margin-top: 8px; }
+.sp .lg.photo { padding: 0; }
+.sp .lg.photo img { object-fit: cover; }
+.sp .lg img { width: 100%; height: 100%; object-fit: contain; }
+.sp .nm { font-family: Anton, 'Noto Sans JP'; font-size: 22px; letter-spacing: .04em; margin-top: 8px; }
 .thx-foot { position: absolute; bottom: 14mm; left: 0; right: 0; display: flex; justify-content: center; }
 .venue-box { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-size: 18px; }
 /* tournament */
