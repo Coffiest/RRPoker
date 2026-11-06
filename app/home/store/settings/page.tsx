@@ -1,6 +1,7 @@
 "use client"
 
 import TimerBgDefaultSetting from "@/components/TimerBgDefaultSetting"
+import PlayerGuideSettings from "@/components/PlayerGuideSettings"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
@@ -621,6 +622,14 @@ export default function StoreSettingsPage() {
               <Toggle on={allowPlayerCheckout} onToggle={toggleAllowPlayerCheckout} />
             </div>
           </SectionCard>
+
+          {/* ── プレイヤーズガイド(components/PlayerGuideSettings.tsx) ── */}
+          {storeId && (
+            <SectionCard>
+              <SectionTitle title="プレイヤーズガイド" subtitle="ON：入店中のプレイヤーのホームに「プレイヤーズガイドはこちら」を出す。PDF・画像を最大 5 つ" />
+              <PlayerGuideSettings storeId={storeId} />
+            </SectionCard>
+          )}
 
           {/* ── 誕生日クーポン ── */}
           <SectionCard>

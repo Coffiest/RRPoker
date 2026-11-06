@@ -114,3 +114,9 @@
 - RC ブレイクが終わった瞬間の卓の合計チップ(= 残り人数 × アベレージ)で、最初の終了予定と同じ決め方(ヘッズアップのアベレージが 10BB を切る最初のレベルの終わり)をやり直す。時刻は「実際に RC ブレイクが終わった時刻 + その後のレベルの時間」(一時停止や開始の遅れも入る)。大会の `rcEstimate` に残し、その後は変えない。RC 以前のレベルに戻したら消す。
 - 書くのはサーバー(functions の毎分の巡回と setTournamentLevel)と、店舗の画面(`lib/rcEstimateWriter.ts`。店舗のタイマー・店舗ホーム)。プレイヤーの画面・view=1 は書かない。
 - プレイヤーには再計算した終了だけ。店舗には「終了 21:00 → 21:40」と「40分遅延」(赤 #C62828)/「○分早まる」(緑)を出す。
+
+## プレイヤーズガイド(オーナー確定・2026-11-06)
+
+- 店舗の設定で ON にし、PDF・画像を最大 5 つ(1 つ 20MB まで)入れる(`components/PlayerGuideSettings.tsx`。選ぶかドラッグ)。入店中のプレイヤーのホームの「入店中」のカードに「プレイヤーズガイドはこちら」とサムネイルを出し、押すとアプリの中で開く。保存ボタン付き(`components/PlayerGuideStrip.tsx`)。
+- ファイルは Firebase Storage の `stores/{id}/guides/`(`storage.rules`。書けるのはオーナーと managerUids、PDF と画像だけ)。店舗の文書には `playerGuideEnabled` / `playerGuideFiles` だけ。ルールを変えたら `firebase deploy --only storage`。
+- 保存は `app/api/guide-file` を通す(Storage は別のドメインで、そのままでは保存にならない)。通すのはこのアプリの Storage の `stores/*/guides/*` だけ(`lib/playerGuide.ts` の `isAllowedGuideUrl`)。
