@@ -3,6 +3,7 @@
 import { withoutWaiting } from "@/lib/waitingLevel"
 import { tournamentClocks } from "@/lib/endEstimate"
 import ClockRow from "@/components/ClockRow"
+import PlayerGuideStrip from "@/components/PlayerGuideStrip"
 import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -1690,8 +1691,9 @@ const medalClass = (rank: number) => {
              上下のカードと重ならないよう、自分の上下に余白を持つ */}
         {currentStoreId && currentStore && (
           <div className="pd-full" style={{ marginTop: 24, marginBottom: 0, position: 'relative', zIndex: 1 }}>
-          {/* 入店中の店舗カード */}
-          <div className="flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
+          {/* 入店中の店舗カード。下にプレイヤーズガイド(店舗が ON のとき。components/PlayerGuideStrip.tsx) */}
+          <div className="rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
+          <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
               {currentStore.iconUrl
                 ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
@@ -1727,6 +1729,8 @@ const medalClass = (rank: number) => {
                 )}
               </div>
             )}
+          </div>
+          <PlayerGuideStrip storeId={currentStoreId} />
           </div>
           </div>
         )}
