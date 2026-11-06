@@ -67,16 +67,32 @@ export default function PlayerGuideSettings({ storeId }: { storeId: string }) {
       setProgress({ name: file.name, pct: 0 })
       try {
         const task = uploadBytesResumable(sref(storage, path), file, { contentType: file.type })
-        await new Promise<void>((resolve, reject) => {
-          task.on('state_changed', s => setProgress({ name: file.name, pct: s.totalBytes ? Math.round((s.bytesTransferred / s.totalBytes) * 100) : 0 }), reject, () => resolve())
-        })
+        // 置き場所(Storage)が使えないと、部品が送り直しを続けて 0% のまま止まって見える。
+        // 20 秒たっても 1 バイトも送れなければ止めて、理由を出す
+        let moved = false
+        const stall = setTimeout(() => { if (!moved) task.cancel() }, 20_000)
+        try {
+          await new Promise<void>((resolve, reject) => {
+            task.on('state_changed', s => {
+              if (s.bytesTransferred > 0) moved = true
+              setProgress({ name: file.name, pct: s.totalBytes ? Math.round((s.bytesTransferred / s.totalBytes) * 100) : 0 })
+            }, reject, () => resolve())
+          })
+        } catch (e) {
+          const code = (e as { code?: string })?.code ?? ''
+          throw new Error(
+            code === 'storage/canceled' && !moved ? 'ファイルの置き場所(Firebase Storage)につながりません。Storage が有効になっているか確認してください'
+            : code === 'storage/unauthorized' ? '保存する権限がありません(Storage のルールが入っていない可能性があります)'
+            : `保存できませんでした(${code || '不明なエラー'})`)
+        } finally { clearTimeout(stall) }
         const url = await getDownloadURL(task.snapshot.ref)
         const next = [...filesRef.current, { id, name: file.name, url, path, contentType: file.type, size: file.size }]
         filesRef.current = next
         setFiles(next)
         await updateDoc(doc(db, 'stores', storeId), { playerGuideFiles: next })
-      } catch {
-        showToast(`${file.name} を保存できませんでした`)
+      } catch (e) {
+        showToast(`${file.name}: ${e instanceof Error ? e.message : '保存できませんでした'}`)
+        break
       }
     }
     setProgress(null)
