@@ -8,7 +8,7 @@ const places = (cash, plat, trophy = false, extra = {}) => {
   const rows = [];
   for (let i = 1; i <= Math.max(cash.length, plat); i++) {
     const c = cash[i - 1];
-    rows.push([ord(i), [c ? '¥' + c.toLocaleString('en-US') : '', i <= plat ? PLAT : ''].filter(Boolean).join(' + '), trophy && i === 1, extra[i] || []]);
+    rows.push([ord(i), [c ? c.toLocaleString('en-US') : '', i <= plat ? PLAT : ''].filter(Boolean).join(' + '), trophy && i === 1, extra[i] || []]);
   }
   return rows;
 };
@@ -27,16 +27,24 @@ module.exports = {
   },
   // 2ページ目の一覧(上から表示順)。close はレジ締切の目安
   schedule: [
-    { start: '11:00', close: '14:15', no: '#2', name: 'High Roller', entry: '¥1,500 / ¥3,000', stack: '30,000', note: '16名限定' },
-    { start: '11:00', close: '17:20', no: '#1', name: 'Main Event', entry: '¥300 / ¥1,500', stack: '500', main: true },
-    { start: '17:00', close: '19:10', no: '#3', name: 'RR Super Turbo', entry: '¥300 / ¥1,500', stack: '300' },
-    { start: '19:30', close: '20:05', no: '#4', name: 'RR Double Stack AoF', entry: '¥300 (一律)', stack: '30,000' },
+    { start: '11:00', close: '14:15', no: '#2', name: 'High Roller', entry: '1,500 / 3,000', stack: '30,000', note: '16名限定' },
+    { start: '11:00', close: '17:20', no: '#1', name: 'Main Event', entry: '300 / 1,500', stack: '500', main: true },
+    { start: '17:00', close: '19:10', no: '#3', name: 'RR Super Turbo', entry: '300 / 1,500', stack: '300' },
+    { start: '19:30', close: '20:05', no: '#4', name: 'RR Double Stack AoF', entry: '300 (一律)', stack: '30,000' },
+  ],
+  // 最終ページ SPECIAL THANKS。logo は players-guide/sponsors/ の画像、dark は暗い地のロゴ
+  sponsors: [
+    { name: 'SPADIE', logo: 'spadie.png' },
+    { name: 'XPT', logo: 'xpt.png', dark: true },
+    { name: 'FST', logo: 'fst.png', dark: true },
+    { name: 'Runner Runner', logo: 'rr.png' },
+    { name: 'こうだい', logo: 'koudai.png', round: true },
   ],
   // 3ページ目以降。levels: [SB, BB, Ante, 分] / ブレイクは { m: 分, rc: レジクロか, note: CU などの補足 }
   tournaments: [
     {
       no: '#1', name: 'MAIN EVENT', start: '11:00', entry: { student: 300, adult: 1500 }, chips: 500, stackBB: '250BB',
-      prize: { total: 20000, inMoney: 4, places: places([10000, 5000, 3000, 2000], 8, true, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2'], 2: ['FST Satellite Ticket ×1'] }) },
+      prize: { total: 20000, inMoney: 4, places: places([10000, 5000, 3000, 2000], 8, true, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2', 'SPADIE Satellite Ticket ×2'], 2: ['FST Satellite Ticket ×1', 'SPADIE Satellite Ticket ×2'], 3: ['SPADIE Satellite Ticket ×2'], 4: ['SPADIE Satellite Ticket ×2'], 5: ['SPADIE Satellite Ticket ×2'] }) },
       levels: [
         [1,2,2,40],
         [2,3,3,40],
@@ -91,7 +99,7 @@ module.exports = {
     },
     {
       no: '#2', name: 'HIGH ROLLER', start: '11:00', entry: { student: 1500, adult: 3000 }, cap: '16名限定', chips: 30000, stackBB: '150BB',
-      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 3000], 4, false, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2'] }) },
+      prize: { total: 15000, inMoney: 3, places: places([8000, 4000, 3000], 4, false, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2', 'SPADIE Satellite Ticket ×2'], 2: ['SPADIE Satellite Ticket ×2'] }) },
       levels: [
         [100,200,200,30],
         [200,300,300,30],
@@ -138,7 +146,7 @@ module.exports = {
     },
     {
       no: '#3', name: 'RR SUPER TURBO', start: '17:00', entry: { student: 300, adult: 1500 }, chips: 300, stackBB: '75BB',
-      prize: { total: 10000, inMoney: 4, places: places([5000, 2500, 1500, 1000], 8, false, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2'] }) },
+      prize: { total: 10000, inMoney: 4, places: places([5000, 2500, 1500, 1000], 8, false, { 1: ['FST Satellite Ticket ×1', 'XPT Satellite Ticket ×2', 'SPADIE Satellite Ticket ×2'], 2: ['SPADIE Satellite Ticket ×2'] }) },
       levels: [
         [2,4,4,20],
         [3,6,6,20],
@@ -176,7 +184,7 @@ module.exports = {
     {
       no: '#4', name: 'RR DOUBLE STACK AoF', start: '19:30', entry: { all: 300 }, chips: 30000, stackBB: '10BB',
       note: 'All-in or Fold',
-      prize: { total: 3000, inMoney: 2, places: places([2000, 1000], 5) },
+      prize: { total: 3000, inMoney: 2, places: places([2000, 1000], 5, false, { 1: ['SPADIE Satellite Ticket ×2'] }) },
       levels: [
         [1500,3000,3000,10],
         [2000,4000,4000,10],

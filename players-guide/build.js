@@ -6,7 +6,7 @@ const D = require('./data');
 
 const QR = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, D.event.app.qr)).toString('base64');
 const n = (v) => v.toLocaleString('en-US');
-const yen = (v) => '¥' + n(v);
+const yen = (v) => n(v);
 const addMin = (t, m) => {
   const [h, mm] = t.split(':').map(Number);
   const x = h * 60 + mm + m;
@@ -55,7 +55,7 @@ const schedule = `
   </table>
   <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
   <div class="notice">
-    <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>¥${n(D.event.facilityFee)}</b> をいただきます(参加費とは別)。</div>
+    <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>${n(D.event.facilityFee)}</b> をいただきます(参加費とは別)。</div>
     <div class="app">
       <img src="${QR}" alt="">
       <div><span class="pill">APP</span><b>${D.event.app.name}</b> の登録が必須です。<br><small>当日スムーズに参加できるよう、事前に登録をお済ませください。</small><span class="url">${D.event.app.url}</span></div>
@@ -113,6 +113,19 @@ const tPage = (t) => {
 </section>`;
 };
 
+const img = (f) => 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'sponsors', f)).toString('base64');
+const thanks = `
+<section class="page">
+  ${header('SPECIAL THANKS', 'OFFICIAL SPONSORS &nbsp;/&nbsp; 協賛企業一覧')}
+  <p class="thx-lead">本大会の開催にあたり、ご協賛いただいた皆様に心より感謝申し上げます。</p>
+  <div class="thx">${D.sponsors.map((s, i) => `
+    <div class="sp ${i === 0 ? 'wide' : ''}">
+      <div class="lg ${s.dark ? 'dark' : ''} ${s.round ? 'round' : ''}"><img src="${img(s.logo)}" alt=""></div>
+      <div class="nm">${s.name}</div>
+    </div>`).join('')}</div>
+  <div class="thx-foot">${logo(30)}</div>
+</section>`;
+
 const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -166,6 +179,18 @@ table { border-collapse: collapse; width: 100%; }
 .notice .app img { width: 96px; height: 96px; background: #fff; border-radius: 6px; padding: 4px; image-rendering: pixelated; }
 .notice .app small { font-size: 11.5px; font-weight: 500; }
 .notice .url { display: block; font-family: Oswald; letter-spacing: .05em; font-size: 14px; color: var(--cream); margin-top: 4px; }
+.thx-lead { font-family: 'Noto Sans JP'; font-weight: 700; font-size: 15px; margin: 2mm 0 8mm; }
+.thx { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.sp { background: rgba(36,16,10,.45); border-radius: 12px; padding: 14px; text-align: center; }
+.sp.wide { grid-column: 1 / -1; }
+.sp .lg { height: 140px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 12px; }
+.sp.wide .lg { height: 200px; }
+.sp .lg.dark { background: #0b0b0b; }
+.sp .lg img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sp .lg.round { background: transparent; }
+.sp .lg.round img { height: 130px; width: 130px; border-radius: 50%; border: 3px solid #fff; }
+.sp .nm { font-family: Anton; font-size: 22px; letter-spacing: .04em; margin-top: 8px; }
+.thx-foot { position: absolute; bottom: 14mm; left: 0; right: 0; display: flex; justify-content: center; }
 .venue-box { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-size: 18px; }
 /* tournament */
 .grid { display: grid; grid-template-columns: 58% 1fr; gap: 8mm; }
@@ -179,8 +204,8 @@ table { border-collapse: collapse; width: 100%; }
 .blind td:nth-child(2) { width: 10%; }
 .blind tr.brk td { background: rgba(255,255,255,.18); font-size: 10.5px; letter-spacing: .08em; padding: 1.5px 0; }
 .blind tr.brk.rc td { background: var(--dark); color: var(--cream); }
-aside .big { font-family: Anton; font-size: 30px; margin: 0 0 3mm; }
-aside dl { margin-top: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 9mm; }
+aside .big { font-family: Anton; font-size: 26px; margin: 0 0 2mm; }
+aside dl { margin-top: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 15px; font-weight: 700; margin-bottom: 5mm; }
 aside dt { color: var(--dark); }
 aside dd small { font-size: 12px; }
 .prize th, .places th { text-align: left; font-size: 15px; padding: 7px 10px; background: rgba(36,16,10,.6); width: 40%; }
@@ -189,16 +214,16 @@ aside dd small { font-size: 12px; }
 .places { margin-top: 5mm; }
 .places th { background: transparent; color: var(--cream); border-bottom: 1px solid rgba(255,255,255,.5); }
 .places td { border-bottom: 1px solid rgba(255,255,255,.5); }
-.entry { margin-bottom: 7mm; }
+.entry { margin-bottom: 4mm; }
 .entry th { font-family: 'Noto Sans JP'; }
 .plat { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--dark); background: #fff; border-radius: 4px; padding: 1px 6px; }
 .places td { font-size: 15px; }
-.places th, .places td { padding: 5px 10px; }
+.places th, .places td { padding: 3px 10px; }
 .cap { display: block; font-size: 10px; color: var(--cream); font-family: 'Noto Sans JP'; }
-.tkt { display: block; width: fit-content; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: #fff; background: #1546D9; border-radius: 4px; padding: 1px 6px; }
+.tkt { display: block; width: fit-content; margin-top: 2px; font-size: 9.5px; line-height: 1.3; font-weight: 700; color: #fff; background: #1546D9; border-radius: 4px; padding: 1px 6px; }
 .tro { font-size: 11px; color: var(--dark); background: var(--cream); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 </style></head><body>
-${cover}${schedule}${D.tournaments.map(tPage).join('')}
+${cover}${schedule}${D.tournaments.map(tPage).join('')}${thanks}
 </body></html>`;
 
 (async () => {
