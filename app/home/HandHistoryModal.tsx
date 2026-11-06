@@ -1,6 +1,8 @@
 "use client"
 
 import { Pause, Play } from 'lucide-react'
+import StepButton from "@/components/StepButton"
+import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useMemo, useState, useEffect } from "react"
 import { createPortal } from "react-dom"
@@ -438,13 +440,9 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                   <div className="px-4 pb-3 flex items-center gap-2">
                     {/* Player count */}
                     <div className="flex items-center rounded-2xl overflow-hidden" style={{ border:`1px solid ${CLR.border}`, background:CLR.white }}>
-                      <button type="button" onClick={() => setHtCount(c=>Math.max(2,c-1))}
-                        className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
-                        style={{ color:CLR.gray2 }}>−</button>
+                      <StepButton kind="minus" label="人数を減らす" size={28} hit={36} onClick={() => setHtCount(c=>Math.max(2,c-1))} />
                       <span className="text-[12px] font-bold px-1 min-w-[36px] text-center" style={{ color:CLR.ink }}>{htCount}人</span>
-                      <button type="button" onClick={() => setHtCount(c=>Math.min(10,c+1))}
-                        className="w-8 h-8 flex items-center justify-center text-[18px] active:scale-90 transition-transform"
-                        style={{ color:CLR.gray2 }}>+</button>
+                      <StepButton kind="plus" label="人数を増やす" size={28} hit={36} onClick={() => setHtCount(c=>Math.min(10,c+1))} />
                     </div>
 
                     {/* Ante toggle */}
@@ -648,7 +646,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
               <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
                 {histLoading ? (
                   <div className="flex justify-center py-16">
-                    <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin" style={{borderColor:`${CLR.gold} transparent ${CLR.gold} ${CLR.gold}`}} />
+                    <Loader />
                   </div>
                 ) : histError ? (
                   <div className="mx-auto mt-8 rounded-2xl p-4" style={{background:"#FFF5F5",border:"1px solid #FCA5A5"}}>

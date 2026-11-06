@@ -1,5 +1,7 @@
 'use client'
 
+import Loader from '@/components/Loader'
+
 /**
  * 読み込み画面。
  * 起動シーケンスを流すコンソールに見立て、方眼＋走査線＋シェルプロンプトで構成する。
@@ -26,8 +28,8 @@ export default function Loading() {
           <p className="term-prompt-arrow text-gray-900 tech-caret">loading</p>
         </div>
 
-        <div className="tech-bar-track mt-5">
-          <span className="tech-bar-fill" />
+        <div className="mt-5 flex justify-center">
+          <Loader />
         </div>
 
         <div className="mt-3 flex items-center justify-between">

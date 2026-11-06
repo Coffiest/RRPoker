@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import BackButton from "@/components/BackButton"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
@@ -174,13 +175,7 @@ export default function HistoryPage() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton /></div>
       </div>
     </main>
   )

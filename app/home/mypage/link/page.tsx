@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import BackButton from "@/components/BackButton"
 import HomeHeader from "@/components/HomeHeader"
 
 export default function AccountLinkPage() {
@@ -18,13 +19,7 @@ export default function AccountLinkPage() {
           <p className="text-[14px] text-gray-600">実装までしばらくお待ちください</p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton /></div>
       </div>
     </main>
   )

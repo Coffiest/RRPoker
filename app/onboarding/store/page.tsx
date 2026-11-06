@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Loader from "@/components/Loader"
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
@@ -486,7 +487,7 @@ export default function StoreOnboardingPage() {
         <div className="so-appear so-d5">
           <button type="button" disabled={loading} onClick={saveProfile} className="so-btn">
             {loading ? (
-              <div className="so-spinner" />
+              <Loader size={28} light />
             ) : (
               <>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">

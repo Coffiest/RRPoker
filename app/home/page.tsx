@@ -1,8 +1,11 @@
 "use client"
 
 import { withoutWaiting } from "@/lib/waitingLevel"
+import Loader from "@/components/Loader"
 import { tournamentClocks } from "@/lib/endEstimate"
 import ClockRow from "@/components/ClockRow"
+import HelpButton from "@/components/HelpButton"
+import LineButton from "@/components/LineButton"
 import PlayerGuideStrip from "@/components/PlayerGuideStrip"
 import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
@@ -1783,10 +1786,7 @@ const medalClass = (rank: number) => {
                   )}
                 </div>
               </div>
-              <button
-                ref={rrRatingBtnRef}
-                type="button"
-                onClick={() => {
+              <HelpButton ref={rrRatingBtnRef} size={28} label="偏差値の説明" style={{ margin: -8 }} onClick={() => {
                   if (rrRatingInfoOpen) {
                     setRrRatingInfoOpen(false)
                     setRrRatingInfoPos(null)
@@ -1795,11 +1795,7 @@ const medalClass = (rank: number) => {
                     if (rect) setRrRatingInfoPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
                     setRrRatingInfoOpen(true)
                   }
-                }}
-                style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.28)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              >
-                <FiHelpCircle size={13} style={{ color: 'rgba(255,255,255,0.85)' }} />
-              </button>
+                }} />
             </div>
 
             {/* ラベル */}
@@ -1883,16 +1879,14 @@ const medalClass = (rank: number) => {
                 </div>
               ))}
             </div>
-            <button type="button"
-              onClick={() => {
+            {/* 線で縁取りするボタン(components/LineButton.tsx) */}
+            <LineButton onClick={() => {
                 if (rrFullRanking.length === 0) setRrFullRanking(rrRanking)
                 setIsRankingModalOpen(true)
-              }}
-              style={{ width: '100%', height: 44, borderRadius: 14, background: 'none', border: '1.5px solid rgba(242,169,0,0.5)', color: '#D4910A', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'inherit', transition: 'background .13s' }}
-            >
+              }}>
               <FiAward size={14} />
-              <span className="tech-label" style={{ fontSize: 11, letterSpacing: '0.14em' }}>ランキングを見る</span>
-            </button>
+              <span className="tech-label" style={{ fontSize: 11, letterSpacing: 'inherit' }}>ランキングを見る</span>
+            </LineButton>
 
             {/* ── Tournament History（コンパクト埋め込み） ── */}
             <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 14, marginLeft: -18, marginRight: -18 }}>
@@ -2310,7 +2304,7 @@ const medalClass = (rank: number) => {
                       <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 10 }}>
                         LOADING
                       </p>
-                      <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
+                      <div style={{ display: "flex", justifyContent: "center" }}><Loader size={40} /></div>
                     </div>
                   )
                   if (list.length === 0) return <p className="term-comment text-center text-[13px] text-label3 py-4">データがありません</p>
@@ -2996,7 +2990,7 @@ const medalClass = (rank: number) => {
             </div>
             {playersPreviewStore && <p className="mb-4 text-[12px] text-label3">{playersPreviewStore.name}</p>}
             <div className="space-y-2 max-h-96 overflow-y-auto">
-              {playersPreviewLoading ? <p className="term-comment text-center text-[13px] text-label3 py-8">読み込み中…</p>
+              {playersPreviewLoading ? <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}><Loader /></div>
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-label3 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
                 <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
@@ -3066,7 +3060,7 @@ const medalClass = (rank: number) => {
               {rrRankingLoading ? (
                 <div style={{ padding: '34px 0' }}>
                   <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 12 }}>LOADING</p>
-                  <div className="tech-bar-track" aria-hidden="true"><span className="tech-bar-fill" /></div>
+                  <div style={{ display: "flex", justifyContent: "center" }}><Loader size={40} /></div>
                 </div>
               ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
                 const isMe = player.id === userId

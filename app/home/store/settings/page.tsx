@@ -1,6 +1,9 @@
 "use client"
 
 import TimerBgDefaultSetting from "@/components/TimerBgDefaultSetting"
+import StepButton from "@/components/StepButton"
+import BackButton from "@/components/BackButton"
+import Loader from "@/components/Loader"
 import PlayerGuideSettings from "@/components/PlayerGuideSettings"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -521,15 +524,7 @@ export default function StoreSettingsPage() {
       />
 
       <div className="pc-wide mx-auto max-w-sm px-5">
-        <button
-          type="button"
-          onClick={() => router.push("/home/store")}
-          className="mt-6 inline-flex items-center gap-1.5 text-[13px] font-semibold active:scale-95 transition-all"
-          style={{ color: CLR.gray2 }}
-        >
-          <FiArrowLeft size={14} />
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton href={"/home/store"} /></div>
 
         <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
@@ -1000,7 +995,7 @@ export default function StoreSettingsPage() {
             {/* プレイヤーリスト */}
             <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
               {stampLoading ? (
-                <p className="term-comment text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>読み込み中…</p>
+                <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}><Loader /></div>
               ) : filteredStampPlayers.length === 0 ? (
                 <p className="text-center py-10 text-[13px]" style={{ color: CLR.gray3 }}>
                   {stampSearch ? "該当するプレイヤーがいません" : "入店したことのあるプレイヤーがいません"}
@@ -1062,14 +1057,7 @@ export default function StoreSettingsPage() {
 
             {/* スタンプ数コントロール */}
             <div className="flex items-center justify-center gap-6 mb-5">
-              <button
-                type="button"
-                onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))}
-                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}` }}
-              >
-                <FiMinus size={18} color={CLR.ink} />
-              </button>
+              <StepButton kind="minus" label="スタンプを減らす" size={48} onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))} />
 
               <input
                 type="number"
@@ -1080,14 +1068,7 @@ export default function StoreSettingsPage() {
                 style={{ background: CLR.surface, border: `2px solid ${CLR.gold}`, color: CLR.ink }}
               />
 
-              <button
-                type="button"
-                onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))}
-                className="w-12 h-12 rounded-full flex items-center justify-center active:scale-90 transition-all"
-                style={{ background: CLR.gold, border: `1.5px solid ${CLR.goldDk}` }}
-              >
-                <FiPlus size={18} color={CLR.ink} />
-              </button>
+              <StepButton kind="plus" label="スタンプを増やす" size={48} onClick={() => setEditStampCount(v => String(parseInt(v || "0", 10) + 1))} />
             </div>
 
             {/* 保存 / キャンセル */}

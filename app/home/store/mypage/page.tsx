@@ -1,6 +1,7 @@
 "use client"
 
 import { showToast } from "@/lib/toast"
+import Loader from "@/components/Loader"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
@@ -496,7 +497,7 @@ export default function StoreMyPage() {
                 )}
                 {savingIcon && (
                   <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    <Loader size={32} light />
                   </div>
                 )}
                 <button

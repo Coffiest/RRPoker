@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import HelpButton from "@/components/HelpButton"
+import BackButton from "@/components/BackButton"
+import Loader from "@/components/Loader"
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { watchAuthState } from '@/lib/auth'
@@ -395,17 +398,7 @@ export default function UserProfileOnboardingPage() {
 
         {/* Back button */}
         <div className="pt-12 animate-slideUp-d1">
-          <button
-            type="button"
-            onClick={() => router.push('/onboarding')}
-            className="flex items-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            aria-label="戻る"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15.75 19.5L8.25 12l7.5-7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            戻る
-          </button>
+          <BackButton href={'/onboarding'} />
         </div>
 
         {/* Header */}
@@ -493,21 +486,7 @@ export default function UserProfileOnboardingPage() {
                 <label className="text-[14px] font-medium text-gray-700">Player ID</label>
 
                 
-                <button
-                  type="button"
-                  onClick={() => setShowIdInfo(v => !v)}
-                  aria-label="Player IDの説明"
-                  style={{
-                    width: 18, height: 18, borderRadius: '50%',
-                    border: `1.5px solid ${showIdInfo ? '#F2A900' : '#d1d5db'}`,
-                    background: showIdInfo ? 'rgba(242,169,0,0.08)' : '#f3f4f6',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700,
-                    color: showIdInfo ? '#D4910A' : '#6b7280',
-                    cursor: 'pointer', transition: 'all 0.15s',
-                    flexShrink: 0,
-                  }}
-                >?</button>
+                <HelpButton size={22} label="Player IDの説明" tip="説明" style={{ margin: -11 }} onClick={() => setShowIdInfo(v => !v)} />
               </div>
               <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
@@ -539,7 +518,7 @@ export default function UserProfileOnboardingPage() {
 
             {/* @プレフィックス固定 + 入力フィールド */}
             <div
-              className="flex items-stretch overflow-hidden transition-all"
+              className="rr-input-shell flex items-stretch overflow-hidden transition-all"
               style={{
                 height: 48, borderRadius: 16,
                 border: `1.5px solid ${idError ? '#f87171' : idStatus === 'available' ? '#34d399' : idStatus === 'unavailable' ? '#f87171' : '#e5e7eb'}`,
@@ -577,10 +556,7 @@ export default function UserProfileOnboardingPage() {
                   style={{ fontSize: 11, fontWeight: 600, color: '#F2A900', opacity: autoGetLoading ? 0.5 : 1, cursor: autoGetLoading ? 'default' : 'pointer', background: 'none', border: 'none', padding: 0 }}
                 >
                   {autoGetLoading ? (
-                    <svg className="animate-spin" width="11" height="11" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" opacity=".25"/>
-                      <path fill="currentColor" opacity=".75" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
+                    <Loader size={16} />
                   ) : (
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
                       <path d="M20 12a8 8 0 01-8 8m8-8a8 8 0 00-8-8m8 8H4m16 0l-3-3m3 3l-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -697,10 +673,7 @@ export default function UserProfileOnboardingPage() {
           >
             {loading ? (
               <>
-                <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
+                <Loader size={24} light />
                 保存中…
               </>
             ) : '次へ'}

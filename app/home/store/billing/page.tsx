@@ -1,6 +1,8 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
+import BackButton from "@/components/BackButton"
+import Loader from "@/components/Loader"
 import { useRouter, useSearchParams } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, onSnapshot } from "firebase/firestore"
@@ -198,7 +200,7 @@ function BillingContent() {
           ) : (
             <>
               <div className="w-16 h-16 flex items-center justify-center mx-auto mb-5">
-                <div className="w-10 h-10 rounded-full border-4 border-[#F2A900] border-t-transparent animate-spin" />
+                <Loader />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
               <p className="text-sm text-gray-500">お支払いを確認しています</p>
@@ -257,14 +259,7 @@ function BillingContent() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-12">
       <div className="w-full max-w-2xl">
-        <button
-          type="button"
-          onClick={() => router.push("/home/store/mypage")}
-          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 -ml-1 transition-colors"
-        >
-          <FiChevronLeft size={18} />
-          戻る
-        </button>
+        <div className="flex mb-4"><BackButton href={"/home/store/mypage"} /></div>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">プランを選択</h1>
           <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>

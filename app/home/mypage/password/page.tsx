@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import BackButton from "@/components/BackButton"
 import { useRouter } from "next/navigation"
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth"
 import { auth } from "@/lib/firebase"
@@ -90,13 +91,7 @@ export default function PasswordChangePage() {
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton /></div>
       </div>
     </main>
   )

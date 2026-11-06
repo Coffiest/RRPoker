@@ -1,6 +1,7 @@
 "use client"
 
 import { TriangleAlert } from 'lucide-react'
+import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useMemo, useState } from "react"
 import {
@@ -480,7 +481,7 @@ for (const p of payouts) {
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}><Loader /></div>
           ) : (
             <>
               {/* Prize Pool カード */}

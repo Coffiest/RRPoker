@@ -1,5 +1,4 @@
-import Link from "next/link"
-import { FiChevronLeft } from "react-icons/fi"
+import BackButton from "@/components/BackButton"
 
 export const metadata = {
   title: "プライバシーポリシー | RRPoker",
@@ -9,13 +8,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <Link
-          href="/"
-          className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6 -ml-1 transition-colors"
-        >
-          <FiChevronLeft size={18} />
-          戻る
-        </Link>
+        <div className="mb-6"><BackButton href="/" /></div>
 
         <h1 className="font-display term-prompt-arrow text-2xl font-bold text-gray-900 mb-2">プライバシーポリシー</h1>
         <p className="text-xs text-label3 mb-8">最終更新日: 2026年8月31日</p>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import BackButton from "@/components/BackButton"
 import { useRouter } from "next/navigation"
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth"
 import { auth, db } from "@/lib/firebase"
@@ -215,13 +216,7 @@ export default function StoreSettingsPage() {
         {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
         {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton /></div>
       </div>
     </main>
   )

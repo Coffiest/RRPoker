@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Loader from "@/components/Loader"
 
 /**
  * 長い一覧を「スクロールした分だけ」描くための入れ物。
@@ -45,7 +46,7 @@ export function useRevealOnScroll<T>(items: T[], pageSize = 20) {
 export function RevealSentinel({ innerRef }: { innerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
     <div ref={innerRef} style={{ padding: '10px 0 4px' }} aria-hidden="true">
-      <div className="tech-bar-track"><span className="tech-bar-fill" /></div>
+      <div style={{ display: "flex", justifyContent: "center" }}><Loader size={32} /></div>
     </div>
   )
 }

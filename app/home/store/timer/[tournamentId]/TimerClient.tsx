@@ -888,7 +888,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         readOnly={viewOnly}
                         tabIndex={viewOnly ? -1 : undefined}
                         onChange={e => updatePrize(place, { ...data, amount: Number(e.target.value) })}
-                        className="prize-input text-right font-normal text-gray-800 bg-transparent outline-none min-w-0 w-full"
+                        className="prize-input rr-input-plain text-right font-normal text-gray-800 bg-transparent outline-none min-w-0 w-full"
                         style={{ fontSize: hasText ? "26px" : "32px", border: "none", lineHeight: 1.15 }}
                       />
                       {hasText && (

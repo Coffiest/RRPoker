@@ -2342,10 +2342,8 @@ export default function StorePage() {
                     </div>
                   )}
                   {list.length > storePlayersPage * pageSize && (
-                    <button onClick={() => setStorePlayersPage(p => p + 1)}
-                      style={{ width: '100%', height: 46, background: 'none', border: 'none', borderTop: '1px solid var(--sep)', cursor: 'pointer', fontSize: 14, fontWeight: 700, color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.2s ease' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.03)'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    <button onClick={() => setStorePlayersPage(p => p + 1)} className="rr-pill"
+                      style={{ display: 'flex', margin: '12px auto 4px' }}
                     >
                       もっと見る <FiChevronDown size={14} style={{ transition: 'transform 0.2s ease' }}/>
                     </button>
@@ -2414,7 +2412,7 @@ export default function StorePage() {
 
               {/* Amount input — Apple Cash／Wallet 風の大きな金額表示 */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{
+                <div className="rr-input-shell" style={{
                   position: 'relative', background: 'var(--fill)', borderRadius: 18,
                   padding: '22px 44px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 3,
                 }}>
@@ -2493,7 +2491,7 @@ export default function StorePage() {
                 <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>手動調整</p>
 
                 {/* コメント */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--fill)', borderRadius: 12, padding: '0 12px', marginBottom: 10 }}>
+                <div className="rr-input-shell" style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--fill)', borderRadius: 12, padding: '0 12px', marginBottom: 10 }}>
                   <FiMessageSquare size={14} style={{ color: 'var(--label3)', flexShrink: 0 }}/>
                   <input
                     value={manualComment} onChange={e => setManualComment(e.target.value)}

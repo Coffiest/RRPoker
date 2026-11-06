@@ -1,6 +1,7 @@
 'use client'
 
 import { TriangleAlert } from 'lucide-react'
+import Loader from "@/components/Loader"
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -519,7 +520,7 @@ export default function RegisterPage() {
 
             {/* 登録ボタン */}
             <button className={`btn-gold${success?' success-state':''}`} onClick={handleRegister} disabled={isLoading || googleLoading}>
-              {isLoading ? <div className="spinner"/>
+              {isLoading ? <Loader size={28} light />
               : success ? (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="check-path"/>

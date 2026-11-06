@@ -1,5 +1,6 @@
 "use client"
 import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import BackButton from "@/components/BackButton"
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -522,7 +523,7 @@ export default function TournamentsPage() {
             <button type="button" onClick={openCreate} className="tp-press" style={{ ...btn.primary, flex: 1, minWidth: 0, padding: '0 16px' }}>
               <PlusIcon size={20} strokeWidth={2.5} /> トーナメントを作成
             </button>
-            <button type="button" onClick={() => { resetBlindEditor(); setIsBlindModalOpen(true) }} className="tp-press" style={{ ...btn.secondary, padding: '0 16px' }}>
+            <button type="button" onClick={() => { resetBlindEditor(); setIsBlindModalOpen(true) }} className="rr-pill" style={{ padding: '0 16px' }}>
               <ZapIcon size={20} /> ブラインド
             </button>
           </div>
@@ -567,7 +568,7 @@ export default function TournamentsPage() {
                   </div>
                   {isActive && (
                     <div style={{ display: 'flex', gap: 8, padding: '0 16px 16px' }}>
-                      <button type="button" onClick={() => handleEdit(t)} className="tp-press" style={{ ...btn.icon, flex: 1, gap: 8, fontSize: 13, fontWeight: 600 }} aria-label="編集">
+                      <button type="button" onClick={() => handleEdit(t)} className="rr-pill" style={{ flex: 1, gap: 8 }} aria-label="編集">
                         <PencilIcon size={20} /> 詳細を編集
                       </button>
                     </div>
@@ -840,7 +841,7 @@ export default function TournamentsPage() {
               <button type="button" onClick={openNewBlindPreset} className="tp-press" style={{ ...btn.primary, flex: 1 }}>
                 <PlusIcon size={20} strokeWidth={2.5} /> 新しく作る
               </button>
-              <button type="button" onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+              <button type="button" onClick={() => { setAiView("input"); setAiError(""); setIsAiOpen(true) }} className="rr-pill" style={{ flex: 1 }}>
                 <ZapIcon size={20} /> 自動で作る
               </button>
             </div>
@@ -848,10 +849,10 @@ export default function TournamentsPage() {
             <>
               {blindError && <InlineError>{blindError}</InlineError>}
               <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                <button type="button" onClick={addBlindLevel} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+                <button type="button" onClick={addBlindLevel} className="rr-pill" style={{ flex: 1 }}>
                   <PlusIcon size={20} /> レベル
                 </button>
-                <button type="button" onClick={addBlindBreak} className="tp-press" style={{ ...btn.secondary, flex: 1 }}>
+                <button type="button" onClick={addBlindBreak} className="rr-pill" style={{ flex: 1 }}>
                   <CoffeeIcon size={20} /> ブレイク
                 </button>
               </div>
@@ -1055,9 +1056,7 @@ function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: stri
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       {onBack && (
-        <button type="button" onClick={onBack} className="tp-press" aria-label="Back" style={{ ...btn.icon, width: 44, minHeight: 44, marginLeft: -8 }}>
-          <ChevronLeftIcon size={24} />
-        </button>
+        <BackButton onClick={onBack} label="Back" style={{ marginLeft: -8 }} />
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
