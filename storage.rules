@@ -12,5 +12,22 @@ service firebase.storage {
     match /stores/{storeId}/avatar {
       allow read, write: if isSignedIn();
     }
+
+    // プレイヤーズガイド(lib/playerGuide.ts)。読むのはログインしている人、
+    // 置く・消すのは店舗のオーナーと権限のある人(managerUids)だけ。PDF と画像、1 つ 20MB まで。
+    function canOperateStore(storeId) {
+      let s = firestore.get(/databases/(default)/documents/stores/$(storeId)).data;
+      return isSignedIn()
+        && (s.ownerUid == request.auth.uid || request.auth.uid in s.get('managerUids', []));
+    }
+
+    match /stores/{storeId}/guides/{fileId} {
+      allow read: if isSignedIn();
+      allow create, update: if canOperateStore(storeId)
+        && request.resource.size < 20 * 1024 * 1024
+        && (request.resource.contentType == 'application/pdf'
+            || request.resource.contentType.matches('image/.*'));
+      allow delete: if canOperateStore(storeId);
+    }
   }
 }
