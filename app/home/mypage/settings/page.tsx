@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import BackButton from "@/components/BackButton"
 import { useRouter } from "next/navigation"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, setDoc } from "firebase/firestore"
@@ -187,13 +188,7 @@ export default function UserSettingsPage() {
 
         {/* アカウント連携ボタン削除済み */}
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-4 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-4"><BackButton /></div>
       </div>
     </main>
   )

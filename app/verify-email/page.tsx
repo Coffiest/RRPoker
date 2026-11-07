@@ -1,6 +1,7 @@
 "use client"
 
 import { AtSign, FolderOpen, Mail, Timer, TriangleAlert } from 'lucide-react'
+import Loader from "@/components/Loader"
 import { useEffect, useRef, useState } from "react"
 import { auth } from "@/lib/firebase"
 import { sendEmailVerification } from "firebase/auth"
@@ -271,7 +272,7 @@ export default function VerifyEmailPage() {
             {/* 再送ボタン */}
             <button className="btn-outline" onClick={handleResend} disabled={cooldown > 0 || resending || checking}>
               {resending ? (
-                <div className="spinner"/>
+                <Loader size={24} />
               ) : cooldown > 0 ? (
                 <>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

@@ -1,4 +1,6 @@
 import { TriangleAlert } from 'lucide-react'
+import StepButton from "@/components/StepButton"
+import Loader from "@/components/Loader"
 import { useEffect, useRef, useState } from "react"
 import { FiEdit2, FiMoreHorizontal, FiTrash2 } from "react-icons/fi"
 import { useDragToClose } from "@/lib/useDragToClose"
@@ -84,6 +86,36 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       }
     })
 
+    // QR から開いたとき(focusPlayerId)は、そのプレイヤー 1 人分だけを同時に読む。
+    // 以前は店にいる全員の参加記録と全員の残高を読み終えるまで待ち、エントリーが出るまで遅れていた(オーナー指定・2026-11-07)
+    if (focusPlayerId) {
+      let alive = true
+      ;(async () => {
+        try {
+          const [entrySnap, userSnap, balSnap] = await Promise.all([
+            getDoc(doc(db, "stores", storeId, "tournaments", tournamentId, "entries", focusPlayerId)),
+            getDoc(doc(db, "users", focusPlayerId)),
+            getDoc(doc(db, "users", focusPlayerId, "storeBalances", balanceGroupId ?? storeId)).catch(() => null),
+          ])
+          if (!alive) return
+          const e = entrySnap.data(), u = userSnap.data()
+          const one = {
+            id: focusPlayerId, name: u?.name ?? e?.name ?? "", iconUrl: u?.iconUrl, isTemp: focusPlayerId.startsWith("temp_"),
+            entryCount: e?.entryCount ?? 0, reentryCount: e?.reentryCount ?? 0, addonCount: e?.addonCount ?? 0,
+          }
+          const balance = balSnap?.exists() ? (balSnap.data()?.balance ?? 0) : 0
+          balancesFetchedRef.current = true
+          setPlayers([one]); setLocalPlayers([one]); setOriginalPlayers([one])
+          setPlayerExtras({ [focusPlayerId]: { currentBalance: balance, pendingPurchases: [], virtualBalance: balance } })
+          setError("")
+        } catch {
+          if (alive) setError("プレイヤー情報の取得に失敗しました")
+        }
+        if (alive) setLoading(false)
+      })()
+      return () => { alive = false; unsubTournament() }
+    }
+
     const unsub = onSnapshot(
       query(collection(db, "users"), where("currentStoreId", "==", storeId)),
       async (usersSnap) => {
@@ -127,7 +159,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     )
 
     return () => { unsub(); unsubTournament() }
-  }, [storeId, tournamentId])
+  }, [storeId, tournamentId, focusPlayerId, balanceGroupId])
 
   // ── Fetch balances once after first load ───────────────────────────────────
   useEffect(() => {
@@ -487,7 +519,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         {/* スクロール可能ボディ */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
           {loading ? (
-            <p className="term-comment" style={{ textAlign: 'center', color: 'var(--label3)', padding: '48px 0', fontSize: 14 }}>読み込み中…</p>
+            <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}><Loader /></div>
           ) : error ? (
             <p style={{ textAlign: 'center', color: '#FF3B30', padding: '48px 0', fontSize: 13 }}>{error}</p>
           ) : (
@@ -510,11 +542,9 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, padding: '12px 16px', background: '#F2F2F7', borderRadius: 14 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1E' }}>BUST</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button onClick={() => handleTournamentBustChange(-1)} disabled={localBust <= 0}
-                    style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: localBust > 0 ? 'pointer' : 'default', fontSize: 18, color: '#D4910A', opacity: localBust <= 0 ? 0.4 : 1 }}>−</button>
+                  <StepButton kind="minus" label="バストを減らす" size={36} disabled={localBust <= 0} onClick={() => handleTournamentBustChange(-1)} />
                   <span style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', minWidth: '36px', textAlign: 'center' }}>{localBust}</span>
-                  <button onClick={() => handleTournamentBustChange(1)}
-                    style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 18, fontWeight: 700, color: '#D4910A' }}>＋</button>
+                  <StepButton kind="plus" label="バストを増やす" size={36} onClick={() => handleTournamentBustChange(1)} />
                 </div>
               </div>
 
@@ -614,14 +644,9 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             <div key={item.field} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                               <p style={{ fontSize: 9, color: 'var(--label3)', fontWeight: 700, width: 14 }}>{item.label[0]}</p>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                                <button
-                                  onClick={() => handleEntryChange(player.id, item.field as any, -1)}
-                                  disabled={(player[item.field] ?? 0) <= 0}
-                                  style={{ width: 28, height: 28, borderRadius: '50%', background: '#fff', border: '1px solid #E5E5EA', color: 'var(--label3)', fontSize: 14, cursor: 'pointer', opacity: (player[item.field] ?? 0) <= 0 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                                <StepButton kind="minus" label={`${item.label}を減らす`} size={26} hit={32} disabled={(player[item.field] ?? 0) <= 0} onClick={() => handleEntryChange(player.id, item.field as any, -1)} />
                                 <span style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', minWidth: '18px', textAlign: 'center' }}>{player[item.field] ?? 0}</span>
-                                <button
-                                  onClick={() => handleEntryChange(player.id, item.field as any, 1)}
-                                  style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(242,169,0,0.15)', border: 'none', color: '#D4910A', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>＋</button>
+                                <StepButton kind="plus" label={`${item.label}を増やす`} size={26} hit={32} onClick={() => handleEntryChange(player.id, item.field as any, 1)} />
                               </div>
                             </div>
                           ))}

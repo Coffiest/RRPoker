@@ -1,6 +1,7 @@
 "use client"
 
 import { Pause, Play, Spade } from 'lucide-react'
+import Loader from "@/components/Loader"
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { doc, getDoc } from "firebase/firestore"
@@ -79,8 +80,7 @@ export default function HandPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-        style={{ borderColor: `${CLR.gold} transparent ${CLR.gold} ${CLR.gold}` }} />
+      <Loader />
     </div>
   )
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import BackButton from "@/components/BackButton"
 import { useRouter, useSearchParams } from "next/navigation"
 import { db } from "@/lib/firebase"
 import { collection, getDocs, query, where } from "firebase/firestore"
@@ -52,13 +53,7 @@ export default function Page() {
         />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
           <p className="text-[14px] text-gray-500">店舗が選択されていません</p>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
-          >
-            戻る
-          </button>
+          <div className="flex justify-center mt-6"><BackButton /></div>
         </div>
       </main>
     )
@@ -95,13 +90,7 @@ export default function Page() {
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mt-6 text-[13px] text-gray-500"
-        >
-          戻る
-        </button>
+        <div className="flex justify-center mt-6"><BackButton /></div>
       </div>
     </main>
   )

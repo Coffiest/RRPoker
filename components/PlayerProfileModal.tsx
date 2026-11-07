@@ -1,6 +1,7 @@
 'use client'
 
 import { Clock, MapPin, Spade, Trophy, Users } from 'lucide-react'
+import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from 'react'
 import { db } from '@/lib/firebase'
@@ -142,7 +143,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
         <div style={{ overflowY: 'auto', flex: 1, padding: '20px 24px 8px' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>
-              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)' }}>読み込み中…</p>
+              <div style={{ display: "flex", justifyContent: "center" }}><Loader /></div>
             </div>
           ) : player === null ? (
             <div style={{ textAlign: 'center', padding: '56px 0' }}>

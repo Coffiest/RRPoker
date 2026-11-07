@@ -1,6 +1,7 @@
 'use client'
 
 import { User } from 'lucide-react'
+import BackButton from "@/components/BackButton"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -257,13 +258,7 @@ export default function TransactionsClient() {
         <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 20px' }}>
           {/* Header row */}
           <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 28 }}>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', cursor: 'pointer', color: '#3C3C43' }}
-            >
-              <FiArrowLeft size={18} />
-            </button>
+            <BackButton />
             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E' }}>入店QRコード</h1>
             <div style={{ width: 36 }} />
           </div>
@@ -331,13 +326,7 @@ export default function TransactionsClient() {
 
         {/* Header row */}
         <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 20 }}>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            style={{ width: 36, height: 36, borderRadius: '50%', background: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.10)', cursor: 'pointer', color: '#3C3C43' }}
-          >
-            <FiArrowLeft size={18} />
-          </button>
+          <BackButton />
           <h1 className="term-prompt-arrow" style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', letterSpacing: '0.04em' }}>チップの預入・引出</h1>
           <div style={{ width: 36 }} />
         </div>

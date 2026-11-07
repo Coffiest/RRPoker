@@ -1,6 +1,7 @@
 "use client"
 
 import { useDragToClose } from "@/lib/useDragToClose"
+import BackButton from "@/components/BackButton"
 import { useEffect, useState } from "react"
 import { auth, db } from "@/lib/firebase"
 import { collection, doc, getDoc, getDocs } from "firebase/firestore"
@@ -276,10 +277,7 @@ export default function TournamentHistoryPage() {
       <div className="pc-page mx-auto max-w-sm">
         {/* Header */}
         <div className="flex items-center justify-between pt-6 mb-6">
-          <button onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-gray-600 hover:bg-white transition-all active:scale-95 shadow-sm">
-            <FiArrowLeft size={20} />
-          </button>
+          <BackButton />
           <h1 className="text-[20px] font-semibold text-gray-900">Tournament History</h1>
           <div className="w-10" />
         </div>

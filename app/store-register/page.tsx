@@ -1,6 +1,8 @@
 'use client'
 
 import { ChartColumn, Coins, Mail, Store, Timer, TriangleAlert, Trophy } from 'lucide-react'
+import BackButton from "@/components/BackButton"
+import Loader from "@/components/Loader"
 import { useState, useEffect, useRef } from "react"
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -223,12 +225,7 @@ export default function StoreRegisterPage() {
       {/* ヘッダー */}
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.14)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button type="button" onClick={() => router.back()}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', color: '#F2A900', fontSize: 14, fontWeight: 700, padding: '8px 0' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            戻る
-          </button>
+          <BackButton />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <img src="/logo.png" alt="RRPoker" style={{ width: 26, height: 26, borderRadius: 8, objectFit: 'cover' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label2)' }}>RRPOKER</span>
@@ -402,7 +399,7 @@ export default function StoreRegisterPage() {
           </p>
 
           <button className={`sr-btn${success ? ' success-state' : ''}`} onClick={handleRegister} disabled={isLoading}>
-            {isLoading ? <div className="sr-spinner" />
+            {isLoading ? <Loader size={28} light />
               : success ? (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />

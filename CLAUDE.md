@@ -26,6 +26,7 @@
   - 例外(オーナー確定・2026-11-03): 「テンプレートで最後まで作る」の確認は、ブラウザ標準の小窓ではなくアプリの確認画面(`components/ConfirmDialog.tsx`)で出す。
   - 例外(オーナー確定・2026-11-03): ブラインドのテキストコピー、チラシ画像の入れ方(端末で縮めて data URL・ドラッグ・貼り付け)、RC ブレイク(行の操作から付け外し・金で目立たせる)を足した。
   - 例外(オーナー確定・2026-11-05): 一覧の時刻の行を「開始・RC・終了」の横並び(`components/ClockRow.tsx`)にした。
+  - 例外(オーナー確定・2026-11-06): 全画面共通の部品(読み込み・入力欄・戻る・白い丸ボタン)を入れた。下の「共通の部品」。
 
 ## テーマ: コンソール風デザインと書体(絶対ルール・オーナー確定)
 
@@ -120,3 +121,11 @@
 - 店舗の設定で ON にし、PDF・画像を最大 5 つ(1 つ 20MB まで)入れる(`components/PlayerGuideSettings.tsx`。選ぶかドラッグ)。入店中のプレイヤーのホームの「入店中」のカードに「プレイヤーズガイドはこちら」とサムネイルを出し、押すとアプリの中で開く。保存ボタン付き(`components/PlayerGuideStrip.tsx`)。
 - ファイルは Firebase Storage の `stores/{id}/guides/`(`storage.rules`。書けるのはオーナーと managerUids、PDF と画像だけ)。店舗の文書には `playerGuideEnabled` / `playerGuideFiles` だけ。ルールを変えたら `firebase deploy --only storage`。
 - 保存は `app/api/guide-file` を通す(Storage は別のドメインで、そのままでは保存にならない)。通すのはこのアプリの Storage の `stores/*/guides/*` だけ(`lib/playerGuide.ts` の `isAllowedGuideUrl`)。
+
+## 共通の部品(オーナー確定・2026-11-06。元は Uiverse.io。色は金と白、大きさはスマホに合わせた)
+
+- 読み込み中の表示はすべて `components/Loader.tsx`(12 本の棒)。金のボタンの中は `light`。
+- 文字を打つ欄は全画面で `globals.css` の立体の見た目(灰 #e8e8e8・影 8px・押すとへこむ)。枠で見た目を作っている画面は枠に `rr-input-shell`(または field-wrap 等)。タイマーの面・暗い面の欄は `rr-input-plain` で外す。管理者画面(`app/admin` の `admin-scope`)は対象外。
+- 戻るは `components/BackButton.tsx`(44px の輪。乗せる・押すと金の輪、矢印が抜ける)。ヘルプは `components/HelpButton.tsx`(金の丸・白い ?)。
+- 数の増減(エントリー・バスト・人数・スタンプなど)は `components/StepButton.tsx`(金の輪の + / −。乗せると回って金で塗る)。
+- 店舗側の二番手のボタンは `.rr-pill`(白い丸。押すと金・字の間が広がる)。ページ内の案内(ランキングを見る)は `components/LineButton.tsx`(金の線)。

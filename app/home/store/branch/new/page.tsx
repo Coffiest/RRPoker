@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import BackButton from "@/components/BackButton"
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { arrayUnion, collection, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
@@ -166,10 +167,7 @@ export default function BranchStorePage() {
 
       <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(242,242,247,0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(60,60,67,0.08)' }}>
         <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="var(--label)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: 14, color: 'var(--label)' }}>戻る</span>
-          </button>
+          <BackButton />
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', flex: 1, textAlign: 'center', marginRight: 60 }}>系列店を作成</span>
         </div>
       </header>

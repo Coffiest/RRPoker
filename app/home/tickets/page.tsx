@@ -1,6 +1,7 @@
 "use client"
 
 import { Ticket } from 'lucide-react'
+import Loader from "@/components/Loader"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
@@ -245,7 +246,7 @@ export default function TicketsPage() {
 
           {loading ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "24px 0", textAlign: "center" }}>
-              <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)" }}>読み込み中…</p>
+              <div style={{ display: "flex", justifyContent: "center" }}><Loader /></div>
             </div>
           ) : stampCards.length === 0 ? (
             <div style={{ background: "#fff", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>

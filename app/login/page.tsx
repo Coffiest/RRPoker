@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from "react"
+import Loader from "@/components/Loader"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
@@ -602,7 +603,7 @@ export default function LoginPage() {
               disabled={loading || googleLoading}
             >
               {loading ? (
-                <div className="spinner"/>
+                <Loader size={28} light />
               ) : success ? (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                   <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="check-path"/>
