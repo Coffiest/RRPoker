@@ -103,6 +103,20 @@ export function computeRcEstimate(levels: AnyLevel[], d: Totals, rcEndAtMs: numb
 }
 
 /**
+ * RC 後の終了予定を、いまのブラインド表で計算し直す(オーナー指定・2026-11-07)。
+ * RC の瞬間に残した「卓の合計チップ」と「実際に RC ブレイクが終わった時刻」はそのまま使い、
+ * その後のレベルの並び・時間だけを今の表から取る。プリセットの編集や Adjust で表が変わると、表示のたびに変わる。
+ * 計算できないとき(RC ブレイクが無くなった等)は保存してある時刻を返す。
+ */
+export function rcEndAtNow(levels: AnyLevel[], est: RcEstimate): number {
+  if (Number.isFinite(est.rcEndAtMs) && est.rcEndAtMs > 0 && est.totalChips > 0) {
+    const again = computeRcEstimate(levels, { totalEntry: 1, entryStack: est.totalChips }, est.rcEndAtMs)
+    if (again) return again.endAtMs
+  }
+  return est.endAtMs
+}
+
+/**
  * タイマーの状態から、RC ブレイクが終わる(終わった)時刻。
  * いまのレベルが RC ブレイクより後なら、もう分からないので null。
  */
@@ -141,15 +155,19 @@ function isRcEstimate(v: unknown): v is RcEstimate {
  * delayMin は再計算 − 最初(分。プラスなら遅延、マイナスなら早まる。どちらかが無ければ null)。
  */
 export function tournamentClocks(
-  t: { date?: string; startTime?: string; customBlindLevels?: AnyLevel[] | null; rcEstimate?: unknown },
+  t: { date?: string; startTime?: string; customBlindLevels?: AnyLevel[] | null; rcEstimate?: unknown; blindsCustomized?: boolean | null },
   preset?: { levels?: AnyLevel[] | null; startStack?: number | null; players?: number | null } | null,
 ): { start: string | null; rc: string | null; end: string | null; endOriginal: string | null; delayMin: number | null; recalculated: boolean } {
   // 自動スタートの「Waiting for start」(lib/waitingLevel.ts)は計算に入れない
-  const levels = (Array.isArray(preset?.levels) && preset!.levels!.length > 0
-    ? preset!.levels!
-    : Array.isArray(t.customBlindLevels) ? t.customBlindLevels : []).filter(l => l.type !== 'waiting')
+  // Adjust でその大会だけ表を変えた大会(blindsCustomized)は、大会の表で計算する(2026-11-07)。
+  // それ以外はプリセット(大会の表はプリセットの保存で同じになる。lib/presetSync.ts)
+  const custom = Array.isArray(t.customBlindLevels) && t.customBlindLevels.length > 0 ? t.customBlindLevels : null
+  const fromPreset = Array.isArray(preset?.levels) && preset!.levels!.length > 0 ? preset!.levels! : null
+  const levels = ((t.blindsCustomized && custom) || fromPreset || custom || []).filter(l => l.type !== 'waiting')
   const original = preset ? endClock(t.date, t.startTime, levels, preset.startStack, preset.players) : null
   const est = isRcEstimate(t.rcEstimate) ? t.rcEstimate : null
+  // RC 後の終了予定は、表示のたびに今の表で計算し直す
+  const endAtMs = est ? rcEndAtNow(levels, est) : null
   let delayMin: number | null = null
   if (est && preset) {
     const idx = endLevelIndex(levels, preset.startStack, preset.players)
@@ -157,13 +175,13 @@ export function tournamentClocks(
     if (idx !== null && Number.isFinite(startMs)) {
       // 分単位で比べる(表示している時刻どうしの差と一致させる)
       const planned = Math.floor((startMs + minutesUntilEnd(levels, idx) * 60_000) / 60_000)
-      delayMin = Math.floor(est.endAtMs / 60_000) - planned
+      delayMin = Math.floor(endAtMs! / 60_000) - planned
     }
   }
   return {
     start: t.startTime && /^\d{1,2}:\d{2}$/.test(t.startTime) ? t.startTime : null,
     rc: rcClock(t.startTime, levels),
-    end: est ? msToClock(est.endAtMs, t.date) : original,
+    end: est ? msToClock(endAtMs!, t.date) : original,
     endOriginal: original,
     delayMin,
     recalculated: !!est,

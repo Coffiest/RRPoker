@@ -222,6 +222,7 @@ export default function TournamentsPage() {
           blindPresetId: typeof data.blindPresetId === "string" ? data.blindPresetId : "",
           customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
           rcEstimate: data.rcEstimate ?? null,
+          blindsCustomized: data.blindsCustomized === true,
           templateId: typeof data.templateId === "string" ? data.templateId : undefined,
           skipDates: Array.isArray(data.skipDates) ? data.skipDates : [],
           createdAt: normalize(data.createdAt)?.toLocaleDateString?.() ?? "",
