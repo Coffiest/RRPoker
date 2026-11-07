@@ -60,6 +60,8 @@ export type LiveTournament = {
   blindPresetId?: string
   /** RC 後に再計算した終了予定(lib/endEstimate.ts の RcEstimate) */
   rcEstimate?: unknown
+  /** Adjust でこの大会だけ表を変えたか(終了予定の計算に使う表を決める) */
+  blindsCustomized?: boolean
 }
 
 /** Firestore のトーナメント文書を、画面が使う形へそろえる。 */
@@ -97,6 +99,7 @@ export function toLiveTournament(id: string, data: Record<string, any>): LiveTou
       typeof data.levelStartedRemaining === 'number' ? data.levelStartedRemaining : null,
     customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
     rcEstimate: data.rcEstimate ?? null,
+    blindsCustomized: data.blindsCustomized === true,
   }
 }
 

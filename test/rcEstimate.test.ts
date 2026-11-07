@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeRcEstimate, rcBoundaryMs, tournamentClocks, msToClock } from '../lib/endEstimate'
+import { computeRcEstimate, rcBoundaryMs, tournamentClocks, msToClock, rcEndAtNow } from '../lib/endEstimate'
 
 const L = (bb: number, d = 20) => ({ type: 'level', bigBlind: bb, duration: d })
 const RC = { type: 'break', duration: 10, rc: true }
@@ -46,5 +46,25 @@ describe('RC 後の終了予定の再計算', () => {
   })
   it('日をまたぐと「翌」', () => {
     expect(msToClock(new Date('2026-11-06T00:30:00').getTime(), '2026-11-05')).toBe('翌00:30')
+  })
+  it('ブラインドの表が変わったら、RC 後の終了予定と遅延も計算し直す', () => {
+    const rcEndAtMs = new Date('2026-11-05T19:50:00').getTime()
+    const est = { endAtMs: rcEndAtMs + 80 * 60_000, rcEndAtMs, players: 10, avgStack: 1000, totalChips: 10000 }
+    // 元の表: RC 後 4 レベル × 20 分 = 21:10
+    expect(rcEndAtNow(levels, est)).toBe(rcEndAtMs + 80 * 60_000)
+    // RC 後のレベルを 30 分にした表: 4 × 30 = 120 分 → 21:50
+    const longer = [L(100), L(200), RC, L(300, 30), L(400, 30), L(500, 30), L(1000, 30), L(2000, 30)]
+    expect(rcEndAtNow(longer, est)).toBe(rcEndAtMs + 120 * 60_000)
+    // 表示: プリセットを変えると終了も遅延も変わる
+    const t = { date: '2026-11-05', startTime: '19:00', rcEstimate: est }
+    const a = tournamentClocks(t, { levels, startStack: 1000, players: 10 })
+    expect(a.end).toBe('21:10'); expect(a.delayMin).toBe(0)
+    const b = tournamentClocks(t, { levels: longer, startStack: 1000, players: 10 })
+    expect(b.end).toBe('21:50')
+    // 最初の終了予定も同じ表で計算し直す(19:00 + 40 + 10 + 120 = 21:50)ので、遅延は 0
+    expect(b.endOriginal).toBe('21:50'); expect(b.delayMin).toBe(0)
+    // Adjust でこの大会だけ変えたときは大会の表を使う
+    const c = tournamentClocks({ ...t, customBlindLevels: longer, blindsCustomized: true }, { levels, startStack: 1000, players: 10 })
+    expect(c.end).toBe('21:50')
   })
 })
