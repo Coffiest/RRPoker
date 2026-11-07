@@ -49,8 +49,10 @@ export default function QRScanner({ onScan, onClose }: Props) {
             rafRef.current = requestAnimationFrame(tick)
             return
           }
-          c.width = v.videoWidth
-          c.height = v.videoHeight
+          // 解析する画像は横 640px までに縮める。1280px のまま毎回解析すると 1 回が重く、読み取りが遅れていた
+          const scale = Math.min(1, 640 / (v.videoWidth || 640))
+          c.width = Math.round(v.videoWidth * scale)
+          c.height = Math.round(v.videoHeight * scale)
           const ctx = c.getContext('2d', { willReadFrequently: true })
           if (!ctx) { rafRef.current = requestAnimationFrame(tick); return }
           ctx.drawImage(v, 0, 0, c.width, c.height)

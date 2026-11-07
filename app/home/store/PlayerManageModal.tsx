@@ -86,6 +86,36 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
       }
     })
 
+    // QR から開いたとき(focusPlayerId)は、そのプレイヤー 1 人分だけを同時に読む。
+    // 以前は店にいる全員の参加記録と全員の残高を読み終えるまで待ち、エントリーが出るまで遅れていた(オーナー指定・2026-11-07)
+    if (focusPlayerId) {
+      let alive = true
+      ;(async () => {
+        try {
+          const [entrySnap, userSnap, balSnap] = await Promise.all([
+            getDoc(doc(db, "stores", storeId, "tournaments", tournamentId, "entries", focusPlayerId)),
+            getDoc(doc(db, "users", focusPlayerId)),
+            getDoc(doc(db, "users", focusPlayerId, "storeBalances", balanceGroupId ?? storeId)).catch(() => null),
+          ])
+          if (!alive) return
+          const e = entrySnap.data(), u = userSnap.data()
+          const one = {
+            id: focusPlayerId, name: u?.name ?? e?.name ?? "", iconUrl: u?.iconUrl, isTemp: focusPlayerId.startsWith("temp_"),
+            entryCount: e?.entryCount ?? 0, reentryCount: e?.reentryCount ?? 0, addonCount: e?.addonCount ?? 0,
+          }
+          const balance = balSnap?.exists() ? (balSnap.data()?.balance ?? 0) : 0
+          balancesFetchedRef.current = true
+          setPlayers([one]); setLocalPlayers([one]); setOriginalPlayers([one])
+          setPlayerExtras({ [focusPlayerId]: { currentBalance: balance, pendingPurchases: [], virtualBalance: balance } })
+          setError("")
+        } catch {
+          if (alive) setError("プレイヤー情報の取得に失敗しました")
+        }
+        if (alive) setLoading(false)
+      })()
+      return () => { alive = false; unsubTournament() }
+    }
+
     const unsub = onSnapshot(
       query(collection(db, "users"), where("currentStoreId", "==", storeId)),
       async (usersSnap) => {
@@ -129,7 +159,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
     )
 
     return () => { unsub(); unsubTournament() }
-  }, [storeId, tournamentId])
+  }, [storeId, tournamentId, focusPlayerId, balanceGroupId])
 
   // ── Fetch balances once after first load ───────────────────────────────────
   useEffect(() => {
