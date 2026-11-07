@@ -17,6 +17,8 @@ import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { tournamentClocks } from "@/lib/endEstimate"
 import ClockRow from "@/components/ClockRow"
 import Loader from "@/components/Loader"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
+import { commitQuick, type QuickAction, type QuickArgs } from "@/lib/quickEntry"
 import { levelsOf, maybeWriteRcEstimate } from "@/lib/rcEstimateWriter"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
@@ -876,15 +878,16 @@ export default function StorePage() {
 
   // QR でプレイヤーを読んだら、すぐ入店させずに「状態と操作」のシートを開く
   // loading: QR を読んだ瞬間にシートを出し、名前・入店状態・参加数はあとから埋める(オーナー指定・2026-11-07。ラグ無しで出す)
-  type QrPlayer = { uid: string; name: string; iconUrl?: string; inStore: boolean; counts: Record<string, { entry: number; reentry: number; addon: number }>; loading?: boolean }
+  type QrPlayer = { uid: string; name: string; iconUrl?: string; inStore: boolean; counts: Record<string, { entry: number; reentry: number; addon: number }>; loading?: boolean; balance: number }
   const [qrPlayer, setQrPlayer] = useState<QrPlayer | null>(null)
   const [qrBusy, setQrBusy] = useState(false)
   const [qrAction, setQrAction] = useState<{ tid: string; action: "entry" | "reentry" | "addon" | "bust" } | null>(null)
   const loadQrPlayer = async (playerUid: string) => {
     if (!storeId) return
     // プレイヤーの文書と、開催中の大会ごとの参加記録を同時に読む(以前は順番待ちがあった)
-    const [playerSnap, entrySnaps] = await Promise.all([
+    const [playerSnap, balSnap, entrySnaps] = await Promise.all([
       getDoc(doc(db, "users", playerUid)),
+      getDoc(doc(db, "users", playerUid, "storeBalances", store?.balanceGroupId ?? storeId)).catch(() => null),
       Promise.all(activeTournaments.map(t =>
         getDoc(doc(db, "stores", storeId, "tournaments", t.id, "entries", playerUid)).catch(() => null))),
     ])
@@ -899,15 +902,74 @@ export default function StorePage() {
       counts[t.id] = { entry: e?.entryCount ?? 0, reentry: e?.reentryCount ?? 0, addon: e?.addonCount ?? 0 }
     })
     setQrPlayer(prev => prev && prev.uid !== playerUid ? prev
-      : { uid: playerUid, name: d?.name ?? "", iconUrl: d?.iconUrl, inStore: d?.currentStoreId === storeId && d?.checkinStatus === "approved", counts })
+      : { uid: playerUid, name: d?.name ?? "", iconUrl: d?.iconUrl, inStore: d?.currentStoreId === storeId && d?.checkinStatus === "approved", counts, balance: balSnap?.exists() ? Number(balSnap.data()?.balance ?? 0) : 0 })
   }
   const qrCheckinPlayer = async (playerUid: string) => {
     setIsScannerOpen(false)
     // 読んだ瞬間に操作のシートを出す(中身は読み込みながら埋める)
-    setQrPlayer({ uid: playerUid, name: "", inStore: false, counts: {}, loading: true })
+    setQrPlayer({ uid: playerUid, name: "", inStore: false, counts: {}, loading: true, balance: 0 })
+    setQrDone(null)
     try { await loadQrPlayer(playerUid) }
     catch { setQrPlayer(null); setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000) }
   }
+  // ── 1 回押して確定(lib/quickEntry.ts。オーナー指定・2026-11-07)──
+  // 押した瞬間に画面の数字を変え、書き込みは後ろで行う。直後に「取り消す」を出す。
+  // 入店していない人は、エントリー等と同時に入店させる。残高が足りないときだけ確認を出す。
+  const [qrDone, setQrDone] = useState<{ key: number; text: string; args: QuickArgs } | null>(null)
+  const [qrConfirm, setQrConfirm] = useState<ConfirmRequest | null>(null)
+  const qrLabel: Record<QuickAction, string> = { entry: "Entry", reentry: "Re-entry", addon: "Add-on", bust: "Bust" }
+  const bumpQrLocal = (tid: string, action: QuickAction, sign: 1 | -1, balanceDelta: number) => {
+    setQrPlayer(p => {
+      if (!p) return p
+      const c = { ...(p.counts[tid] ?? { entry: 0, reentry: 0, addon: 0 }) }
+      if (action !== "bust") c[action] = Math.max(0, c[action] + sign)
+      return { ...p, counts: { ...p.counts, [tid]: c }, balance: p.balance + balanceDelta, inStore: p.inStore || (action !== "bust" && sign === 1) }
+    })
+  }
+  const runQrQuick = async (t: any, action: QuickAction, withPurchase: boolean) => {
+    if (!qrPlayer || !storeId) return
+    const fee = action === "bust" ? 0 : Number(t[`${action}Fee`] ?? 0)
+    const args: QuickArgs = { storeId, balanceGroupId: store?.balanceGroupId ?? storeId, tournamentId: t.id, playerId: qrPlayer.uid, playerName: qrPlayer.name, action, fee, withPurchase }
+    const needCheckin = action !== "bust" && !qrPlayer.inStore
+    const delta = withPurchase ? 0 : -fee
+    bumpQrLocal(t.id, action, 1, delta)
+    hapticTap()
+    setQrDone({ key: Date.now(), text: `${t.name} · ${qrLabel[action]}`, args })
+    try {
+      if (needCheckin) {
+        await setDoc(doc(db, "users", qrPlayer.uid), { joinedStores: arrayUnion(storeId) }, { merge: true })
+        await approvePlayer(qrPlayer.uid)
+      }
+      await commitQuick(args, 1)
+    } catch {
+      bumpQrLocal(t.id, action, -1, -delta)
+      setQrDone(null)
+      showToast(`${qrLabel[action]} できませんでした`)
+    }
+  }
+  const qrQuick = (t: any, action: QuickAction) => {
+    if (!qrPlayer || qrPlayer.loading) return
+    const fee = action === "bust" ? 0 : Number(t[`${action}Fee`] ?? 0)
+    if (fee > 0 && qrPlayer.balance < fee) {
+      setQrConfirm({ title: "所持バンクロール不足", message: "会計をしてください", action: "確認", run: () => runQrQuick(t, action, true) })
+      return
+    }
+    void runQrQuick(t, action, false)
+  }
+  const undoQrQuick = async () => {
+    if (!qrDone) return
+    const { args } = qrDone
+    setQrDone(null)
+    bumpQrLocal(args.tournamentId, args.action, -1, args.action === "bust" ? 0 : args.fee)
+    try { await commitQuick(args, -1) }
+    catch { bumpQrLocal(args.tournamentId, args.action, 1, args.action === "bust" ? 0 : -args.fee); showToast("取り消せませんでした") }
+  }
+  useEffect(() => {
+    if (!qrDone) return
+    const id = setTimeout(() => setQrDone(null), 8000)
+    return () => clearTimeout(id)
+  }, [qrDone])
+
   // 開発中だけ: カメラなしで QR 読み取りを試せるようにする(本番のビルドでは入らない)
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return
@@ -2606,9 +2668,9 @@ export default function StorePage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                     {([['entry', 'Entry'], ['reentry', 'Re-entry'], ['addon', 'Add-on'], ['bust', 'Bust']] as const).map(([k, label]) => (
-                      <button key={k} type="button" disabled={!qrPlayer.inStore} onClick={() => setQrAction({ tid: t.id, action: k })}
+                      <button key={k} type="button" disabled={qrPlayer.loading || (k === 'bust' && !qrPlayer.inStore)} onClick={() => qrQuick(t, k)}
                         className={k === 'bust' ? undefined : 'action-btn btn-gold'}
-                        style={{ height: 36, fontSize: 11, opacity: qrPlayer.inStore ? 1 : 0.4, ...(k === 'bust' ? { borderRadius: 12, border: '1.5px solid rgba(255,59,48,0.25)', background: 'rgba(255,59,48,0.08)', color: '#FF3B30', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' } : {}) }}>
+                        style={{ height: 44, fontSize: 10, whiteSpace: 'nowrap', padding: '0 4px', opacity: qrPlayer.loading || (k === 'bust' && !qrPlayer.inStore) ? 0.4 : 1, ...(k === 'bust' ? { borderRadius: 12, border: '1.5px solid rgba(255,59,48,0.25)', background: 'rgba(255,59,48,0.08)', color: '#FF3B30', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' } : {}) }}>
                         ＋ {label}
                       </button>
                     ))}
@@ -2617,7 +2679,15 @@ export default function StorePage() {
               )
             })}
             {!qrPlayer.loading && !qrPlayer.inStore && activeTournaments.length > 0 && (
-              <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 4px 8px' }}>エントリーなどは入店してから押せます。</p>
+              <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 4px 8px' }}>Entry などを押すと、入店も同時にします。</p>
+            )}
+            {/* 1 回押して確定した直後の知らせと取り消し(8 秒) */}
+            {qrDone && (
+              <div key={qrDone.key} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0', padding: '8px 8px 8px 14px', borderRadius: 14, background: 'rgba(52,199,89,0.12)' }}>
+                <FiCheck size={16} style={{ color: '#1E7B34', flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: '#1E7B34', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qrDone.text} 完了</span>
+                <button type="button" className="rr-pill" onClick={() => void undoQrQuick()} style={{ minHeight: 36, padding: '0 14px' }}>取り消す</button>
+              </div>
             )}
           </div>
         )}
@@ -2627,6 +2697,8 @@ export default function StorePage() {
           focusPlayerId={qrPlayer.uid} autoAction={qrAction.action}
           onClose={() => { setQrAction(null); void loadQrPlayer(qrPlayer.uid) }} />
       )}
+
+      <ConfirmDialog request={qrConfirm} onClose={() => setQrConfirm(null)} zIndex={3000} />
 
       {/* QR入店結果トースト */}
       {qrCheckinResult && (
