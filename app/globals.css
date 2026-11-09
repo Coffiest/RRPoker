@@ -1441,3 +1441,8 @@ input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placehol
   .rr-help-hit:hover .rr-help svg, .rr-help-hit:active .rr-help svg { animation: none }
   .rr-back .rr-back-box, .rr-pill, .rr-line, .rr-line::before, .rr-line::after { transition: none !important }
 }
+
+/* 数字欄の上下の矢印(スピンボタン)を出さない。打ち込み以外で値を変えない(オーナー指定・2026-11-09。components/NumberInputGuard.tsx) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield }
