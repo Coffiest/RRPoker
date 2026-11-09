@@ -1,6 +1,7 @@
 'use client'
 
 import { Clock, MapPin, Spade, Trophy, Users } from 'lucide-react'
+import PlayerAvatar from "@/components/PlayerAvatar"
 import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from 'react'
@@ -162,7 +163,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                 }}>
                   {player.iconUrl
                     ? <img src={player.iconUrl} alt={player.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <FiUser size={34} color="var(--label3)" />
+                    : <PlayerAvatar size={84} radius={0} />
                   }
                 </div>
                 <div style={{ textAlign: 'center' }}>

@@ -7,6 +7,7 @@ import ClockRow from "@/components/ClockRow"
 import HelpButton from "@/components/HelpButton"
 import LineButton from "@/components/LineButton"
 import PlayerGuideStrip from "@/components/PlayerGuideStrip"
+import PlayerAvatar from "@/components/PlayerAvatar"
 import { Clock, ExternalLink, Store } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject, type Dispatch, type SetStateAction } from "react"
 import { auth, db } from "@/lib/firebase"
@@ -1767,7 +1768,7 @@ const medalClass = (rank: number) => {
                   <div style={{ width: 30, height: 30, borderRadius: 9, overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
                     {profile.iconUrl
                       ? <img src={profile.iconUrl} alt={profile.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={14} style={{ color: 'rgba(255,255,255,0.85)' }} /></div>
+                      : <PlayerAvatar size={27} radius={0} />
                     }
                   </div>
                   {currentStoreId && (
@@ -2994,7 +2995,7 @@ const medalClass = (rank: number) => {
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-label3 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
                 <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
-                  {player.iconUrl ? <img src={player.iconUrl} alt={player.name} className="h-11 w-11 rounded-full object-cover" /> : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200"><FiUser className="text-[15px] text-label3" /></div>}
+                  <PlayerAvatar src={player.iconUrl} size={44} alt={player.name} />
                   <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
                 </div>
               ))}
@@ -3041,7 +3042,7 @@ const medalClass = (rank: number) => {
               <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#FFFBF5,#FFF4E0)', border: '1.5px solid rgba(242,169,0,0.3)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {profile.iconUrl ? <img src={profile.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser style={{ color: '#F2A900', fontSize: 14 }} />}
+                    <PlayerAvatar src={profile.iconUrl} size={32} />
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
@@ -3068,10 +3069,7 @@ const medalClass = (rank: number) => {
                   <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2, cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#F2F2F7' }) }}>
-                        {player.iconUrl
-                          ? <img src={player.iconUrl} alt={player.name} style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover' }} />
-                          : <FiUser style={{ fontSize: 13, color: player.rank <= 3 ? '#fff' : 'var(--label3)' }} />
-                        }
+                        <PlayerAvatar src={player.iconUrl} size={28} alt={player.name} />
                       </div>
                       <div>
                         <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: '#D4910A', marginLeft: 5 }}>（あなた）</span>}</p>

@@ -1,5 +1,5 @@
 "use client"
-import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CoffeeIcon, CopyIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
+import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CoffeeIcon, CopyIcon, CopyPlusIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
 import BackButton from "@/components/BackButton"
 
 import { useEffect, useRef, useState } from "react"
@@ -410,6 +410,22 @@ export default function TournamentsPage() {
     setEditingBlindPresetId(null); setBlindPresetName(""); setBlindLevels(levels); setBlindStartStack(""); setBlindPlayers("")
     blindSnapshot.current = snapshotOf("", levels); setBlindError(""); setBlindModalView("edit")
   }
+  // ブラインドの複製(2026-11-09)。中身は全く同じで、名前は「名前（1）」。同じ名前があれば（2）（3）…
+  const duplicatePreset = async (preset: any) => {
+    if (!storeId) return
+    const base = String(preset.name ?? '').replace(/（\d+）$/, '')
+    const names = new Set(blindPresets.map(p => String(p.name ?? '')))
+    let n = 1
+    while (names.has(`${base}（${n}）`)) n++
+    const { id: _id, createdAt: _c, ...data } = preset
+    void _id; void _c
+    try {
+      await addDoc(collection(db, "stores", storeId, "blindPresets"), { ...data, name: `${base}（${n}）`, createdAt: serverTimestamp() })
+      await refreshPresets(storeId)
+      showToast(`「${base}（${n}）」を作りました`, 'ok')
+    } catch { showToast('複製できませんでした') }
+  }
+
   const blindDirty = blindModalView === "edit" && snapshotOf(blindPresetName, blindLevels) !== blindSnapshot.current
   function resetBlindEditor() {
     setBlindModalView("list"); setEditingBlindPresetId(null); setBlindPresetName(""); setBlindStartStack(""); setBlindPlayers("")
@@ -889,6 +905,11 @@ export default function TournamentsPage() {
                     <button type="button" onClick={async () => { const ok = await copyText(blindsToText(preset.name ?? '', lvs)); showToast(ok ? 'ブラインドをコピーしました' : 'コピーできませんでした', ok ? 'ok' : 'error') }}
                       className="tp-press" aria-label={`${preset.name}をテキストでコピー`} style={{ ...btn.icon, background: 'transparent', color: 'var(--label2)' }}>
                       <CopyIcon size={20} />
+                    </button>
+                    {/* 複製(全く同じブラインドを「名前（1）」で作る。オーナー指定・2026-11-09) */}
+                    <button type="button" onClick={() => void duplicatePreset(preset)}
+                      className="tp-press" aria-label={`${preset.name}を複製`} title="複製" style={{ ...btn.icon, background: 'transparent', color: 'var(--label2)' }}>
+                      <CopyPlusIcon size={20} />
                     </button>
                     <button type="button" onClick={() => askDeletePreset(preset)} className="tp-press" aria-label={`${preset.name}を削除`} style={{ ...btn.icon, background: 'transparent', color: '#D70015', marginRight: 8 }}>
                       <Trash2Icon size={20} />

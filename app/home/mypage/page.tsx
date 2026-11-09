@@ -1,6 +1,7 @@
 "use client"
 
 import { Clock, MapPin, Spade, Users } from 'lucide-react'
+import PlayerAvatar from "@/components/PlayerAvatar"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -567,7 +568,7 @@ export default function MyPage() {
               <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid #fff', overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
                 {previewUrl || profile.iconUrl
                   ? <img src={previewUrl ?? profile.iconUrl} alt="icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <FiUser size={30} style={{ color: 'var(--label3)' }} />
+                  : <PlayerAvatar size={80} radius={0} />
                 }
                 {savingIcon && (
                   <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>

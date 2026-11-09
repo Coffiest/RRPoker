@@ -1,6 +1,7 @@
 "use client"
 
 import { TriangleAlert } from 'lucide-react'
+import PlayerAvatar from "@/components/PlayerAvatar"
 import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useMemo, useState } from "react"
@@ -55,6 +56,8 @@ export default function PrizeDistributeModal({ tournamentId, storeId, balanceGro
   const [submitting, setSubmitting] = useState(false)
 
   const [participants, setParticipants] = useState<Participant[]>([])
+  // 入賞者を選ぶ欄を開いている行(1 つだけ)
+  const [pickerRow, setPickerRow] = useState<number | null>(null)
 
   const [entryFee, setEntryFee] = useState(0)
   const [reentryFee, setReentryFee] = useState(0)
@@ -165,37 +168,17 @@ setRows([...base, ...extra])
         
         
 
-const list: Participant[] = []
-
-for (const d of entriesSnap.docs) {
-
-  const data = d.data()
-  const userId = d.id
-
-  
-
-// 仮プレイヤーは完全除外
-if (userId.startsWith("temp_")) continue
-
-const uSnap = await getDoc(doc(db, "users", userId))
-const ud: any = uSnap.data()
-
-list.push({
-  id: userId,
-  name: ud?.name ?? "Unknown",
-  iconUrl: ud?.iconUrl,
+// 入賞者の候補は、この大会でエントリーかリエントリーを 1 回以上した人だけ(2026-11-09)。仮プレイヤーは除く。
+// 名前は同時に読む(以前は 1 人ずつ順番に読んでいた)
+const targets = entriesSnap.docs.filter(d => {
+  const e = d.data()
+  return !d.id.startsWith("temp_") && ((e.entryCount ?? 0) + (e.reentryCount ?? 0)) > 0
 })
-
-
-
-
-}
-
-
-
-
-
-
+const users = await Promise.all(targets.map(d => getDoc(doc(db, "users", d.id)).catch(() => null)))
+const list: Participant[] = targets.map((d, i) => {
+  const ud: any = users[i]?.data()
+  return { id: d.id, name: ud?.name || d.data().name || "名前なし", iconUrl: ud?.iconUrl }
+}).sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "ja"))
 
 setParticipants(list)
 
@@ -466,7 +449,7 @@ for (const p of payouts) {
         <div className="a-grabber" />
 
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 14px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 12px 8px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
           <button
             onClick={onClose}
             style={{ width: 34, height: 34, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
@@ -479,59 +462,56 @@ for (const p of payouts) {
         </div>
 
         {/* スクロール可能ボディ */}
-        <div style={{ overflowY: 'auto', flex: 1, padding: '16px 16px 8px' }}>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 8px 8px' }}>
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}><Loader /></div>
           ) : (
             <>
               {/* Prize Pool カード */}
-              <div style={{ background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 18, padding: '14px 18px', marginBottom: 16 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#D4910A', marginBottom: 4 }}>Prize Pool</p>
-                <p style={{ fontSize: 28, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)', border: '1px solid rgba(242,169,0,0.22)', borderRadius: 12, padding: '8px 12px', marginBottom: 8 }}>
+                <p className="tech-label" style={{ fontSize: 10, color: '#D4910A' }}>Prize Pool</p>
+                <p className="tech-num" style={{ fontSize: 20, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px', lineHeight: 1 }}>{fmtChip(totalPrize, chipUnit, chipUnitBefore)}</p>
               </div>
 
-              {/* 順位行 */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
+              {/* 順位行(1 行に順位・入賞者・金額・景品の切り替え。2026-11-09) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
                 {rows.map((r, idx) => (
-                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 16, padding: '12px 14px' }}>
-                    {/* 順位バッジ + プレイヤー選択 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: r.rank <= 3 ? MEDAL[r.rank] : '#D1D1D6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: r.rank <= 3 ? '0 2px 6px rgba(0,0,0,0.18)' : 'none' }}>
+                  <div key={idx} style={{ background: '#F2F2F7', borderRadius: 12, padding: '6px 6px 6px 8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: r.rank <= 3 ? MEDAL[r.rank] : '#6E6E73', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <span style={{ fontSize: 11, fontWeight: 800, color: '#fff' }}>{r.rank}</span>
                       </div>
-                      <select
+                      <PlayerPicker
+                        participants={participants}
                         value={r.playerId}
-                        onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: e.target.value } : x))}
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 10px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
-                      >
-                        <option value="">プレイヤーを選択</option>
-                        {participants.map(p => <option key={p.id} value={p.id}>{p.name ?? p.id}</option>)}
-                      </select>
-                    </div>
-                    {/* 金額 + テキストトグル */}
-                    <div style={{ display: 'flex', gap: 8, paddingLeft: 40 }}>
+                        taken={rows.filter((_, i) => i !== idx).map(x => x.playerId).filter(Boolean)}
+                        open={pickerRow === idx}
+                        onOpen={() => setPickerRow(pickerRow === idx ? null : idx)}
+                        onPick={id => { setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: id } : x)); setPickerRow(null) }}
+                      />
                       <input
                         value={r.amount}
                         onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, amount: e.target.value } : x))}
-                        placeholder="金額"
-                        inputMode="numeric"
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: 'none', background: '#fff', padding: '0 12px', fontSize: 14, color: '#1C1C1E', outline: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
+                        placeholder="金額" inputMode="numeric" aria-label={`${r.rank}位の金額`}
+                        style={{ width: 92, height: 36, padding: '0 10px', fontSize: 14, color: '#1C1C1E', boxSizing: 'border-box', flexShrink: 0 }}
                       />
                       <button
                         onClick={() => setRows(prev => prev.map((x, i) => i === idx ? { ...x, showText: !x.showText } : x))}
-                        style={{ width: 38, height: 38, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : 'var(--label3)', fontSize: 20, fontWeight: 700, cursor: 'pointer', flexShrink: 0, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        aria-label="景品・メモを書く" aria-pressed={r.showText}
+                        style={{ width: 32, height: 36, borderRadius: 10, border: 'none', background: r.showText ? 'rgba(242,169,0,0.15)' : '#fff', color: r.showText ? '#D4910A' : 'var(--label3)', fontSize: 18, fontWeight: 700, cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >＋</button>
                     </div>
-                    {/* 景品テキスト */}
+                    {pickerRow === idx && (
+                      <PlayerPickerList participants={participants} taken={rows.filter((_, i) => i !== idx).map(x => x.playerId).filter(Boolean)} value={r.playerId}
+                        onPick={id => { setRows(prev => prev.map((x, i) => i === idx ? { ...x, playerId: id } : x)); setPickerRow(null) }} />
+                    )}
                     {r.showText && (
-                      <div style={{ paddingLeft: 40, marginTop: 8 }}>
-                        <input
-                          value={r.text}
-                          onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
-                          placeholder="景品・メモ"
-                          style={{ width: '100%', height: 36, borderRadius: 10, border: '1.5px solid rgba(242,169,0,0.3)', background: '#fff', padding: '0 12px', fontSize: 13, color: '#1C1C1E', outline: 'none', boxSizing: 'border-box' }}
-                        />
-                      </div>
+                      <input
+                        value={r.text}
+                        onChange={e => setRows(prev => prev.map((x, i) => i === idx ? { ...x, text: e.target.value } : x))}
+                        placeholder="景品・メモ"
+                        style={{ width: '100%', height: 34, marginTop: 6, padding: '0 12px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box' }}
+                      />
                     )}
                   </div>
                 ))}
@@ -542,7 +522,7 @@ for (const p of payouts) {
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px dashed #C7C7CC', background: 'transparent', color: 'var(--label3)', fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 12 }}
+                style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px dashed rgba(60,60,67,0.25)', background: 'transparent', color: 'var(--label2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 8 }}
               >＋ 入賞者を追加</button>
 
               {/* コメント */}
@@ -597,6 +577,55 @@ for (const p of payouts) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/** 入賞者の欄(押すと下に検索付きの一覧が開く。別の画面は重ねない) */
+function PlayerPicker({ participants, value, open, onOpen }: {
+  participants: Participant[]; value: string; taken: string[]; open: boolean; onOpen: () => void; onPick: (id: string) => void
+}) {
+  const sel = participants.find(p => p.id === value)
+  return (
+    <button type="button" onClick={onOpen} aria-expanded={open}
+      style={{ flex: 1, minWidth: 0, height: 36, display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px', borderRadius: 10, border: 'none', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+      {sel && <PlayerAvatar src={sel.iconUrl} size={20} />}
+      <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? '#1C1C1E' : 'var(--label2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {sel ? sel.name : value ? '(対象外のプレイヤー)' : 'プレイヤーを選択'}
+      </span>
+      <span aria-hidden style={{ fontSize: 10, color: 'var(--label2)' }}>{open ? '▲' : '▼'}</span>
+    </button>
+  )
+}
+
+function PlayerPickerList({ participants, taken, value, onPick }: {
+  participants: Participant[]; taken: string[]; value: string; onPick: (id: string) => void
+}) {
+  const [q, setQ] = useState('')
+  const kw = q.trim().toLowerCase()
+  const list = participants.filter(p => !kw || (p.name ?? '').toLowerCase().includes(kw))
+  return (
+    <div style={{ marginTop: 6, background: '#fff', borderRadius: 10, padding: 6 }}>
+      <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="プレイヤー検索"
+        style={{ width: '100%', height: 34, padding: '0 12px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box', marginBottom: 6 }} />
+      <div style={{ maxHeight: 220, overflowY: 'auto' }}>
+        {value && (
+          <button type="button" onClick={() => onPick('')}
+            style={{ width: '100%', minHeight: 36, padding: '0 8px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, color: '#C62828', cursor: 'pointer', fontFamily: 'inherit' }}>選択を外す</button>
+        )}
+        {list.length === 0 && <p style={{ fontSize: 12, color: 'var(--label2)', padding: '8px' }}>エントリーしたプレイヤーが見つかりません</p>}
+        {list.map(p => {
+          const used = taken.includes(p.id)
+          return (
+            <button key={p.id} type="button" disabled={used} onClick={() => onPick(p.id)}
+              style={{ width: '100%', minHeight: 36, display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', border: 'none', borderRadius: 8, background: p.id === value ? 'rgba(242,169,0,0.12)' : 'none', textAlign: 'left', cursor: used ? 'default' : 'pointer', fontFamily: 'inherit', opacity: used ? 0.45 : 1 }}>
+              <PlayerAvatar src={p.iconUrl} size={22} />
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+              {used && <span style={{ fontSize: 10, color: 'var(--label2)' }}>選択済み</span>}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

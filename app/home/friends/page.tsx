@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import PlayerAvatar from "@/components/PlayerAvatar"
 import { useRouter } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, Timestamp } from 'firebase/firestore'
@@ -275,13 +276,7 @@ export default function FriendsPage() {
                 className="w-full rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 text-left hover:border-gray-300 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  {player.iconUrl ? (
-                    <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center text-[12px] text-gray-500">
-                      P
-                    </div>
-                  )}
+                  <PlayerAvatar src={player.iconUrl} size={40} alt={player.name} />
                   <div className="flex-1">
                     <p className="text-[14px] font-semibold text-gray-900">{player.name}</p>
                     <p className="text-[12px] text-gray-500">{player.playerId}</p>
@@ -298,13 +293,7 @@ export default function FriendsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
             <div className="w-full max-w-sm rounded-[24px] bg-white p-6">
               <div className="flex items-center justify-center mb-4">
-                {selectedPlayer.iconUrl ? (
-                  <img src={selectedPlayer.iconUrl} alt={selectedPlayer.name} className="h-16 w-16 rounded-full object-cover" />
-                ) : (
-                  <div className="h-16 w-16 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center">
-                    <span className="text-[12px] text-gray-500">P</span>
-                  </div>
-                )}
+                <PlayerAvatar src={selectedPlayer.iconUrl} size={64} alt={selectedPlayer.name} />
               </div>
 
               <h2 className="font-display text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
@@ -408,13 +397,7 @@ export default function FriendsPage() {
                     key={friend.id}
                     className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3"
                   >
-                    {friend.iconUrl ? (
-                      <img src={friend.iconUrl} alt={friend.name} className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center text-[12px] text-gray-500">
-                        P
-                      </div>
-                    )}
+                    <PlayerAvatar src={friend.iconUrl} size={40} alt={friend.name} />
                     <div className="flex-1">
                       <p className="text-[14px] font-semibold text-gray-900">{friend.name}</p>
                       <p className="text-[12px] text-gray-500">{friend.playerId}</p>
