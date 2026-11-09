@@ -2287,55 +2287,45 @@ export default function StorePage() {
               ]
               return (
                 <>
-                  {merged.map((player, idx) => (
-                    <div key={player.id} style={{
-                      display: 'flex', alignItems: 'center', padding: '6px 10px',
-                      gap: 8,
-                      borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
-                      background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.06)' : 'transparent',
+                  {/* プレイヤーのカード(2026-11-09)。スマホは 1 列、PC は 2 列(globals.css の .sp-grid)。1 人 1 行 */}
+                  <div className="sp-grid">
+                  {merged.map(player => {
+                    const pid = String(player.playerId ?? '').replace(/^@+/, '')
+                    return (
+                    <div key={player.id} className={`sp-card${selectedPlayerId === player.id ? ' is-selected' : ''}`} style={{
                       opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
-                      transition: 'opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease',
                     }}>
-                      {/* アイコン(在店中は緑の点)。1 行に詰めた(2026-11-09) */}
-                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <PlayerAvatar src={player.iconUrl} size={32} />
-                        {player.isInStore && (
-                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 11, height: 11, borderRadius: '50%', background: '#34C759', border: '2px solid #fff' }}/>
-                        )}
-                      </div>
+                      {/* アイコン(在店中は緑の点) */}
+                      <button type="button" className="sp-hit" onClick={() => setProfileUid(player.id)} aria-label={`${player.name || 'プレイヤー'}のプロフィール`}
+                        style={{ position: 'relative', flexShrink: 0 }}>
+                        <PlayerAvatar src={player.iconUrl} size={36} />
+                        {player.isInStore && <span aria-hidden style={{ position: 'absolute', bottom: 0, right: 0, width: 11, height: 11, borderRadius: '50%', background: '#34C759', border: '2px solid #fff' }}/>}
+                      </button>
 
-                      {/* 名前と ID、残高と収支を 2 行で */}
-                      <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: 0, minWidth: 0 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: player.name ? 'var(--label)' : 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{player.name || '名前未設定'}</span>
-                          {player.playerId && <span className="tech-num" style={{ fontSize: 10, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 1, minWidth: 0 }}>@{player.playerId}</span>}
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 1 }}>
-                          <span className="tech-num" style={{ fontSize: 12, fontWeight: 700, color: 'var(--label)', flexShrink: 0 }}>
+                      {/* 名前と ID / 残高と収支 */}
+                      <button type="button" className="sp-hit" onClick={() => setProfileUid(player.id)} style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                        <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: player.name ? 'var(--label)' : 'var(--label2)', letterSpacing: '-0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{player.name || '名前未設定'}</span>
+                          {pid && <span className="tech-num" style={{ fontSize: 10, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>@{pid}</span>}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                          <span className="tech-num" style={{ fontSize: 14, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px' }}>
                             {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          <span className="tech-num" style={{ fontSize: 11, fontWeight: 700, flexShrink: 0, color: player.netGain >= 0 ? '#1E7B34' : '#C62828' }}>
+                          <span className="tech-num" style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 6, color: player.netGain >= 0 ? '#1E7B34' : '#C62828', background: player.netGain >= 0 ? 'rgba(52,199,89,0.12)' : 'rgba(255,59,48,0.10)' }}>
                             {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                        </div>
-                      </div>
+                        </span>
+                      </button>
 
-                      {/* Action buttons — 36px touch targets */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                        <button onClick={() => setHistoryPlayerId(player.id)}
-                          style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(120,120,128,0.2)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'var(--fill)'}
-                        ><FiClock size={15} style={{ color: 'var(--label2)', transition: 'color 0.15s ease' }}/></button>
-
-                        <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
-                          style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)', transition: 'all 0.18s ease' }}
-                          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(242,169,0,0.45)'}
-                          onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(242,169,0,0.35)'}
-                        ><FiDollarSign size={16} style={{ color: '#fff' }}/></button>
-
+                      {/* 操作: 履歴・チップの増減・退店(入店) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                        <button type="button" className="sp-btn" onClick={() => setHistoryPlayerId(player.id)} aria-label="履歴" title="履歴"
+                          style={{ background: 'rgba(120,120,128,0.12)' }}><FiClock size={15} style={{ color: 'var(--label2)' }}/></button>
+                        <button type="button" className="sp-btn" onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }} aria-label="チップを増減" title="チップを増減"
+                          style={{ background: 'linear-gradient(135deg, #F2A900 0%, #D4910A 100%)', boxShadow: '0 2px 6px rgba(242,169,0,0.30)' }}><FiDollarSign size={16} style={{ color: '#fff' }}/></button>
                         {player.isInStore ? (
-                          <button
+                          <button type="button" className="sp-btn" aria-label="退店" title="退店"
                             onClick={async () => {
                               setRemovingAdjustmentPlayerIds(p => [...p, player.id])
                               setTimeout(async () => {
@@ -2343,23 +2333,21 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,59,48,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,59,48,0.15)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,59,48,0.1)'}
-                          ><FiLogOut size={15} style={{ color: '#FF3B30' }}/></button>
+                            style={{ background: 'rgba(255,59,48,0.10)' }}
+                          ><FiLogOut size={15} style={{ color: '#C62828' }}/></button>
                         ) : activeTab === "out" && storeId && (
-                          <button
+                          <button type="button" className="sp-btn" aria-label="入店" title="入店"
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(52,199,89,0.18)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(52,199,89,0.12)'}
-                          ><FiLogIn size={15} style={{ color: '#34C759' }}/></button>
+                            style={{ background: 'rgba(52,199,89,0.12)' }}
+                          ><FiLogIn size={15} style={{ color: '#1E7B34' }}/></button>
                         )}
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
+                  </div>
                   {merged.length === 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 10 }}>
                       <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
