@@ -23,6 +23,11 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
         router.replace('/onboarding/user/profile')
         return
       }
+      // 名前は必須(2026-11-09)。名前の無いプレイヤーは、名前を入れるまでホームに入れない
+      if (data?.role === 'player' && !String(data?.name ?? '').trim()) {
+        router.replace('/onboarding/user/name')
+        return
+      }
       setReady(true)
     })
     return () => unsub()

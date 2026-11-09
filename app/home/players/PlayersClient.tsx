@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import PlayerAvatar from "@/components/PlayerAvatar"
 import BackButton from "@/components/BackButton"
 import { useRouter, useSearchParams } from "next/navigation"
 import { db } from "@/lib/firebase"
@@ -77,13 +78,7 @@ export default function Page() {
           ) : (
             players.map(player => (
               <div key={player.id} className="flex items-center gap-3 rounded-[20px] border border-gray-200 p-3">
-                {player.iconUrl ? (
-                  <img src={player.iconUrl} alt={player.name} className="h-10 w-10 rounded-full object-cover" />
-                ) : (
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-[12px] text-gray-500">
-                    人
-                  </div>
-                )}
+                <PlayerAvatar src={player.iconUrl} size={40} alt={player.name} />
                 <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
               </div>
             ))

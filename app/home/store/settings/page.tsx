@@ -1,6 +1,7 @@
 "use client"
 
 import TimerBgDefaultSetting from "@/components/TimerBgDefaultSetting"
+import PlayerAvatar from "@/components/PlayerAvatar"
 import StepButton from "@/components/StepButton"
 import BackButton from "@/components/BackButton"
 import Loader from "@/components/Loader"
@@ -1011,7 +1012,7 @@ export default function StoreSettingsPage() {
                   <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ background: CLR.border }}>
                     {player.iconUrl
                       ? <img src={player.iconUrl} alt={player.name} className="w-full h-full object-cover" />
-                      : <FiUser size={16} color={CLR.gray3} />
+                      : <PlayerAvatar size={40} radius={0} />
                     }
                   </div>
                   <div className="flex-1 min-w-0">

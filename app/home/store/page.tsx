@@ -16,9 +16,9 @@ import { isNativeApp } from "@/lib/platform"
 import { nextTemplateBlind } from "@/lib/blindTemplate"
 import { tournamentClocks } from "@/lib/endEstimate"
 import ClockRow from "@/components/ClockRow"
+import PlayerAvatar from "@/components/PlayerAvatar"
 import Loader from "@/components/Loader"
-import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
-import { commitQuick, type QuickAction, type QuickArgs } from "@/lib/quickEntry"
+import QrPlayerSheet from "@/components/QrPlayerSheet"
 import { levelsOf, maybeWriteRcEstimate } from "@/lib/rcEstimateWriter"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
@@ -920,7 +920,6 @@ export default function StorePage() {
   }
   const qrCheckinPlayer = async (playerUid: string) => {
     setIsScannerOpen(false)
-    setQrDone(null)
     // この店に来たことのある人は、店舗の画面が持っている名前・入店状態・残高ですぐに出す(待ち時間なし)
     const meta = playerMetaRef.current[playerUid]
     setQrPlayer(meta
@@ -931,65 +930,6 @@ export default function StorePage() {
     try { await job }
     catch { if (!meta) { setQrPlayer(null); setQrCheckinResult({ success: false }); setTimeout(() => setQrCheckinResult(null), 3000) } }
   }
-  // ── 1 回押して確定(lib/quickEntry.ts。オーナー指定・2026-11-07)──
-  // 押した瞬間に画面の数字を変え、書き込みは後ろで行う。直後に「取り消す」を出す。
-  // 入店していない人は、エントリー等と同時に入店させる。残高が足りないときだけ確認を出す。
-  const [qrDone, setQrDone] = useState<{ key: number; text: string; args: QuickArgs } | null>(null)
-  const [qrConfirm, setQrConfirm] = useState<ConfirmRequest | null>(null)
-  const qrLabel: Record<QuickAction, string> = { entry: "Entry", reentry: "Re-entry", addon: "Add-on", bust: "Bust" }
-  const bumpQrLocal = (tid: string, action: QuickAction, sign: 1 | -1, balanceDelta: number) => {
-    // 参加数は entriesLive(手元の購読)が書き込みと同時に変わるので、ここでは残高と入店だけ
-    void tid
-    setQrPlayer(p => p && { ...p, balance: p.balance + balanceDelta, inStore: p.inStore || (action !== "bust" && sign === 1), acted: true })
-  }
-  const runQrQuick = async (t: any, action: QuickAction, withPurchase: boolean) => {
-    const qrPlayer = qrPlayerRef.current
-    if (!qrPlayer || !storeId) return
-    const fee = action === "bust" ? 0 : Number(t[`${action}Fee`] ?? 0)
-    const args: QuickArgs = { storeId, balanceGroupId: store?.balanceGroupId ?? storeId, tournamentId: t.id, playerId: qrPlayer.uid, playerName: qrPlayer.name, action, fee, withPurchase }
-    const needCheckin = action !== "bust" && !qrPlayer.inStore
-    const delta = withPurchase ? 0 : -fee
-    bumpQrLocal(t.id, action, 1, delta)
-    hapticTap()
-    setQrDone({ key: Date.now(), text: `${t.name} · ${qrLabel[action]}`, args })
-    try {
-      if (needCheckin) {
-        await setDoc(doc(db, "users", qrPlayer.uid), { joinedStores: arrayUnion(storeId) }, { merge: true })
-        await approvePlayer(qrPlayer.uid)
-      }
-      await commitQuick(args, 1)
-    } catch {
-      bumpQrLocal(t.id, action, -1, -delta)
-      setQrDone(null)
-      showToast(`${qrLabel[action]} できませんでした`)
-    }
-  }
-  const qrQuick = async (t: any, action: QuickAction) => {
-    // 読み込み中に押されたら、読み終わるのを待ってから進める(ボタンは止めない)
-    if (qrPlayerRef.current?.loading && qrLoadRef.current) { try { await qrLoadRef.current } catch {} }
-    const qrPlayer = qrPlayerRef.current
-    if (!qrPlayer || qrPlayer.loading) return
-    const fee = action === "bust" ? 0 : Number(t[`${action}Fee`] ?? 0)
-    if (fee > 0 && qrPlayer.balance < fee) {
-      setQrConfirm({ title: "所持バンクロール不足", message: "会計をしてください", action: "確認", run: () => runQrQuick(t, action, true) })
-      return
-    }
-    void runQrQuick(t, action, false)
-  }
-  const undoQrQuick = async () => {
-    if (!qrDone) return
-    const { args } = qrDone
-    setQrDone(null)
-    bumpQrLocal(args.tournamentId, args.action, -1, args.action === "bust" ? 0 : args.fee)
-    try { await commitQuick(args, -1) }
-    catch { bumpQrLocal(args.tournamentId, args.action, 1, args.action === "bust" ? 0 : -args.fee); showToast("取り消せませんでした") }
-  }
-  useEffect(() => {
-    if (!qrDone) return
-    const id = setTimeout(() => setQrDone(null), 8000)
-    return () => clearTimeout(id)
-  }, [qrDone])
-
   // 開発中だけ: カメラなしで QR 読み取りを試せるようにする(本番のビルドでは入らない)
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return
@@ -1167,14 +1107,34 @@ export default function StorePage() {
     <ClockRow clocks={tournamentClocks(t, presetMap[t.blindPresetId])} store fontSize={10} style={style} />
   const EndBadge = ({ t }: { t: any }) => <ClockLine t={t} style={{ margin: '-4px 0 8px' }} />
 
+  // ── 開催中トーナメントのカードの開閉(端末に覚える。最初は開く。プレイヤー側と同じ。2026-11-09)──
+  const [cardClosed, setCardClosed] = useState<Record<string, boolean>>({})
+  useEffect(() => {
+    const m: Record<string, boolean> = {}
+    for (const t of activeTournaments) { try { if (localStorage.getItem(`rrpoker.storeTimerOpen.${t.id}`) === '0') m[t.id] = true } catch {} }
+    setCardClosed(m)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTournaments.map(t => t.id).join(',')])
+  const toggleCard = (id: string) => setCardClosed(m => {
+    const closed = !m[id]
+    try { localStorage.setItem(`rrpoker.storeTimerOpen.${id}`, closed ? '0' : '1') } catch {}
+    return { ...m, [id]: closed }
+  })
+
   // ── 開催中トーナメントのカード(単体) ──
-  const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => (
+  const renderTournamentCard = (t: any, gripProps: React.HTMLAttributes<HTMLElement>) => {
+    const open = !cardClosed[t.id]
+    return (
     <div className="ios-card con-live-panel pc-fill" style={{ overflow: 'hidden' }}>
       <div className="pc-fill-inner" style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
 
-        {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
-          <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+        {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。押すと開く・たたむ(ワンタップ。2026-11-09) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 10 : 0, gap: 10 }}>
+          <button type="button" onClick={() => toggleCard(t.id)} aria-expanded={open} aria-label={`${t.name}を${open ? 'たたむ' : '開く'}`}
+            style={{ flex: 1, minWidth: 0, minHeight: 44, margin: '-10px 0', display: 'flex', alignItems: 'center', gap: 6, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+            <FiChevronDown size={18} aria-hidden style={{ color: 'var(--label2)', flexShrink: 0, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 160ms ease-out' }} />
+            <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+          </button>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             <span className="tech-label" style={{ fontSize: 8.5, color: '#34C759' }}>LIVE</span>
             <span className="tech-status-dot" style={{ background: '#34C759' }} />
@@ -1183,6 +1143,7 @@ export default function StorePage() {
         </div>
 
         <EndBadge t={t} />
+        <div style={{ display: open ? undefined : 'none' }}>
         {/* Fee / Stack info */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 6px', marginBottom: 12, padding: '8px 10px', background: 'var(--fill)', borderRadius: 10 }}>
           {[
@@ -1208,12 +1169,6 @@ export default function StorePage() {
           ))}
         </div>
 
-        {/* タイマーの背景(lib/timerTheme.ts)。小さな丸いペイントボタンから選ぶ(オーナー指定) */}
-        {storeId && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '-4px 0 4px' }}>
-            <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} compact />
-          </div>
-        )}
         {/* Timer Display — full TimerClient view scaled to card width */}
         <div style={{
           position: 'relative',
@@ -1239,6 +1194,12 @@ export default function StorePage() {
               pointerEvents: 'none',
             }}
           />
+          {/* タイマーの背景(lib/timerTheme.ts)のペイントボタンは、プレビューの右上に重ねる(2026-11-09) */}
+          {storeId && (
+            <div style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}>
+              <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} />
+            </div>
+          )}
         </div>
 
         {/* Action buttons */}
@@ -1289,9 +1250,11 @@ export default function StorePage() {
             style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
           ><FiMaximize2 size={16} style={{ color: 'var(--label)' }}/></button>
         </div>
+        </div>
       </div>
     </div>
-  )
+    )
+  }
 
   // ── 編集中(ぷるぷる中)の小さいカード。全部が画面に収まり、重ねやすいように ──
   const renderCompactCard = (ids: string[], gripProps: React.HTMLAttributes<HTMLElement>) => {
@@ -2217,10 +2180,7 @@ export default function StorePage() {
               {pendingPlayers.map((player, idx) => (
                 <div key={player.id} style={{ padding: '12px 16px', borderBottom: idx < pendingPlayers.length - 1 ? '1px solid var(--sep)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                    {player.iconUrl
-                      ? <img src={player.iconUrl} style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }}/>
-                      : <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={16} style={{ color: 'var(--label2)' }}/></div>
-                    }
+                    <PlayerAvatar src={player.iconUrl} size={38} />
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{player.name}</p>
                       <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 1 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
@@ -2241,10 +2201,10 @@ export default function StorePage() {
         )}
 
         {/* ── Players Section ── */}
-        <div style={{ marginTop: 32 }}>
+        <div style={{ marginTop: 24 }}>
 
           {/* Section header + stats */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 8 }}>
             <p className="section-hd" style={{ marginBottom: 0, letterSpacing: 0.5 }}>Players</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* Total balance of in-store players */}
@@ -2264,13 +2224,13 @@ export default function StorePage() {
           <div className="ios-card" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)', borderRadius: 20 }}>
 
             {/* Search */}
-            <div style={{ padding: '16px 16px 0' }}>
+            <div style={{ padding: '10px 10px 0' }}>
               <div style={{ position: 'relative' }}>
                 <FiSearch size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
                   placeholder="名前・IDで検索…"
-                  style={{ width: '100%', height: 42, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 36, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
+                  style={{ width: '100%', height: 36, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 36, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
                 />
                 {playerSearchInput && (
                   <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', width: 22, height: 22, borderRadius: '50%', background: 'rgba(60,60,67,0.3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}>
@@ -2285,10 +2245,8 @@ export default function StorePage() {
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.02)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}
                       >
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <FiUser size={13} style={{ color: 'var(--label2)' }}/>
-                        </div>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{p.name || '(不明なプレイヤー)'}</span>
+                        <PlayerAvatar src={p.iconUrl} size={28} />
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{p.name || '(名前未設定)'}</span>
                       </button>
                     ))}
                   </div>
@@ -2297,11 +2255,11 @@ export default function StorePage() {
             </div>
 
             {/* Segmented tabs */}
-            <div style={{ padding: '12px 16px 14px' }}>
-              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 13, padding: 4, gap: 4 }}>
+            <div style={{ padding: '8px 10px 8px' }}>
+              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 13, padding: 3, gap: 3 }}>
                 {(['in', 'out'] as const).map(tab => (
                   <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                    flex: 1, height: 34, borderRadius: 11, border: 'none', cursor: 'pointer',
+                    flex: 1, height: 30, borderRadius: 11, border: 'none', cursor: 'pointer',
                     fontSize: 13, fontWeight: 700, transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     background: activeTab === tab ? '#fff' : 'transparent',
                     color: activeTab === tab ? 'var(--label)' : 'var(--label2)',
@@ -2331,66 +2289,47 @@ export default function StorePage() {
                 <>
                   {merged.map((player, idx) => (
                     <div key={player.id} style={{
-                      display: 'flex', alignItems: 'center', padding: '13px 16px',
-                      gap: 13,
+                      display: 'flex', alignItems: 'center', padding: '6px 10px',
+                      gap: 8,
                       borderBottom: idx < merged.length - 1 ? '1px solid var(--sep)' : 'none',
                       background: selectedPlayerId === player.id ? 'rgba(242,169,0,0.06)' : 'transparent',
                       opacity: removingAdjustmentPlayerIds.includes(player.id) ? 0 : 1,
                       transition: 'opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease',
                     }}>
-                      {/* Avatar — circle with green online dot */}
-                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer', transition: 'transform 0.2s ease' }} onClick={() => setProfileUid(player.id)}>
-                        {player.iconUrl
-                          ? <img src={player.iconUrl} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', display: 'block', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}/>
-                          : <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}>
-                              {player.name
-                                ? <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1 }}>{player.name.charAt(0)}</span>
-                                : <FiUser size={20} style={{ color: '#fff' }}/>
-                              }
-                            </div>
-                        }
+                      {/* アイコン(在店中は緑の点)。1 行に詰めた(2026-11-09) */}
+                      <div style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                        <PlayerAvatar src={player.iconUrl} size={32} />
                         {player.isInStore && (
-                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 15, height: 15, borderRadius: '50%', background: '#34C759', border: '3px solid #fff', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}/>
+                          <div style={{ position: 'absolute', bottom: -1, right: -1, width: 11, height: 11, borderRadius: '50%', background: '#34C759', border: '2px solid #fff' }}/>
                         )}
                       </div>
 
-                      {/* Name + balance */}
+                      {/* 名前と ID、残高と収支を 2 行で */}
                       <div style={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
-                        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.3px' }}>
-                          {player.name || <span style={{ color: 'var(--label2)', fontStyle: 'italic', fontWeight: 500, fontSize: 14 }}>不明なプレイヤー</span>}
+                        <p style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: 0, minWidth: 0 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: player.name ? 'var(--label)' : 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{player.name || '名前未設定'}</span>
+                          {player.playerId && <span className="tech-num" style={{ fontSize: 10, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 1, minWidth: 0 }}>@{player.playerId}</span>}
                         </p>
-                        {/* Balance + net gain: flexWrap so they break before hitting buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 7, marginTop: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--label)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 1 }}>
+                          <span className="tech-num" style={{ fontSize: 12, fontWeight: 700, color: 'var(--label)', flexShrink: 0 }}>
                             {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          <span style={{
-                            fontSize: 12, fontWeight: 700, fontVariantNumeric: 'tabular-nums', flexShrink: 0,
-                            color: player.netGain >= 0 ? '#30B452' : '#FF453A',
-                            background: player.netGain >= 0 ? 'rgba(52,199,89,0.12)' : 'rgba(255,69,58,0.1)',
-                            borderRadius: 6, padding: '2px 8px',
-                          }}>
+                          <span className="tech-num" style={{ fontSize: 11, fontWeight: 700, flexShrink: 0, color: player.netGain >= 0 ? '#1E7B34' : '#C62828' }}>
                             {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
                         </div>
-                        {/* Player ID: always on its own line to prevent button collision */}
-                        {player.playerId && (
-                          <p style={{ fontSize: 10, color: 'var(--label2)', fontFamily: 'monospace', margin: '3px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '0.2px' }}>
-                            ID: {player.playerId}
-                          </p>
-                        )}
                       </div>
 
                       {/* Action buttons — 36px touch targets */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                         <button onClick={() => setHistoryPlayerId(player.id)}
-                          style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                          style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
                           onMouseEnter={e => e.currentTarget.style.background = 'rgba(120,120,128,0.2)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'var(--fill)'}
                         ><FiClock size={15} style={{ color: 'var(--label2)', transition: 'color 0.15s ease' }}/></button>
 
                         <button onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }}
-                          style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)', transition: 'all 0.18s ease' }}
+                          style={{ width: 36, height: 36, borderRadius: 12, background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dk) 100%)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.35)', transition: 'all 0.18s ease' }}
                           onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(242,169,0,0.45)'}
                           onMouseLeave={e => e.currentTarget.style.boxShadow = '0 2px 8px rgba(242,169,0,0.35)'}
                         ><FiDollarSign size={16} style={{ color: '#fff' }}/></button>
@@ -2404,7 +2343,7 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(255,59,48,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                            style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,59,48,0.1)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,59,48,0.15)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,59,48,0.1)'}
                           ><FiLogOut size={15} style={{ color: '#FF3B30' }}/></button>
@@ -2413,7 +2352,7 @@ export default function StorePage() {
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ width: 38, height: 38, borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
+                            style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(52,199,89,0.12)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(52,199,89,0.18)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(52,199,89,0.12)'}
                           ><FiLogIn size={15} style={{ color: '#34C759' }}/></button>
@@ -2648,77 +2587,23 @@ export default function StorePage() {
         />
       )}
 
-      {/* QR で読んだプレイヤーの状態と操作 */}
-      <AppleSheet open={!!qrPlayer && !qrAction} onClose={() => setQrPlayer(null)} title={qrPlayer?.name || "プレイヤー"}>
-        {qrPlayer && (
-          <div>
-            <div className="ios-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', marginBottom: 14 }}>
-              {qrPlayer.iconUrl
-                ? <img src={qrPlayer.iconUrl} alt="" style={{ width: 40, height: 40, borderRadius: 12, objectFit: 'cover' }} />
-                : <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FiUser size={18} style={{ color: 'var(--label3)' }} /></div>}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)' }}>{qrPlayer.loading ? '読み込み中' : qrPlayer.name}</p>
-                <p className="tech-label" style={{ fontSize: 9, color: qrPlayer.inStore ? '#34C759' : 'var(--label3)', marginTop: 2 }}>{qrPlayer.loading ? 'LOADING' : qrPlayer.inStore ? 'IN STORE' : 'NOT CHECKED IN'}</p>
-              </div>
-              {qrPlayer.loading ? (
-                <Loader size={28} />
-              ) : qrPlayer.inStore ? (
-                <button type="button" onClick={qrCheckOut} disabled={qrBusy}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#FF3B30', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
-                  <FiLogOut size={14} /> 退店
-                </button>
-              ) : (
-                <button type="button" onClick={qrCheckIn} disabled={qrBusy}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 12, border: 'none', background: 'rgba(52,199,89,0.12)', color: '#1E7B34', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: qrBusy ? 0.5 : 1 }}>
-                  <FiLogIn size={14} /> 入店
-                </button>
-              )}
-            </div>
-
-            <p className="section-hd" style={{ marginBottom: 8 }}>Live Tournaments</p>
-            {activeTournaments.length === 0 ? (
-              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px 16px' }}>開催中のトーナメントはありません</p>
-            ) : activeTournaments.map(t => {
-              const c = entriesLive[t.id]?.[qrPlayer.uid] ?? { entry: 0, reentry: 0, addon: 0 }
-              return (
-                <div key={t.id} className="ios-card" style={{ padding: '12px 14px', marginBottom: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
-                    <p className="tech-num" style={{ fontSize: 11, color: 'var(--label2)', flexShrink: 0 }}>{!entriesLive[t.id] ? 'E – · R – · A –' : `E ${c.entry} · R ${c.reentry} · A ${c.addon}`}</p>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-                    {([['entry', 'Entry'], ['reentry', 'Re-entry'], ['addon', 'Add-on'], ['bust', 'Bust']] as const).map(([k, label]) => (
-                      <button key={k} type="button" disabled={k === 'bust' && !qrPlayer.inStore} onClick={() => void qrQuick(t, k)}
-                        className={k === 'bust' ? undefined : 'action-btn btn-gold'}
-                        style={{ height: 44, fontSize: 10, whiteSpace: 'nowrap', padding: '0 4px', opacity: k === 'bust' && !qrPlayer.inStore ? 0.4 : 1, ...(k === 'bust' ? { borderRadius: 12, border: '1.5px solid rgba(255,59,48,0.25)', background: 'rgba(255,59,48,0.08)', color: '#FF3B30', fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' } : {}) }}>
-                        ＋ {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-            {!qrPlayer.loading && !qrPlayer.inStore && activeTournaments.length > 0 && (
-              <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 4px 8px' }}>Entry などを押すと、入店も同時にします。</p>
-            )}
-            {/* 1 回押して確定した直後の知らせと取り消し(8 秒) */}
-            {qrDone && (
-              <div key={qrDone.key} style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0', padding: '8px 8px 8px 14px', borderRadius: 14, background: 'rgba(52,199,89,0.12)' }}>
-                <FiCheck size={16} style={{ color: '#1E7B34', flexShrink: 0 }} />
-                <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: '#1E7B34', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qrDone.text} 完了</span>
-                <button type="button" className="rr-pill" onClick={() => void undoQrQuick()} style={{ minHeight: 36, padding: '0 14px' }}>取り消す</button>
-              </div>
-            )}
-          </div>
-        )}
-      </AppleSheet>
-      {qrPlayer && qrAction && (
-        <PlayerManageModal tournamentId={qrAction.tid} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore}
-          focusPlayerId={qrPlayer.uid} autoAction={qrAction.action}
-          onClose={() => { setQrAction(null); void loadQrPlayer(qrPlayer.uid) }} />
+      {/* QR で読んだプレイヤー。Player 画面と同じ書き方で、開催中の大会をすべて 1 つの画面に並べ、✓ で確定(components/QrPlayerSheet.tsx) */}
+      {storeId && (
+        <QrPlayerSheet
+          player={qrPlayer}
+          tournaments={activeTournaments}
+          entriesLive={entriesLive}
+          storeId={storeId}
+          balanceGroupId={store?.balanceGroupId ?? storeId}
+          chipUnit={store?.chipUnitLabel}
+          chipUnitBefore={store?.chipUnitBefore}
+          busy={qrBusy}
+          onClose={() => setQrPlayer(null)}
+          onCheckIn={qrCheckIn}
+          onCheckOut={qrCheckOut}
+          waitLoad={async () => { if (qrLoadRef.current) { try { await qrLoadRef.current } catch {} } }}
+        />
       )}
-
-      <ConfirmDialog request={qrConfirm} onClose={() => setQrConfirm(null)} zIndex={3000} />
 
       {/* QR入店結果トースト */}
       {qrCheckinResult && (
