@@ -146,3 +146,7 @@
 - 画像の無いプレイヤーのアイコンは灰色の地に人型(`components/PlayerAvatar.tsx`)。名前の頭文字は使わない。
 - プレイヤーの名前は必須。名前の無いプレイヤーはホームに入る前に `/onboarding/user/name` で入れる(`app/home/layout.tsx`)。
 - ブラインドの複製: 店舗の「+」のブラインド一覧に複製ボタン(テキストでコピーとは別)。中身は同じで名前は「名前（1）」、あれば（2）…。
+
+## 数字の入力欄(オーナー確定・2026-11-09)
+
+- 数字の欄(type="number")は打ち込み以外で値を変えない。ホイール・トラックパッドのスワイプでは選択を外すだけ、上下キー・PageUp/Down は無効(`components/NumberInputGuard.tsx`。app/layout.tsx に 1 つ)。上下の矢印ボタンも出さない(globals.css)。
