@@ -32,6 +32,8 @@ type Participant = {
   id: string
   name?: string
   iconUrl?: string
+  /** 仮プレイヤー(入賞者に選べる。残高・取引・RR は付けない。2026-11-09) */
+  isTemp?: boolean
 }
 
 type Row = {
@@ -171,16 +173,18 @@ setRows([...base, ...extra])
         
         
 
-// 入賞者の候補は、この大会でエントリーかリエントリーを 1 回以上した人だけ(2026-11-09)。仮プレイヤーは除く。
+// 入賞者の候補は、この大会でエントリーかリエントリーを 1 回以上した人だけ(2026-11-09)。仮プレイヤーも選べる
+// (仮プレイヤーには確定のとき残高・取引・RR を付けない。下の確定処理と lib/rrRating.server.ts で飛ばしている)
 // 名前は同時に読む(以前は 1 人ずつ順番に読んでいた)
 const targets = entriesSnap.docs.filter(d => {
   const e = d.data()
-  return !d.id.startsWith("temp_") && ((e.entryCount ?? 0) + (e.reentryCount ?? 0)) > 0
+  return ((e.entryCount ?? 0) + (e.reentryCount ?? 0)) > 0
 })
-const users = await Promise.all(targets.map(d => getDoc(doc(db, "users", d.id)).catch(() => null)))
+const users = await Promise.all(targets.map(d => d.id.startsWith("temp_") ? null : getDoc(doc(db, "users", d.id)).catch(() => null)))
 const list: Participant[] = targets.map((d, i) => {
   const ud: any = users[i]?.data()
-  return { id: d.id, name: ud?.name || d.data().name || "名前なし", iconUrl: ud?.iconUrl }
+  const isTemp = d.id.startsWith("temp_")
+  return { id: d.id, name: ud?.name || d.data().name || "名前なし", iconUrl: isTemp ? undefined : ud?.iconUrl, isTemp }
 }).sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "ja"))
 
 setParticipants(list)
@@ -596,6 +600,7 @@ function PlayerPicker({ participants, value, open, onOpen }: {
       <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? '#1C1C1E' : 'var(--label2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {sel ? sel.name : value ? '(対象外のプレイヤー)' : 'プレイヤーを選択'}
       </span>
+      {sel?.isTemp && <span className="tech-label" style={{ fontSize: 9, color: '#D4910A' }}>TEMP</span>}
       <span aria-hidden style={{ fontSize: 10, color: 'var(--label2)' }}>{open ? '▲' : '▼'}</span>
     </button>
   )
@@ -624,6 +629,7 @@ function PlayerPickerList({ participants, taken, value, onPick }: {
               style={{ width: '100%', minHeight: 36, display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', border: 'none', borderRadius: 8, background: p.id === value ? 'rgba(242,169,0,0.12)' : 'none', textAlign: 'left', cursor: used ? 'default' : 'pointer', fontFamily: 'inherit', opacity: used ? 0.45 : 1 }}>
               <PlayerAvatar src={p.iconUrl} size={22} />
               <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+              {p.isTemp && <span className="tech-label" style={{ fontSize: 9, color: '#D4910A' }}>TEMP</span>}
               {used && <span style={{ fontSize: 10, color: 'var(--label2)' }}>選択済み</span>}
             </button>
           )
