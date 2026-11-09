@@ -8,7 +8,7 @@ import { ChevronDown, Maximize2, X } from 'lucide-react'
 import RotatedFullscreen from '@/components/RotatedFullscreen'
 import { tournamentClocks } from '@/lib/endEstimate'
 import ClockRow from '@/components/ClockRow'
-import { FiList, FiCopy } from 'react-icons/fi'
+import { FiAward, FiList, FiCopy } from 'react-icons/fi'
 import { blindsToText, copyText } from '@/lib/blindText'
 import { showToast } from '@/lib/toast'
 import AppleSheet from '@/components/AppleSheet'
@@ -37,6 +37,7 @@ const DESIGN_H = 900
 export default function PlayerLiveTournaments({ storeId }: Props) {
   const tournaments = useLiveTournaments(storeId)
   const [blindsOf, setBlindsOf] = useState<LiveTournament | null>(null)
+  const [prizesOf, setPrizesOf] = useState<LiveTournament | null>(null)
   // RC 時刻・終了予定(オーナー指定)。店舗のブラインドのプリセットから計算する(読むだけ)
   const [presets, setPresets] = useState<Record<string, any>>({})
   useEffect(() => {
@@ -170,18 +171,33 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
               />
             </div>
+            {/* BLINDS と PRIZES を横に並べる(どちらも見るだけ。2026-11-09) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
             <button
               type="button"
               onClick={() => { hapticTap(); setBlindsOf(t) }}
               className="gl-press"
               style={{
-                marginTop: 8, width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--sep)', background: '#fff',
+                width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--sep)', background: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--label)', cursor: 'pointer',
               }}
             >
               <FiList size={14} /> BLINDS
             </button>
+            <button
+              type="button"
+              onClick={() => { hapticTap(); setPrizesOf(t) }}
+              className="gl-press"
+              style={{
+                width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--sep)', background: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', color: 'var(--label)', cursor: 'pointer',
+              }}
+            >
+              <FiAward size={14} /> PRIZES
+            </button>
+            </div>
             </>)}
           </div>
           )
@@ -205,6 +221,12 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
       <AppleSheet open={blindsOf !== null} onClose={() => setBlindsOf(null)} zIndex={1300}
         title={<span className="tech-label" style={{ fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>BLINDS · {blindsOf?.name ?? ''}</span>}>
         {blindsOf && <BlindList t={blindsOf} />}
+      </AppleSheet>
+
+      {/* プライズ(ブラインドと同じ下から出る画面。見るだけ) */}
+      <AppleSheet open={prizesOf !== null} onClose={() => setPrizesOf(null)} zIndex={1300}
+        title={<span className="tech-label" style={{ fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>PRIZES · {prizesOf?.name ?? ''}</span>}>
+        {prizesOf && <PrizeList t={tournaments.find(x => x.id === prizesOf.id) ?? prizesOf} />}
       </AppleSheet>
     </div>
   )
@@ -251,6 +273,33 @@ function BlindList({ t }: { t: LiveTournament }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/** プライズ(店舗が Pay Out で決めた順位ごとの賞金)。タイマー画面の PRIZE POOL と同じ中身 */
+function PrizeList({ t }: { t: LiveTournament }) {
+  const prizes = t.prizes ?? []
+  if (prizes.length === 0) {
+    return <p style={{ fontSize: 13, color: 'var(--label2)', textAlign: 'center', padding: '24px 0' }}>プライズはまだ決まっていません</p>
+  }
+  const total = prizes.reduce((s, p) => s + p.amount, 0)
+  const MEDAL: Record<number, string> = { 1: 'linear-gradient(135deg,#FFD700,#E8A000)', 2: 'linear-gradient(135deg,#D4D4D4,#A8A8A8)', 3: 'linear-gradient(135deg,#CD7F32,#9A5E24)' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '8px 12px', marginBottom: 4, borderRadius: 12, background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)' }}>
+        <span className="tech-label" style={{ fontSize: 10, color: '#D4910A' }}>PRIZE POOL</span>
+        <span className="tech-num" style={{ fontSize: 20, fontWeight: 800, color: 'var(--label)' }}>{total.toLocaleString()}</span>
+      </div>
+      {prizes.map(p => (
+        <div key={p.place} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, padding: '6px 12px', borderRadius: 10, background: p.place <= 3 ? 'rgba(242,169,0,0.06)' : 'transparent' }}>
+          <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: MEDAL[p.place] ?? '#6E6E73', fontSize: 12, fontWeight: 800, color: '#fff' }}>{p.place}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            {p.amount > 0 && <span className="tech-num" style={{ display: 'block', fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>{p.amount.toLocaleString()}</span>}
+            {p.text && <span style={{ display: 'block', fontSize: 12, color: 'var(--label2)', overflowWrap: 'anywhere' }}>{p.text}</span>}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
