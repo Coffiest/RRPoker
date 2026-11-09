@@ -40,7 +40,13 @@ export const withBreak = (ls: Level[]): Level[] => [...ls, { type: 'break', dura
 export function validateLevels(ls: Level[]): string | null {
   if (!ls.some(l => l.type === 'level')) return 'レベルを1つ以上追加してください'
   const bad = ls.findIndex(l => !l.duration || (l.type === 'level' && (!l.smallBlind || !l.bigBlind)))
-  if (bad >= 0) return `${bad + 1}行目: SB・BB・時間を入力してください`
+  if (bad >= 0) {
+    // 画面の番号(レベルだけを数える)で知らせる。以前はブレイクも 1 行に数えた「○行目」で、画面の番号とずれていた(2026-11-09)
+    const no = ls.slice(0, bad + 1).filter(l => l.type === 'level').length
+    const l = ls[bad]
+    if (l.type === 'level') return `レベル ${no}: SB・BB・時間を入力してください`
+    return no > 0 ? `レベル ${no} のあとのブレイク: 時間を入力してください` : `最初のブレイク: 時間を入力してください`
+  }
   return null
 }
 
@@ -151,7 +157,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                   ) : (
                     <span style={{ gridColumn: '2 / span 3', fontSize: 13, fontWeight: 600, color: '#1546D9', paddingLeft: 8 }}>ブレイク</span>
                   )}
-                  <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="10" aria-label="ブレイクの分"
+                  <input type="number" inputMode="numeric" min={0} value={lv.duration ?? ''} placeholder="—" aria-label="ブレイクの分"
                     onChange={e => setField(idx, 'duration', e.target.value)} className="no-spin ble-input" style={numInput} />
                 </>
               )}
