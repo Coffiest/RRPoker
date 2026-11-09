@@ -60,6 +60,8 @@ export type LiveTournament = {
   blindPresetId?: string
   /** RC 後に再計算した終了予定(lib/endEstimate.ts の RcEstimate) */
   rcEstimate?: unknown
+  /** 店舗が Pay Out で決めた順位ごとの賞金(大会の prizePool。タイマー画面の PRIZE POOL と同じ)。順位の小さい順 */
+  prizes?: { place: number; amount: number; text: string }[]
   /** Adjust でこの大会だけ表を変えたか(終了予定の計算に使う表を決める) */
   blindsCustomized?: boolean
 }
@@ -98,6 +100,10 @@ export function toLiveTournament(id: string, data: Record<string, any>): LiveTou
     levelStartedRemaining:
       typeof data.levelStartedRemaining === 'number' ? data.levelStartedRemaining : null,
     customBlindLevels: Array.isArray(data.customBlindLevels) ? data.customBlindLevels : null,
+    prizes: Object.entries((data.prizePool && typeof data.prizePool === 'object') ? data.prizePool : {})
+      .map(([k, v]: [string, any]) => ({ place: Number(k), amount: Number(v?.amount ?? 0), text: String(v?.text ?? '') }))
+      .filter(x => Number.isFinite(x.place) && (x.amount > 0 || x.text))
+      .sort((a, b) => a.place - b.place),
     rcEstimate: data.rcEstimate ?? null,
     blindsCustomized: data.blindsCustomized === true,
   }
