@@ -42,15 +42,15 @@ const header = (title, sub) => `
 
 // 表紙はチラシ(#2)の要素で組む: キャッチ・タイトル・FUKUOKA 2027・日付・縦書きコピー・波線
 const WAVES = '<path d="M0 40 C 200 10, 380 90, 600 40 S 820 0, 900 50"/><path d="M0 49 C 200 19, 380 99, 600 49 S 820 9, 900 59"/><path d="M0 58 C 200 28, 380 108, 600 58 S 820 18, 900 68"/><path d="M0 67 C 200 37, 380 117, 600 67 S 820 27, 900 77"/><path d="M0 76 C 200 46, 380 126, 600 76 S 820 36, 900 86"/><path d="M0 85 C 200 55, 380 135, 600 85 S 820 45, 900 95"/><path d="M0 94 C 200 64, 380 144, 600 94 S 820 54, 900 104"/><path d="M0 103 C 200 73, 380 153, 600 103 S 820 63, 900 113"/><path d="M0 112 C 200 82, 380 162, 600 112 S 820 72, 900 122"/><path d="M0 121 C 200 91, 380 171, 600 121 S 820 81, 900 131"/><path d="M0 130 C 200 100, 380 180, 600 130 S 820 90, 900 140"/><path d="M0 139 C 200 109, 380 189, 600 139 S 820 99, 900 149"/><path d="M0 148 C 200 118, 380 198, 600 148 S 820 108, 900 158"/><path d="M0 157 C 200 127, 380 207, 600 157 S 820 117, 900 167"/><path d="M0 166 C 200 136, 380 216, 600 166 S 820 126, 900 176"/><path d="M0 175 C 200 145, 380 225, 600 175 S 820 135, 900 185"/><path d="M0 184 C 200 154, 380 234, 600 184 S 820 144, 900 194"/><path d="M0 193 C 200 163, 380 243, 600 193 S 820 153, 900 203"/><path d="M0 202 C 200 172, 380 252, 600 202 S 820 162, 900 212"/><path d="M0 211 C 200 181, 380 261, 600 211 S 820 171, 900 221"/><path d="M0 220 C 200 190, 380 270, 600 220 S 820 180, 900 230"/><path d="M0 229 C 200 199, 380 279, 600 229 S 820 189, 900 239"/><path d="M0 238 C 200 208, 380 288, 600 238 S 820 198, 900 248"/><path d="M0 247 C 200 217, 380 297, 600 247 S 820 207, 900 257"/><path d="M0 256 C 200 226, 380 306, 600 256 S 820 216, 900 266"/><path d="M0 265 C 200 235, 380 315, 600 265 S 820 225, 900 275"/><path d="M0 274 C 200 244, 380 324, 600 274 S 820 234, 900 284"/><path d="M0 283 C 200 253, 380 333, 600 283 S 820 243, 900 293"/><path d="M0 292 C 200 262, 380 342, 600 292 S 820 252, 900 302"/><path d="M0 301 C 200 271, 380 351, 600 301 S 820 261, 900 311"/><path d="M0 310 C 200 280, 380 360, 600 310 S 820 270, 900 320"/><path d="M0 319 C 200 289, 380 369, 600 319 S 820 279, 900 329"/><path d="M0 328 C 200 298, 380 378, 600 328 S 820 288, 900 338"/><path d="M0 337 C 200 307, 380 387, 600 337 S 820 297, 900 347"/>';
+// 表紙: 上はチラシ(cover-top.png: キャッチ・RRST #2 の文字・FUKUOKA 2027)、下は FST 型の PLAYER'S GUIDE / 日付 / QR
+// 表紙: 第1回の表紙の組み方 + チラシの「RUNNER RUNNER SUPER TOURNAMET #2」文字(title.png)
 const cover = `
-<section class="page c5">
-  <div class="c5-top">RUNNER RUNNER SUPER TOURNAMENT #2</div>
-  <div class="c5-pg">PLAYER'S GUIDE</div>
-  <div class="c5-row"><div class="c5-date">2027.01.30-31</div><div class="c5-qr"><img src="${QR}" alt=""><span>RRPoker APP</span></div></div>
-  <div class="c5-mark">
-    <div class="big">RRS<span>T</span></div>
-    <div class="words">RUNNER RUNNER<br>SUPER<br>TOURNAMENT</div>
-  </div>
+<section class="page c7">
+  <div class="c7-tag">- 己の才能を証明せよ -</div>
+  <div class="c7-pg">PLAYER'S GUIDE</div>
+  <div class="c7-date">2027.01.30-31 <span>SAT-SUN</span></div>
+  <div class="c7-title"><img src="${img('title.png')}" alt=""><div class="city">FUKUOKA</div></div>
+  <div class="c7-foot"><div><span class="pill">VENUE</span>${D.event.venue}<small>${D.event.address}</small></div><div class="org">${D.event.org}</div></div>
 </section>`;
 
 const schedRows = (k) => D.tournaments.filter((t) => t.day === k).map((t) => `
@@ -107,7 +107,7 @@ const tPage = (t) => {
 <section class="page">
   ${header(`${t.no} ${t.name}`, `${day(t.day)} ${t.start} START${t.sub ? ' &nbsp;/&nbsp; ' + t.sub : ''}${t.note && !t.main ? ' &nbsp;/&nbsp; ' + t.note : ''}`)}
   <div class="grid">
-    <table class="blind ${dense}">
+    <table class="blind fit" style="--rh:${Math.min(19, Math.floor(880 / (rows + 1) * 10) / 10)}px">
       <thead><tr><th>Time</th><th>Lv</th><th>Blind</th><th>Ante</th><th>Min</th></tr></thead>
       <tbody>${blindRows(t)}</tbody>
     </table>
@@ -119,7 +119,7 @@ const tPage = (t) => {
         <dt>Late Reg</dt><dd>${rcTime(t)}</dd>
       </dl>
       ${t.main ? `<div class="mnote">${t.note}</div>` : ''}
-      ${t.rules ? '<div class="mnote">ルールは次のページをご覧ください。</div>' : ''}
+      ${t.rules ? '<div class="mnote">ルールは協賛企業ページの前のページをご覧ください。</div>' : ''}
       <div class="big">Prize</div>
       ${prizeBlock(t.prize)}
     </aside>
@@ -171,7 +171,7 @@ const thanks = `
 const base = fs.readFileSync(path.join(__dirname, '..', 'players-guide', 'build.js'), 'utf8').match(/<style>[\s\S]*?<\/style>/)[0];
 const style = base.replace('</style>', `
 .logo .ed { color: #fff; background: var(--dark); padding: 0 .2em; border-radius: .1em; }
-.page { background: linear-gradient(160deg, #F59A3E 0%, #E2641A 45%, #9C3A0C 85%, #5A1E06 100%); }
+.page { background: linear-gradient(160deg, #E8782A 0%, #CC5212 42%, #8A300A 82%, #4A1704 100%); }
 .page::before { opacity: .12; background: repeating-linear-gradient(115deg, transparent 0 22px, rgba(255,255,255,.7) 22px 23px); }
 .sched td { padding: 9px 4px; font-size: 14.5px; }
 .sched td.nm em { font-style: normal; font-size: 11px; background: var(--dark); color: var(--cream); padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
@@ -182,7 +182,34 @@ const style = base.replace('</style>', `
 .big small { font-family: 'Noto Sans JP'; font-size: 12px; }
 .blind.xxdense td { font-size: 9.6px; padding: 0; line-height: 1.12; }
 .blind.xxdense tr.brk td { font-size: 8.5px; }
+/* cover (flyer top + FST body) */
+.c6 { padding: 0; }
+.c6-top { position: relative; height: 105mm; overflow: hidden; }
+.c6-top img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.c6-top::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 22mm; background: linear-gradient(180deg, rgba(229,104,31,0), #E2641A); }
+.c6-body { padding: 10mm 18mm 0; position: static !important; }
+.c6-pg { font-family: Anton; font-size: 96px; line-height: 1.05; border-top: 3px solid #fff; padding-top: 4mm; }
+.c6-row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3mm; }
+.c6-date { font-family: Anton; font-size: 78px; line-height: 1; color: #3A1205; }
+.c6 .c6-foot { position: absolute; left: 18mm; right: 18mm; bottom: 14mm; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 16px; }
+.c6-foot small { display: block; font-size: 11.5px; font-weight: 500; margin: 3px 0 0 76px; }
+.c6-foot .org { margin-top: 5mm; font-size: 12px; }
+.blind.fit td { height: var(--rh); padding: 0; line-height: 1; font-size: calc(var(--rh) * .66); }
+.blind.fit tr.brk td { font-size: calc(var(--rh) * .55); }
+/* cover #2 (第1回の組み方) */
+.c7 { text-align: center; }
+.c7-tag { font-family: 'Noto Sans JP'; letter-spacing: .4em; font-size: 16px; margin-top: 2mm; }
+.c7-pg { font-family: Anton; font-size: 92px; line-height: 1; margin: 8mm 6mm 0; border-top: 3px solid #fff; border-bottom: 3px solid #fff; padding: 4mm 0; }
+.c7-date { font-family: Anton; font-size: 56px; color: #2A1006; margin-top: 8mm; }
+.c7-date span { font-size: 22px; background: #fff; color: #C2531A; border-radius: 999px; padding: 4px 14px; vertical-align: middle; }
+.c7-title { margin: 18mm auto 0; width: 165mm; text-align: left; }
+.c7-title img { width: 100%; display: block; }
+.c7-title .city { font-family: Anton; font-size: 24px; letter-spacing: .3em; margin-top: 3mm; }
+.c7 .c7-foot { position: absolute; left: 12mm; right: 12mm; bottom: 14mm; text-align: left; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 18px; }
+.c7-foot small { display: block; font-size: 12px; margin: 4px 0 0 76px; font-weight: 500; }
+.c7-foot .org { margin-top: 6mm; font-size: 12px; }
 /* cover (FST style) */
+.c6 .c6-mark { margin: 12mm auto 0; } .c6-mark .big { font-size: 150px; } .c6-mark .big span { transform: translateY(17mm); } .c6-mark .words { font-size: 13px; margin-top: 3mm; }
 .c5 { padding: 22mm 22mm; }
 .c5-top { font-family: Anton; font-size: 40px; color: #3A1205; letter-spacing: .02em; border-bottom: 3px solid #fff; padding-bottom: 3mm; white-space: nowrap; }
 .c5-pg { font-family: Anton; font-size: 92px; line-height: 1.1; margin-top: 5mm; letter-spacing: .01em; }
@@ -311,8 +338,9 @@ const style = base.replace('</style>', `
 </style>`);
 
 const pages = [cover, schedule];
-for (const t of D.tournaments.filter((x) => !x.schedOnly)) { pages.push(tPage(t)); if (t.rules) pages.push(rules); }
-pages.push(thanks);
+const num = (t) => Number(t.no.replace('#', ''));
+for (const t of D.tournaments.filter((x) => !x.schedOnly).sort((x, y) => num(x) - num(y))) pages.push(tPage(t));
+pages.push(rules, thanks);
 
 const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@500&display=swap" rel="stylesheet">
