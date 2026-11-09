@@ -54,12 +54,12 @@ module.exports = {
   ],
   // schedule 表示順 = この並び。chips はスタート点数、prize: null は未定
   tournaments: [
-    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '11:00', entry: { all: 50000 }, chips: 30000, levels: blinds.shr, prize: null },
+    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '11:00', entry: { all: 50000 }, chips: 20000, cap: '30名限定', levels: blinds.shr, prize: null },
     { no: '#1', name: 'MAIN EVENT', sub: 'Day1', day: 'd1', start: '11:00', entry: sf(300, 1500), chips: 500, levels: blinds.main, prize: null, main: true,
       note: 'Day1 は残り8名まで。Day2(1/31 16:30〜)は中断したレベルのタイマー続きから再開' },
     { no: '#3', name: 'TAG TEAM', day: 'd1', start: '17:30', entry: sf(300, 1500), entryNote: '1人あたり', chips: 300, levels: blinds.tag, prize: null },
     { no: '#4', name: 'MID NIGHT TURBO', day: 'd1', start: '20:30', entry: sf(300, 1500), chips: 300, levels: blinds.turbo, prize: null },
-    { no: '#5', name: 'SIX TEAM MATCH', sub: '軍団戦', day: 'd2', start: '11:00', entry: sf(1000, 3000), entryNote: '1人あたり', chips: 2000, chipsNote: 'チームスタック', levels: blinds.shr, prize: null, rules: true },
+    { no: '#5', name: 'SIX TEAM MATCH', sub: '軍団戦', day: 'd2', start: '11:00', entry: sf(1000, 3000), entryNote: '1人あたり', chips: 2000, chipsNote: 'チームスタック', levels: blinds.team, prize: null, rules: true },
     { no: '#6', name: 'CHAMPIONSHIP', day: 'd2', start: '11:00', entry: sf(300, 1500), chips: 500, levels: blinds.champ, prize: null },
     { no: '#1', name: 'MAIN EVENT', sub: 'Day2', day: 'd2', start: '16:30', schedOnly: true, main: true },
     { no: '#7', name: 'RR SUPER TURBO', day: 'd2', start: '17:30', entry: sf(300, 1500), chips: 300, levels: blinds.turbo, prize: null },

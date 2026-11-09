@@ -57,7 +57,7 @@ const schedRows = (k) => D.tournaments.filter((t) => t.day === k).map((t) => `
   <tr class="${t.main ? 'hl' : ''}"><td>${t.start}</td><td>${t.schedOnly ? '-' : rcTime(t)}</td><td>${t.no}</td>
   <td class="nm">${t.name}${t.sub ? ` <em>${t.sub}</em>` : ''}</td>
   <td>${t.schedOnly ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
-  <td>${t.schedOnly ? '-' : n(t.chips)}</td></tr>`).join('');
+  <td>${t.schedOnly ? '-' : n(t.chips)}${t.cap ? `<small class="cap">${t.cap}</small>` : ''}</td></tr>`).join('');
 
 const schedule = `
 <section class="page">
@@ -116,7 +116,7 @@ const tPage = (t) => {
       <table class="prize entry">${t.entry.all != null ? `<tr><th>All</th><td>${n(t.entry.all)}</td></tr>` : `<tr><th>学生</th><td>${n(t.entry.student)}</td></tr><tr><th>一般</th><td>${n(t.entry.adult)}</td></tr>`}</table>
       <dl>
         <dt>Starting Chips</dt><dd>${n(t.chips)}${t.chipsNote ? ` <small>(${t.chipsNote})</small>` : ''}</dd>
-        <dt>Late Reg</dt><dd>${rcTime(t)}</dd>
+        <dt>Late Reg</dt><dd>${rcTime(t)}</dd>${t.cap ? `<dt>Cap</dt><dd>${t.cap}</dd>` : ''}
       </dl>
       ${t.main ? `<div class="mnote">${t.note}</div>` : ''}
       ${t.rules ? '<div class="mnote">ルールは協賛企業ページの前のページをご覧ください。</div>' : ''}
