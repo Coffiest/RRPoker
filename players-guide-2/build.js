@@ -97,7 +97,7 @@ const blindRows = (t) => {
 const prizeBlock = (p) => !p ? `
   <table class="prize"><tr><th>Total</th><td>TBD</td></tr><tr><th>In Money</th><td>TBD</td></tr></table>
   <p class="tbd">プライズは決まり次第お知らせします。</p>` : `
-  <table class="prize"><tr><th>Total</th><td>${n(p.total)}</td></tr><tr><th>In Money</th><td>${p.inMoney}${['', 'st', 'nd', 'rd'][p.inMoney] || 'th'}</td></tr></table>
+  <table class="prize"><tr><th>Total</th><td>${n(p.total)}</td></tr><tr><th>In Money</th><td>${typeof p.inMoney === 'number' ? p.inMoney + (['', 'st', 'nd', 'rd'][p.inMoney] || 'th') : p.inMoney}</td></tr></table>
   <table class="places">${p.places.map((r) => `<tr><th>${r[0]}</th><td>${r[1].replace(/PokerART Platinum 1ヶ月/, '<span class="plat">PokerART Platinum 1ヶ月</span>')}${r[2] ? '<span class="tro">+ Trophy</span>' : ''}${(r[3] || []).map((x) => `<span class="tkt">+ ${x}</span>`).join('')}</td></tr>`).join('')}</table>`;
 
 const tPage = (t) => {
@@ -133,7 +133,7 @@ const rules = `
 <section class="page">
   ${header('SIX TEAM MATCH RULES', '軍団戦のルール &nbsp;/&nbsp; 1/31 sun 11:00 START')}
   <div class="flow">
-    <div class="st"><div class="no">STEP 1</div><div class="pile big"><i style="bottom:0px"></i><i style="bottom:7px"></i><i style="bottom:14px"></i><i style="bottom:21px"></i><i style="bottom:28px"></i><i style="bottom:35px"></i><i style="bottom:42px"></i><i style="bottom:49px"></i><i style="bottom:56px"></i></div><div class="v">2,000</div><div class="t">チームスタック<br><small>6人の共有財産</small></div></div>
+    <div class="st"><div class="no">STEP 1</div><div class="pile big"><i style="bottom:0px"></i><i style="bottom:7px"></i><i style="bottom:14px"></i><i style="bottom:21px"></i><i style="bottom:28px"></i><i style="bottom:35px"></i><i style="bottom:42px"></i><i style="bottom:49px"></i><i style="bottom:56px"></i></div><div class="v">15,000</div><div class="t">チームスタック<br><small>6人の共有財産</small></div></div>
     <div class="ar"><div>引き出す</div><b>10BB以上</b><span>→</span></div>
     <div class="st"><div class="no">STEP 2</div><div class="pile"><i style="bottom:0px"></i><i style="bottom:7px"></i><i style="bottom:14px"></i></div><div class="v">10BB〜</div><div class="t">好きな量を持って<br>テーブルへ</div></div>
     <div class="ar"><div>置いて</div><b>戦う</b><span>→</span></div>
@@ -145,7 +145,7 @@ const rules = `
     <div class="tm-lab"><div class="ok">RCまで: いつでも引き出してOK</div><div class="ng">RC以降: 引き出し不可</div></div>
   </div>
   <div class="tm-rules">
-    <div class="r"><span>01</span><div>6人で1チーム。各チームに、チーム全員の共有財産である<b>チームスタック 2,000点</b>を付与します。</div></div>
+    <div class="r"><span>01</span><div>6人で1チーム。各チームに、チーム全員の共有財産である<b>チームスタック 15,000点</b>を付与します。</div></div>
     <div class="r"><span>02</span><div>プレイヤーはチームスタックから<b>10BB以上</b>のチップを引き出し、テーブルに置いて戦います。何BBで入るかは自由です。エントリー・リエントリー・アドオンはすべてこのチームスタックでやりくりします。</div></div>
     <div class="r"><span>03</span><div>チップの追加は<b>いつでも可能</b>。バストしたプレイヤーは、好きなタイミングでチームスタックから引き出してリエントリーできます。</div></div>
     <div class="r warn"><span>04</span><div>チームスタックは<b>RC以降は引き出せません</b>。RCまでにすべてテーブルに置いてください。また、一度テーブルに置いたチップを<b>チームスタックへ戻すことはできません</b>。</div></div>
