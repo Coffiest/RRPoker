@@ -74,9 +74,12 @@ export default function PrizeDistributeModal({ tournamentId, storeId, balanceGro
   { rank: 3, playerId: "", amount: "", text: "", showText: false },
 ])
 
-  const totalPrize = useMemo(() => {
-    return (entryFee * totalEntry) + (reentryFee * totalReentry) + (addonFee * totalAddon)
-  }, [entryFee, reentryFee, addonFee, totalEntry, totalReentry, totalAddon])
+  // PRIZE POOL は入力した賞金の合計(2026-11-09)。以前は「参加費 × エントリー数」(集まった参加費)を出していて、
+  // 賞金の合計と合わなかった。タイマー画面の PRIZE POOL(prizePool の合計)とも同じにそろえる
+  const totalPrize = useMemo(() => rows.reduce((sum, r) => {
+    const n = Number(r.amount)
+    return sum + (Number.isFinite(n) && n > 0 ? n : 0)
+  }, 0), [rows])
 
   useEffect(() => {
     const run = async () => {
