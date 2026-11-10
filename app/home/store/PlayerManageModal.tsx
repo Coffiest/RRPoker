@@ -531,7 +531,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: 'var(--label)' }}>仮プレイヤーの名前</p>
               <input autoFocus value={renaming.name} maxLength={30}
                 onChange={e => setRenaming(r => r && { ...r, name: e.target.value })}
-                style={{ width: '100%', height: 44, marginTop: 16, borderRadius: 12, border: '1px solid var(--sep)', padding: '0 12px', fontSize: 16, color: 'var(--label)', background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                style={{ width: '100%', height: 44, marginTop: 16, borderRadius: 12, border: '1px solid var(--sep)', padding: '0 16px', fontSize: 16, color: 'var(--label)', background: '#fff', fontFamily: 'inherit', boxSizing: 'border-box' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid rgba(60,60,67,0.12)' }}>
               <button className="rr-btn is-mute is-sm" style={{ margin: 8 }} type="button" onClick={() => setRenaming(null)}>キャンセル</button>
@@ -548,7 +548,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
         <div className="a-grabber" />
 
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 12px 8px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 16px 8px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
           <RingButton label="閉じる" onClick={onClose} icon={<FiX />} />
           <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Players</span>
           <button className="rr-ok"
@@ -579,7 +579,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                 ]
                 return (
                   <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 8 }}>
-                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, background: '#F2F2F7', borderRadius: 12, padding: '6px 4px' }}>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, background: '#F2F2F7', borderRadius: 12, padding: '8px 4px' }}>
                       {cells.map((c, i) => (
                         <div key={c.label} style={{ textAlign: 'center', borderLeft: i ? '1px solid #D1D1D6' : 'none', minWidth: 0 }}>
                           <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>{c.label}</p>
@@ -589,7 +589,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                       ))}
                     </div>
                     {/* Bust */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#F2F2F7', borderRadius: 12, padding: '0 2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 0, background: '#F2F2F7', borderRadius: 12, padding: '0 4px' }}>
                       <StepButton kind="minus" label="バストを減らす" size={24} hit={32} disabled={localBust <= 0} onClick={() => handleTournamentBustChange(-1)} />
                       <div style={{ textAlign: 'center', minWidth: 34 }}>
                         <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)' }}>Bust</p>
@@ -603,12 +603,12 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               })()}
 
               {/* 検索と仮プレイヤーの追加を 1 行に */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 6, marginBottom: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, marginBottom: 8 }}>
                 <input value={search} onChange={e => setSearch(e.target.value)} placeholder="検索"
-                  style={{ width: '100%', height: 36, padding: '0 12px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box', minWidth: 0 }} />
+                  style={{ width: '100%', height: 36, padding: '0 16px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box', minWidth: 0 }} />
                 <input value={newTempName} onChange={e => setNewTempName(e.target.value)} placeholder="仮プレイヤー名"
                   onKeyDown={e => { if (e.key === 'Enter') addTempPlayer() }}
-                  style={{ width: '100%', height: 36, padding: '0 12px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box', minWidth: 0 }} />
+                  style={{ width: '100%', height: 36, padding: '0 16px', fontSize: 13, color: '#1C1C1E', boxSizing: 'border-box', minWidth: 0 }} />
                 <button className="rr-btn is-gold is-sm" style={{ letterSpacing: 1 }} onClick={addTempPlayer} aria-label="仮プレイヤーを追加">＋ Add</button>
               </div>
 
@@ -617,33 +617,33 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {allPlayers.length === 0 ? (
                 <p style={{ textAlign: 'center', color: 'var(--label3)', padding: '24px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr', gap: 6 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr', gap: 8 }}>
                   {allPlayers.map(player => {
                     const preview = computePreview(player)
                     const extra = playerExtras[player.id]
                     const before = originalPlayers.find(p => p.id === player.id)
                     const entered = ((player.entryCount ?? 0) + (player.reentryCount ?? 0)) > 0
                     return (
-                      <div key={player.id} style={{ background: player.isTemp ? 'rgba(242,169,0,0.06)' : entered ? '#fff' : '#F2F2F7', borderRadius: 12, padding: '6px 8px 8px', boxShadow: entered || player.isTemp ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', position: 'relative', minWidth: 0 }}>
+                      <div key={player.id} style={{ background: player.isTemp ? 'rgba(242,169,0,0.06)' : entered ? '#fff' : '#F2F2F7', borderRadius: 12, padding: '8px 8px 8px', boxShadow: entered || player.isTemp ? '0 1px 3px rgba(0,0,0,0.08)' : 'none', position: 'relative', minWidth: 0 }}>
                         {/* 名前の行 */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 24 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 24 }}>
                           {!player.isTemp && <PlayerAvatar src={player.iconUrl} size={20} />}
                           <span style={{ fontSize: 12, fontWeight: 700, color: entered || player.isTemp ? '#1C1C1E' : 'var(--label2)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.name}</span>
                           {player.isTemp && <span className="tech-label" style={{ fontSize: 9, color: '#D4910A' }}>TEMP</span>}
                           {player.isTemp && (
                             <button onClick={() => setTempMenuId(id => id === player.id ? null : player.id)} aria-label="仮プレイヤーの操作"
-                              style={{ width: 28, height: 24, margin: '-2px -4px -2px 0', borderRadius: 8, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label2)' }}>
+                              style={{ width: 28, height: 24, margin: '-4px -4px -4px 0', borderRadius: 8, background: 'none', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--label2)' }}>
                               <FiMoreHorizontal size={16} />
                             </button>
                           )}
                           {player.isTemp && tempMenuId === player.id && (
                             <div style={{ position: 'absolute', top: 30, right: 4, zIndex: 5, background: '#fff', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.16)', border: '1px solid #E5E5EA', overflow: 'hidden', minWidth: 132 }}>
                               <button onClick={() => { setTempMenuId(null); renameTempPlayer(player.id) }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '11px 14px', background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer', textAlign: 'left' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 16px', background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer', textAlign: 'left' }}>
                                 <FiEdit2 size={14} /> 名前を変更
                               </button>
                               <button onClick={() => { setTempMenuId(null); deleteTempPlayer(player.id) }}
-                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '11px 14px', background: 'none', border: 'none', borderTop: '1px solid #F2F2F7', fontSize: 13, fontWeight: 600, color: '#C62828', cursor: 'pointer', textAlign: 'left' }}>
+                                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 16px', background: 'none', border: 'none', borderTop: '1px solid #F2F2F7', fontSize: 13, fontWeight: 600, color: '#C62828', cursor: 'pointer', textAlign: 'left' }}>
                                 <FiTrash2 size={14} /> 削除
                               </button>
                             </div>
@@ -652,7 +652,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
 
                         {/* 残高(1 行・小さく)。変わるときは → のあとに確定後の残高 */}
                         {!player.isTemp && extra && (
-                          <p className="tech-num" style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap', fontSize: 10, color: 'var(--label2)', margin: '1px 0 2px', lineHeight: 1.3 }}>
+                          <p className="tech-num" style={{ display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap', fontSize: 10, color: 'var(--label2)', margin: '4px 0 4px', lineHeight: 1.3 }}>
                             <span style={{ fontWeight: 700, color: '#D4910A' }}>BR</span>
                             <span style={{ fontWeight: 700, color: '#1C1C1E' }}>{fmtChip(extra.currentBalance, chipUnit, chipUnitBefore)}</span>
                             {preview && preview.totalPurchase > 0 && <span style={{ fontWeight: 700, color: '#1E7B34' }}>+{fmtChip(preview.totalPurchase, chipUnit, chipUnitBefore)}</span>}
@@ -667,7 +667,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
                             const now = f.value(player)
                             const was = before ? f.value(before) : 0
                             return (
-                              <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: twoCol ? 'space-between' : 'center', gap: 2 }}>
+                              <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: twoCol ? 'space-between' : 'center', gap: 4 }}>
                                 <span className="tech-label" style={{ fontSize: 9, color: 'var(--label2)', width: 12 }}>{f.key}</span>
                                 <StepButton kind="minus" label={`${f.label}を減らす`} size={24} hit={30} disabled={now <= 0} onClick={() => f.minus(player)} />
                                 <span style={{ position: 'relative', minWidth: 22, textAlign: 'center' }}>
@@ -695,12 +695,12 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
             onClick={() => setInsufficientAlert(null)}>
             <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
               onClick={e => e.stopPropagation()}>
-              <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
-                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 26 }}><TriangleAlert size={26} strokeWidth={2} color="#C62828" aria-hidden /></div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>所持バンクロール不足</p>
+              <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
+                <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 26 }}><TriangleAlert size={26} strokeWidth={2} color="#C62828" aria-hidden /></div>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>所持バンクロール不足</p>
                 <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.5 }}>会計をしてください</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
                 <button className="rr-btn is-mute" style={{ minHeight: 48 }}
                   onClick={() => setInsufficientAlert(null)}
                 >キャンセル</button>

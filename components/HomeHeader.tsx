@@ -311,7 +311,7 @@ export default function HomeHeader({
 		<GrantAccessSheet open={grantOpen} onClose={() => setGrantOpen(false)} uid={me?.uid ?? null} />
 		<ManageAccessSheet open={manageOpen} onClose={() => setManageOpen(false)} storeId={me?.storeId ?? null} />
 		<StoreChooserSheet open={chooserOpen} onClose={() => setChooserOpen(false)} stores={managedStores} onPick={id => void openStore(id)} />
-			<div className="pc-header-inner mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-5 py-3">
+			<div className="pc-header-inner mx-auto flex min-h-[64px] max-w-sm items-center justify-between px-6 py-4">
 				<button
 					type="button"
 					onClick={() => router.push(homePath)}
@@ -319,9 +319,9 @@ export default function HomeHeader({
 				>
 					<img src="/icon-192x192.png" alt="RRPoker logo" className="h-[60px] w-[60px] shrink-0" />
 					<span className="flex min-w-0 flex-col leading-none">
-						<span className="font-display text-[18px] font-bold tracking-tight text-gray-900 truncate">RRPOKER</span>
+						<span className="font-display text-[18px] font-bold tracking-tight text-label truncate">RRPOKER</span>
 						{/* 稼働中であることを示す計器風のサブラベル */}
-						<span className="mt-[3px] flex items-center gap-1.5">
+						<span className="mt-[4px] flex items-center gap-2">
 							<span className="tech-status-dot" />
 							<span className="tech-label text-label3">{isUserVariant ? 'PLAYER' : 'STORE'}</span>
 						</span>
@@ -345,7 +345,7 @@ export default function HomeHeader({
 							type="button"
 							onClick={() => router.push('/home/store/tickets')}
 							aria-label="チケット" title="チケット"
-							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-label hover:border-gray-300 transition-colors"
 						>
 							<FiCreditCard className="text-[18px]" />
 						</button>
@@ -354,7 +354,7 @@ export default function HomeHeader({
 						<button
 							type="button"
 							onClick={() => router.push('/home/tickets')}
-							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-label hover:border-gray-300 transition-colors"
 						>
 							<FiCreditCard className="text-[18px]" />
 							{hasStampReady && (
@@ -368,7 +368,7 @@ export default function HomeHeader({
 							type="button"
 							onClick={() => setIsNoticeOpen(prev => !prev)}
 							data-tutorial="header-bell"
-							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-label hover:border-gray-300 transition-colors"
 						>
 							<FiBell className="text-[18px]" />
 							{(isUserVariant
@@ -384,7 +384,7 @@ export default function HomeHeader({
 						type="button"
 						aria-label="メニュー"
 						onClick={() => setIsMenuOpen(prev => !prev)}
-						className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700"
+						className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-label"
 					>
 						<span className="flex flex-col gap-1">
 							<span className="h-[2px] w-5 rounded bg-gray-700" />
@@ -414,14 +414,14 @@ export default function HomeHeader({
 						isMenuOpen ? 'translate-x-0' : 'translate-x-full'
 					}`}
 				>
-					<div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-						<p className="term-prompt-arrow text-[14px] font-semibold text-gray-900">メニュー</p>
-						<button onClick={() => setIsMenuOpen(false)} className="text-[13px] text-gray-500">
+					<div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+						<p className="term-prompt-arrow text-[14px] font-semibold text-label">メニュー</p>
+						<button onClick={() => setIsMenuOpen(false)} className="text-[13px] text-label2">
 							閉じる
 						</button>
 					</div>
 
-					<div className="px-5 py-4 space-y-3">
+					<div className="px-6 py-4 space-y-4">
 						{effectiveMenuItems.map(item => (
 							<button
 								key={item.label}
@@ -429,7 +429,7 @@ export default function HomeHeader({
 									setIsMenuOpen(false)
 									item.onClick()
 								}}
-								className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
+								className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[14px] font-semibold text-label"
 							>
 								{item.label}
 							</button>
@@ -437,14 +437,14 @@ export default function HomeHeader({
 
 						<button
 							onClick={() => goTo(myPagePath)}
-							className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-left text-[14px] font-semibold text-gray-900"
+							className="w-full rounded-2xl border border-gray-200 px-4 py-4 text-left text-[14px] font-semibold text-label"
 						>
 							マイページ
 						</button>
 
 						<button
 							onClick={() => { setIsMenuOpen(false); askLogout() }}
-							className="w-full rounded-2xl border border-red-100 px-4 py-3 text-left text-[14px] font-semibold text-red-600"
+							className="w-full rounded-2xl border border-red-100 px-4 py-4 text-left text-[14px] font-semibold text-red-600"
 						>
 							ログアウト
 						</button>
@@ -467,18 +467,18 @@ export default function HomeHeader({
 						<div className="mx-auto max-w-sm rounded-[20px] bg-white border border-gray-100 shadow-2xl overflow-hidden">
 
 							{/* ヘッダー */}
-							<div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-100">
-								<p className="term-prompt-arrow text-[15px] font-semibold text-gray-900">お知らせ</p>
+							<div className="flex items-center justify-between px-4 pt-4 pb-4 border-b border-gray-100">
+								<p className="term-prompt-arrow text-[15px] font-semibold text-label">お知らせ</p>
 								<button type="button" onClick={() => setIsNoticeOpen(false)} className="text-[13px] text-label3 font-medium">閉じる</button>
 							</div>
 
 							{/* 全て既読ボタン */}
 							{(storeNoticeItems.some(n => !noticeReadIds.has(n.id)) || userNotifications.some(n => !n.read)) && (
-								<div className="px-4 py-2.5 border-b border-gray-100 flex justify-end">
+								<div className="px-4 py-2 border-b border-gray-100 flex justify-end">
 									<button
 										type="button"
 										onClick={markAllRead}
-										className="text-[12px] font-semibold text-[#D4910A] bg-[#FFF8E7] rounded-full px-4 py-1.5 active:bg-[#FFE9B0] transition-colors"
+										className="text-[12px] font-semibold text-[#D4910A] bg-[#FFF8E7] rounded-full px-4 py-2 active:bg-[#FFE9B0] transition-colors"
 									>
 										すべて既読にする
 									</button>
@@ -496,7 +496,7 @@ export default function HomeHeader({
 											return (
 												<div
 													key={n.id}
-													className={`px-4 py-3.5 border-b border-gray-50 transition-colors ${isUnread ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+													className={`px-4 py-4 border-b border-gray-50 transition-colors ${isUnread ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
 													onClick={() => { if (isUnread) markStoreNoticeRead(n.id) }}
 												>
 													<div className="flex items-center gap-2 mb-1">
@@ -504,14 +504,14 @@ export default function HomeHeader({
 														<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
 														<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 													</div>
-													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
+													<p className={`text-[13px] leading-relaxed ${isUnread ? 'text-label font-medium' : 'text-label2'}`}>{n.message}</p>
 												</div>
 											)
 										})}
 										{userNotifications.map(n => (
 											<div
 												key={n.id}
-												className={`px-4 py-3.5 border-b border-gray-50 transition-colors ${!n.read ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
+												className={`px-4 py-4 border-b border-gray-50 transition-colors ${!n.read ? 'bg-[#FFF8E7] active:bg-[#FFE9B0]' : 'bg-white'}`}
 												onClick={() => { if (!n.read) markUserNotifRead(n.id) }}
 											>
 												<div className="flex items-center gap-2 mb-1">
@@ -519,7 +519,7 @@ export default function HomeHeader({
 													<span className="tech-label text-[#D4910A] flex-1 truncate">{n.storeName}</span>
 													<span className="tech-num text-[10px] text-label3">{formatDateTime(n.createdAt?.seconds)}</span>
 												</div>
-												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{n.message}</p>
+												<p className={`text-[13px] leading-relaxed ${!n.read ? 'text-label font-medium' : 'text-label2'}`}>{n.message}</p>
 											</div>
 										))}
 									</>

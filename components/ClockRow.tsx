@@ -24,7 +24,7 @@ export default function ClockRow({ clocks, store = false, fontSize = 11, style }
   if (!start && !rc && !end) return null
   const showBefore = store && recalculated && endOriginal && endOriginal !== end
   return (
-    <span className="con-mono" style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 12, rowGap: 4, fontSize, color: 'var(--label2)', ...style }}>
+    <span className="con-mono" style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 16, rowGap: 4, fontSize, color: 'var(--label2)', ...style }}>
       {start && <span>開始 <span style={{ color: 'var(--label)' }}>{start}</span></span>}
       {rc && <span style={{ fontWeight: 700, color: '#D4910A' }}>RC {rc}</span>}
       {end && (

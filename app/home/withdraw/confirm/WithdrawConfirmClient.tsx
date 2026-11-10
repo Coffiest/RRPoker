@@ -87,20 +87,20 @@ export default function WithdrawConfirmClient() {
 
   if (!amount) {
     return (
-      <main className="min-h-screen px-5 pb-24">
+      <main className="min-h-screen px-6 pb-24">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
-          <p className="text-[14px] text-gray-500">金額が指定されていません</p>
+          <p className="text-[14px] text-label2">金額が指定されていません</p>
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-label"
           >
             ホームへ戻る
           </button>
         </div>
         <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-          <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
+          <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-4">
             <button
               type="button"
               onClick={() => router.push("/home")}
@@ -112,7 +112,7 @@ export default function WithdrawConfirmClient() {
             <button
               type="button"
               onClick={() => router.push("/home/transactions")}
-              className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
+              className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-label shadow-lg"
               aria-label="チップ移動"
             >
               <FiCreditCard className="text-[22px]" />
@@ -133,33 +133,33 @@ export default function WithdrawConfirmClient() {
   }
 
   return (
-    <main className="min-h-screen px-5 pb-24">
+    <main className="min-h-screen px-6 pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="pc-form mx-auto max-w-sm">
         <div className="pt-[72px] text-center">
-          <h1 className="text-[18px] font-semibold text-gray-900">確認画面</h1>
+          <h1 className="text-[18px] font-semibold text-label">確認画面</h1>
         </div>
 
         <div className="mt-8 rounded-[24px] border border-gray-200 p-8 text-center">
-          <p className="text-[12px] text-gray-500">ディーラーに見せてください</p>
-          <div className="mt-6 text-[56px] font-bold text-gray-900">
+          <p className="text-[12px] text-label2">ディーラーに見せてください</p>
+          <div className="mt-6 text-[56px] font-bold text-label">
             <span className="flip-amount-bottom">{unitLabel}{amount}</span>
           </div>
         </div>
 
-        {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
+        {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
 
         <button
           type="button"
           onClick={confirm}
-          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900"
+          className="mt-6 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-label"
         >
           確認してもらった
         </button>
         <ChipDisclaimer className="mt-4 text-center" />
       </div>
       <nav className="fixed bottom-0 left-0 right-0 z-[80] border-t border-gray-200 bg-white">
-        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-3">
+        <div className="relative mx-auto flex max-w-sm items-center justify-between px-8 py-4">
           <button
             type="button"
             onClick={() => router.push("/home")}
@@ -171,7 +171,7 @@ export default function WithdrawConfirmClient() {
           <button
             type="button"
             onClick={() => router.push("/home/transactions")}
-            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-gray-900 shadow-lg"
+            className="absolute left-1/2 top-0 flex h-[74px] w-[74px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-[#F2A900] text-label shadow-lg"
             aria-label="チップ移動"
           >
           

@@ -19,7 +19,7 @@ import {
 
 export function GuideThumb({ f, size = 48 }: { f: GuideFile; size?: number }) {
   return (
-    <span style={{ width: size, height: size, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#F2F2F7', boxShadow: 'inset 0 0 0 1px rgba(60,60,67,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 2 }}>
+    <span style={{ width: size, height: size, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#F2F2F7', boxShadow: 'inset 0 0 0 1px rgba(60,60,67,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
       {isPdf(f)
         ? <>
             <FileText size={Math.round(size * 0.42)} strokeWidth={2} color="#C62828" aria-hidden />
@@ -118,7 +118,7 @@ export default function PlayerGuideSettings({ storeId }: { storeId: string }) {
       {files.length > 0 && (
         <ul style={{ listStyle: 'none', margin: '16px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {files.map(f => (
-            <li key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
+            <li key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 8, borderRadius: 12, background: 'var(--fill)' }}>
               <a href={f.url} target="_blank" rel="noopener noreferrer" aria-label={`${f.name}を開く`}><GuideThumb f={f} size={44} /></a>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>

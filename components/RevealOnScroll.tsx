@@ -45,7 +45,7 @@ export function useRevealOnScroll<T>(items: T[], pageSize = 20) {
 /** 続きがあることを示す番人。ここが見えたら次の塊を読み込む。 */
 export function RevealSentinel({ innerRef }: { innerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div ref={innerRef} style={{ padding: '10px 0 4px' }} aria-hidden="true">
+    <div ref={innerRef} style={{ padding: '8px 0 4px' }} aria-hidden="true">
       <div style={{ display: "flex", justifyContent: "center" }}><Loader size={32} /></div>
     </div>
   )

@@ -288,7 +288,7 @@ export default function PlayerBottomNav() {
                 width: L.navH, height: L.navH,
                 border: 'none', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                gap: 1, padding: 0,
+                gap: 4, padding: 0,
                 boxShadow: toolsOpen
                   ? '0 20px 60px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.10), inset 0 1.5px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 3px rgba(242,169,0,0.30)'
                   : GLASS.boxShadow,

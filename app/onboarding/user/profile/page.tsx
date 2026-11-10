@@ -276,7 +276,7 @@ export default function UserProfileOnboardingPage() {
   return (
     <main
       style={{ background: '#FFFBF5' }}
-      className={`min-h-screen px-5 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
+      className={`min-h-screen px-6 pb-16 ${isExiting ? 'page-slide-out' : 'page-slide-in'}`}
     >
       <style>{`
         @keyframes slideUp {
@@ -370,7 +370,7 @@ export default function UserProfileOnboardingPage() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 3px;
+          gap: 4px;
           opacity: 0;
           transition: opacity 0.18s ease;
           border-radius: 9999px;
@@ -403,15 +403,15 @@ export default function UserProfileOnboardingPage() {
 
         {/* Header */}
         <div className="mt-6 text-center animate-slideUp-d1">
-          <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-gray-900">プロフィール設定</h1>
-          <p className="mt-1.5 text-[14px] text-gray-500">あなたの情報を入力してください</p>
+          <h1 className="font-display text-[24px] font-semibold tracking-[-0.3px] text-label">プロフィール設定</h1>
+          <p className="mt-2 text-[14px] text-label2">あなたの情報を入力してください</p>
           <p className="mt-2 text-[11px] text-label3 leading-relaxed">
             本名・住所・電話番号などの個人情報は不要です。詳しくは<a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-[#D4910A] font-semibold">プライバシーポリシー</a>をご覧ください。
           </p>
         </div>
 
         {/* Avatar picker */}
-        <div className="mt-7 flex flex-col items-center gap-3 animate-slideUp-d2">
+        <div className="mt-8 flex flex-col items-center gap-4 animate-slideUp-d2">
           <button
             type="button"
             onClick={handlePickImage}
@@ -423,7 +423,7 @@ export default function UserProfileOnboardingPage() {
             {previewUrl ? (
               <img src={previewUrl} alt="プレビュー" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-2">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="8" r="4" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
                   <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="#F2A900" strokeWidth="1.8" strokeLinecap="round"/>
@@ -461,12 +461,12 @@ export default function UserProfileOnboardingPage() {
         <div className="divider-line mt-6 animate-slideUp-d2" />
 
         {/* Form card */}
-        <div className="mt-6 profile-card rounded-3xl p-5 animate-slideUp-d3">
+        <div className="mt-6 profile-card rounded-3xl p-6 animate-slideUp-d3">
 
           {/* Poker name */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">ポーカーネーム</label>
+              <label className="text-[14px] font-medium text-label">ポーカーネーム</label>
               <span className="text-[11px] font-semibold text-[#F2A900]">必須</span>
             </div>
             <input
@@ -479,11 +479,11 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Player ID */}
-          <div className="mt-5">
+          <div className="mt-6">
             {/* ラベル行 + ? ボタン */}
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <label className="text-[14px] font-medium text-gray-700">Player ID</label>
+              <div className="flex items-center gap-2">
+                <label className="text-[14px] font-medium text-label">Player ID</label>
 
                 
                 <HelpButton size={22} label="Player IDの説明" tip="説明" style={{ margin: -11 }} onClick={() => setShowIdInfo(v => !v)} />
@@ -493,17 +493,17 @@ export default function UserProfileOnboardingPage() {
 
             {/* ? 説明パネル */}
             {showIdInfo && (
-              <div className="mb-3 rounded-2xl p-3.5" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: '#FFFBF0', border: '1px solid rgba(242,169,0,0.25)' }}>
                 <p className="text-[12px] font-semibold mb-2" style={{ color: '#92610A' }}>Player ID とは？</p>
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {[
                     '名前（ポーカーネーム）を変えても、店舗があなたを識別するためのIDです',
                     '一度設定すると変更できません。慎重に決めてください',
                     '好きな値で大丈夫です。何でも構いません',
                     '使える文字：半角英小文字 (a–z)・数字 (0–9)・アンダースコア (_)・ハイフン (-)',
                   ].map((txt, i) => (
-                    <li key={i} className="flex items-start gap-1.5">
-                      <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 1 }}>•</span>
+                    <li key={i} className="flex items-start gap-2">
+                      <span style={{ color: '#F2A900', flexShrink: 0, marginTop: 4 }}>•</span>
                       <span className="text-[11px] leading-relaxed" style={{ color: '#92610A' }}>{txt}</span>
                     </li>
                   ))}
@@ -534,18 +534,18 @@ export default function UserProfileOnboardingPage() {
                 value={playerId.replace(/^@/, '')}
                 onChange={e => handlePlayerIdChange(e.target.value)}
                 placeholder="例: naoyuki"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 12px', minWidth: 0 }}
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 16, color: '#111827', padding: '0 16px', minWidth: 0 }}
               />
-              <div className="flex items-center pr-3 flex-shrink-0">
+              <div className="flex items-center pr-4 flex-shrink-0">
                 {idStatus === 'checking' && <span style={{ fontSize: 12, color: 'var(--label3)' }}>確認中…</span>}
                 {idStatus === 'available' && !idError && <span style={{ fontSize: 12, fontWeight: 600, color: '#10b981' }}>✓ 利用可</span>}
                 {idStatus === 'unavailable' && <span style={{ fontSize: 12, fontWeight: 600, color: '#f87171' }}>✗ 使用中</span>}
               </div>
             </div>
-            {idError && <p className="mt-1.5 text-[12px] text-red-400">{idError}</p>}
+            {idError && <p className="mt-2 text-[12px] text-red-400">{idError}</p>}
 
             {/* おすすめ + 自動取得 */}
-            <div className="mt-3">
+            <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
                 <span style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>おすすめ</span>
                 <button
@@ -579,7 +579,7 @@ export default function UserProfileOnboardingPage() {
                       type="button"
                       onClick={() => applyId(s)}
                       style={{
-                        padding: '5px 12px', borderRadius: 99,
+                        padding: '4px 16px', borderRadius: 99,
                         fontSize: 12, fontWeight: 500,
                         background: '#f3f4f6', color: '#374151',
                         border: '1px solid #e5e7eb',
@@ -600,9 +600,9 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* Birthday */}
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">誕生日</label>
+              <label className="text-[14px] font-medium text-label">誕生日</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input
@@ -611,7 +611,7 @@ export default function UserProfileOnboardingPage() {
               onChange={e => setBirthday(e.target.value)}
               className="field-input"
             />
-            <p className="mt-1.5 text-[11px] text-amber-500 flex items-center gap-1">
+            <p className="mt-2 text-[11px] text-amber-500 flex items-center gap-1">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                 <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -621,30 +621,30 @@ export default function UserProfileOnboardingPage() {
           </div>
 
           {/* プロフィール詳細(すべて任意) */}
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">所属</label>
+              <label className="text-[14px] font-medium text-label">所属</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <AffiliationPicker value={affiliation} onChange={setAffiliation} joinedStoreIds={[]} />
           </div>
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">地域</label>
+              <label className="text-[14px] font-medium text-label">地域</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input type="text" value={region} onChange={e => setRegion(e.target.value)} placeholder="例: 東京都" maxLength={30} className="field-input" />
           </div>
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">好きなハンド</label>
+              <label className="text-[14px] font-medium text-label">好きなハンド</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <input type="text" value={favoriteHand} onChange={e => setFavoriteHand(e.target.value)} placeholder="例: AA, KK, AKs" maxLength={20} className="field-input" />
           </div>
-          <div className="mt-5">
+          <div className="mt-6">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium text-gray-700">ポーカー歴</label>
+              <label className="text-[14px] font-medium text-label">ポーカー歴</label>
               <span className="text-[11px] text-label3">任意</span>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -659,7 +659,7 @@ export default function UserProfileOnboardingPage() {
 
           {/* Error */}
           {error && (
-            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+            <div className="mt-4 rounded-2xl bg-red-50 border border-red-200 px-4 py-4">
               <p className="text-[13px] text-red-500 text-center">{error}</p>
             </div>
           )}
@@ -682,7 +682,7 @@ export default function UserProfileOnboardingPage() {
         </div>
 
         {/* Footer */}
-        <p className="mt-5 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
+        <p className="mt-6 mb-8 text-center text-[12px] text-label3 animate-slideUp-d4">
           プロフィールはあとから編集できます
         </p>
 

@@ -51,7 +51,7 @@ function SplitTimers() {
 
   return (
     <main style={{ position: "fixed", inset: 0, background: "#000", overflow: "hidden" }}>
-      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)`, gap: 2, width: "100%", height: "100%" }}>
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)`, gap: 4, width: "100%", height: "100%" }}>
         {ids.map(id => (
           <iframe key={id} src={`/home/store/timer/${id}`} title={`timer-${id}`} allow="autoplay"
             style={{ width: "100%", height: "100%", border: "none", display: "block", pointerEvents: "none", background: "#fff" }} />

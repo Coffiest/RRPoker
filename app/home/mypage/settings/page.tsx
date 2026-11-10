@@ -89,15 +89,15 @@ export default function UserSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen px-5">
+    <main className="min-h-screen px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="pc-form mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">プロフィール編集</h1>
+          <h1 className="text-[24px] font-semibold text-label">プロフィール編集</h1>
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">ユーザー名</label>
+          <label className="text-[12px] text-label2">ユーザー名</label>
           <input
             type="text"
             value={name}
@@ -106,7 +106,7 @@ export default function UserSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">アイコン画像</label>
+          <label className="text-[12px] text-label2">アイコン画像</label>
           <input
             type="file"
             accept="image/*"
@@ -117,19 +117,19 @@ export default function UserSettingsPage() {
           <button
             type="button"
             onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-label"
           >
             プロフィールを保存
           </button>
         </div>
 
-        {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
-        {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
+        {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
+        {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">{t('settings.language')}</label>
-          <p className="mt-0.5 text-[11px] text-label3">{t('settings.languageNote')}</p>
-          <div className="mt-3 flex gap-2">
+          <label className="text-[12px] text-label2">{t('settings.language')}</label>
+          <p className="mt-1 text-[11px] text-label3">{t('settings.languageNote')}</p>
+          <div className="mt-4 flex gap-2">
             {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
               <button
                 key={opt.v}
@@ -148,9 +148,9 @@ export default function UserSettingsPage() {
         </div>
 
         <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">位置情報の利用</label>
-          <p className="mt-0.5 text-[11px] text-label3">近くの店舗を距離順に表示するために使用します</p>
-          <div className="mt-3 flex gap-2">
+          <label className="text-[12px] text-label2">位置情報の利用</label>
+          <p className="mt-1 text-[11px] text-label3">近くの店舗を距離順に表示するために使用します</p>
+          <div className="mt-4 flex gap-2">
             <button
               type="button"
               onClick={() => updateGeoConsent("granted")}
@@ -173,7 +173,7 @@ export default function UserSettingsPage() {
         <button
           type="button"
           onClick={() => router.push('/home/mypage/password')}
-          className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+          className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-label"
         >
           パスワード変更
         </button>
@@ -181,7 +181,7 @@ export default function UserSettingsPage() {
         <button
           type="button"
           onClick={() => window.open('/privacy', '_blank')}
-          className="mt-3 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-gray-700"
+          className="mt-4 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold text-label"
         >
           {t('common.privacyPolicy')}
         </button>

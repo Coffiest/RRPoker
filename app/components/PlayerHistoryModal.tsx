@@ -147,15 +147,15 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, flexShrink: 0 }}>
           <div style={{ width: 36, height: 5, borderRadius: 999, background: 'rgba(60,60,67,0.20)' }}/>
         </div>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 16px', borderBottom: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, color: 'rgba(28,28,30,1)', margin: 0 }}>チップ履歴</p>
-            <p style={{ fontSize: 11, color: 'var(--label3)', margin: '2px 0 0' }}>{history.length}件</p>
+            <p style={{ fontSize: 11, color: 'var(--label3)', margin: '4px 0 0' }}>{history.length}件</p>
             <ChipDisclaimer className="mt-1" />
           </div>
           <RingButton label="閉じる" onClick={onClose} icon={<FiX />} />
@@ -176,12 +176,12 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
               const isAdd = item.direction === "add"
               return (
                 <div key={item.id} style={{
-                  display: 'flex', alignItems: 'center', padding: '12px 18px',
+                  display: 'flex', alignItems: 'center', padding: '16px 16px',
                   borderBottom: idx < history.length - 1 ? '1px solid rgba(60,60,67,0.08)' : 'none',
                 }}>
                   {/* Direction icon */}
                   <div style={{
-                    width: 36, height: 36, borderRadius: 11, flexShrink: 0, marginRight: 12,
+                    width: 36, height: 36, borderRadius: 11, flexShrink: 0, marginRight: 16,
                     background: isAdd ? 'rgba(242,169,0,0.1)' : 'rgba(120,120,128,0.08)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>
@@ -196,8 +196,8 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(28,28,30,1)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {formatType(item.type, item.comment)}
                     </p>
-                    <p style={{ fontSize: 10, color: 'var(--label3)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '1px 5px', fontWeight: 600 }}>
+                    <p style={{ fontSize: 10, color: 'var(--label3)', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ background: 'rgba(120,120,128,0.08)', borderRadius: 4, padding: '4px 4px', fontWeight: 600 }}>
                         {formatSubtype(item.type)}
                       </span>
                       <span>{formatDate(item.createdAt)}</span>
@@ -219,7 +219,7 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
         </div>
 
         {/* Danger zone */}
-        <div style={{ padding: '12px 18px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
+        <div style={{ padding: '16px 16px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
           <button className="rr-btn is-danger is-block is-sm"
             onClick={() => setWipeConfirmOpen(true)}
           >
@@ -239,21 +239,21 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
             style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <FiAlertTriangle size={24} style={{ color: '#FF3B30' }}/>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 6 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'rgba(28,28,30,1)', marginBottom: 8 }}>
                 {playerName ?? 'このプレイヤー'}の履歴を全て削除しますか？
               </p>
               <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5, margin: 0 }}>
                 チップ履歴（{history.length}件）と所持チップ・純増値が全て0になります。<br/>この操作は取り消せません。
               </p>
               {wipeError && (
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', marginTop: 10 }}>{wipeError}</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF3B30', marginTop: 8 }}>{wipeError}</p>
               )}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
               <button className="rr-btn is-mute" style={{ minHeight: 48 }}
                 onClick={() => setWipeConfirmOpen(false)}
                 disabled={wiping}

@@ -111,11 +111,11 @@ export default function StoreSettingsPage() {
   }
 
   return (
-    <main className="min-h-screen px-5">
+    <main className="min-h-screen px-6">
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" />
       <div className="pc-form mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[24px] font-semibold text-gray-900">設定</h1>
+          <h1 className="text-[24px] font-semibold text-label">設定</h1>
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
@@ -166,7 +166,7 @@ export default function StoreSettingsPage() {
               placeholder="単位を入力"
               value={customUnit}
               onChange={e => setCustomUnit(e.target.value)}
-              className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px]"
+              className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[16px]"
             />
           )}
 
@@ -180,27 +180,27 @@ export default function StoreSettingsPage() {
         </div>
 
         <div className="mt-4 rounded-[24px] border border-gray-200 p-4">
-          <p className="text-[14px] font-semibold text-gray-900">パスワード変更</p>
+          <p className="text-[14px] font-semibold text-label">パスワード変更</p>
           <input
             type="password"
             placeholder="現在のパスワード"
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
-            className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード"
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
-            className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
           />
           <input
             type="password"
             placeholder="新しいパスワード（確認）"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            className="mt-3 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
+            className="mt-4 h-12 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px]"
           />
           <button
             type="button"
@@ -211,8 +211,8 @@ export default function StoreSettingsPage() {
           </button>
         </div>
 
-        {error && <p className="mt-3 text-center text-[13px] text-red-500">{error}</p>}
-        {success && <p className="mt-3 text-center text-[13px] text-green-600">{success}</p>}
+        {error && <p className="mt-4 text-center text-[13px] text-red-500">{error}</p>}
+        {success && <p className="mt-4 text-center text-[13px] text-green-600">{success}</p>}
 
         <div className="flex justify-center mt-6"><BackButton /></div>
       </div>

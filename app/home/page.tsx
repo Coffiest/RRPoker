@@ -128,7 +128,7 @@ function GraphShelf({
     if (noData) {
       return (
         <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
-          <p className="text-[13px] font-semibold text-gray-900">{page.label}</p>
+          <p className="text-[13px] font-semibold text-label">{page.label}</p>
           <div className="flex flex-1 items-center justify-center">
             <p className="term-comment text-center text-[12px] text-label3">この期間のデータがありません</p>
           </div>
@@ -154,7 +154,7 @@ function GraphShelf({
       <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
         {/* ヘッダー：種別ラベル + 最終値（ヒーロー数値） */}
         <div className="flex items-end justify-between">
-          <p className="text-[13px] font-semibold text-gray-500">{page.label}</p>
+          <p className="text-[13px] font-semibold text-label2">{page.label}</p>
           <p className={`text-[22px] font-extrabold leading-none ${lastVal > 0 ? "net-positive" : lastVal < 0 ? "net-negative" : "net-neutral"}`}>
             {lastVal > 0 ? "+" : ""}{lastVal.toLocaleString()}
           </p>
@@ -194,15 +194,15 @@ function GraphShelf({
         </div>
 
         {/* 関連情報：件数・最高値・最安値 */}
-        <div className="mt-2 grid grid-cols-3 gap-1.5">
+        <div className="mt-2 grid grid-cols-3 gap-2">
           {[
             { label: "件数", value: `${points.length - 1}回` },
             { label: "最高", value: peak.toLocaleString() },
             { label: "最安", value: trough.toLocaleString() },
           ].map(s => (
-            <div key={s.label} className="rounded-lg bg-gray-50 py-1.5 text-center">
+            <div key={s.label} className="rounded-lg bg-gray-50 py-2 text-center">
               <p className="text-[8px] font-semibold text-label3">{s.label}</p>
-              <p className="text-[11px] font-bold text-gray-900">{s.value}</p>
+              <p className="text-[11px] font-bold text-label">{s.value}</p>
             </div>
           ))}
         </div>
@@ -213,15 +213,15 @@ function GraphShelf({
   return (
     <div data-tutorial="chip-graph">
       {/* セクションタイトル：カード化せず、ページの背景に直接置く */}
-      <div className="flex items-center justify-between mb-2.5">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <FiBarChart2 className="text-[15px] text-[#F2A900]" />
-          <p className="text-[15px] font-bold text-gray-900">{sectionTitle}</p>
+          <p className="text-[15px] font-bold text-label">{sectionTitle}</p>
         </div>
         <div className="flex gap-1">
           {(["7", "1m", "all"] as const).map(tab => (
             <button key={tab} type="button" onClick={() => { onPeriodChange(tab); closeTooltip() }}
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all ${periodTab === tab ? "bg-[#F2A900] text-gray-900" : "bg-gray-100 text-gray-500"}`}>
+              className={`px-2 py-1 rounded-full text-[11px] font-semibold transition-all ${periodTab === tab ? "bg-[#F2A900] text-label" : "bg-gray-100 text-label2"}`}>
               {tab === "7" ? "直近7回" : tab === "1m" ? "1ヶ月" : "全期間"}
             </button>
           ))}
@@ -230,7 +230,7 @@ function GraphShelf({
 
       {/* バンクロールカードに近い横幅の3枚を横一列に並べ、ネイティブのスクロール＋スナップでブラウズする */}
       <div
-        className="flex gap-3 overflow-x-auto overflow-y-hidden no-scrollbar"
+        className="flex gap-4 overflow-x-auto overflow-y-hidden no-scrollbar"
         onScroll={closeTooltip}
         style={{
           scrollSnapType: "x mandatory",
@@ -256,7 +256,7 @@ function GraphShelf({
             {!tooltip.above && (
               <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderBottom: "6px solid #fff", filter: "drop-shadow(0 -1px 1px rgba(0,0,0,0.06))" }} />
             )}
-            <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.06)", padding: "10px 14px" }}>
+            <div style={{ background: "#fff", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid rgba(0,0,0,0.06)", padding: "8px 16px" }}>
               <p style={{ fontSize: 10, color: "var(--label3)", marginBottom: 4 }}>{formatGraphPointDate(point.sec)}</p>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                 <span style={{ fontSize: 11, color: "var(--label3)" }}>変動</span>
@@ -264,7 +264,7 @@ function GraphShelf({
                   {point.delta > 0 ? "+" : ""}{point.delta.toLocaleString()}
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginTop: 2 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginTop: 4 }}>
                 <span style={{ fontSize: 11, color: "var(--label3)" }}>この時点の累計</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E" }}>{point.cumulative.toLocaleString()}</span>
               </div>
@@ -1518,14 +1518,14 @@ const medalClass = (rank: number) => {
         }
         .rr-ranking-item {
           background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-          border:1px solid rgba(242,169,0,0.1); border-radius:16px; padding:14px 16px;
+          border:1px solid rgba(242,169,0,0.1); border-radius:16px; padding:16px 16px;
           box-shadow:0 1px 3px rgba(242,169,0,0.08),inset 0 1px 0 rgba(255,255,255,1);
           transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
         }
         .rr-ranking-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(242,169,0,0.15),inset 0 1px 0 rgba(255,255,255,1); border-color:rgba(242,169,0,0.2); }
         .rr-my-entry {
           background:linear-gradient(135deg,#FFFBF5 0%,#FFF4E0 100%);
-          border:1.5px solid rgba(242,169,0,0.3); border-radius:16px; padding:14px 16px;
+          border:1.5px solid rgba(242,169,0,0.3); border-radius:16px; padding:16px 16px;
           box-shadow:0 2px 8px rgba(242,169,0,0.12),inset 0 1px 0 rgba(255,255,255,0.9);
         }
 
@@ -1625,7 +1625,7 @@ const medalClass = (rank: number) => {
         .divider-gold { height:1px; background:linear-gradient(90deg,transparent,rgba(242,169,0,0.2),transparent); }
         .stat-chip {
           background:#fff; border:1px solid rgba(242,169,0,0.18);
-          border-radius:16px; padding:12px 14px;
+          border-radius:16px; padding:16px 16px;
           box-shadow:0 1px 4px rgba(242,169,0,0.06);
         }
         /* .gold-btn / .outline-gold-btn は globals.css へ移した */
@@ -1640,7 +1640,7 @@ const medalClass = (rank: number) => {
         }
         .checkin-banner {
           background:linear-gradient(135deg,#1f1b16 0%,#3b2f22 100%);
-          border-radius:20px; padding:16px 18px;
+          border-radius:20px; padding:16px 16px;
           box-shadow:0 4px 18px rgba(0,0,0,0.15);
         }
         .net-positive { color:#10b981; }
@@ -1659,7 +1659,7 @@ const medalClass = (rank: number) => {
         }
 
         /* ── カレンダー ── */
-        .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F2A900; margin:0 auto; }
+        .cal-day-dot { width:5px; height:5px; border-radius:50%; background:#F2A900; margin: 0 auto; }
 
         /* ── スタンプ ── */
         @keyframes stampPress {
@@ -1689,15 +1689,15 @@ const medalClass = (rank: number) => {
       {/* ヘッダー（変更なし） */}
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
-      <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-5${currentStoreId && currentStore ? " pd-checked" : ""}`}>
+      <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-6${currentStoreId && currentStore ? " pd-checked" : ""}`}>
 
         {/* ════ 入店中(オーナー指定: ホームの最上段、偏差値カードの上) ════
              上下のカードと重ならないよう、自分の上下に余白を持つ */}
         {currentStoreId && currentStore && (
           <div className="pd-full" style={{ marginTop: 24, marginBottom: 0, position: 'relative', zIndex: 1 }}>
           {/* 入店中の店舗カード。下にプレイヤーズガイド(店舗が ON のとき。components/PlayerGuideStrip.tsx) */}
-          <div className="rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
-          <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-white px-4 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
+          <div className="flex items-center gap-4">
             <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
               {currentStore.iconUrl
                 ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
@@ -1705,11 +1705,11 @@ const medalClass = (rank: number) => {
               }
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span className="h-[6px] w-[6px] flex-shrink-0 rounded-full bg-[#34C759]" />
                 <p className="text-[10px] font-semibold uppercase tracking-[0.06em] text-label3">入店中</p>
               </div>
-              <p className="mt-0.5 truncate text-[15px] font-semibold text-gray-900 tracking-[-0.2px]">{currentStore.name}</p>
+              <p className="mt-1 truncate text-[15px] font-semibold text-label tracking-[-0.2px]">{currentStore.name}</p>
             </div>
             {(currentStore.snsInstagram || currentStore.snsX || currentStore.snsWeb) && (
               <div className="flex flex-shrink-0 items-center gap-2">
@@ -1745,7 +1745,7 @@ const medalClass = (rank: number) => {
               いちばん見たい数字(偏差値)だけが明るく、他はすべて沈む。 */}
           {/* 面の色は元のテーマ(金)のまま。変えたのは意匠だけ:
               方眼と基板のドットを薄く重ね、端末のタイトル行を足している。 */}
-          <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '14px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+          <div data-tutorial="rr-card-hero" style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '16px 24px 24px', position: 'relative', overflow: 'hidden' }}>
             {/* 金の面に、方眼と基板のドットを黒で薄く敷く(色は足さない) */}
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
             <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
@@ -1753,17 +1753,17 @@ const medalClass = (rank: number) => {
             <div style={{ position: 'absolute', bottom: -20, left: -20, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
 
             {/* 端末のタイトル行 */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
               <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.62)', letterSpacing: '0.20em' }}>RATING / TOURNAMENT</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span className="tech-status-dot" style={{ background: '#fff', boxShadow: '0 0 0 0 rgba(255,255,255,0.55)' }} />
                 <span className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.62)' }}>{currentStoreId ? 'ONLINE' : 'IDLE'}</span>
               </span>
             </div>
 
             {/* アイデンティティ行 + ? */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative', zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
                   <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
                     {profile.iconUrl
@@ -1778,12 +1778,12 @@ const medalClass = (rank: number) => {
                 <div>
                   <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 13.5, fontWeight: 600, color: '#fff', lineHeight: 1.2, letterSpacing: '0.02em' }}>{profile.name || ''}</p>
                   {currentStoreId && currentStore ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34C759', flexShrink: 0 }} />
                       <p className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.88)', letterSpacing: '0.10em' }}>{currentStore.name}</p>
                     </div>
                   ) : (
-                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>not checked in</p>
+                    <p className="term-comment" style={{ fontFamily: 'var(--stack-mono)', fontSize: 9.5, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>not checked in</p>
                   )}
                 </div>
               </div>
@@ -1800,10 +1800,10 @@ const medalClass = (rank: number) => {
             </div>
 
             {/* ラベル */}
-            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.72)', marginBottom: 6, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
+            <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'rgba(255,255,255,0.72)', marginBottom: 8, position: 'relative', zIndex: 1 }}>トナメ偏差値</p>
 
             {/* メイン数値 */}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, position: 'relative', zIndex: 1 }}>
               {tournamentStats.plays === 0 ? (
                 <div>
                   <p className="tech-num tech-caret" style={{ fontSize: 34, fontWeight: 800, color: 'rgba(255,255,255,0.78)', lineHeight: 1, letterSpacing: '-0.5px' }}>集計中</p>
@@ -1812,7 +1812,7 @@ const medalClass = (rank: number) => {
                   </p>
                 </div>
               ) : (
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 10 }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 8 }}>
                   <p className="tech-num" style={{
                     fontSize: 54, fontWeight: 800, lineHeight: 1, letterSpacing: '-1px',
                     color: '#fff',
@@ -1821,12 +1821,12 @@ const medalClass = (rank: number) => {
                     {(animRrRating ?? displayRrRating).toFixed(2)}
                   </p>
                   {showStatsDelta && statsDelta && Math.abs(statsDelta.rrRating) > 0.001 && (
-                    <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    <span className="delta-badge" style={{ fontSize: 13, fontWeight: 800, color: statsDelta.rrRating >= 0 ? '#86EFAC' : '#FCA5A5', background: 'rgba(0,0,0,0.3)', borderRadius: 99, padding: '4px 8px', whiteSpace: 'nowrap', display: 'inline-block' }}>
                       {statsDelta.rrRating >= 0 ? '+' : ''}{statsDelta.rrRating.toFixed(2)}
                     </span>
                   )}
                   {rrMyEntry && (
-                    <div style={{ marginBottom: 7, background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 8, padding: '4px 10px' }}>
+                    <div style={{ marginBottom: 8, background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 8, padding: '4px 8px' }}>
                       <p className="tech-num" style={{ fontSize: 11.5, fontWeight: 700, color: '#fff' }}>
                         <span className="tech-label" style={{ fontSize: 9, opacity: 0.6, marginRight: 4 }}>RANK</span>{rrMyEntry.rank}
                       </p>
@@ -1838,7 +1838,7 @@ const medalClass = (rank: number) => {
           </div>
 
           {/* スタッツグリッド */}
-          <div data-tutorial="stats-grid" style={{ padding: '16px 18px' }}>
+          <div data-tutorial="stats-grid" style={{ padding: '16px 16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
               {[
                 { label: 'トナメ参加数', value: `${tournamentStats.plays}回`, deltaVal: null },
@@ -1848,19 +1848,19 @@ const medalClass = (rank: number) => {
                 <div
                   key={i}
                   className="tech-reveal"
-                  style={{ background: '#F2F2F7', borderRadius: 12, padding: '9px 4px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.06 + i * 0.05}s` } as React.CSSProperties}
+                  style={{ background: '#F2F2F7', borderRadius: 12, padding: '8px 4px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.06 + i * 0.05}s` } as React.CSSProperties}
                 >
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 8.5, color: 'var(--label3)', marginBottom: 4, letterSpacing: '0.12em' }}>{s.label}</p>
                   <p className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1 }}>{s.value}</p>
                   {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '4px 8px', whiteSpace: 'nowrap', display: 'inline-block' }}>
                       {s.deltaFmt(s.deltaVal)}
                     </span>
                   )}
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
               {[
                 { label: 'インマネ率', value: `${tournamentStats.itmRate}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.itmRate : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
                 { label: 'ROI', value: tournamentStats.roi === '集計中' ? '—' : `${tournamentStats.roi}%`, deltaVal: showStatsDelta && statsDelta ? statsDelta.roi : null, deltaFmt: (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` },
@@ -1868,12 +1868,12 @@ const medalClass = (rank: number) => {
                 <div
                   key={i}
                   className="tech-reveal"
-                  style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '11px 4px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.21 + i * 0.05}s` } as React.CSSProperties}
+                  style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 12, padding: '8px 4px', textAlign: 'center', position: 'relative', ['--tech-reveal-delay' as string]: `${0.21 + i * 0.05}s` } as React.CSSProperties}
                 >
                   <p className="tech-label tech-label-bracket" style={{ fontSize: 8.5, color: 'rgba(212,145,10,0.6)', marginBottom: 4, letterSpacing: '0.12em' }}>{s.label}</p>
                   <p className="tech-num" style={{ fontSize: 16, fontWeight: 800, color: '#D4910A', lineHeight: 1 }}>{s.value}</p>
                   {s.deltaVal !== null && s.deltaFmt && Math.abs(s.deltaVal) > 0.001 && (
-                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '2px 6px', whiteSpace: 'nowrap', display: 'inline-block' }}>
+                    <span className="delta-badge" style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: s.deltaVal >= 0 ? '#16A34A' : '#DC2626', borderRadius: 99, padding: '4px 8px', whiteSpace: 'nowrap', display: 'inline-block' }}>
                       {s.deltaFmt(s.deltaVal)}
                     </span>
                   )}
@@ -1890,10 +1890,10 @@ const medalClass = (rank: number) => {
             </LineButton>
 
             {/* ── Tournament History（コンパクト埋め込み） ── */}
-            <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 14, marginLeft: -18, marginRight: -18 }}>
+            <div data-tutorial="tournament-history" style={{ borderTop: '1px solid rgba(0,0,0,0.06)', marginTop: 16, marginLeft: -16, marginRight: -16 }}>
               {/* ヘッダー行 */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 18px 8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px 8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <FiAward size={14} style={{ color: '#F2A900' }} />
                   <p className="tech-label" style={{ fontSize: 11, color: '#1C1C1E', letterSpacing: '0.16em' }}>TOURNAMENT HISTORY</p>
                 </div>
@@ -1901,7 +1901,7 @@ const medalClass = (rank: number) => {
               </div>
 
               {tnChartData.length === 0 ? (
-                <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--label3)', padding: '6px 18px 16px' }}>参加すると記録されます</p>
+                <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--label3)', padding: '8px 16px 16px' }}>参加すると記録されます</p>
               ) : (() => {
                 const STEP = 52, DOT_R = 7, H = 68, PT = 8, PB = 20, PL = 20, PR = 20
                 const n = tnChartData.length
@@ -1916,7 +1916,7 @@ const medalClass = (rank: number) => {
                 return (
                   <div
                     ref={historyScrollRef}
-                    style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' as const, paddingLeft: 18, paddingRight: 18, paddingBottom: 14 }}
+                    style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' as const, paddingLeft: 16, paddingRight: 16, paddingBottom: 16 }}
                     onScroll={() => { setSelectedTnIdx(null); setTooltipPos(null) }}
                   >
                     <div style={{ position: 'relative', width: svgW + 'px', minWidth: '100%' }}>
@@ -1985,7 +1985,7 @@ const medalClass = (rank: number) => {
             {/* このページの外枠の縦の間隔の指定(space-y の 5)は、クラス名の直後に ${ が続くため Tailwind に拾われず効いていない。
                  退店ボタン・バンクロールカード・グラフの前は、それぞれ自分で 24px あける(くっついていた・2026-11-05) */}
             {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)} style={{ marginTop: 24 }}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-3 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-4 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
             >
               <FiLogOut className="text-[15px]" />退店する
             </button>}
@@ -1996,7 +1996,7 @@ const medalClass = (rank: number) => {
             <div data-tutorial="balance-card" style={{ position: 'relative', marginTop: 24, borderRadius: 24, background: '#0B0B0D', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}>
               {/* ドットマトリクス。基板・計器のテクスチャ */}
               <div className="tech-dots" aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.18, pointerEvents: 'none' }} />
-              <div style={{ position: 'relative', padding: '16px 20px 20px' }}>
+              <div style={{ position: 'relative', padding: '16px 24px 24px' }}>
 
                 {/* 端末のタイトルバー */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -2009,7 +2009,7 @@ const medalClass = (rank: number) => {
                     <p className="tech-label" style={{ fontSize: 9, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.18em', whiteSpace: 'nowrap' }}>BANKROLL.SH</p>
                   </div>
                   <button type="button" onClick={() => { setIsHistoryFlipped(v => !v); setHistoryLimit(10) }} aria-expanded={isHistoryFlipped}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 36, padding: '0 12px', borderRadius: 8, background: isHistoryFlipped ? 'rgba(242,169,0,0.16)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isHistoryFlipped ? 'rgba(242,169,0,0.45)' : 'rgba(255,255,255,0.14)'}`, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 36, padding: '0 16px', borderRadius: 8, background: isHistoryFlipped ? 'rgba(242,169,0,0.16)' : 'rgba(255,255,255,0.06)', border: `1px solid ${isHistoryFlipped ? 'rgba(242,169,0,0.45)' : 'rgba(255,255,255,0.14)'}`, cursor: 'pointer', fontFamily: 'inherit' }}>
                     <FiClock style={{ fontSize: 11, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)' }} />
                     <span className="tech-label" style={{ fontSize: 9, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)' }}>LOG</span>
                     <FiChevronDown style={{ fontSize: 12, color: isHistoryFlipped ? '#F2A900' : 'rgba(255,255,255,0.75)', transform: isHistoryFlipped ? 'rotate(180deg)' : 'none', transition: 'transform 160ms ease-out' }} />
@@ -2017,7 +2017,7 @@ const medalClass = (rank: number) => {
                 </div>
 
                 {/* 打ち込んだ命令。どの店の残高かをそのまま見せる */}
-                <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 12, display: 'flex', gap: 8, minWidth: 0 }}>
+                <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', marginTop: 16, display: 'flex', gap: 8, minWidth: 0 }}>
                   <span style={{ color: '#F2A900', flexShrink: 0 }}>$</span>
                   <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>balance --store {currentStore.name}</span>
                 </p>
@@ -2038,7 +2038,7 @@ const medalClass = (rank: number) => {
                     <span key={netGain} className="ticker-animate">{formatSignedChipValue(displayNetGain)}</span>
                   </p>
                 )}
-                <p style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, minWidth: 0 }}>
+                <p style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16, minWidth: 0 }}>
                   {typeof currentStore.ringBlindSb === "number" && typeof currentStore.ringBlindBb === "number" && (
                     <span className="tech-num" style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.06em' }}>
                       <span className="tech-label" style={{ fontSize: 9, marginRight: 4 }}>RATE</span>{currentStore.ringBlindSb}/{currentStore.ringBlindBb}
@@ -2049,7 +2049,7 @@ const medalClass = (rank: number) => {
 
                 {/* 履歴(LOG を押すとカードの中で下に開く。新しい順に 10 件ずつ) */}
                 {isHistoryFlipped && (
-                  <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px dashed rgba(255,255,255,0.18)' }}>
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px dashed rgba(255,255,255,0.18)' }}>
                     <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 11, color: 'rgba(255,255,255,0.6)', display: 'flex', gap: 8, marginBottom: 8 }}>
                       <span style={{ color: '#F2A900' }}>$</span><span>log --limit {historyLimit}</span>
                     </p>
@@ -2063,10 +2063,10 @@ const medalClass = (rank: number) => {
                             const isPlus = amtStr.startsWith('+')
                             const isMinus = amtStr.startsWith('-')
                             return (
-                              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 48, padding: '8px 0', borderTop: i ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
+                              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 48, padding: '8px 0', borderTop: i ? '1px solid rgba(255,255,255,0.08)' : 'none' }}>
                                 <span style={{ flex: 1, minWidth: 0 }}>
                                   <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getHistoryLabel(item.type, item.comment)}</span>
-                                  <span className="tech-num" style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 2 }}>{formatDateTime(item.createdAt)}</span>
+                                  <span className="tech-num" style={{ display: 'block', fontSize: 10, color: 'rgba(255,255,255,0.55)', marginTop: 4 }}>{formatDateTime(item.createdAt)}</span>
                                 </span>
                                 <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: isPlus ? '#34C759' : isMinus ? '#FF6B6B' : 'rgba(255,255,255,0.85)', flexShrink: 0 }}>{amtStr}</span>
                               </div>
@@ -2107,7 +2107,7 @@ const medalClass = (rank: number) => {
             {/* ランキング */}
             <div data-tutorial="store-ranking" className="section-card a-rise">
               {/* ヘッダー */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
                     {currentStore.iconUrl
@@ -2119,12 +2119,12 @@ const medalClass = (rank: number) => {
                 </div>
                 {(rankingTab === 'all' ? ranking : monthlyRanking).length > 3 && (
                   <button type="button" onClick={() => setIsDetailedRankingModalOpen(true)}
-                    className="rounded-full bg-[#F2A900]/10 px-3 py-1.5 text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
+                    className="rounded-full bg-[#F2A900]/10 px-4 py-2 text-[12px] font-semibold text-[#F2A900]">もっと見る</button>
                 )}
               </div>
 
               {/* タブ */}
-              <div style={{ display: 'flex', gap: 6, marginBottom: (rankingTab === 'monthly' || rankingTab === 'yearly') ? 10 : 14, background: '#F2F2F7', borderRadius: 12, padding: 4 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: (rankingTab === 'monthly' || rankingTab === 'yearly') ? 10 : 14, background: '#F2F2F7', borderRadius: 12, padding: 4 }}>
                 {([
                   { key: 'all', label: '全期間' },
                   { key: 'monthly', label: '月別' },
@@ -2162,14 +2162,14 @@ const medalClass = (rank: number) => {
                           return next
                         })
                       }}
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${rankingMultiSelectMode ? "bg-[#F2A900] text-gray-900" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
+                      className={`rounded-full px-2 py-1 text-[11px] font-semibold transition-all ${rankingMultiSelectMode ? "bg-[#F2A900] text-label" : "bg-[#F2A900]/10 text-[#F2A900]"}`}
                     >
                       {rankingMultiSelectMode ? "完了" : "複数月を選択"}
                     </button>
                   </div>
                   <div
                     ref={rankingMonthScrollRef}
-                    style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}
+                    style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}
                   >
                     {Array.from({ length: rankingMonthsBackCount }, (_, i) => {
                       const now = new Date()
@@ -2195,7 +2195,7 @@ const medalClass = (rank: number) => {
                           }}
                           style={{
                             flexShrink: 0, minWidth: 56, padding: '8px 4px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                             background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
                             boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
                             transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
@@ -2215,7 +2215,7 @@ const medalClass = (rank: number) => {
                         }, 50)
                       }}
                       style={{
-                        flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                        flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
                         padding: '8px 4px', borderRadius: 12, border: '1.5px dashed #D1C9BD', cursor: 'pointer', background: 'transparent',
                       }}
                     >
@@ -2230,7 +2230,7 @@ const medalClass = (rank: number) => {
               {rankingTab === 'yearly' && (
                 <div
                   ref={rankingYearScrollRef}
-                  style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 2 }}
+                  style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: 4 }}
                 >
                   {Array.from({ length: rankingYearsBackCount }, (_, i) => {
                     const y = new Date().getFullYear() - i
@@ -2244,7 +2244,7 @@ const medalClass = (rank: number) => {
                         onClick={() => setRankingYearOffset(yr.offset)}
                         style={{
                           flexShrink: 0, minWidth: 64, padding: '8px 4px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                           background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
                           boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
                           transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
@@ -2263,7 +2263,7 @@ const medalClass = (rank: number) => {
                       }, 50)
                     }}
                     style={{
-                      flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                      flexShrink: 0, minWidth: 44, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
                       padding: '8px 4px', borderRadius: 12, border: '1.5px dashed #D1C9BD', cursor: 'pointer', background: 'transparent',
                     }}
                   >
@@ -2278,14 +2278,14 @@ const medalClass = (rank: number) => {
                 const myRank = rankingTab === 'all' ? userRank : monthlyUserRank
                 if (!myRank) return null
                 return (
-                  <div className="mb-3 rounded-2xl p-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1.5px solid rgba(242,169,0,0.25)' }}>
+                  <div className="mb-4 rounded-2xl p-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFFBF5)', border: '1.5px solid rgba(242,169,0,0.25)' }}>
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F2A900]/15">
                         <FiUser className="text-[13px] text-[#D4910A]" />
                       </div>
                       <div>
-                        <p className="text-[11px] text-gray-500">あなたの順位</p>
-                        <p className="text-[14px] font-bold text-gray-900">{myRank.rank}位</p>
+                        <p className="text-[11px] text-label2">あなたの順位</p>
+                        <p className="text-[14px] font-bold text-label">{myRank.rank}位</p>
                       </div>
                     </div>
                     <p className={`text-[15px] font-bold ${myRank.netGain >= 0 ? "net-positive" : "net-negative"}`}>
@@ -2301,8 +2301,8 @@ const medalClass = (rank: number) => {
                   const loading = rankingTab === 'all' ? rankingLoading : monthlyRankingLoading
                   const list = rankingTab === 'all' ? ranking : monthlyRanking
                   if (loading) return (
-                    <div style={{ padding: '18px 0 22px' }}>
-                      <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 10 }}>
+                    <div style={{ padding: '16px 0 24px' }}>
+                      <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 8 }}>
                         LOADING
                       </p>
                       <div style={{ display: "flex", justifyContent: "center" }}><Loader size={40} /></div>
@@ -2310,12 +2310,12 @@ const medalClass = (rank: number) => {
                   )
                   if (list.length === 0) return <p className="term-comment text-center text-[13px] text-label3 py-4">データがありません</p>
                   return list.slice(0, 5).map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-3 py-2.5 hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${index === 0 ? "medal-gold text-white" : index === 1 ? "medal-silver text-gray-700" : index === 2 ? "medal-bronze text-white" : "bg-white border border-gray-200 text-gray-500"}`}>
+                    <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-2 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-[12px] font-bold ${index === 0 ? "medal-gold text-white" : index === 1 ? "medal-silver text-label" : index === 2 ? "medal-bronze text-white" : "bg-white border border-gray-200 text-label2"}`}>
                           {index + 1}
                         </div>
-                        <span className="text-[13px] font-medium text-gray-700">{player.name || "プレイヤー"}</span>
+                        <span className="text-[13px] font-medium text-label">{player.name || "プレイヤー"}</span>
                       </div>
                       <span className={`text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatSignedChipValue(player.netGain)}</span>
                     </div>
@@ -2329,24 +2329,24 @@ const medalClass = (rank: number) => {
           <>
             {/* 店舗セレクター */}
             <div className="section-card">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <p className="section-label">入店したことのある店舗</p>
                 <div className="flex items-center gap-2">
                   <button type="button" onClick={openJoinModal}
-                    className="gold-btn flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold text-white"
+                    className="gold-btn flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold text-white"
                   >
                     <FiSearch size={12} />店舗を検索
                   </button>
                 </div>
               </div>
               {orderedJoinedStores.length > 0 ? (
-                <div className="flex gap-3 overflow-x-auto pb-1">
+                <div className="flex gap-4 overflow-x-auto pb-1">
                   {orderedJoinedStores.map(storeId => {
                     const store = stores[storeId]
                     const isFav = favoriteStores.includes(storeId)
                     return (
                       <button key={storeId} type="button" onClick={() => store && setSelectedStore(store)}
-                        className={`flex-shrink-0 flex flex-col items-center gap-1.5 group`}
+                        className={`flex-shrink-0 flex flex-col items-center gap-2 group`}
                       >
                         <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 bg-white shadow-sm transition-all active:scale-95 ${isFav ? "border-[#F2A900]" : "border-gray-200"}`}>
                           {store?.iconUrl ? <img src={store.iconUrl} alt={store.name} className="h-12 w-12 rounded-full object-cover" /> : <span className="text-[12px] text-label3">店</span>}
@@ -2364,7 +2364,7 @@ const medalClass = (rank: number) => {
             {/* 5日間スケジュールタブ */}
             <div data-tutorial="schedule-section" className="section-card a-rise" style={{ padding: 0, overflow: 'hidden' }}>
                 {/* ── セクションヘッダー */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 18px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px 16px' }}>
                   <FiCalendar color="#F2A900" size={15} />
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>Events</p>
                 </div>
@@ -2372,7 +2372,7 @@ const medalClass = (rank: number) => {
                 {/* ── 日付タブ（スクロール可） */}
                 <div
                   ref={scheduleTabScrollRef}
-                  style={{ display: 'flex', gap: 6, padding: '0 14px 14px', overflowX: 'auto', scrollbarWidth: 'none' }}
+                  style={{ display: 'flex', gap: 8, padding: '0 16px 16px', overflowX: 'auto', scrollbarWidth: 'none' }}
                 >
                   {scheduleDays.map(({ ds, day, dow, isSun, isSat }) => {
                     const entries = scheduleEntries[ds] ?? []
@@ -2386,8 +2386,8 @@ const medalClass = (rank: number) => {
                         onClick={() => setCalScheduleTab(ds)}
                         style={{
                           flexShrink: 0, flexBasis: 'calc((100% - 6px * 4) / 5)',
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                          padding: '9px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                          padding: '8px 0 8px', borderRadius: 14, border: 'none', cursor: 'pointer',
                           background: selected ? 'linear-gradient(135deg,#F2A900,#C97D00)' : '#F2F2F7',
                           boxShadow: selected ? '0 3px 10px rgba(242,169,0,0.35)' : 'none',
                           transition: 'all 0.18s cubic-bezier(0.22,1,0.36,1)',
@@ -2416,8 +2416,8 @@ const medalClass = (rank: number) => {
                     }}
                     style={{
                       flexShrink: 0, flexBasis: 'calc((100% - 6px * 4) / 5)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
-                      padding: '9px 0 8px', borderRadius: 14, border: '1.5px dashed #D1C9BD', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+                      padding: '8px 0 8px', borderRadius: 14, border: '1.5px dashed #D1C9BD', cursor: 'pointer',
                       background: 'transparent',
                     }}
                   >
@@ -2427,16 +2427,16 @@ const medalClass = (rank: number) => {
                 </div>
 
                 {/* ── 区切り */}
-                <div style={{ height: '0.5px', background: 'rgba(60,60,67,0.1)', margin: '0 14px' }} />
+                <div style={{ height: '0.5px', background: 'rgba(60,60,67,0.1)', margin: '0 16px' }} />
 
                 {/* ── トーナメントカードリスト */}
-                <div style={{ padding: '12px 12px 16px', minHeight: 100 }}>
+                <div style={{ padding: '16px 16px 16px', minHeight: 100 }}>
                   {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '24px 0 12px' }}>
+                    <div style={{ textAlign: 'center', padding: '24px 0 16px' }}>
                       <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {(scheduleEntries[calScheduleTab] ?? []).map((entry: any, idx: number) => (
                         <button
                           key={idx}
@@ -2455,7 +2455,7 @@ const medalClass = (rank: number) => {
                             <div style={{ width: 4, background: 'linear-gradient(180deg,#F2A900,#C97D00)', flexShrink: 0, borderRadius: '0 0 0 0' }} />
 
                             {/* コンテンツ */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', flex: 1 }}>
                               {/* 店舗アイコン */}
                               <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', flexShrink: 0, border: '2px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {entry.storeIconUrl
@@ -2466,16 +2466,16 @@ const medalClass = (rank: number) => {
 
                               {/* テキスト */}
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                                   <p style={{ fontSize: 14, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                     {entry.name || 'トーナメント'}
                                   </p>
                                   {entry.repeatWeekly && (
-                                    <span style={{ fontSize: 9, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '2px 7px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
+                                    <span style={{ fontSize: 9, fontWeight: 800, color: '#D4910A', background: 'rgba(242,169,0,0.12)', borderRadius: 99, padding: '4px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>毎週</span>
                                   )}
                                 </div>
                                 <p style={{ fontSize: 11, color: 'var(--label3)', fontWeight: 500 }}>{entry.storeName}</p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                                   {entry.startTime && (
                                     <span style={{ fontSize: 11, fontWeight: 600, color: '#3C3C43', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Clock size={11} strokeWidth={2} color="currentColor" aria-hidden />{formatDateTime(entry.startTime)}</span>
                                   )}
@@ -2505,7 +2505,7 @@ const medalClass = (rank: number) => {
              見た目は Poker ART の濃い緑の面と青緑の差し色に寄せ、書体と角丸は RRPoker に合わせる */}
         <a href="https://web-pearl-chi-34.vercel.app/" target="_blank" rel="noopener noreferrer" className="pd-full"
           aria-label="Poker ART を開く(別のタブ)"
-          style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 72, padding: '16px 20px', marginTop: 24, borderRadius: 24, textDecoration: 'none',
+          style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 72, padding: '16px 24px', marginTop: 24, borderRadius: 24, textDecoration: 'none',
             background: 'linear-gradient(135deg,#0B1F1E 0%,#0E2A28 100%)', border: '1px solid rgba(38,194,163,0.45)', boxShadow: '0 10px 30px rgba(0,0,0,0.14)' }}>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span className="tech-label" style={{ display: 'block', fontSize: 9, color: '#26C2A3', letterSpacing: '0.18em' }}>PLAY</span>
@@ -2520,8 +2520,8 @@ const medalClass = (rank: number) => {
         {/* フッター（バージョン・製作者情報） */}
         <footer className="pd-full" style={{ padding: '24px 0 8px', textAlign: 'center' }}>
           <div style={{ height: 1, background: 'rgba(60,60,67,0.1)', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.11.0</p>
-          <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
+          <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 4 }}>ver 1.11.0</p>
+          <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 4 }}>RRPoker by Runner Runner</p>
           <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         </footer>
       </div>
@@ -2565,11 +2565,11 @@ const medalClass = (rank: number) => {
               <div style={{ position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #fff', filter: 'drop-shadow(0 -1px 1px rgba(0,0,0,0.06))' }} />
             )}
             <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 8px 40px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-              <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ padding: '16px 16px 8px', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <div style={{ flex: 1, marginRight: 8 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.3 }}>{d.item.tournamentName ?? ''}</p>
-                    <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 2 }}>{d.item.storeName ?? ''}</p>
+                    <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 4 }}>{d.item.storeName ?? ''}</p>
                   </div>
                   {d.rank !== '-' && (
                     <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -2578,41 +2578,41 @@ const medalClass = (rank: number) => {
                   )}
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, background: 'rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4, background: 'rgba(0,0,0,0.05)' }}>
                 {([
                   { label: 'コスト', value: `${d.cost.toFixed(1)} pt`, color: '#1C1C1E' },
                   { label: 'リワード', value: `${d.reward.toFixed(1)} pt`, color: '#1C1C1E' },
                   { label: '増減', value: d.pnl > 0 ? `+${d.pnl.toLocaleString()}` : d.pnl.toLocaleString(), color: pnlColor },
                 ] as const).map((s, si) => (
-                  <div key={si} style={{ background: '#fff', padding: '8px 6px', textAlign: 'center' }}>
-                    <p style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 2 }}>{s.label}</p>
+                  <div key={si} style={{ background: '#fff', padding: '8px 8px', textAlign: 'center' }}>
+                    <p style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 4 }}>{s.label}</p>
                     <p style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.value}</p>
                   </div>
                 ))}
               </div>
-              <div style={{ padding: '10px 14px 12px', fontSize: 11, color: 'var(--label3)' }}>
-                {d.ec > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.ef} × {d.ec}</span></div>}
-                {d.rc > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Re-entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.rf} × {d.rc}</span></div>}
-                {d.ac > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}><span>Add-on</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.af} × {d.ac}</span></div>}
-                <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 4, marginTop: 2, display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#1C1C1E' }}>
+              <div style={{ padding: '8px 16px 16px', fontSize: 11, color: 'var(--label3)' }}>
+                {d.ec > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.ef} × {d.ec}</span></div>}
+                {d.rc > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Re-entry</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.rf} × {d.rc}</span></div>}
+                {d.ac > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Add-on</span><span style={{ fontWeight: 600, color: '#1C1C1E' }}>{d.af} × {d.ac}</span></div>}
+                <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 4, marginTop: 4, display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#1C1C1E' }}>
                   <span>合計</span><span>{d.buyin.toLocaleString()}</span>
                 </div>
                 {d.rank !== '-' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2, color: '#D4910A', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#D4910A', fontWeight: 700 }}>
                     <span>獲得チップ</span><span>{d.prize.toLocaleString()}</span>
                   </div>
                 )}
                 {d.rrRating !== null && (
-                  <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 6, marginTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ borderTop: '1px solid rgba(0,0,0,0.07)', paddingTop: 8, marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: 600, color: '#D4910A' }}>トナメ偏差値</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span style={{ fontSize: 13, fontWeight: 800, color: '#D4910A' }}>{d.rrRating.toFixed(2)}</span>
                       {d.rrDelta !== null && Math.abs(d.rrDelta) >= 0.01 && (
                         <span style={{
                           fontSize: 10, fontWeight: 700,
                           color: d.rrDelta >= 0 ? '#10b981' : '#ef4444',
                           background: d.rrDelta >= 0 ? 'rgba(16,185,129,0.10)' : 'rgba(239,68,68,0.10)',
-                          borderRadius: 6, padding: '2px 5px',
+                          borderRadius: 6, padding: '4px 4px',
                         }}>
                           {d.rrDelta >= 0 ? '+' : ''}{d.rrDelta.toFixed(2)}
                         </span>
@@ -2643,10 +2643,10 @@ const medalClass = (rank: number) => {
         <>
           <div style={{ position: 'fixed', inset: 0, zIndex: 1998 }} onClick={() => { setRrRatingInfoOpen(false); setRrRatingInfoPos(null) }} />
           <div
-            style={{ position: 'fixed', top: rrRatingInfoPos.top, right: rrRatingInfoPos.right, width: 260, background: '#fff', borderRadius: 16, padding: '14px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.07)', fontSize: 12, color: '#3C3C43', lineHeight: 1.8, zIndex: 1999 }}
+            style={{ position: 'fixed', top: rrRatingInfoPos.top, right: rrRatingInfoPos.right, width: 260, background: '#fff', borderRadius: 16, padding: '16px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', border: '1px solid rgba(0,0,0,0.07)', fontSize: 12, color: '#3C3C43', lineHeight: 1.8, zIndex: 1999 }}
             onClick={e => e.stopPropagation()}
           >
-            <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 6 }}>トナメ偏差値とは？</p>
+            <p style={{ fontWeight: 700, color: '#1C1C1E', marginBottom: 8 }}>トナメ偏差値とは？</p>
             ROIとインマネ率からトーナメントの実力を偏差値で表したもの。参加数が少ないうちは変動しにくく、参加すればするほど実力に近い値になるよ。
             {tournamentStats.plays === 0 && (
               <p style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.06)', color: '#92610A' }}>
@@ -2664,11 +2664,11 @@ const medalClass = (rank: number) => {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
               <FiGlobe className="text-[24px] text-[#F2A900]" />
             </div>
-            <p className="text-[17px] font-bold text-gray-900 mb-2">{t('geo.title')}</p>
-            <p className="text-[13px] text-gray-500 leading-relaxed mb-1">
+            <p className="text-[17px] font-bold text-label mb-2">{t('geo.title')}</p>
+            <p className="text-[13px] text-label2 leading-relaxed mb-1">
               {t('geo.body')}
             </p>
-            <p className="text-[12px] text-label3 leading-relaxed mb-5">
+            <p className="text-[12px] text-label3 leading-relaxed mb-6">
               {t('geo.changeInSettings')}
             </p>
             <button onClick={handleGeoContinue} className="a-btn a-btn-filled a-btn-block">
@@ -2684,9 +2684,9 @@ const medalClass = (rank: number) => {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ background: 'linear-gradient(135deg,#FFF8ED,#FFF0C0)' }}>
               <FiClock className="text-[24px] text-[#F2A900]" />
             </div>
-            <p className="text-[18px] font-bold text-gray-900 mb-1">入店申請中</p>
-            <p className="text-[13px] text-gray-500 mb-2">入店承認までしばらくお待ちください</p>
-            <p className="text-[11px] text-label3 mb-5">この画面を閉じると入店申請は取り下げられます</p>
+            <p className="text-[18px] font-bold text-label mb-1">入店申請中</p>
+            <p className="text-[13px] text-label2 mb-2">入店承認までしばらくお待ちください</p>
+            <p className="text-[11px] text-label3 mb-6">この画面を閉じると入店申請は取り下げられます</p>
             <button onClick={async () => { if (!userId) return; await updateDoc(doc(db, "users", userId), { checkinStatus: "none", pendingStoreId: null }); setIsPendingModalOpen(false) }}
               className="a-btn a-btn-bare a-btn-block"
             >戻る</button>
@@ -2695,20 +2695,20 @@ const medalClass = (rank: number) => {
       )}
 
       {isCheckinCompleteModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center a-scrim px-5">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center a-scrim px-6">
           {/* 承認が下りるまでの一連の処理を、そのまま端末の記録として見せる。
               「押した → 何かが起きた → 通った」の順が目で追えるよう、上から流す。 */}
           <ConsolePanel title="checkin.sh" className="animate-bounceIn" style={{ width: '100%', maxWidth: 360 }}>
-            <div style={{ padding: '16px 18px 18px' }}>
+            <div style={{ padding: '16px 16px 16px' }}>
               <ConsoleLine kind="cmd" delay={0.02}>checkin --store {currentStore?.name ?? 'store'}</ConsoleLine>
               <ConsoleLine kind="out" delay={0.16}>requesting approval...</ConsoleLine>
               <ConsoleLine kind="out" delay={0.30}>approved by store</ConsoleLine>
 
-              <div className="tech-rule" style={{ margin: '12px 0 14px', borderColor: 'rgba(255,255,255,0.12)' }} />
+              <div className="tech-rule" style={{ margin: '16px 0 16px', borderColor: 'rgba(255,255,255,0.12)' }} />
 
               <div
                 className="tech-reveal"
-                style={{ display: 'flex', alignItems: 'center', gap: 12, ['--tech-reveal-delay' as string]: '0.44s' } as React.CSSProperties}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, ['--tech-reveal-delay' as string]: '0.44s' } as React.CSSProperties}
               >
                 <div style={{
                   width: 38, height: 38, borderRadius: 11, flexShrink: 0,
@@ -2724,7 +2724,7 @@ const medalClass = (rank: number) => {
                   <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '0.02em' }}>
                     入店しました
                   </p>
-                  <p className="tech-label" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.38)', marginTop: 3 }}>EXIT CODE 0</p>
+                  <p className="tech-label" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.38)', marginTop: 4 }}>EXIT CODE 0</p>
                 </div>
               </div>
             </div>
@@ -2738,20 +2738,20 @@ const medalClass = (rank: number) => {
             {/* カード本体 */}
             <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ background: "linear-gradient(160deg,#FEFAF4 0%,#F5EDD8 100%)", border: "1px solid rgba(139,90,43,0.18)" }}>
               {/* ヘッダーバー */}
-              <div className="px-5 py-3 text-center" style={{ background: "linear-gradient(90deg,#7B1818,#B22222)" }}>
+              <div className="px-6 py-4 text-center" style={{ background: "linear-gradient(90deg,#7B1818,#B22222)" }}>
                 <p className="text-white font-bold text-[12px] tracking-[0.2em] uppercase">Stamp Card</p>
-                {currentStore?.name && <p className="text-white/65 text-[11px] mt-0.5">{currentStore.name}</p>}
+                {currentStore?.name && <p className="text-white/65 text-[11px] mt-1">{currentStore.name}</p>}
               </div>
 
-              <div className="px-5 pt-4 pb-5">
+              <div className="px-6 pt-4 pb-6">
                 {/* タイトル */}
                 <div className="text-center mb-4">
-                  <p className="text-[21px] font-bold text-gray-900">スタンプ獲得！</p>
-                  <p className="text-[12px] text-label3 mt-0.5">{stampCount} / 12</p>
+                  <p className="text-[21px] font-bold text-label">スタンプ獲得！</p>
+                  <p className="text-[12px] text-label3 mt-1">{stampCount} / 12</p>
                 </div>
 
                 {/* スタンプグリッド */}
-                <div className="grid grid-cols-4 gap-2.5 mb-5">
+                <div className="grid grid-cols-4 gap-2 mb-6">
                   {Array.from({ length: 12 }).map((_, i) => {
                     const isStamped = i < stampCount
                     const isNew = i === stampCount - 1
@@ -2809,27 +2809,27 @@ const medalClass = (rank: number) => {
       {isJoinModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
           <div className="a-dialog w-full max-w-sm p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[17px] font-semibold text-gray-900">店舗を探す</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-[17px] font-semibold text-label">店舗を探す</h2>
               <button type="button" onClick={() => setIsJoinModalOpen(false)} className="text-label3 hover:text-gray-600"><FiX size={20} /></button>
             </div>
             <div className="flex gap-2">
               <input type="text" value={searchQuery}
                 onChange={e => { const v = e.target.value; setSearchQuery(v); if (v.trim() && !allStores.length) void loadAllStores() }}
                 placeholder="店舗コード or 店舗名"
-                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
+                className="h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-label outline-none placeholder:text-gray-500 focus:border-[#F2A900] focus:ring-2 focus:ring-[#F2A900]/20 transition-all"
               />
               <button type="button" onClick={handleSearch} className="a-btn a-btn-filled a-btn-icon" style={{ minHeight: 48, width: 48 }}>
                 <FiSearch size={17} />
               </button>
             </div>
             {suggestions.length > 0 && (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-2">
                 {suggestions.map(store => (
                   <button key={store.id} type="button" onClick={() => { setSelectedStore(store); setIsJoinModalOpen(false) }}
-                    className="flex w-full items-center justify-between rounded-xl px-3 py-3 hover:bg-white transition-colors"
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-4 hover:bg-white transition-colors"
                   >
-                    <span className="text-[14px] font-semibold text-gray-900">{store.name}</span>
+                    <span className="text-[14px] font-semibold text-label">{store.name}</span>
                     <span className="text-[11px] text-label3">{store.id}</span>
                   </button>
                 ))}
@@ -2857,7 +2857,7 @@ const medalClass = (rank: number) => {
                 「その場からのズラし」として効いてしまい、閉じるとお気に入りが
                 中央で重なる。左右に振り分けるだけなら両端揃えで足りる。
                 左右のボタンは同じ 34px なので、見出しはこれで中央に来る。 */}
-            <div className="flex min-h-[44px] items-center justify-between px-5 pt-3 pb-2 flex-shrink-0">
+            <div className="flex min-h-[44px] items-center justify-between px-6 pt-4 pb-2 flex-shrink-0">
               <button type="button" onClick={() => setSelectedStore(null)} aria-label="閉じる"
                 className="a-btn a-btn-glass a-btn-icon" style={{ minHeight: 34, width: 34, color: 'var(--a-label-2)' }}
               ><FiX size={17} /></button>
@@ -2872,19 +2872,19 @@ const medalClass = (rank: number) => {
             {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、
                 ここでナビバー分を空ける必要はもう無い。 */}
             <div className="overflow-y-auto flex-1 px-6" style={{ paddingBottom: 16 }}>
-              {favoriteMessage && <p className="mb-3 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
+              {favoriteMessage && <p className="mb-4 text-center text-[12px] font-semibold text-[#F2A900] animate-slideUp">{favoriteMessage}</p>}
 
               {/* 店舗情報 */}
               <div className="flex items-center gap-4 mb-4 mt-2">
                 {selectedStore.iconUrl ? <img src={selectedStore.iconUrl} alt={selectedStore.name} className="h-16 w-16 rounded-full object-cover shadow-md flex-shrink-0" /> : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-[13px] text-label3 flex-shrink-0">店舗</div>}
                 <div>
-                  <p className="text-[16px] font-semibold text-gray-900">{selectedStore.name}</p>
-                  <p className="text-[12px] text-label3 mt-0.5">{selectedStore.address}</p>
+                  <p className="text-[16px] font-semibold text-label">{selectedStore.name}</p>
+                  <p className="text-[12px] text-label3 mt-1">{selectedStore.address}</p>
                 </div>
               </div>
-              <p className="text-[13px] text-gray-600 leading-relaxed mb-4">{selectedStore.description || "店舗の説明はまだありません"}</p>
+              <p className="text-[13px] text-label2 leading-relaxed mb-4">{selectedStore.description || "店舗の説明はまだありません"}</p>
               {(selectedStore.snsInstagram || selectedStore.snsX || selectedStore.snsWeb) && (
-                <div className="flex items-center gap-3 mb-5">
+                <div className="flex items-center gap-4 mb-6">
                   {selectedStore.snsInstagram && (
                     <a href={selectedStore.snsInstagram} target="_blank" rel="noopener noreferrer"
                       className="flex items-center justify-center w-10 h-10 rounded-full text-white shadow-sm active:scale-95 transition-transform"
@@ -2909,18 +2909,18 @@ const medalClass = (rank: number) => {
 
               {/* 残高サマリー */}
               {(modalBalance !== null || modalNetGain !== null) && (
-                <div className="flex gap-3 mb-5">
+                <div className="flex gap-4 mb-6">
                   {modalBalance !== null && (
-                    <div className="flex-1 p-3.5" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
-                      <p className="a-eyebrow mb-1.5">残高</p>
+                    <div className="flex-1 p-4" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
+                      <p className="a-eyebrow mb-2">残高</p>
                       <p className="a-title" style={{ color: 'var(--a-label)' }}>
                         <KineticNumber value={modalBalance} format={v => v.toLocaleString()} />
                       </p>
                     </div>
                   )}
                   {modalNetGain !== null && (
-                    <div className="flex-1 p-3.5" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
-                      <p className="a-eyebrow mb-1.5">累計チップ増減</p>
+                    <div className="flex-1 p-4" style={{ borderRadius: 20, background: 'rgba(120,120,128,0.09)' }}>
+                      <p className="a-eyebrow mb-2">累計チップ増減</p>
                       <p
                         className="a-title"
                         style={{ color: modalNetGain > 0 ? '#1FA14B' : modalNetGain < 0 ? '#D70015' : 'var(--a-label)' }}
@@ -2937,7 +2937,7 @@ const medalClass = (rank: number) => {
 
               {/* チップ増減グラフ（Apple Music風シェルフUI：総増減/トナメ/リングを横スクロール） */}
               {modalHasAnyGraphData && (
-                <div className="mb-5">
+                <div className="mb-6">
                   <GraphShelf
                     sectionTitle="チップ増減グラフ"
                     periodTab={modalChipGraphTab}
@@ -2962,14 +2962,14 @@ const medalClass = (rank: number) => {
                 常に押せる位置に固定する。グラフや進行中のトナメが増えると、中に
                 入れたままでは一番下までスクロールしないと押せなくなるため。 */}
             <div
-              className="flex-shrink-0 px-6 pt-3"
+              className="flex-shrink-0 px-6 pt-4"
               style={{
                 paddingBottom: 'calc(12px + max(0px, env(safe-area-inset-bottom)))',
                 background: 'transparent',
                 borderTop: '1px solid var(--a-sep)',
               }}
             >
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <button type="button" onClick={async () => { const id = selectedStore.id; await joinStore(id); setSelectedStore(null) /* 入店したら店舗の詳細は閉じる(オーナー指定) */ }} className="a-btn a-btn-filled a-btn-block">入店する</button>
                 <button type="button" onClick={() => { if (!selectedStore) return; setPlayersPreviewStore(selectedStore); setIsPlayersModalOpen(true); setPlayersPreviewLoading(true); void openPlayersPreview(selectedStore.id); setSelectedStore(null) }}
                   className="a-btn a-btn-glass a-btn-block"
@@ -2984,7 +2984,7 @@ const medalClass = (rank: number) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
           <div className="a-dialog w-full max-w-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[17px] font-semibold text-gray-900">入店中プレイヤー</h2>
+              <h2 className="text-[17px] font-semibold text-label">入店中プレイヤー</h2>
               <button type="button" onClick={() => setIsPlayersModalOpen(false)} className="text-label3 hover:text-gray-600"><FiX size={20} /></button>
             </div>
             {playersPreviewStore && <p className="mb-4 text-[12px] text-label3">{playersPreviewStore.name}</p>}
@@ -2992,9 +2992,9 @@ const medalClass = (rank: number) => {
               {playersPreviewLoading ? <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}><Loader /></div>
               : playersPreview.length === 0 ? <p className="text-center text-[13px] text-label3 py-8">入店中のプレイヤーがいません</p>
               : playersPreview.map(player => (
-                <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
+                <div key={player.id} onClick={() => setProfileUid(player.id)} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 hover:bg-gray-100 transition-colors" style={{ cursor: 'pointer' }}>
                   <PlayerAvatar src={player.iconUrl} size={44} alt={player.name} />
-                  <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
+                  <p className="text-[14px] font-semibold text-label">{player.name ?? player.id}</p>
                 </div>
               ))}
             </div>
@@ -3015,17 +3015,17 @@ const medalClass = (rank: number) => {
             onClick={e => e.stopPropagation()}
           >
             {/* Handle */}
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '12px auto 0', flexShrink: 0 }} />
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(60,60,67,0.18)', margin: '16px auto 0', flexShrink: 0 }} />
 
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 10px', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px 8px', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <FiAward size={15} style={{ color: '#fff' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', lineHeight: 1.2 }}>RR Rating ランキング</p>
-                  <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 1 }}>トナメ偏差値 TOP 100</p>
+                  <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 4 }}>トナメ偏差値 TOP 100</p>
                 </div>
               </div>
               <button type="button" onClick={() => setIsRankingModalOpen(false)}
@@ -3037,14 +3037,14 @@ const medalClass = (rank: number) => {
 
             {/* My entry (pinned) */}
             {rrMyEntry && (
-              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#FFFBF5,#FFF4E0)', border: '1.5px solid rgba(242,169,0,0.3)', borderRadius: 16, padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ margin: '0 16px 8px', background: 'linear-gradient(135deg,#FFFBF5,#FFF4E0)', border: '1.5px solid rgba(242,169,0,0.3)', borderRadius: 16, padding: '16px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <PlayerAvatar src={profile.iconUrl} size={32} />
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E' }}>{profile.name || 'あなた'}</p>
-                    <p style={{ fontSize: 10, color: '#D4910A', fontWeight: 600, marginTop: 1 }}>{rrMyEntry.rank}位</p>
+                    <p style={{ fontSize: 10, color: '#D4910A', fontWeight: 600, marginTop: 4 }}>{rrMyEntry.rank}位</p>
                   </div>
                 </div>
                 <p style={{ fontSize: 18, fontWeight: 800, color: '#1C1C1E', letterSpacing: '-0.5px' }}>{displayRrRating.toFixed(2)}</p>
@@ -3057,21 +3057,21 @@ const medalClass = (rank: number) => {
             {/* List */}
             <div style={{ overflowY: 'auto', flex: 1, padding: '4px 16px 40px' }}>
               {rrRankingLoading ? (
-                <div style={{ padding: '34px 0' }}>
-                  <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 12 }}>LOADING</p>
+                <div style={{ padding: '32px 0' }}>
+                  <p className="tech-label term-comment" style={{ textAlign: 'center', color: 'var(--label3)', marginBottom: 16 }}>LOADING</p>
                   <div style={{ display: "flex", justifyContent: "center" }}><Loader size={40} /></div>
                 </div>
               ) : (rrFullRanking.length > 0 ? rrFullRanking : rrRanking).filter(p => p.rrRating > 50).slice(0, 100).map((player, idx) => {
                 const isMe = player.id === userId
                 return (
-                  <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 2, cursor: 'pointer' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div key={player.id} onClick={() => setProfileUid(player.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderRadius: 14, background: isMe ? 'rgba(242,169,0,0.07)' : idx % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)', marginBottom: 4, cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...(player.rank === 1 ? { background: 'linear-gradient(135deg,#FFD700,#FFA500)', boxShadow: '0 2px 8px rgba(255,215,0,0.5)' } : player.rank === 2 ? { background: 'linear-gradient(135deg,#E8E8E8,#C0C0C0)', boxShadow: '0 2px 6px rgba(192,192,192,0.4)' } : player.rank === 3 ? { background: 'linear-gradient(135deg,#F4A460,#CD7F32)', boxShadow: '0 2px 6px rgba(205,127,50,0.4)' } : { background: '#F2F2F7' }) }}>
                         <PlayerAvatar src={player.iconUrl} size={28} alt={player.name} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: '#D4910A', marginLeft: 5 }}>（あなた）</span>}</p>
-                        <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 1 }}>{player.rank}位</p>
+                        <p style={{ fontSize: 13, fontWeight: isMe ? 700 : 600, color: '#1C1C1E' }}>{player.name || 'プレイヤー'}{isMe && <span style={{ fontSize: 10, color: '#D4910A', marginLeft: 4 }}>（あなた）</span>}</p>
+                        <p style={{ fontSize: 10, color: 'var(--label3)', marginTop: 4 }}>{player.rank}位</p>
                       </div>
                     </div>
                     <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.3px' }}>{player.rrRating.toFixed(2)}</p>
@@ -3086,8 +3086,8 @@ const medalClass = (rank: number) => {
       {isDetailedRankingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center a-scrim px-4">
           <div className="mx-auto w-full max-w-sm rounded-3xl bg-white p-6 max-h-[80vh] overflow-y-auto shadow-2xl animate-slideUp">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[16px] font-semibold text-gray-900">純増ランキング</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-[16px] font-semibold text-label">純増ランキング</h2>
               <button type="button" onClick={() => setIsDetailedRankingModalOpen(false)} className="text-label3 hover:text-gray-600"><FiX size={20} /></button>
             </div>
             {/* 一気に全行を組み立てず、スクロールした分だけ足していく。 */}
@@ -3099,10 +3099,10 @@ const medalClass = (rank: number) => {
       {withdrawNotice && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center a-scrim">
           <div className="a-dialog p-6 w-[88%] max-w-sm text-center">
-            {withdrawNotice.type === "pending" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し申請中</p><p className="text-[13px] text-gray-500">この画面をスタッフに見せてください</p></>)}
-            {withdrawNotice.type === "approved" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し承認</p><p className="text-[13px] text-gray-500">{withdrawNotice.amount} が引き出されました</p></>)}
-            {withdrawNotice.type === "rejected" && (<><p className="text-[18px] font-bold text-gray-900 mb-1">引き出し却下</p><p className="text-[13px] text-gray-500">引き出しが却下されました</p></>)}
-            <button onClick={() => setWithdrawNotice(null)} className="mt-5 w-full h-11 rounded-2xl gold-btn text-gray-900 font-semibold text-[14px]">OK</button>
+            {withdrawNotice.type === "pending" && (<><p className="text-[18px] font-bold text-label mb-1">引き出し申請中</p><p className="text-[13px] text-label2">この画面をスタッフに見せてください</p></>)}
+            {withdrawNotice.type === "approved" && (<><p className="text-[18px] font-bold text-label mb-1">引き出し承認</p><p className="text-[13px] text-label2">{withdrawNotice.amount} が引き出されました</p></>)}
+            {withdrawNotice.type === "rejected" && (<><p className="text-[18px] font-bold text-label mb-1">引き出し却下</p><p className="text-[13px] text-label2">引き出しが却下されました</p></>)}
+            <button onClick={() => setWithdrawNotice(null)} className="mt-6 w-full h-11 rounded-2xl gold-btn text-label font-semibold text-[14px]">OK</button>
           </div>
         </div>
       )}
@@ -3114,21 +3114,21 @@ const medalClass = (rank: number) => {
           <div className="w-full max-w-sm rounded-t-[32px] bg-white shadow-2xl animate-slideUp flex flex-col" style={{ maxHeight: "82vh" }}
             onClick={e => e.stopPropagation()}>
             {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="flex justify-center pt-4 pb-1 shrink-0">
               <div className="w-9 h-1 rounded-full bg-gray-200" />
             </div>
             {/* Header */}
             <div className="flex items-center justify-between px-6 pt-2 pb-4 shrink-0">
               <div>
-                <p className="text-[18px] font-bold text-gray-900">{calDetailTournament.date}</p>
-                <p className="text-[12px] text-label3 mt-0.5">{calDetailTournament.entries.length}件のトーナメント</p>
+                <p className="text-[18px] font-bold text-label">{calDetailTournament.date}</p>
+                <p className="text-[12px] text-label3 mt-1">{calDetailTournament.entries.length}件のトーナメント</p>
               </div>
               <button type="button" onClick={() => { setCalDetailTournament(null); setCalDetailPreset(null) }}
-                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500"><FiX size={16} /></button>
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-label2"><FiX size={16} /></button>
             </div>
 
             {/* Entry list */}
-            <div className="overflow-y-auto px-4 pb-8 space-y-3">
+            <div className="overflow-y-auto px-4 pb-8 space-y-4">
               {calDetailTournament.entries.map((entry: any, idx: number) => (
                 <div key={idx} className="rounded-3xl bg-gray-50 border border-gray-100 overflow-hidden shadow-sm">
                   {/* Flyer image */}
@@ -3139,23 +3139,23 @@ const medalClass = (rank: number) => {
                   )}
                   <div className="p-4">
                     {/* Title row */}
-                    <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex items-start justify-between gap-2 mb-4">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-bold text-gray-900 leading-tight">{entry.name || "トーナメント"}</p>
-                        <p className="text-[12px] text-gray-500 mt-0.5">{entry.storeName}</p>
+                        <p className="text-[15px] font-bold text-label leading-tight">{entry.name || "トーナメント"}</p>
+                        <p className="text-[12px] text-label2 mt-1">{entry.storeName}</p>
                       </div>
                       {entry.repeatWeekly && (
-                        <span className="shrink-0 rounded-full bg-[#F2A900]/15 px-2.5 py-1 text-[10px] font-bold text-[#D4910A]">毎週</span>
+                        <span className="shrink-0 rounded-full bg-[#F2A900]/15 px-2 py-1 text-[10px] font-bold text-[#D4910A]">毎週</span>
                       )}
                     </div>
 
                     {/* Info grid */}
-                    <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="grid grid-cols-2 gap-2 mb-4">
 
                       {entry.startTime && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">開始日時</p>
-                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">
+                          <p className="text-[13px] font-bold text-label mt-1">
                             {formatDateTime(entry.startTime)}
                           </p>
                         </div>
@@ -3163,45 +3163,45 @@ const medalClass = (rank: number) => {
 
 
                       {entry.rcTime && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">RC</p>
-                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{entry.rcTime}</p>
+                          <p className="text-[13px] font-bold text-label mt-1">{entry.rcTime}</p>
                         </div>
                       )}
                       {entry.entryFee != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">エントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.entryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-1">{fmtChip(Number(entry.entryFee))}</p>
                         </div>
                       )}
                       {entry.entryStack != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">スタートスタック</p>
-                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.entryStack).toLocaleString()}</p>
+                          <p className="text-[13px] font-bold text-label mt-1">{Number(entry.entryStack).toLocaleString()}</p>
                         </div>
                       )}
                       {entry.reentryFee != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">リエントリーチップ</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.reentryFee))}</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-1">{fmtChip(Number(entry.reentryFee))}</p>
                         </div>
                       )}
                       {entry.reentryStack != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">リエントリー スタック</p>
-                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.reentryStack).toLocaleString()}</p>
+                          <p className="text-[13px] font-bold text-label mt-1">{Number(entry.reentryStack).toLocaleString()}</p>
                         </div>
                       )}
                       {entry.addonFee != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">アドオン</p>
-                          <p className="text-[13px] font-bold text-[#D4910A] mt-0.5">{fmtChip(Number(entry.addonFee))}</p>
+                          <p className="text-[13px] font-bold text-[#D4910A] mt-1">{fmtChip(Number(entry.addonFee))}</p>
                         </div>
                       )}
                       {entry.addonStack != null && (
-                        <div className="bg-white rounded-2xl px-3 py-2 border border-gray-100">
+                        <div className="bg-white rounded-2xl px-4 py-2 border border-gray-100">
                           <p className="text-[9px] text-label3 font-medium uppercase tracking-wide">アドオン スタック</p>
-                          <p className="text-[13px] font-bold text-gray-900 mt-0.5">{Number(entry.addonStack).toLocaleString()}</p>
+                          <p className="text-[13px] font-bold text-label mt-1">{Number(entry.addonStack).toLocaleString()}</p>
                         </div>
                       )}
                     </div>
@@ -3228,29 +3228,29 @@ const medalClass = (rank: number) => {
                       const currentLevel = levels[levelIndex]
                       const isActive = live.status === "active"
                       return (
-                        <div className="mb-3 rounded-2xl bg-amber-50 border border-amber-100 p-3">
-                          <div className="flex items-center gap-1.5 mb-2">
+                        <div className="mb-4 rounded-2xl bg-amber-50 border border-amber-100 p-4">
+                          <div className="flex items-center gap-2 mb-2">
                             {isActive && <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />}
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{isActive ? "ライブ" : "終了"}</p>
+                            <p className="text-[10px] font-bold text-label2 uppercase tracking-wide">{isActive ? "ライブ" : "終了"}</p>
                           </div>
                           {currentLevel && currentLevel.type !== "waiting" && (
-                            <div className="mb-1.5">
-                              <div className="bg-white rounded-xl px-2 py-1.5 border border-amber-100">
+                            <div className="mb-2">
+                              <div className="bg-white rounded-xl px-2 py-2 border border-amber-100">
                                 <p className="text-[8px] text-label3">現在のブラインド</p>
-                                <p className="text-[12px] font-bold text-gray-900">
+                                <p className="text-[12px] font-bold text-label">
                                   {currentLevel.type === "break" ? "Break" : `${currentLevel.smallBlind} / ${currentLevel.bigBlind}${currentLevel.ante ? ` ante : ${currentLevel.ante}` : ""}`}
                                 </p>
                               </div>
                             </div>
                           )}
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <div className="bg-white rounded-xl px-3 py-2 text-center border border-amber-100">
-                              <p className="text-[8px] font-semibold text-label3 uppercase tracking-wider mb-0.5">Players</p>
-                              <p className="text-[16px] font-bold text-gray-900 timer-num">{alivePlayers}/{totalEntry + totalReentry}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
+                              <p className="text-[8px] font-semibold text-label3 uppercase tracking-wider mb-1">Players</p>
+                              <p className="text-[16px] font-bold text-label timer-num">{alivePlayers}/{totalEntry + totalReentry}</p>
                             </div>
-                            <div className="bg-white rounded-xl px-3 py-2 text-center border border-amber-100">
-                              <p className="text-[8px] font-semibold text-label3 uppercase tracking-wider mb-0.5">Avg Stack</p>
-                              <p className="text-[16px] font-bold text-gray-900 timer-num">{avgStack.toLocaleString()}</p>
+                            <div className="bg-white rounded-xl px-4 py-2 text-center border border-amber-100">
+                              <p className="text-[8px] font-semibold text-label3 uppercase tracking-wider mb-1">Avg Stack</p>
+                              <p className="text-[16px] font-bold text-label timer-num">{avgStack.toLocaleString()}</p>
                             </div>
                           </div>
                         </div>
@@ -3275,23 +3275,23 @@ const medalClass = (rank: number) => {
                                 if (snap.exists()) setCalDetailPreset({ tournamentId: key, ...snap.data() })
                               } catch {}
                             }}
-                            className="flex items-center gap-1.5 text-[12px] font-semibold text-[#F2A900]">
+                            className="flex items-center gap-2 text-[12px] font-semibold text-[#F2A900]">
                             <FiChevronRight size={14} className={calDetailPreset?.tournamentId === key ? "rotate-90" : ""} />
                             ブラインド構成
                           </button>
                           {calDetailPreset?.tournamentId === key && calDetailPreset.levels && (
                             <div className="mt-2 rounded-2xl bg-white border border-gray-100 divide-y divide-gray-50 overflow-hidden">
-                              <div className="grid grid-cols-3 px-3 py-1.5 text-[9px] font-bold text-label3 uppercase tracking-wide">
+                              <div className="grid grid-cols-3 px-4 py-2 text-[9px] font-bold text-label3 uppercase tracking-wide">
                                 <span>Level</span><span>Blinds</span><span className="text-right">Time</span>
                               </div>
                               {(calDetailPreset.levels as any[]).map((lv: any, li: number) => (
-                                <div key={li} className="px-3 py-2 flex items-center gap-3 text-[11px]">
+                                <div key={li} className="px-4 py-2 flex items-center gap-4 text-[11px]">
                                   {lv.type === "break" ? (
                                     <span className="text-label3 col-span-3"> Break : {lv.duration}min</span>
                                   ) : (
                                     <>
                                       <span className="font-bold text-label3 w-8">Lv.{li + 1}</span>
-                                      <span className="flex-1 text-gray-700 font-medium">{lv.smallBlind} / {lv.bigBlind}{lv.ante ? ` ante : ${lv.ante}` : ""}</span>
+                                      <span className="flex-1 text-label font-medium">{lv.smallBlind} / {lv.bigBlind}{lv.ante ? ` ante : ${lv.ante}` : ""}</span>
                                       <span className="text-label3">{lv.duration}min</span>
                                     </>
                                   )}
@@ -3305,7 +3305,7 @@ const medalClass = (rank: number) => {
 
                     {/* SNS links */}
                     {(entry.storeSnsInstagram || entry.storeSnsX || entry.storeSnsWeb) && (
-                      <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
                         {entry.storeSnsInstagram && (
                           <a href={entry.storeSnsInstagram} target="_blank" rel="noopener noreferrer"
                             className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#f09433] via-[#e6683c] to-[#bc1888] text-white shadow-sm active:scale-95 transition-transform">
@@ -3478,12 +3478,12 @@ function DetailedRankingList({
         <div
           key={player.id}
           onClick={() => onSelect(player.id)}
-          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors"
+          className="flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4 hover:bg-gray-100 transition-colors"
           style={{ cursor: 'pointer' }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <span className="tech-num w-8 text-[12px] text-label3 font-semibold text-right">{index + 1}</span>
-            <span className="text-[13px] text-gray-800 font-medium">{player.name || "プレイヤー"}</span>
+            <span className="text-[13px] text-label font-medium">{player.name || "プレイヤー"}</span>
           </div>
           <span className={`tech-num text-[13px] font-bold ${player.netGain >= 0 ? "net-positive" : "net-negative"}`}>{formatAmount(player.netGain)}</span>
         </div>

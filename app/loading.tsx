@@ -10,7 +10,7 @@ import Loader from '@/components/Loader'
 export default function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="tech-grid tech-scanline tech-corners w-full max-w-[300px] rounded-[22px] border border-gray-100 bg-white/70 px-6 py-7 shadow-sm">
+      <div className="tech-grid tech-scanline tech-corners w-full max-w-[300px] rounded-[22px] border border-gray-100 bg-white/70 px-6 py-8 shadow-sm">
         {/* 端末のタイトルバー */}
         <div className="flex items-center justify-between">
           <span className="tech-label text-label3 tech-label-bracket">RRPOKER</span>
@@ -20,19 +20,19 @@ export default function Loading() {
         <hr className="tech-rule my-4" />
 
         {/* 起動ログ */}
-        <div className="space-y-1.5 text-[11px] leading-relaxed text-gray-500">
+        <div className="space-y-2 text-[11px] leading-relaxed text-label2">
           <p className="term-comment">initializing session</p>
-          <p className="term-prompt text-gray-700">
+          <p className="term-prompt text-label">
             <span className="tech-type">boot --app=rrpoker</span>
           </p>
-          <p className="term-prompt-arrow text-gray-900 tech-caret">loading</p>
+          <p className="term-prompt-arrow text-label tech-caret">loading</p>
         </div>
 
-        <div className="mt-5 flex justify-center">
+        <div className="mt-6 flex justify-center">
           <Loader />
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-4 flex items-center justify-between">
           <span className="tech-label text-label3">STATUS</span>
           <span className="tech-label text-[#D4910A]">RUNNING</span>
         </div>

@@ -522,7 +522,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   }, [level, nextLevel])
 
   // ── Shared input style for modal ─────────────────────────────────────────
-  const modalInput = "rounded-xl px-3 py-1.5 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
+  const modalInput = "rounded-xl px-4 py-2 text-[13px] text-center text-gray-900 outline-none border border-gray-200 bg-white focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
 
   // ════════════════════════════════════════════════════════════════════════
   return (
@@ -538,7 +538,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
           .pause-badge { animation: pauseFadeIn 0.18s ease-out; }
           .timer-num { font-variant-numeric:tabular-nums slashed-zero; font-feature-settings:"zero" 1, "tnum" 1; }
           .prize-input::-webkit-inner-spin-button,
-          .prize-input::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+          .prize-input::-webkit-outer-spin-button { -webkit-appearance:none; margin: 0; }
           .prize-input { -moz-appearance:textfield; }
           @keyframes levelSlideIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
           @keyframes commentExpand { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
@@ -569,11 +569,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
             {/* TOURNAMENT NAME */}
             {/* 左上にロゴ、中央に大会名。ロゴと同じ幅の空きを右にも取り、名前が長くても重ならない */}
-            <div className="flex-none flex items-start" style={{ padding: "18px 24px 12px" }}>
+            <div className="flex-none flex items-start" style={{ padding: "16px 24px 16px" }}>
               <div className="flex-none" style={{ width: 196 }}>
                 <div
-                  className="inline-flex items-center gap-3 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
-                  style={{ padding: "8px 14px 8px 8px" }}
+                  className="inline-flex items-center gap-4 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
+                  style={{ padding: "8px 16px 8px 8px" }}
                 >
                   <div className="h-10 w-10 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-[0_0_20px_rgba(200,130,10,0.5)]">
                     <img src="/logo.png" alt="RRPoker" className="h-8 w-8 object-contain" />
@@ -589,7 +589,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
 
             {/* LEVEL DIVIDER */}
             <div className="flex-none px-14">
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-6">
                 <div className="h-px flex-1" style={{ background: "linear-gradient(to right, transparent, #E8E8E8)" }} />
                 {level?.type === "level" && (
                   <span className="text-[22px] font-black tracking-[0.45em] uppercase text-[#C8820A] flex-shrink-0">
@@ -682,7 +682,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       </span>
                       <span className="text-[54px] font-medium text-gray-600 timer-num leading-none whitespace-nowrap">
                         {nextLevel.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel.bigBlind?.toLocaleString()}
-                        {nextLevel.ante ? <span className="text-[40px] font-medium text-label3 ml-3">({nextLevel.ante.toLocaleString()})</span> : null}
+                        {nextLevel.ante ? <span className="text-[40px] font-medium text-label3 ml-4">({nextLevel.ante.toLocaleString()})</span> : null}
                       </span>
                     </>
                   )}
@@ -701,11 +701,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                         ? <span className="text-[54px] font-medium text-gray-500 leading-none">Break</span>
                         : <span className="text-[54px] font-medium text-gray-600 timer-num leading-none">
                             {nextLevel?.smallBlind?.toLocaleString()}&nbsp;/&nbsp;{nextLevel?.bigBlind?.toLocaleString()}
-                            <span className="text-[40px] font-medium text-label3 ml-3">({nextLevel?.ante?.toLocaleString()})</span>
+                            <span className="text-[40px] font-medium text-label3 ml-4">({nextLevel?.ante?.toLocaleString()})</span>
                           </span>
                       }
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
-                      <div className="flex items-center gap-5 leading-none">
+                      <div className="flex items-center gap-6 leading-none">
                         <span className="flex flex-col items-center text-[22px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
                           <span>NEXT</span><span>BREAK</span>
                         </span>
@@ -745,7 +745,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   {/* Vertical separator — col 3 */}
                   <div style={{ height: "52px", background: "#D8D8D8", alignSelf: "center" }} />
                   {/* BB ANTE — col 4 */}
-                  <div className="flex items-center gap-5 leading-none">
+                  <div className="flex items-center gap-6 leading-none">
                     <span className="text-[32px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0">ANTE</span>
                     <span className="text-[68px] font-semibold text-gray-800 timer-num leading-none">
                       {level?.ante?.toLocaleString() ?? "—"}
@@ -770,7 +770,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       {/* Vertical separator — col 3 */}
                       <div style={{ height: "40px", background: "#D8D8D8", alignSelf: "center" }} />
                       {/* NEXT BREAK — col 4: 2-line label + timer, center-aligned */}
-                      <div className="flex items-center gap-5 leading-none">
+                      <div className="flex items-center gap-6 leading-none">
                         <span className="flex flex-col items-center text-[30px] font-black tracking-[0.15em] uppercase text-gray-600 flex-shrink-0 leading-tight">
                           <span>NEXT</span><span>BREAK</span>
                         </span>
@@ -848,7 +848,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             style={{ width: "220px", borderLeft: "1px solid #F0F0F0" }}
           >
             {/* Header */}
-            <div style={{ padding: "20px 14px 14px", borderBottom: "1px solid #F5F5F5" }}>
+            <div style={{ padding: "24px 16px 16px", borderBottom: "1px solid #F5F5F5" }}>
               <p className="text-[22px] font-black tracking-[0.4em] uppercase text-gray-700 mb-2">Prize Pool</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-[14px] font-black tracking-[0.3em] uppercase text-gray-700">TOTAL</span>
@@ -861,7 +861,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             {/* Places。入りきらないときは、ゆっくり下へ送り、いちばん下まで行ったら上に戻って繰り返す */}
             <div ref={prizeBoxRef} className="flex-1 min-h-0 overflow-hidden relative">
             <div ref={prizeListRef} className={`flex flex-col justify-evenly${prizeOverflow > 0 ? " prize-autoscroll" : ""}`}
-              style={{ padding: "8px 14px 16px", minHeight: "100%", ...(prizeOverflow > 0 ? { ["--prize-dist" as any]: `-${prizeOverflow}px`, animationDuration: `${Math.max(8, prizeOverflow / 24 + 6)}s` } : {}) }}>
+              style={{ padding: "8px 16px 16px", minHeight: "100%", ...(prizeOverflow > 0 ? { ["--prize-dist" as any]: `-${prizeOverflow}px`, animationDuration: `${Math.max(8, prizeOverflow / 24 + 6)}s` } : {}) }}>
               {Object.entries(prizePool).map(([place, data], idx, arr) => {
                 const hasText = Boolean(data?.text)
                 return (
@@ -919,20 +919,20 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)" }}
           >
             {/* Header */}
-            <div className="px-6 py-5 border-b border-gray-100">
+            <div className="px-6 py-6 border-b border-gray-100">
               <h2 className="text-[16px] font-semibold text-gray-900 mb-4">ブラインドプリセット作成</h2>
               <label className="block text-[11px] font-semibold tracking-widest uppercase text-label3 mb-2">プリセット名</label>
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                className="w-full rounded-2xl px-4 py-2.5 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
+                className="w-full rounded-2xl px-4 py-2 text-[14px] text-gray-900 outline-none border border-gray-200 focus:border-[#C8820A] focus:ring-2 focus:ring-[#C8820A]/15 transition-all"
                 placeholder="例: 通常トーナメント"
               />
             </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              <label className="block text-[11px] font-semibold tracking-widest uppercase text-label3 mb-3">レベルリスト</label>
+              <label className="block text-[11px] font-semibold tracking-widest uppercase text-label3 mb-4">レベルリスト</label>
               <div className="space-y-2">
                 {levels.map((lv: Level, idx: number) => (
                   <div key={idx}
@@ -942,7 +942,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                     onDragEnter={() => handleDragEnter(idx)}
                     onDragEnd={handleDragEnd}
                   >
-                    <div className="flex items-center justify-between px-3 py-2.5 gap-2">
+                    <div className="flex items-center justify-between px-4 py-2 gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="cursor-move text-label3 text-[16px] select-none">≡</span>
                         {lv.type === "level" ? (
@@ -993,13 +993,13 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                       </button>
                     </div>
                     {(editingCommentIdx === idx || lv.comment) && (
-                      <div className="px-3 pb-2.5 flex items-center gap-2 comment-expand">
+                      <div className="px-4 pb-2 flex items-center gap-2 comment-expand">
                         <input
                           type="text"
                           placeholder="コメントを入力..."
                           value={lv.comment ?? ""}
                           onChange={e => setLevels(ls => ls.map((l, i) => i !== idx ? l : { ...l, comment: e.target.value || null }))}
-                          className="flex-1 text-[12px] rounded-xl px-3 py-1.5 border border-gray-200 bg-white focus:border-[#C8820A] focus:outline-none transition-all"
+                          className="flex-1 text-[12px] rounded-xl px-4 py-2 border border-gray-200 bg-white focus:border-[#C8820A] focus:outline-none transition-all"
                           autoFocus={editingCommentIdx === idx}
                         />
                         <button
@@ -1020,7 +1020,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-5 border-t border-gray-100 space-y-3">
+            <div className="px-6 py-6 border-t border-gray-100 space-y-4">
               <div className="flex gap-2">
                 <button className="rr-btn is-gold is-sm" style={{ flex: 1 }} onClick={addLevel}
                 >
@@ -1031,7 +1031,7 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
                   ＋ ブレイク追加
                 </button>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button className="rr-btn is-solid" style={{ flex: 1 }} onClick={savePreset}
                 >
                   保存

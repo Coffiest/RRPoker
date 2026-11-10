@@ -62,7 +62,7 @@ export default function DealerConfirmSheet({
       style={{
         position: 'fixed', inset: 0, zIndex: 300,
         background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
       }}
       onClick={busy ? undefined : onCancel}
     >
@@ -82,13 +82,13 @@ export default function DealerConfirmSheet({
           background: 'linear-gradient(90deg, transparent, #F2A900 40%, #FFE07A 50%, #F2A900 60%, transparent)',
         }} />
 
-        <div style={{ padding: '18px 20px 20px' }}>
+        <div style={{ padding: '16px 24px 24px' }}>
           <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', letterSpacing: '0.2em', textAlign: 'center' }}>
             ディーラー確認
           </p>
 
           {/* 誰の操作か。卓で複数の端末を扱うときに取り違えないため。 */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 }}>
             <div style={{
               width: 38, height: 38, borderRadius: 999, overflow: 'hidden', flexShrink: 0,
               background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -117,11 +117,11 @@ export default function DealerConfirmSheet({
           </p>
 
           {/* 引き落としの数字がいちばん現金に見える場所なので、ここに置く。 */}
-          <div style={{ marginTop: 14, textAlign: 'center' }}>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
             <ChipDisclaimer />
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
             <button
               type="button"
               onClick={onCancel}

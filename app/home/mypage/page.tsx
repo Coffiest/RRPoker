@@ -489,7 +489,7 @@ export default function MyPage() {
         }
         /* 行は押した瞬間に沈む(離してからではない) */
         .mp-card button:active { background: rgba(60,60,67,0.06); }
-        .mp-row { display: flex; align-items: center; padding: 15px 18px; border-bottom: 1px solid var(--a-sep); }
+        .mp-row { display: flex; align-items: center; padding: 16px 16px; border-bottom: 1px solid var(--a-sep); }
         .mp-row:last-child { border-bottom: none; }
         button { -webkit-tap-highlight-color: transparent; }
 
@@ -512,12 +512,12 @@ export default function MyPage() {
 
       {/* Toast */}
       {error && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#4A1010', color: '#fff', padding: '10px 18px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(74,16,16,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: '#4A1010', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(74,16,16,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <FiAlertCircle size={15} />{error}
         </div>
       )}
       {success && (
-        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#fff', padding: '10px 18px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(242,169,0,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
+        <div style={{ position: 'fixed', top: 76, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#fff', padding: '8px 16px', borderRadius: 14, fontSize: 13, fontWeight: 600, zIndex: 200, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(242,169,0,0.35)', whiteSpace: 'nowrap' }} className="mp-animate">
           <FiCheck size={15} />{success}
         </div>
       )}
@@ -525,12 +525,12 @@ export default function MyPage() {
       <div className="pc-page" style={{ maxWidth: 430, margin: '0 auto', padding: '16px 16px 0' }}>
 
         {/* ── プロフィールカード ── */}
-        <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
+        <div data-tutorial="mypage-profile" className="mp-card mp-animate tech-corners" style={{ marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', ['--tech-reveal-delay' as string]: '0.02s' } as React.CSSProperties}>
 
           {/* ヘッダーバンド */}
           {/* 面の色は元のテーマ(金)のまま。ホームの偏差値カードと同じ扱いで、
               方眼と基板のドットを薄く重ねるだけにする。 */}
-          <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ background: 'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', height: 110, position: 'relative', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <div className="tech-grid" style={{ position: 'absolute', inset: 0, opacity: 0.14, pointerEvents: 'none' }} />
             <div className="tech-dots" style={{ position: 'absolute', inset: 0, opacity: 0.10, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: -28, left: -18, width: 130, height: 130, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
@@ -538,7 +538,7 @@ export default function MyPage() {
 
             {/* Share button */}
             <button type="button" onClick={shareProfileCard} disabled={sharingProfile}
-              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
+              style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
               {sharingProfile
                 ? <Loader size={20} light />
                 : <FiShare2 size={13} style={{ color: '#fff' }} />
@@ -547,7 +547,7 @@ export default function MyPage() {
             </button>
 
             <div style={{ position: 'relative', zIndex: 1, textAlign: 'right' }}>
-              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 3 }}>トナメ偏差値</p>
+              <p className="term-prompt-arrow" style={{ fontFamily: 'var(--stack-mono)', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.72)', letterSpacing: '0.14em', marginBottom: 4 }}>トナメ偏差値</p>
               <p className="tech-num" style={{
                 fontSize: tourStats.plays === 0 ? 26 : 46, fontWeight: 800, lineHeight: 1, letterSpacing: '-1.5px',
                 color: tourStats.plays === 0 ? 'rgba(255,255,255,0.72)' : '#fff',
@@ -564,7 +564,7 @@ export default function MyPage() {
           </div>
 
           {/* アバター */}
-          <div style={{ padding: '0 20px', marginTop: -40, marginBottom: 12 }}>
+          <div style={{ padding: '0 24px', marginTop: -40, marginBottom: 16 }}>
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <div style={{ width: 80, height: 80, borderRadius: '50%', border: '3px solid #fff', overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}>
                 {previewUrl || profile.iconUrl
@@ -586,9 +586,9 @@ export default function MyPage() {
           </div>
 
           {/* 名前 */}
-          <div style={{ padding: '0 20px 6px' }}>
+          <div style={{ padding: '0 24px 8px' }}>
             {isEditingName ? (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                 <input
                   type="text"
                   value={draftName}
@@ -608,7 +608,7 @@ export default function MyPage() {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.4px', margin: 0 }}>{profile.name || "名前未設定"}</h2>
                 <button type="button" onClick={() => { setError(""); setSuccess(""); setIsEditingName(true) }}
                   style={{ width: 30, height: 30, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -619,7 +619,7 @@ export default function MyPage() {
 
             {/* Player ID */}
             <button type="button" onClick={copyPlayerId}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(120,120,128,0.10)', borderRadius: 999, padding: '10px 14px', border: 'none', cursor: 'pointer', marginBottom: 14, width: '100%' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(120,120,128,0.10)', borderRadius: 999, padding: '8px 16px', border: 'none', cursor: 'pointer', marginBottom: 16, width: '100%' }}>
               <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--label3)', fontFamily: 'monospace', flex: 1, textAlign: 'left' }}>{profile.playerId || "@loading"}</span>
               {copySuccess
                 ? <FiCheck size={14} style={{ color: '#34C759', flexShrink: 0 }} />
@@ -629,12 +629,12 @@ export default function MyPage() {
           </div>
 
           {/* ── 拡張プロフィール ── */}
-          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '14px 20px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '16px 24px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.06em' }}>プロフィール詳細</p>
               <button type="button"
                 onClick={() => { setDraftRegion(profile.region ?? ""); setDraftFavoriteHand(profile.favoriteHand ?? ""); setDraftPokerHistory(profile.pokerHistory ?? ""); setDraftAffiliation({ affiliation: profile.affiliation ?? "", affiliationStoreId: profile.affiliationStoreId ?? null, affiliationIconUrl: profile.affiliationIconUrl ?? null }); setIsEditingExtProfile(true) }}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 8, background: '#F2F2F7', border: 'none', cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, background: '#F2F2F7', border: 'none', cursor: 'pointer' }}>
                 <FiEdit2 size={11} style={{ color: 'var(--label3)' }} />
                 <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--label3)' }}>編集</span>
               </button>
@@ -649,10 +649,10 @@ export default function MyPage() {
                 { icon: <Spade size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: profile.favoriteHand },
                 { icon: <Clock size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: 'ポーカー歴', value: profile.pokerHistory },
               ].map(item => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F2F2F7', borderRadius: 10, padding: '7px 12px' }}>
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F2F2F7', borderRadius: 10, padding: '8px 16px' }}>
                   <span style={{ display: 'flex', flexShrink: 0 }}>{item.icon}</span>
                   <div>
-                    <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 2 }}>{item.label}</p>
+                    <p className="tech-label" style={{ fontSize: 9, color: 'var(--label3)', marginBottom: 4 }}>{item.label}</p>
                     <p style={{ fontFamily: 'var(--stack-mono)', fontSize: 12, fontWeight: 600, color: item.value ? '#1C1C1E' : 'var(--label3)' }}>{item.value || '未設定'}</p>
                   </div>
                 </div>
@@ -661,40 +661,40 @@ export default function MyPage() {
           </div>
 
           {/* 誕生日 */}
-          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '14px 20px 18px' }}>
+          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', padding: '16px 24px 16px' }}>
             <p className="term-comment" style={{ fontSize: 11, fontWeight: 600, color: 'var(--label3)', letterSpacing: '0.06em', marginBottom: 8 }}>誕生日</p>
             {!profile.birthday ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)}
-                  style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 12px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
+                  style={{ flex: 1, height: 40, borderRadius: 10, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 14, fontFamily: 'inherit', color: '#1C1C1E', background: '#fff', outline: 'none' }} />
                 <button type="button" onClick={saveBirthday}
-                  style={{ height: 42, padding: '0 20px', borderRadius: 999, background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)', border: 'none', fontSize: 13, fontWeight: 700, color: '#1C1C1E', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
+                  style={{ height: 42, padding: '0 24px', borderRadius: 999, background: 'linear-gradient(180deg,#FFC53D 0%,#F2A900 46%,#DE9A00 100%)', border: 'none', fontSize: 13, fontWeight: 700, color: '#1C1C1E', cursor: 'pointer', flexShrink: 0, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 18px rgba(242,169,0,0.30)' }}>
                   保存
                 </button>
               </div>
             ) : (
               <p className="tech-num" style={{ fontSize: 15, fontWeight: 600, color: '#1C1C1E' }}>{profile.birthday}</p>
             )}
-            {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 6 }}>※一度設定すると変更できません</p>}
+            {!profile.birthday && <p style={{ fontSize: 11, color: '#7A2020', marginTop: 8 }}>※一度設定すると変更できません</p>}
           </div>
         </div>
 
         {/* ── 設定リスト ── */}
-        <div data-tutorial="mypage-settings" className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.10s' } as React.CSSProperties}>
+        <div data-tutorial="mypage-settings" className="mp-card mp-animate tech-corners" style={{ marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.10s' } as React.CSSProperties}>
           <button type="button" onClick={() => router.push("/home/mypage/password")}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', borderBottom: '1px solid #F2F2F7' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#1C1C1E', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiLock size={15} style={{ color: '#fff' }} />
             </div>
             <span style={{ flex: 1, fontSize: 15, fontWeight: 500, color: '#1C1C1E' }}>パスワード変更</span>
             <FiChevronRight size={16} style={{ color: 'var(--label3)' }} />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiUser size={15} style={{ color: '#fff' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E', marginBottom: 1 }}>入店中の表示</p>
+              <p style={{ fontSize: 15, fontWeight: 500, color: '#1C1C1E', marginBottom: 4 }}>入店中の表示</p>
               <p style={{ fontSize: 11, color: 'var(--label3)' }}>オフにすると「入店中のプレイヤーを見る」に表示されません</p>
             </div>
             <button
@@ -713,9 +713,9 @@ export default function MyPage() {
         </div>
 
         {/* ── アカウント操作 ── */}
-        <div className="mp-card mp-animate tech-corners" style={{ marginBottom: 20, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.16s' } as React.CSSProperties}>
+        <div className="mp-card mp-animate tech-corners" style={{ marginBottom: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.05)', ['--tech-reveal-delay' as string]: '0.16s' } as React.CSSProperties}>
           <button type="button" onClick={logout}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', background: 'none', borderBottom: '1px solid rgba(0,0,0,0.06)', borderLeft: 'none', borderRight: 'none', borderTop: 'none', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#3C3C43', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiLogOut size={15} style={{ color: '#fff' }} />
             </div>
@@ -723,7 +723,7 @@ export default function MyPage() {
             <FiChevronRight size={16} style={{ color: 'var(--label3)', marginLeft: 'auto' }} />
           </button>
           <button type="button" onClick={() => setShowDeleteConfirm(true)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 16, padding: '16px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <FiAlertCircle size={15} style={{ color: '#fff' }} />
             </div>
@@ -738,40 +738,40 @@ export default function MyPage() {
       {isEditingExtProfile && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setIsEditingExtProfile(false)}>
-          <div ref={extSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 48px', maxHeight: '92dvh', overflowY: 'auto' }}
+          <div ref={extSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '16px 24px 48px', maxHeight: '92dvh', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 20 }} />
-            <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 22 }}>プロフィール詳細を編集</p>
+            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 24 }} />
+            <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', marginBottom: 24 }}>プロフィール詳細を編集</p>
 
             {/* 所属(オーナー指定・2026-11-03) */}
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><Users size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />所属</label>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><Users size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />所属</label>
               <AffiliationPicker value={draftAffiliation} onChange={setDraftAffiliation} joinedStoreIds={Array.isArray(profile.joinedStores) ? profile.joinedStores : []} />
             </div>
 
             {/* 地域 */}
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><MapPin size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />地域</label>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><MapPin size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />地域</label>
               <input type="text" value={draftRegion} onChange={e => setDraftRegion(e.target.value)}
                 placeholder="例: 東京都" maxLength={30}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 14px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* 好きなハンド */}
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 7, display: 'block' }}><Spade size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />好きなハンド</label>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><Spade size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />好きなハンド</label>
               <input type="text" value={draftFavoriteHand} onChange={e => setDraftFavoriteHand(e.target.value)}
                 placeholder="例: AA, KK, AKs" maxLength={20}
-                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 14px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 15, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
 
             {/* ポーカー歴 */}
-            <div style={{ marginBottom: 28 }}>
-              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 10, display: 'block' }}><Clock size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />ポーカー歴</label>
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ fontSize: 12, color: 'var(--label3)', fontWeight: 600, marginBottom: 8, display: 'block' }}><Clock size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />ポーカー歴</label>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {['1年未満', '1〜3年', '3〜5年', '5年以上'].map(opt => (
                   <button key={opt} type="button" onClick={() => setDraftPokerHistory(opt)}
-                    style={{ padding: '11px 20px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(242,169,0,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(242,169,0,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#B57F00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
+                    style={{ padding: '8px 24px', borderRadius: 999, border: 'none', background: draftPokerHistory === opt ? 'rgba(242,169,0,0.16)' : 'rgba(120,120,128,0.10)', boxShadow: draftPokerHistory === opt ? 'inset 0 0 0 1px rgba(242,169,0,0.30)' : 'none', fontSize: 13, fontWeight: draftPokerHistory === opt ? 700 : 500, color: draftPokerHistory === opt ? '#B57F00' : '#3C3C43', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}>
                     {opt}
                   </button>
                 ))}
@@ -790,23 +790,23 @@ export default function MyPage() {
       {showDeleteConfirm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setShowDeleteConfirm(false)}>
-          <div ref={delSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '12px 20px 40px' }}
+          <div ref={delSheetDrag} className="mp-sheet a-sheet" style={{ width: '100%', maxWidth: 480, padding: '16px 24px 40px' }}
             onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 20 }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div className="a-grabber" style={{ marginTop: 0, marginBottom: 24 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
               <div style={{ width: 44, height: 44, borderRadius: 14, background: '#4A1010', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <FiAlertCircle size={22} style={{ color: '#fff' }} />
               </div>
               <div>
                 <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>アカウント削除</p>
-                <p style={{ fontSize: 12, color: 'var(--label3)', marginTop: 2 }}>この操作は取り消せません</p>
+                <p style={{ fontSize: 12, color: 'var(--label3)', marginTop: 4 }}>この操作は取り消せません</p>
               </div>
             </div>
-            <div style={{ background: 'rgba(74,16,16,0.06)', border: '1px solid rgba(74,16,16,0.15)', borderRadius: 14, padding: '12px 14px', marginBottom: 22 }}>
+            <div style={{ background: 'rgba(74,16,16,0.06)', border: '1px solid rgba(74,16,16,0.15)', borderRadius: 14, padding: '16px 16px', marginBottom: 24 }}>
               <p style={{ fontSize: 13, color: '#7A2020', fontWeight: 600, marginBottom: 4 }}>以下のデータが失われます</p>
               <p style={{ fontSize: 12, color: '#3C3C43', lineHeight: 1.7 }}>• 保持チップ・レート・戦績<br/>• すべてのアカウント情報</p>
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button type="button" onClick={() => setShowDeleteConfirm(false)} disabled={isDeleting}
                 style={{ flex: 1, height: 50, borderRadius: 14, border: '1.5px solid rgba(0,0,0,0.12)', background: '#fff', fontSize: 15, fontWeight: 600, color: '#1C1C1E', cursor: 'pointer', opacity: isDeleting ? 0.6 : 1 }}>
                 キャンセル

@@ -74,14 +74,14 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 function SectionCard({ children }: { children: React.ReactNode }) {
-  return <div className="section-card" style={{ padding: 20 }}>{children}</div>
+  return <div className="section-card" style={{ padding: 24 }}>{children}</div>
 }
 
 function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-4">
       <p className="text-[15px] font-bold" style={{ color: CLR.ink }}>{title}</p>
-      {subtitle && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{subtitle}</p>}
+      {subtitle && <p className="text-[12px] mt-1" style={{ color: CLR.gray2 }}>{subtitle}</p>}
     </div>
   )
 }
@@ -133,7 +133,7 @@ function GhostButton({ onClick, children }: { onClick: () => void; children: Rea
 
 function FeedbackText({ text, color }: { text: string; color: "green" | "red" }) {
   return (
-    <p className="text-[12px] mt-1.5 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
+    <p className="text-[12px] mt-2 font-medium" style={{ color: color === "green" ? "#15803D" : CLR.red }}>
       {text}
     </p>
   )
@@ -526,10 +526,10 @@ export default function StoreSettingsPage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
 
-      <div className="pc-wide mx-auto max-w-sm px-5">
+      <div className="pc-wide mx-auto max-w-sm px-6">
         <div className="flex justify-center mt-6"><BackButton href={"/home/store"} /></div>
 
-        <h1 className="mt-3 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
+        <h1 className="mt-4 text-[22px] font-bold tracking-tight" style={{ color: CLR.ink }}>設定</h1>
 
         <div className="pc-cols2 mt-6 space-y-4">
 
@@ -574,9 +574,9 @@ export default function StoreSettingsPage() {
               <Toggle on={checkinBonusEnabled} onToggle={toggleCheckinBonus} />
             </div>
             {checkinBonusEnabled && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <div>
-                  <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>クーポン名</p>
+                  <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>クーポン名</p>
                   <FieldInput
                     value={couponName}
                     onChange={setCouponName}
@@ -632,7 +632,7 @@ export default function StoreSettingsPage() {
               <Toggle on={birthdayCouponEnabled} onToggle={toggleBirthdayCoupon} />
             </div>
             {birthdayCouponEnabled && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-4">
                 <FieldInput
                   value={birthdayCouponName}
                   onChange={setBirthdayCouponName}
@@ -652,7 +652,7 @@ export default function StoreSettingsPage() {
                     value={birthdayCouponExpiryUnit}
                     onChange={e => setBirthdayCouponExpiryUnit(e.target.value as any)}
                     disabled={birthdayCouponUnlimited}
-                    className="h-11 rounded-2xl px-3 text-[14px] outline-none disabled:opacity-40"
+                    className="h-11 rounded-2xl px-4 text-[14px] outline-none disabled:opacity-40"
                     style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                   >
                     <option value="day">日</option>
@@ -675,14 +675,14 @@ export default function StoreSettingsPage() {
               onChange={e => setNoticeMessage(e.target.value)}
               placeholder="メッセージを入力..."
               rows={3}
-              className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+              className="w-full rounded-2xl px-4 py-4 text-[14px] resize-none outline-none transition-all"
               style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
               onFocus={e => (e.target.style.borderColor = CLR.gold)}
               onBlur={e => (e.target.style.borderColor = CLR.border)}
             />
             {noticeError && <FeedbackText text={noticeError} color="red" />}
             {noticeSuccess && <FeedbackText text={noticeSuccess} color="green" />}
-            <div className="mt-3">
+            <div className="mt-4">
               <PrimaryButton onClick={sendNotice} disabled={noticeSending}>
                 {noticeSending ? "送信中..." : "送信する"}
               </PrimaryButton>
@@ -694,7 +694,7 @@ export default function StoreSettingsPage() {
             <SectionTitle title="店内通貨の単位" subtitle="全画面でチップ量の横に表示されます" />
             <div className="space-y-4">
               <div>
-                <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
+                <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>単位（例: $、pt.、chips）</p>
                 <FieldInput
                   value={chipUnitLabel}
                   onChange={setChipUnitLabel}
@@ -752,7 +752,7 @@ export default function StoreSettingsPage() {
           {/* ── 店舗の場所 ── */}
           <SectionCard>
             <SectionTitle title="店舗の場所" subtitle="プレイヤーのスケジュール画面で近い順に表示するために使用します" />
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
+            <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>郵便番号（7桁・ハイフンなし）</p>
             <FieldInput
               value={postalCode}
               onChange={v => { setPostalCode(v); setPostalCodeError(""); setPostalCodeSuccess("") }}
@@ -761,7 +761,7 @@ export default function StoreSettingsPage() {
             />
             {postalCodeError && <FeedbackText text={postalCodeError} color="red" />}
             {postalCodeSuccess && <FeedbackText text={postalCodeSuccess} color="green" />}
-            <div className="mt-3">
+            <div className="mt-4">
               <PrimaryButton onClick={savePostalCode}>保存する</PrimaryButton>
             </div>
           </SectionCard>
@@ -781,15 +781,15 @@ export default function StoreSettingsPage() {
       {isChipExpiryModalOpen && (
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
-            <div className="flex items-center justify-between mb-5">
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
+            <div className="flex items-center justify-between mb-6">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
               <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
                 className="rr-btn is-mute is-sm">閉じる</button>
             </div>
 
             <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>有効期限（ヶ月）　0で期限なし</p>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-4 mb-4">
               <div className="w-28">
                 <FieldInput
                   type="number"
@@ -803,9 +803,9 @@ export default function StoreSettingsPage() {
 
             {chipExpiryError && <FeedbackText text={chipExpiryError} color="red" />}
             {chipExpirySuccess && (
-              <div className="mb-3 rounded-2xl p-3" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+              <div className="mb-4 rounded-2xl p-4" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}>
                 <p className="text-[12px] font-bold" style={{ color: "#15803D" }}>{chipExpirySuccess}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "#16A34A" }}>通知を送信しました</p>
+                <p className="text-[11px] mt-1" style={{ color: "#16A34A" }}>通知を送信しました</p>
               </div>
             )}
             <PrimaryButton onClick={saveChipExpiry}>保存する</PrimaryButton>
@@ -817,7 +817,7 @@ export default function StoreSettingsPage() {
       {isRakeModalOpen && (
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px) + 80px)" }}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
             <div className="flex items-center justify-between mb-4">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
               <button type="button" onClick={() => setIsRakeModalOpen(false)}
@@ -838,14 +838,14 @@ export default function StoreSettingsPage() {
             )}
 
             {rakeView === "add" && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <FieldInput type="number" value={rakeAmount} onChange={setRakeAmount} placeholder="レーキ額" />
                 <textarea
                   value={rakeMemo}
                   onChange={e => setRakeMemo(e.target.value)}
                   placeholder="メモ（任意）"
                   rows={3}
-                  className="w-full rounded-2xl px-4 py-3 text-[14px] resize-none outline-none transition-all"
+                  className="w-full rounded-2xl px-4 py-4 text-[14px] resize-none outline-none transition-all"
                   style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                   onFocus={e => (e.target.style.borderColor = CLR.gold)}
                   onBlur={e => (e.target.style.borderColor = CLR.border)}
@@ -885,18 +885,18 @@ export default function StoreSettingsPage() {
                 {sortedRakeEntries.length === 0 ? (
                   <p className="term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
                 ) : (
-                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-3">
+                  <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
                     {sortedRakeEntries.map(entry => (
                       <div
                         key={entry.id}
-                        className="flex items-center justify-between rounded-2xl px-4 py-3"
+                        className="flex items-center justify-between rounded-2xl px-4 py-4"
                         style={{ background: CLR.surface }}
                       >
                         <div>
                           <p className="text-[11px]" style={{ color: CLR.gray3 }}>{formatDateTime(entry.createdAt?.seconds)}</p>
-                          {entry.memo && <p className="text-[12px] mt-0.5" style={{ color: CLR.gray2 }}>{entry.memo}</p>}
+                          {entry.memo && <p className="text-[12px] mt-1" style={{ color: CLR.gray2 }}>{entry.memo}</p>}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-4">
                           <p className="text-[14px] font-bold" style={{ color: CLR.ink }}>+{entry.amount.toLocaleString()}</p>
                           <button
                             type="button"
@@ -932,21 +932,21 @@ export default function StoreSettingsPage() {
         <div className="a-scrim flex items-end justify-center" style={{ zIndex: 120 }}>
           <div className="a-sheet w-full max-w-sm flex flex-col" style={{ maxHeight: "88vh", paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 16px)" }}>
             {/* ハンドル + ヘッダー */}
-            <div className="shrink-0 px-5 pt-4 pb-3" style={{ borderBottom: `1px solid ${CLR.border}` }}>
+            <div className="shrink-0 px-6 pt-4 pb-4" style={{ borderBottom: `1px solid ${CLR.border}` }}>
               <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>スタンプ管理</p>
                 <RingButton label="閉じる" onClick={() => setStampModalOpen(false)} icon={<FiX />} />
               </div>
               {/* 検索 */}
-              <div className="relative mb-3">
+              <div className="relative mb-4">
                 <FiSearch size={14} color={CLR.gray3} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
                 <input
                   type="text"
                   value={stampSearch}
                   onChange={e => setStampSearch(e.target.value)}
                   placeholder="名前で検索"
-                  className="w-full h-10 rounded-2xl pl-9 pr-4 text-[13px] outline-none"
+                  className="w-full h-10 rounded-2xl pl-10 pr-4 text-[13px] outline-none"
                   style={{ background: CLR.surface, border: `1.5px solid ${CLR.border}`, color: CLR.ink }}
                 />
               </div>
@@ -970,7 +970,7 @@ export default function StoreSettingsPage() {
             </div>
 
             {/* プレイヤーリスト */}
-            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+            <div className="overflow-y-auto flex-1 px-4 py-4 space-y-2">
               {stampLoading ? (
                 <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}><Loader /></div>
               ) : filteredStampPlayers.length === 0 ? (
@@ -982,7 +982,7 @@ export default function StoreSettingsPage() {
                   key={player.uid}
                   type="button"
                   onClick={() => { setEditStampPlayer(player); setEditStampCount(String(player.stampCount)) }}
-                  className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 text-left active:scale-[0.98] transition-all"
+                  className="w-full flex items-center gap-4 rounded-2xl px-4 py-4 text-left active:scale-[0.98] transition-all"
                   style={{ background: CLR.surface, border: `1px solid ${CLR.border}` }}
                 >
                   <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{ background: CLR.border }}>
@@ -994,12 +994,12 @@ export default function StoreSettingsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-semibold truncate" style={{ color: CLR.ink }}>{player.name}</p>
                     {player.lastStampAt && (
-                      <p className="text-[11px] mt-0.5" style={{ color: CLR.gray3 }}>
+                      <p className="text-[11px] mt-1" style={{ color: CLR.gray3 }}>
                         最終入店 {player.lastStampAt.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })}
                       </p>
                     )}
                   </div>
-                  <div className="shrink-0 flex items-center gap-1.5">
+                  <div className="shrink-0 flex items-center gap-2">
                     <span className="text-[20px] font-bold" style={{ color: CLR.ink }}>{player.stampCount}</span>
                     <span className="text-[11px]" style={{ color: CLR.gray3 }}>個</span>
                   </div>
@@ -1016,10 +1016,10 @@ export default function StoreSettingsPage() {
           onClick={() => setEditStampPlayer(null)}>
           <div className="a-sheet w-full max-w-sm p-6" style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
             onClick={e => e.stopPropagation()}>
-            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 18 }} />
+            <div className="a-grabber" style={{ marginTop: -8, marginBottom: 16 }} />
 
             {/* プレイヤー情報 */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: CLR.surface }}>
                 {editStampPlayer.iconUrl
                   ? <img src={editStampPlayer.iconUrl} alt={editStampPlayer.name} className="w-full h-full object-cover" />
@@ -1033,7 +1033,7 @@ export default function StoreSettingsPage() {
             </div>
 
             {/* スタンプ数コントロール */}
-            <div className="flex items-center justify-center gap-6 mb-5">
+            <div className="flex items-center justify-center gap-6 mb-6">
               <StepButton kind="minus" label="スタンプを減らす" size={48} onClick={() => setEditStampCount(v => String(Math.max(0, parseInt(v || "0", 10) - 1)))} />
 
               <input

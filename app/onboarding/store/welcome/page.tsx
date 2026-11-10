@@ -126,13 +126,13 @@ export default function StoreWelcomePage() {
         <div style={{ position:'absolute', top:`calc(42% + ${orb3y}px)`, left:`calc(28% + ${orb3x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(212,145,10,0.07) 0%,transparent 65%)', animation:'sw-glow-pulse 10s ease-in-out 4s infinite' }}/>
       </div>
 
-      <div style={{ position:'relative', zIndex:1, maxWidth:440, margin:'0 auto', padding:'0 20px 80px' }}>
+      <div style={{ position:'relative', zIndex:1, maxWidth:440, margin: '0 auto', padding: '0 24px 80px' }}>
 
         {/* ─── Hero ─── */}
-        <div style={{ textAlign:'center', paddingTop:64, paddingBottom:32 }}>
+        <div style={{ textAlign:'center', paddingTop: 64, paddingBottom: 32 }}>
 
           {/* Badge with ripple */}
-          <div style={{ position:'relative', display:'inline-block', marginBottom:28 }}>
+          <div style={{ position:'relative', display:'inline-block', marginBottom: 32 }}>
             <div className="sw-ring1"/>
             <div className="sw-ring2"/>
             <div className="sw-badge-anim" style={{ width:90, height:90, borderRadius:28, background:'linear-gradient(135deg,#F2A900 0%,#D4910A 100%)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 0 0 18px rgba(242,169,0,0.06), 0 0 56px rgba(242,169,0,0.38)', position:'relative', zIndex:1 }}>
@@ -145,12 +145,12 @@ export default function StoreWelcomePage() {
           </div>
 
           {/* 完了バッジ */}
-          <div className="sw-appear sw-d1" style={{ display:'inline-flex', alignItems:'center', gap:6, background:'rgba(52,199,89,0.1)', border:'1px solid rgba(52,199,89,0.25)', borderRadius:99, padding:'5px 14px', marginBottom:18 }}>
+          <div className="sw-appear sw-d1" style={{ display:'inline-flex', alignItems:'center', gap: 8, background:'rgba(52,199,89,0.1)', border:'1px solid rgba(52,199,89,0.25)', borderRadius:99, padding: '4px 16px', marginBottom: 16 }}>
             <span className="sw-live-dot" style={{ width:7, height:7, borderRadius:'50%', background:'#34C759', display:'inline-block', boxShadow:'0 0 6px rgba(52,199,89,0.9)' }}/>
             <span style={{ fontSize:11, fontWeight:800, color:'#34C759', letterSpacing: '0.16em', textTransform:'uppercase' }}>店舗登録完了</span>
           </div>
 
-          <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color: 'var(--label)', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom:10 }}>
+          <h1 className="font-display sw-name-anim" style={{ fontSize:30, fontWeight:900, color: 'var(--label)', letterSpacing:'-0.5px', lineHeight:1.3, marginBottom: 8 }}>
             {name ? `${name}さん、` : ''}ようこそ！
           </h1>
           <p className="sw-appear sw-d2" style={{ fontSize:14, color:'var(--label2)', lineHeight:1.85 }}>
@@ -160,19 +160,19 @@ export default function StoreWelcomePage() {
         </div>
 
         {/* ─── 機能グリッド ─── */}
-        <div className="sw-appear sw-d3" style={{ marginBottom:16 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+        <div className="sw-appear sw-d3" style={{ marginBottom: 16 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 16 }}>
             <div style={{ width:3, height:14, borderRadius:2, background:'linear-gradient(#F2A900,#D4910A)' }}/>
             <p style={{ fontSize:11, fontWeight:800, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--label3)' }}>店舗でできること</p>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap: 8 }}>
             {STORE_FEATURES.map((f, i) => (
-              <div key={i} className="sw-appear" style={{ animationDelay:`${0.8 + i * 0.1}s`, background:'#fff', border:'1px solid rgba(60,60,67,0.14)', borderRadius:18, padding:'16px 14px', backdropFilter:'blur(8px)' }}>
-                <div style={{ width:40, height:40, borderRadius:13, background:`rgba(${hexToRgb(f.color)},0.12)`, border:`1px solid rgba(${hexToRgb(f.color)},0.2)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, marginBottom:10 }}>
+              <div key={i} className="sw-appear" style={{ animationDelay:`${0.8 + i * 0.1}s`, background:'#fff', border:'1px solid rgba(60,60,67,0.14)', borderRadius:18, padding: '16px 16px', backdropFilter:'blur(8px)' }}>
+                <div style={{ width:40, height:40, borderRadius:13, background:`rgba(${hexToRgb(f.color)},0.12)`, border:`1px solid rgba(${hexToRgb(f.color)},0.2)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, marginBottom: 8 }}>
                   {f.icon}
                 </div>
-                <p style={{ fontSize:13, fontWeight:700, color:'var(--label)', marginBottom:5, lineHeight:1.3 }}>{f.title}</p>
+                <p style={{ fontSize:13, fontWeight:700, color:'var(--label)', marginBottom: 4, lineHeight:1.3 }}>{f.title}</p>
                 <p style={{ fontSize:10, color:'var(--label3)', lineHeight:1.6 }}>{f.desc}</p>
               </div>
             ))}
@@ -180,13 +180,13 @@ export default function StoreWelcomePage() {
         </div>
 
         {/* ─── ヒントカード ─── */}
-        <div className="sw-appear sw-d8" style={{ background:'rgba(242,169,0,0.07)', border:'1px solid rgba(242,169,0,0.15)', borderRadius:16, padding:'14px 16px', marginBottom:10 }}>
+        <div className="sw-appear sw-d8" style={{ background:'rgba(242,169,0,0.07)', border:'1px solid rgba(242,169,0,0.15)', borderRadius:16, padding: '16px 16px', marginBottom: 8 }}>
           <p style={{ fontSize:12, color:'rgba(242,169,0,0.85)', fontWeight:600, lineHeight:1.75 }}>
             <Lightbulb size={12} strokeWidth={2} color="#F2A900" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />プレイヤーに<strong style={{ color:'#F2A900' }}>6桁の店舗コード</strong>を共有するだけで、すぐにチェックインしてもらえます。コードは店舗管理画面で確認できます。
           </p>
         </div>
 
-        <div className="sw-appear sw-d8" style={{ background:'rgba(0,122,255,0.06)', border:'1px solid rgba(0,122,255,0.12)', borderRadius:16, padding:'14px 16px', marginBottom:28 }}>
+        <div className="sw-appear sw-d8" style={{ background:'rgba(0,122,255,0.06)', border:'1px solid rgba(0,122,255,0.12)', borderRadius:16, padding: '16px 16px', marginBottom: 32 }}>
           <p style={{ fontSize:12, color:'rgba(100,180,255,0.85)', fontWeight:600, lineHeight:1.75 }}>
             <Store size={12} strokeWidth={2} color="currentColor" aria-hidden style={{ verticalAlign: '-2px', marginRight: 4 }} />設定画面からチップ単位・店舗情報・リングブラインドをいつでも変更できます。
           </p>
@@ -201,7 +201,7 @@ export default function StoreWelcomePage() {
             </svg>
             店舗管理をはじめる
           </button>
-          <p style={{ fontSize:11, color:'var(--label3)', textAlign:'center', marginTop:12 }}>
+          <p style={{ fontSize:11, color:'var(--label3)', textAlign:'center', marginTop: 16 }}>
             各種設定はいつでも変更できます
           </p>
         </div>

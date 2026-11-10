@@ -158,7 +158,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
               maxWidth: 340,
               background: '#fff',
               borderRadius: 22,
-              padding: '20px 20px 16px',
+              padding: '24px 24px 16px',
               boxShadow: '0 8px 48px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08)',
               zIndex: 4,
               animation: 'tut-fade 0.28s cubic-bezier(0.22,1,0.36,1) both',
@@ -173,7 +173,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Step dots */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 16 }}>
               {steps.map((_, i) => (
                 <div key={i} style={{
                   width: i === currentStep ? 20 : 6,
@@ -187,12 +187,12 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
             </div>
 
             {/* Title */}
-            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 7, lineHeight: 1.3 }}>
+            <p className="term-prompt-arrow" style={{ fontSize: 16, fontWeight: 700, color: '#1C1C1E', marginBottom: 8, lineHeight: 1.3 }}>
               {step.title}
             </p>
 
             {/* Body */}
-            <p style={{ fontSize: 14, color: '#48484A', lineHeight: 1.65, marginBottom: 18 }}>
+            <p style={{ fontSize: 14, color: '#48484A', lineHeight: 1.65, marginBottom: 16 }}>
               {step.body}
             </p>
 
@@ -210,7 +210,7 @@ export default function TutorialOverlay({ steps, onDone, onSkip }: Props) {
                 onClick={advance}
                 style={{
                   height: 42,
-                  paddingInline: 28,
+                  paddingInline: 32,
                   borderRadius: 99,
                   background: 'linear-gradient(135deg,#F2A900,#D4910A)',
                   border: 'none',

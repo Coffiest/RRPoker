@@ -132,8 +132,8 @@ export default function QRScanner({ onScan, onClose }: Props) {
       </div>
 
       {/* Header */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '52px 20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '56px 24px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" />
           <span className="tech-label" style={{ color: 'rgba(255,255,255,0.55)' }}>LIVE</span>
         </div>
@@ -146,12 +146,12 @@ export default function QRScanner({ onScan, onClose }: Props) {
       </div>
 
       {/* Instructions */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px 48px', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 24px 48px', textAlign: 'center' }}>
         {error ? (
           <p className="term-prompt" style={{ fontSize: 14, color: '#FF3B30', fontWeight: 600 }}>{error}</p>
         ) : (
           <>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 6 }}>プレイヤーのQRコードを枠内に合わせてください</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 8 }}>プレイヤーのQRコードを枠内に合わせてください</p>
             <p className="term-comment" style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>自動的に読み取られます</p>
           </>
         )}

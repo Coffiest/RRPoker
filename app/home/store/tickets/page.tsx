@@ -127,12 +127,12 @@ export default function StoreTicketsPage() {
     <main className="min-h-screen pb-28" style={{ background: 'transparent' }}>
       <HomeHeader homePath="/home/store" myPagePath="/home/store/mypage" variant="store" menuItems={getCommonMenuItems(router, 'store')} />
 
-      <div className="pc-wide mx-auto max-w-sm px-5">
+      <div className="pc-wide mx-auto max-w-sm px-6">
         <div className="flex justify-center mt-6"><BackButton href="/home/store" /></div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 }}>
           <div>
             <p className="tech-label" style={{ fontSize: 10, color: 'var(--label2)', letterSpacing: '0.14em' }}>TICKETS</p>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--label)', margin: '2px 0 0' }}>チケット</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--label)', margin: '4px 0 0' }}>チケット</h1>
           </div>
           {tab === 'tickets' && <AddButton label="チケットを作る" onClick={() => { setEditErr(''); setEditing({ id: null, data: { ...EMPTY, usableStoreIds: storeId ? [storeId] : [] } }) }} />}
         </div>
@@ -151,16 +151,16 @@ export default function StoreTicketsPage() {
               <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0 0' }}>右上の + で作ると、ここから何人にでも付与できます。</p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
               {templates.map(t => (
                 <div key={t.id} className="section-card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p className="tech-label" style={{ fontSize: 9, color: '#D4910A', letterSpacing: '0.12em', margin: 0 }}>TICKET</p>
-                      <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: '2px 0 0', wordBreak: 'break-word' }}>{t.name}</p>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: '4px 0 0', wordBreak: 'break-word' }}>{t.name}</p>
                       {t.description && <p style={{ fontSize: 12, color: 'var(--label2)', margin: '4px 0 0', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{t.description}</p>}
                       <p className="tech-num" style={{ fontSize: 11, color: 'var(--label2)', margin: '8px 0 0' }}>期限: {expiryLabel(t)}</p>
-                      <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>使える店: {t.usableStoreIds.map(id => nameOf.get(id) ?? '(削除された店舗)').join(' / ')}</p>
+                      <p style={{ fontSize: 11, color: 'var(--label2)', margin: '4px 0 0' }}>使える店: {t.usableStoreIds.map(id => nameOf.get(id) ?? '(削除された店舗)').join(' / ')}</p>
                     </div>
                     <RingButton label={`${t.name}を編集`} icon={<FiEdit2 />} onClick={() => { setEditErr(''); setEditing({ id: t.id, data: { name: t.name, description: t.description ?? '', expiryMode: t.expiryMode, expiryValue: t.expiryValue ?? 30, expiryUnit: t.expiryUnit ?? 'day', expiryDate: t.expiryDate ?? null, usableStoreIds: t.usableStoreIds ?? [] } }) }} />
                     <RingButton label={`${t.name}を削除`} icon={<FiTrash2 />} onClick={() => setConfirmReq({
@@ -168,7 +168,7 @@ export default function StoreTicketsPage() {
                       run: async () => { if (storeId) { try { await deleteTemplate(storeId, t.id); showToast('削除しました', 'ok') } catch { showToast('削除できませんでした', 'error') } } },
                     })} />
                   </div>
-                  <button type="button" className="rr-btn is-solid is-block" style={{ marginTop: 12 }} onClick={() => setGranting(t)}>付与する</button>
+                  <button type="button" className="rr-btn is-solid is-block" style={{ marginTop: 16 }} onClick={() => setGranting(t)}>付与する</button>
                 </div>
               ))}
             </div>
@@ -187,12 +187,12 @@ export default function StoreTicketsPage() {
             <label style={{ display: 'block' }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)' }}>名前</span>
               <input value={ed.name} onChange={e => setEd({ name: e.target.value })} maxLength={40} placeholder="例: 参加費無料"
-                style={{ display: 'block', width: '100%', height: 44, padding: '0 12px', marginTop: 8, fontSize: 14 }} />
+                style={{ display: 'block', width: '100%', height: 44, padding: '0 16px', marginTop: 8, fontSize: 14 }} />
             </label>
             <label style={{ display: 'block' }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)' }}>詳細({ed.description.length}/200)</span>
               <textarea value={ed.description} onChange={e => setEd({ description: e.target.value.slice(0, 200) })} rows={3} placeholder="例: 土日のデイリートーナメントで 1 回使えます"
-                style={{ display: 'block', width: '100%', padding: '8px 12px', marginTop: 8, fontSize: 14, resize: 'none' }} />
+                style={{ display: 'block', width: '100%', padding: '8px 16px', marginTop: 8, fontSize: 14, resize: 'none' }} />
             </label>
             <div>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label2)' }}>有効期限</span>
@@ -204,7 +204,7 @@ export default function StoreTicketsPage() {
               {ed.expiryMode === 'relative' && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
                   <input type="number" inputMode="numeric" min={1} value={ed.expiryValue ?? ''} onChange={e => setEd({ expiryValue: e.target.value === '' ? null : Number(e.target.value) })}
-                    style={{ width: 96, height: 44, padding: '0 12px', fontSize: 14 }} />
+                    style={{ width: 96, height: 44, padding: '0 16px', fontSize: 14 }} />
                   <div className="rr-seg" style={{ flex: 1 }}>
                     <button type="button" aria-pressed={ed.expiryUnit !== 'month'} onClick={() => setEd({ expiryUnit: 'day' })}>日</button>
                     <button type="button" aria-pressed={ed.expiryUnit === 'month'} onClick={() => setEd({ expiryUnit: 'month' })}>ヶ月</button>
@@ -213,7 +213,7 @@ export default function StoreTicketsPage() {
               )}
               {ed.expiryMode === 'date' && (
                 <input type="date" value={ed.expiryDate ?? ''} onChange={e => setEd({ expiryDate: e.target.value || null })}
-                  style={{ display: 'block', width: '100%', height: 44, padding: '0 12px', marginTop: 8, fontSize: 14 }} />
+                  style={{ display: 'block', width: '100%', height: 44, padding: '0 16px', marginTop: 8, fontSize: 14 }} />
               )}
               <p className="tech-num" style={{ fontSize: 11, color: 'var(--label2)', margin: '8px 0 0' }}>{expiryLabel(ed)}</p>
             </div>
@@ -225,7 +225,7 @@ export default function StoreTicketsPage() {
                   return (
                     <button key={g.id} type="button" role="checkbox" aria-checked={on} className="rr-row"
                       onClick={() => setEd({ usableStoreIds: on ? ed.usableStoreIds.filter(x => x !== g.id) : [...ed.usableStoreIds, g.id] })}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 48, padding: '0 16px', border: 'none', borderTop: i ? '1px solid var(--sep)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 48, padding: '0 16px', border: 'none', borderTop: i ? '1px solid var(--sep)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
                       <span style={{ flex: 1, fontSize: 14, color: 'var(--label)' }}>{g.name}{g.id === storeId ? '(この店)' : ''}</span>
                       <CheckMark on={on} />
                     </button>
@@ -331,7 +331,7 @@ function GrantSheet({ template, storeId, storeName, groupIds, usableStoreNames, 
     const on = picked.some(x => x.uid === p.uid)
     return (
       <button type="button" role="checkbox" aria-checked={on} className="rr-row" onClick={() => toggle(p)}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 52, padding: '4px 12px', border: 'none', borderRadius: 12, background: on ? 'rgba(242,169,0,0.08)' : 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 52, padding: '4px 16px', border: 'none', borderRadius: 12, background: on ? 'rgba(242,169,0,0.08)' : 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
         <PlayerAvatar src={p.iconUrl} size={32} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name || '名前未設定'}</span>
@@ -347,7 +347,7 @@ function GrantSheet({ template, storeId, storeName, groupIds, usableStoreNames, 
       <AppleSheet open onClose={onClose} maxWidth={520} maxHeightVh={94} zIndex={200}
         title={<span style={{ fontSize: 17, fontWeight: 700, color: 'var(--label)' }}>「{template.name}」を付与</span>}
         footer={
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 0' }}>
             <span style={{ fontSize: 12, color: 'var(--label2)' }}>1 人</span>
             <StepButton kind="minus" onClick={() => setCount(c => Math.max(1, c - 1))} disabled={count <= 1} label="枚数を減らす" />
             <span className="tech-num" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', minWidth: 24, textAlign: 'center' }}>{count}</span>
@@ -364,17 +364,17 @@ function GrantSheet({ template, storeId, storeName, groupIds, usableStoreNames, 
               <Search size={16} strokeWidth={2} color="#545458" aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', zIndex: 1 }} />
               <input type="search" value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void search() }}
                 placeholder="名前(前から)・ID で検索" aria-label="名前・ID で検索"
-                style={{ width: '100%', height: 44, paddingLeft: 36, paddingRight: 12, fontSize: 14 }} />
+                style={{ width: '100%', height: 44, paddingLeft: 40, paddingRight: 16, fontSize: 14 }} />
             </div>
             <button type="button" className="rr-btn is-gold is-sm" onClick={() => void search()}>検索</button>
             <RingButton label="QR を読む" icon={<QrCode />} onClick={() => setScan(true)} />
           </div>
 
           {picked.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
               {picked.map(p => (
                 <button key={p.uid} type="button" className="rr-pill" onClick={() => toggle(p)} aria-label={`${p.name}を外す`}
-                  style={{ minHeight: 36, padding: '0 12px', letterSpacing: 0, textTransform: 'none', fontSize: 12 }}>
+                  style={{ minHeight: 36, padding: '0 16px', letterSpacing: 0, textTransform: 'none', fontSize: 12 }}>
                   <PlayerAvatar src={p.iconUrl} size={20} />{p.name || '名前未設定'}<FiX size={12} aria-hidden />
                 </button>
               ))}
@@ -383,7 +383,7 @@ function GrantSheet({ template, storeId, storeName, groupIds, usableStoreNames, 
 
           {searching ? <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}><Loader size={32} /></div>
             : results && (
-              <div style={{ marginTop: 12 }}>
+              <div style={{ marginTop: 16 }}>
                 <p className="tech-label" style={{ fontSize: 10, color: 'var(--label2)', letterSpacing: '0.12em', margin: '0 0 4px' }}>SEARCH RESULT</p>
                 {results.length === 0 ? <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0' }}>見つかりませんでした</p>
                   : results.map(p => <Row key={p.uid} p={p} />)}
@@ -427,7 +427,7 @@ function GrantHistory({ storeId, grants, onConfirm }: { storeId: string | null; 
         return (
           <div key={g.id} className="section-card" style={{ padding: 0, overflow: 'hidden' }}>
             <button type="button" className="rr-row" aria-expanded={open} onClick={() => setOpenId(open ? null : g.id)}
-              style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '8px 16px', border: 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 56, padding: '8px 16px', border: 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
               <PlayerAvatar src={g.playerIconUrl} size={32} />
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 14, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.playerName || '名前未設定'}</span>
@@ -436,7 +436,7 @@ function GrantHistory({ storeId, grants, onConfirm }: { storeId: string | null; 
               </span>
             </button>
             {open && (
-              <div style={{ borderTop: '1px solid var(--sep)', padding: '8px 16px 12px' }}>
+              <div style={{ borderTop: '1px solid var(--sep)', padding: '8px 16px 16px' }}>
                 {!list ? <div style={{ display: 'flex', justifyContent: 'center', padding: 8 }}><Loader size={28} /></div> : list.map((t, i) => {
                   const state = revoked.has(t.id) || !t.exists ? 'revoked' : t.isUsed ? 'used' : 'unused'
                   return (

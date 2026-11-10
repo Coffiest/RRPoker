@@ -112,7 +112,7 @@ function ActionTile({ label, icon, direction, onClick, disabled }: ActionTilePro
       onClick={onClick}
       disabled={disabled}
       style={{
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 7,
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
         height: 84, borderRadius: 22, border: "none",
         // ガラスの面。枠線ではなく、上端の光と内側の縁で輪郭を出す
         background: "rgba(255,255,255,0.62)",
@@ -1171,16 +1171,16 @@ export default function StorePage() {
     const open = !cardClosed[t.id]
     return (
     <div className="ios-card con-live-panel pc-fill" style={{ overflow: 'hidden' }}>
-      <div className="pc-fill-inner" style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
+      <div className="pc-fill-inner" style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
 
         {/* ヘッダー。稼働中なので名前の後ろにカーソルを置く。押すと開く・たたむ(ワンタップ。2026-11-09) */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 10 : 0, gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 10 : 0, gap: 8 }}>
           <button type="button" onClick={() => toggleCard(t.id)} aria-expanded={open} aria-label={`${t.name}を${open ? 'たたむ' : '開く'}`}
-            style={{ flex: 1, minWidth: 0, minHeight: 44, margin: '-10px 0', display: 'flex', alignItems: 'center', gap: 6, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+            style={{ flex: 1, minWidth: 0, minHeight: 44, margin: '-8px 0', display: 'flex', alignItems: 'center', gap: 8, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
             <ExpandIcon open={open} size={22} />
             <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
           </button>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
             <span className="tech-label" style={{ fontSize: 8.5, color: '#34C759' }}>LIVE</span>
             <span className="tech-status-dot" style={{ background: '#34C759' }} />
             <MergeGrip gripProps={gripProps} />
@@ -1190,7 +1190,7 @@ export default function StorePage() {
         <EndBadge t={t} />
         <div style={{ display: open ? undefined : 'none' }}>
         {/* Fee / Stack info */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px 6px', marginBottom: 12, padding: '8px 10px', background: 'var(--fill)', borderRadius: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px 8px', marginBottom: 16, padding: '8px 8px', background: 'var(--fill)', borderRadius: 10 }}>
           {[
             { label: 'Entry',   fee: Number(t.entryFee),   stack: Number(t.entryStack) },
             { label: 'Reentry', fee: Number(t.reentryFee), stack: Number(t.reentryStack) },
@@ -1198,13 +1198,13 @@ export default function StorePage() {
           ].map(item => (
             <div key={item.label} style={{ textAlign: 'center' }}>
               <p className="tech-label tech-label-bracket" style={{ fontSize: 8, color: 'var(--label3)', marginBottom: 4 }}>{item.label}</p>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2, marginBottom: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 4 }}>
                 <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Fee:</span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--label)' }}>
                   {item.fee > 0 ? item.fee.toLocaleString() : '—'}
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4 }}>
                 <span style={{ fontSize: 8, fontWeight: 600, color: 'var(--label2)' }}>Stack:</span>
                 <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--label2)' }}>
                   {item.stack > 0 ? item.stack.toLocaleString() : '—'}
@@ -1221,7 +1221,7 @@ export default function StorePage() {
           height: '224px',
           overflow: 'hidden',
           borderRadius: 12,
-          marginBottom: 14,
+          marginBottom: 16,
           border: '1px solid var(--sep)',
           background: '#fff',
         }}>
@@ -1248,7 +1248,7 @@ export default function StorePage() {
         </div>
 
         {/* Action buttons */}
-        <div className="tc-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+        <div className="tc-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
           {/* TIMER(タイマー画面を開く)は PC 版だけ。スマホは下の拡大ボタンを使う(オーナー指定)。 */}
           <button className="action-btn btn-gold pc-show" onClick={() => openTimer(t.id)}>
             <FiClock size={14}/> Timer
@@ -1275,7 +1275,7 @@ export default function StorePage() {
         />
 
         {/* Timer controls(PC で横に並べたとき、カードの下端にそろえる) */}
-        <div className="pc-push-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 12, borderTop: '1px solid var(--sep)' }}>
+        <div className="pc-push-bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 16, borderTop: '1px solid var(--sep)' }}>
           <button className="timer-btn" onClick={() => prevLevel(t.id)}
             style={{ width: 44, height: 44, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)' }}
           ><FiSkipBack size={17} style={{ color: 'var(--label)' }}/></button>
@@ -1283,7 +1283,7 @@ export default function StorePage() {
           <button className="timer-btn" onClick={() => toggleTimer(t.id)}
             style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 4px 14px rgba(242,169,0,0.32)' }}
           >
-            {timerRunning[t.id] ? <FiPause size={20} style={{ color: 'white' }}/> : <FiPlay size={20} style={{ color: 'white', marginLeft: 2 }}/>}
+            {timerRunning[t.id] ? <FiPause size={20} style={{ color: 'white' }}/> : <FiPlay size={20} style={{ color: 'white', marginLeft: 4 }}/>}
           </button>
 
           <button className="timer-btn" onClick={() => nextLevel(t.id)}
@@ -1306,9 +1306,9 @@ export default function StorePage() {
     const ts = ids.map(id => activeTournaments.find(x => x.id === id)).filter(Boolean) as any[]
     return (
       <div className="ios-card" style={{ overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', minHeight: 64 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '16px 16px', minHeight: 64 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            {ts.length > 1 && <p className="tech-label" style={{ fontSize: 8.5, color: '#D4910A', marginBottom: 2 }}>SPLIT · {ts.length}</p>}
+            {ts.length > 1 && <p className="tech-label" style={{ fontSize: 8.5, color: '#D4910A', marginBottom: 4 }}>SPLIT · {ts.length}</p>}
             {ts.map(t => (
               <p key={t.id} style={{ fontFamily: 'var(--stack-mono)', fontSize: 14, fontWeight: 800, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
             ))}
@@ -1330,23 +1330,23 @@ export default function StorePage() {
     const smallBtn: React.CSSProperties = { width: 38, height: 38, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', border: '1px solid var(--sep)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
     return (
       <div className="ios-card con-live-panel pc-fill" style={{ overflow: 'hidden' }}>
-        <div className="pc-fill-inner" style={{ padding: '16px 16px 14px', position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 10 }}>
+        <div className="pc-fill-inner" style={{ padding: '16px 16px 16px', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
             <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)' }}>SPLIT · {ts.length}</p>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               <span className="tech-label" style={{ fontSize: 8.5, color: '#34C759' }}>LIVE</span>
               <span className="tech-status-dot" style={{ background: '#34C759' }} />
               <MergeGrip gripProps={gripProps} />
             </span>
           </div>
           {/* 分割表示そのものを縮小して見せる */}
-          <div style={{ position: 'relative', width: '100%', height: 224, overflow: 'hidden', borderRadius: 12, marginBottom: 14, border: '1px solid var(--sep)', background: '#000' }}>
+          <div style={{ position: 'relative', width: '100%', height: 224, overflow: 'hidden', borderRadius: 12, marginBottom: 16, border: '1px solid var(--sep)', background: '#000' }}>
             <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
               style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
           </div>
           {/* 合体したタイマーの拡大は、ここの 1 つだけ(分割のまま全画面で見る) */}
           {/* TIMER · SPLIT は PC 版だけ、拡大ボタンはスマホ版だけ(オーナー指定)。 */}
-          <div className="tc-split-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div className="tc-split-row" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <button className="action-btn btn-gold pc-show" style={{ flex: 1, minWidth: 0 }} onClick={() => openSplit(ts.map(t => t.id))}>
               <FiClock size={15}/> TIMER · SPLIT
             </button>
@@ -1362,14 +1362,14 @@ export default function StorePage() {
                 {storeId && <TimerBgPicker storeId={storeId} tournamentId={t.id} value={t.timerBg ?? null} compact />}
                 <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(t.id)} style={smallBtn}><FiSkipBack size={15} style={{ color: 'var(--label)' }}/></button>
                 <button className="timer-btn" aria-label={timerRunning[t.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(t.id)} style={{ ...smallBtn, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none' }}>
-                  {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 2 }}/>}
+                  {timerRunning[t.id] ? <FiPause size={16} style={{ color: 'white' }}/> : <FiPlay size={16} style={{ color: 'white', marginLeft: 4 }}/>}
                 </button>
                 <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(t.id)} style={smallBtn}><FiSkipForward size={15} style={{ color: 'var(--label)' }}/></button>
               </div>
               {/* 大会名の下に、開始・RC・終了 */}
               <ClockLine t={t} style={{ margin: '0 0 0 4px' }} />
               {/* 単体のカードと同じ操作 */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginTop: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 8 }}>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => openAdjustModal(t.id, getLiveLevelState(t).remainingSec, (t.customBlindLevels && t.customBlindLevels.length > 0) ? t.customBlindLevels : presetMap[t.blindPresetId]?.levels ?? null)}><FiEdit2 size={13}/> ADJUST</button>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPlayerModal(t.id)}><FiUsers size={13}/> PLAYERS</button>
                 <button className="action-btn btn-gold" style={{ height: 36, fontSize: 11 }} onClick={() => setShowPrizeModal(t.id)}><FiDollarSign size={13}/> PAY OUT</button>
@@ -1450,7 +1450,7 @@ export default function StorePage() {
           font-family:var(--stack-mono);
           font-size:10.5px; font-weight:700; letter-spacing:.18em;
           text-transform:uppercase; color:var(--label3);
-          padding:0 0 7px; margin-bottom:12px;
+          padding: 0 0 8px; margin-bottom:16px;
           display:flex; align-items:center; gap:8px;
         }
         .section-hd::before { content:"//"; color:#F2A900; opacity:.75; }
@@ -1466,7 +1466,7 @@ export default function StorePage() {
 
         /* Stat chip */
         .stat-chip {
-          background:#F2F2F7; border-radius:12px; padding:10px 8px; text-align:center;
+          background:#F2F2F7; border-radius:12px; padding:8px 8px; text-align:center;
           font-family:var(--stack-mono); font-variant-numeric:tabular-nums slashed-zero;
         }
 
@@ -1475,7 +1475,7 @@ export default function StorePage() {
           height:46px; border-radius:12px; border:none; cursor:pointer;
           font-family:var(--stack-mono);
           font-size:12.5px; font-weight:700; letter-spacing:.10em; text-transform:uppercase;
-          display:flex; align-items:center; justify-content:center; gap:7px;
+          display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .12s ease, opacity .12s ease, filter .12s ease;
         }
         .action-btn:active { transform:scale(0.965); opacity:.9; filter:brightness(.95); }
@@ -1505,21 +1505,21 @@ export default function StorePage() {
         /* Player row */
         .player-row {
           display:flex; align-items:center; justify-content:space-between;
-          padding:12px 14px; background:#fff; transition:background .12s;
+          padding:16px 16px; background:#fff; transition:background .12s;
         }
         .player-row:not(:last-child) { border-bottom:1px solid var(--sep); }
         .player-row:active { background:#F2F2F7; }
 
         /* Tab bar */
         .tab-item {
-          flex:1; padding:10px 0; font-size:13px; font-weight:600;
+          flex:1; padding:8px 0; font-size:13px; font-weight:600;
           background:none; border:none; cursor:pointer; position:relative;
           transition:color .15s;
         }
 
         /* Request card */
         .req-card {
-          background:#fff; border-radius:16px; padding:14px;
+          background:#fff; border-radius:16px; padding:16px;
           box-shadow:0 1px 4px rgba(0,0,0,0.05);
         }
         .req-action {
@@ -1531,7 +1531,7 @@ export default function StorePage() {
 
         /* Pending player */
         .pending-row {
-          background:#F2F2F7; border-radius:14px; padding:12px 14px;
+          background:#F2F2F7; border-radius:14px; padding:16px 16px;
           display:flex; align-items:center; justify-content:space-between;
         }
 
@@ -1564,15 +1564,15 @@ export default function StorePage() {
         menuItems={getCommonMenuItems(router, "store")}
       />
       <AppleSheet open={splitOpen} onClose={() => setSplitOpen(false)} title="SPLIT VIEW">
-        <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 0 14px', lineHeight: 1.6 }}>1 つの画面に並べるタイマーを、2〜4 個選んでください。2 個は左右、3 個は横に 3 つ、4 個は 4 分割で表示します。</p>
-        <div className="ios-card" style={{ overflow: 'hidden', marginBottom: 20 }}>
+        <p style={{ fontSize: 13, color: 'var(--label2)', margin: '0 0 16px', lineHeight: 1.6 }}>1 つの画面に並べるタイマーを、2〜4 個選んでください。2 個は左右、3 個は横に 3 つ、4 個は 4 分割で表示します。</p>
+        <div className="ios-card" style={{ overflow: 'hidden', marginBottom: 24 }}>
           {activeTournaments.map((t, i) => {
             const on = splitIds.includes(t.id)
             const full = !on && splitIds.length >= 4
             return (
               <button key={t.id} type="button" role="checkbox" aria-checked={on} disabled={full} className="rr-row"
                 onClick={() => setSplitIds(ids => on ? ids.filter(x => x !== t.id) : [...ids, t.id])}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 52, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid var(--sep)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 52, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid var(--sep)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
                 <span className="tech-label" style={{ fontSize: 8.5, color: timerRunning[t.id] ? '#34C759' : 'var(--label3)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
                 <CheckMark on={on} />
@@ -1618,7 +1618,7 @@ export default function StorePage() {
               if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && dx > 0) setSwitcherOpen(p => !p)
             }}
           >
-            <div style={{ padding: '18px 18px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ padding: '16px 16px 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
               {/* Store icon — double-tap to toggle switcher, long-press to show picker */}
               {store?.iconUrl ? (
                 <div
@@ -1642,14 +1642,14 @@ export default function StorePage() {
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* 稼働中であることを示す脈打つ点と、等幅の店舗名。 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <span className="tech-status-dot" />
                   <span className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)' }}>STORE ONLINE</span>
                 </div>
-                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 7, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</p>
+                <p className="font-display" style={{ fontSize: 18, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{store?.name ?? ""}</p>
                 <button onClick={copyCode}
                   className="con-btn"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '6px 12px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: copiedCode ? 'rgba(52,199,89,0.12)' : 'rgba(255,255,255,0.6)', borderRadius: 999, padding: '8px 16px', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', cursor: 'pointer', transition: 'background 240ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
                   <span className="tech-label" style={{ fontSize: 8.5, color: 'var(--label3)' }}>CODE</span>
                   <span className="con-mono" style={{ fontSize: 12, fontWeight: 700, color: copiedCode ? '#28A745' : 'var(--label2)', letterSpacing: '0.08em' }}>{store?.code ?? ""}</span>
@@ -1688,7 +1688,7 @@ export default function StorePage() {
 
             {/* ── アカウントスイッチャー (スワイプ/ダブルタップで展開) ── */}
             <div style={{ maxHeight: switcherOpen ? 80 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
-              <div style={{ borderTop: '1px solid var(--sep)', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px' }}>
+              <div style={{ borderTop: '1px solid var(--sep)', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px' }}>
                 {ownedStores.map(s => (
                   <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: '50%', padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F2A900' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
                     {s.iconUrl
@@ -1708,10 +1708,10 @@ export default function StorePage() {
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 1500 }} onClick={() => setShowStorePicker(false)}/>
               <div className="a-dialog" style={{ position: 'fixed', top: pickerTop, left: 'max(16px, calc(50% - 224px))', zIndex: 1501, padding: 16, minWidth: 220, transformOrigin: 'top left' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 16 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {ownedStores.map(s => (
-                    <button key={s.id} onClick={() => switchStore(s.id)} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left' }}>
+                    <button key={s.id} onClick={() => switchStore(s.id)} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 8, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left' }}>
                       {s.iconUrl
                         ? <img src={s.iconUrl} alt={s.name} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}/>
                         : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
@@ -1724,9 +1724,9 @@ export default function StorePage() {
                     </button>
                   ))}
                 </div>
-                <div style={{ height: 1, background: 'var(--sep)', margin: '10px 0' }}/>
+                <div style={{ height: 1, background: 'var(--sep)', margin: '8px 0' }}/>
 {isTrueOwner && (
-                <button onClick={() => { setShowStorePicker(false); router.push('/home/store/branch/new') }} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left', background: 'transparent' }}>
+                <button onClick={() => { setShowStorePicker(false); router.push('/home/store/branch/new') }} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 8px', width: '100%', textAlign: 'left', background: 'transparent' }}>
                   <span style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><AddIcon size={32} /></span>
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>系列店を追加</p>
                 </button>)}
@@ -1737,8 +1737,8 @@ export default function StorePage() {
         </div>
 
         {/* ── Tournaments ── */}
-        <div className="su d1" style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
+        <div className="su d1" style={{ marginTop: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 4px' }}>
             <p className="section-hd" style={{ marginBottom: 0 }}>Today's Tournaments</p>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             {activeTournaments.length >= 2 && (
@@ -1748,7 +1748,7 @@ export default function StorePage() {
               </button>
             )}
             {activeTournaments.length > 0 && (
-              <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '3px 9px' }}>
+              <span className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 11, fontWeight: 700, color: '#34C759', background: 'rgba(52,199,89,0.10)', border: '1px solid rgba(52,199,89,0.22)', borderRadius: 8, padding: '4px 8px' }}>
                 <span className="tech-status-dot" style={{ background: '#34C759' }} />
                 {activeTournaments.length} ACTIVE
               </span>
@@ -1757,8 +1757,8 @@ export default function StorePage() {
           </div>
 
           {activeTournaments.length === 0 ? (
-            <div className="ios-card" style={{ padding: '32px 20px', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+            <div className="ios-card" style={{ padding: '32px 24px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
                 <FiClock size={22} style={{ color: 'var(--label3)' }}/>
               </div>
               <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
@@ -1788,7 +1788,7 @@ export default function StorePage() {
                 {expandSplitCtrl && (
                   <div onPointerDown={() => setExpandSplitTouch(n => n + 1)} style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-                    borderTop: '1px solid rgba(255,255,255,0.10)', padding: '10px 16px 14px', display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto',
+                    borderTop: '1px solid rgba(255,255,255,0.10)', padding: '8px 16px 16px', display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto',
                   }}>
                     <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                       <RingButton light label="閉じる" onClick={close} icon={<FiX />} />
@@ -1796,12 +1796,12 @@ export default function StorePage() {
                     </div>
                     {/* タイマーごとの操作(画面の並びと同じ順) */}
                     {ets.map(et => (
-                      <div key={et.id} style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <div key={et.id} style={{ flex: 1, minWidth: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                         <span style={{ maxWidth: '100%', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{et.name}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <button className="timer-btn" aria-label="前のレベル" onClick={() => prevLevel(et.id)} style={circle()}><FiSkipBack size={15} style={{ color: '#fff' }} /></button>
                           <button className="timer-btn" aria-label={timerRunning[et.id] ? '一時停止' : '再生'} onClick={() => toggleTimer(et.id)} style={circle(true)}>
-                            {timerRunning[et.id] ? <FiPause size={18} style={{ color: '#fff' }} /> : <FiPlay size={18} style={{ color: '#fff', marginLeft: 2 }} />}
+                            {timerRunning[et.id] ? <FiPause size={18} style={{ color: '#fff' }} /> : <FiPlay size={18} style={{ color: '#fff', marginLeft: 4 }} />}
                           </button>
                           <button className="timer-btn" aria-label="次のレベル" onClick={() => nextLevel(et.id)} style={circle()}><FiSkipForward size={15} style={{ color: '#fff' }} /></button>
                         </div>
@@ -1851,13 +1851,13 @@ export default function StorePage() {
                     backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
                     borderTop: '1px solid rgba(255,255,255,0.10)',
-                    padding: '10px 16px 14px',
+                    padding: '8px 16px 16px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                   }}>
                     {/* 左: CLOSE + HIDE */}
-                    <div style={{ display: 'flex', gap: 10 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiX size={17} style={{ color: '#fff' }} />
@@ -1873,7 +1873,7 @@ export default function StorePage() {
                     </div>
 
                     {/* 中央: タイマー制御 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <button className="timer-btn rr-ctl" onClick={() => prevLevel(et.id)} style={btnBase}>
                         <div style={iconCircle()}>
                           <FiSkipBack size={17} style={{ color: '#fff' }} />
@@ -1884,7 +1884,7 @@ export default function StorePage() {
                         <div style={iconCircle(true)}>
                           {timerRunning[et.id]
                             ? <FiPause size={20} style={{ color: '#fff' }} />
-                            : <FiPlay size={20} style={{ color: '#fff', marginLeft: 2 }} />}
+                            : <FiPlay size={20} style={{ color: '#fff', marginLeft: 4 }} />}
                         </div>
                         <span style={{ ...labelStyle, color: 'rgba(242,169,0,0.8)' }}>
                           {timerRunning[et.id] ? 'PAUSE' : 'START'}
@@ -1899,7 +1899,7 @@ export default function StorePage() {
                     </div>
 
                     {/* 右: アクション */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                       <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: getLiveLevelState(et).remainingSec })); setExpandAdjustOpen(true) }} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiEdit3 size={15} style={{ color: '#fff' }} />
@@ -1930,16 +1930,16 @@ export default function StorePage() {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
               <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0', background: '#fff', display: 'flex', flexDirection: 'column', boxShadow: '0 -4px 16px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
 
                 {/* Drag Handle */}
-                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 0, flexShrink: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, paddingBottom: 0, flexShrink: 0 }}>
                   <div style={{ width: 36, height: 4, borderRadius: 99, background: '#D1D1D6' }} />
                 </div>
 
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid #F2F2F7', flexShrink: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => { setExpandAdjustOpen(false); setExpandedTimerId(null); router.push(`/home/store/tournaments?edit=${et.id}`) }}
@@ -1953,7 +1953,7 @@ export default function StorePage() {
                 </div>
 
                 {/* Content - Scrollable */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
                   {/* Time Display */}
                   <div style={{ textAlign: 'center' }}>
@@ -1972,7 +1972,7 @@ export default function StorePage() {
                   />
 
                   {/* Quick Adjust Buttons */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map((b, i) => (
                       <button key={i} onClick={() => updateAdjustTime(et.id, b.diff)}
                         style={{ height: 44, borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#F2F2F7', color: b.diff > 0 ? '#1C1C1E' : '#1C1C1E', boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'none', transition: 'all 0.18s ease-out' }}
@@ -1993,7 +1993,7 @@ export default function StorePage() {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
               <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
                 <PlayerManageModal
                   tournamentId={et.id}
@@ -2013,7 +2013,7 @@ export default function StorePage() {
           const et = activeTournaments.find(t => t.id === expandedTimerId)
           if (!et) return null
           return (
-            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 20px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '0 16px 24px', background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' }}>
               <div style={{ width: '100%', maxWidth: 480, maxHeight: '92vh', borderRadius: '24px 24px 0 0' }}>
                 <PrizeDistributeModal
                   tournamentId={et.id}
@@ -2042,7 +2042,7 @@ export default function StorePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--label)', margin: 0 }}>Adjust</p>
-                    <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
+                    <p style={{ fontSize: 11, color: 'var(--label2)', margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                   </div>
                   {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
                   <button type="button" onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
@@ -2058,7 +2058,7 @@ export default function StorePage() {
                 </button>
               }
             >
-              <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 3, marginBottom: 16 }}>
+              <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 4, marginBottom: 16 }}>
                 {segBtn('time', 'タイム調整')}{segBtn('blind', 'ブラインド設定')}
               </div>
               {tab === 'time' ? (
@@ -2089,15 +2089,15 @@ export default function StorePage() {
 
         {/* ── Withdraw Requests ── */}
         {withdrawRequests.length > 0 && (
-          <div className="su d2" style={{ marginTop: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+          <div className="su d2" style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 4px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>引き出しリクエスト</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#FF3B30', borderRadius: 99, padding: '2px 7px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{withdrawRequests.length}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#FF3B30', borderRadius: 99, padding: '4px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{withdrawRequests.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {withdrawRequests.map((req, idx) => (
-                <div key={req.id} style={{ padding: '14px 16px', borderBottom: idx < withdrawRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div key={req.id} style={{ padding: '16px 16px', borderBottom: idx < withdrawRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <FiMinus size={14} style={{ color: '#FF3B30' }}/>
@@ -2106,7 +2106,7 @@ export default function StorePage() {
                     </div>
                     <p style={{ fontSize: 18, fontWeight: 900, color: '#FF3B30', letterSpacing: '-0.3px' }}>{req.amount.toLocaleString()}</p>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
                     {[
                       { label: 'Buy-in', type: 'buyin' as const },
                       { label: 'トナメ E', type: 'tE' as const },
@@ -2123,10 +2123,10 @@ export default function StorePage() {
                     ))}
                   </div>
                   {withdrawOtherOpenId === req.id && (
-                    <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <RrCheckbox checked={withdrawOtherNetGain} onChange={setWithdrawOtherNetGain} style={{ fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>純増する</RrCheckbox>
                       <input value={withdrawOtherComment} onChange={e => setWithdrawOtherComment(e.target.value)}
-                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveWithdrawWithType(req, "other")}
@@ -2143,26 +2143,26 @@ export default function StorePage() {
         {/* ── Deposit Requests ── */}
         {depositRequests.length > 0 && (
           <div className="su d2" style={{ marginTop: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 4px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>預け入れリクエスト</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#34C759', borderRadius: 99, padding: '2px 7px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{depositRequests.length}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#fff', background: '#34C759', borderRadius: 99, padding: '4px 8px', animation: 'badge-pop .4s cubic-bezier(.22,1,.36,1)' }}>{depositRequests.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {depositRequests.map((req, idx) => (
-                <div key={req.id} style={{ padding: '14px 16px', borderBottom: idx < depositRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div key={req.id} style={{ padding: '16px 16px', borderBottom: idx < depositRequests.length - 1 ? '1px solid var(--sep)' : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(52,199,89,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <FiPlus size={14} style={{ color: '#34C759' }}/>
                       </div>
                       <div>
                         <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{playerMap[req.playerId]?.name ?? req.playerId}</p>
-                        {req.comment && <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 1 }}>{req.comment}</p>}
+                        {req.comment && <p style={{ fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>{req.comment}</p>}
                       </div>
                     </div>
                     <p style={{ fontSize: 18, fontWeight: 900, color: '#34C759', letterSpacing: '-0.3px' }}>{req.amount.toLocaleString()}</p>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                     {[
                       { label: 'Cash Out', type: 'cashout' as const },
                       { label: 'チップ購入', type: 'chip' as const },
@@ -2177,10 +2177,10 @@ export default function StorePage() {
                     ))}
                   </div>
                   {depositOtherOpenId === req.id && (
-                    <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ marginTop: 8, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                       <RrCheckbox checked={depositOtherNetGain} onChange={setDepositOtherNetGain} style={{ fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>純増する</RrCheckbox>
                       <input value={depositOtherComment} onChange={e => setDepositOtherComment(e.target.value)}
-                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
+                        style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 16px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveDepositWithType(req, "other")}
@@ -2197,26 +2197,26 @@ export default function StorePage() {
         {/* ── Pending Players ── */}
         {pendingPlayers.length > 0 && (
           <div className="su d3" style={{ marginTop: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, padding: '0 2px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, padding: '0 4px' }}>
               <p className="section-hd" style={{ marginBottom: 0 }}>入店申請</p>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#1a1a1a', background: '#FFD60A', borderRadius: 99, padding: '2px 7px' }}>{pendingPlayers.length}</span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#1a1a1a', background: '#FFD60A', borderRadius: 99, padding: '4px 8px' }}>{pendingPlayers.length}</span>
             </div>
             <div className="ios-card" style={{ overflow: 'hidden' }}>
               {pendingPlayers.map((player, idx) => (
-                <div key={player.id} style={{ padding: '12px 16px', borderBottom: idx < pendingPlayers.length - 1 ? '1px solid var(--sep)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
+                <div key={player.id} style={{ padding: '16px 16px', borderBottom: idx < pendingPlayers.length - 1 ? '1px solid var(--sep)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setProfileUid(player.id)}>
                     <PlayerAvatar src={player.iconUrl} size={38} />
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{player.name}</p>
-                      <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 1 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
+                      <p style={{ fontSize: 10, color: 'var(--label2)', marginTop: 4 }}>来店 {player.visitCount ?? 0}回 · 前回 {formatDateTime(player.lastVisitedAt)}</p>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => approvePlayer(player.id)}
-                      className="rr-btn is-green is-sm" style={{ padding: '0 12px' }}
+                      className="rr-btn is-green is-sm" style={{ padding: '0 16px' }}
                     >許可</button>
                     <button onClick={() => rejectPlayer(player.id)}
-                      className="rr-btn is-mute is-sm" style={{ padding: '0 12px' }}
+                      className="rr-btn is-mute is-sm" style={{ padding: '0 16px' }}
                     >却下</button>
                   </div>
                 </div>
@@ -2231,7 +2231,7 @@ export default function StorePage() {
           {/* Section header + stats */}
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 8 }}>
             <p className="section-hd" style={{ marginBottom: 0, letterSpacing: 0.5 }}>Players</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               {/* Total balance of in-store players */}
               {inPlayers.length > 0 && (
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--label)', fontVariantNumeric: 'tabular-nums' }}>
@@ -2251,7 +2251,7 @@ export default function StorePage() {
                 </button>
               )}
               {/* In-store count badge */}
-              <span style={{ fontSize: 12, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '4px 10px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
+              <span style={{ fontSize: 12, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '4px 8px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
                 {inPlayers.length}名
               </span>
             </div>
@@ -2261,13 +2261,13 @@ export default function StorePage() {
           <div className="ios-card" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.08)', borderRadius: 20 }}>
 
             {/* Search */}
-            <div style={{ padding: '10px 10px 0' }}>
+            <div style={{ padding: '8px 8px 0' }}>
               <div style={{ position: 'relative' }}>
                 <FiSearch size={15} style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--label2)', pointerEvents: 'none' }}/>
                 <input
                   type="text" value={playerSearchInput} onChange={e => setPlayerSearchInput(e.target.value)}
                   placeholder="名前・IDで検索…"
-                  style={{ width: '100%', height: 36, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 36, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
+                  style={{ width: '100%', height: 36, borderRadius: 13, border: 'none', background: 'var(--fill)', paddingLeft: 40, paddingRight: playerSearchInput ? 36 : 13, fontSize: 14, color: 'var(--label)', outline: 'none', boxSizing: 'border-box', transition: 'background 0.2s ease' }}
                 />
                 {playerSearchInput && (
                   <button onClick={() => setPlayerSearchInput("")} style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', width: 22, height: 22, borderRadius: '50%', background: 'rgba(60,60,67,0.3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s ease' }}>
@@ -2278,7 +2278,7 @@ export default function StorePage() {
                   <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, marginTop: 8, background: '#fff', borderRadius: 15, boxShadow: '0 10px 40px rgba(0,0,0,0.12)', border: '1px solid var(--sep)', overflow: 'hidden' }}>
                     {filteredPlayers.map((p, i) => (
                       <button key={p.id} onClick={() => selectPlayer(p.id)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 11, width: '100%', padding: '12px 15px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer', transition: 'background 0.15s ease' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '16px 16px', textAlign: 'left', background: 'none', border: 'none', borderBottom: i < filteredPlayers.length - 1 ? '1px solid var(--sep)' : 'none', cursor: 'pointer', transition: 'background 0.15s ease' }}
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(242,169,0,0.02)'}
                         onMouseLeave={e => e.currentTarget.style.background = 'none'}
                       >
@@ -2292,7 +2292,7 @@ export default function StorePage() {
             </div>
 
             {/* Segmented tabs */}
-            <div style={{ padding: '8px 10px 8px' }}>
+            <div style={{ padding: '8px 8px 8px' }}>
               <div className="rr-seg">
                 {(['in', 'out'] as const).map(tab => (
                   <button key={tab} type="button" onClick={() => setActiveTab(tab)} aria-pressed={activeTab === tab}>
@@ -2335,22 +2335,22 @@ export default function StorePage() {
 
                       {/* 名前と ID / 残高と収支 */}
                       <button type="button" className="sp-hit" onClick={() => setProfileUid(player.id)} style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                        <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+                        <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, minWidth: 0 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: player.name ? 'var(--label)' : 'var(--label2)', letterSpacing: '-0.2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{player.name || '名前未設定'}</span>
                           {pid && <span className="tech-num" style={{ fontSize: 10, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>@{pid}</span>}
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                           <span className="tech-num" style={{ fontSize: 14, fontWeight: 800, color: 'var(--label)', letterSpacing: '-0.3px' }}>
                             {fmtChip(player.balance, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
-                          <span className="tech-num" style={{ fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 6, color: player.netGain >= 0 ? '#1E7B34' : '#C62828', background: player.netGain >= 0 ? 'rgba(52,199,89,0.12)' : 'rgba(255,59,48,0.10)' }}>
+                          <span className="tech-num" style={{ fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 6, color: player.netGain >= 0 ? '#1E7B34' : '#C62828', background: player.netGain >= 0 ? 'rgba(52,199,89,0.12)' : 'rgba(255,59,48,0.10)' }}>
                             {player.netGain >= 0 ? '+' : ''}{fmtChip(player.netGain, store?.chipUnitLabel, store?.chipUnitBefore)}
                           </span>
                         </span>
                       </button>
 
                       {/* 操作: 履歴・チップの増減・退店(入店) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         <button type="button" className="sp-btn" onClick={() => setHistoryPlayerId(player.id)} aria-label="履歴" title="履歴"><FiClock size={16} aria-hidden /></button>
                         <button type="button" className="sp-btn is-gold" onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }} aria-label="チップを増減" title="チップを増減"><FiDollarSign size={17} strokeWidth={2.4} aria-hidden /></button>
                         {player.isInStore ? (
@@ -2376,7 +2376,7 @@ export default function StorePage() {
                   })}
                   </div>
                   {merged.length === 0 && (
-                    <div className="rr-dots" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 10, margin: 8 }}>
+                    <div className="rr-dots" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 8, margin: 8 }}>
                       <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <FiUsers size={24} style={{ color: 'var(--label2)' }}/>
                       </div>
@@ -2390,7 +2390,7 @@ export default function StorePage() {
                   )}
                   {list.length > storePlayersPage * pageSize && (
                     <button onClick={() => setStorePlayersPage(p => p + 1)} className="rr-pill"
-                      style={{ display: 'flex', margin: '12px auto 4px' }}
+                      style={{ display: 'flex', margin: '16px auto 4px' }}
                     >
                       もっと見る <FiChevronDown size={14} style={{ transition: 'transform 0.2s ease' }}/>
                     </button>
@@ -2406,13 +2406,13 @@ export default function StorePage() {
       <StoreBottomNav />
 
       {/* ── Footer ── */}
-      <footer style={{ padding: '0 20px 44px', textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
-        <div style={{ height: 1, background: 'var(--sep)', marginBottom: 20 }}/>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
+      <footer style={{ padding: '0 24px 48px', textAlign: 'center', maxWidth: 480, margin: '0 auto' }}>
+        <div style={{ height: 1, background: 'var(--sep)', marginBottom: 24 }}/>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
 
         </div>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>ver 1.11.0</p>
-        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 3 }}>RRPoker by Runner Runner</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 4 }}>ver 1.11.0</p>
+        <p style={{ fontSize: 10, color: 'var(--label3)', marginBottom: 4 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize: 10, color: 'var(--label3)' }}>製作者 : なおゆき</p>
         <div style={{ marginTop: 16 }}>
         </div>
@@ -2427,13 +2427,13 @@ export default function StorePage() {
             onClick={e => e.stopPropagation()}>
 
             {/* Drag handle */}
-            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8, flexShrink: 0 }}>
               <div style={{ width: 36, height: 4, borderRadius: 99, background: 'var(--sep)' }}/>
             </div>
 
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 16px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {adjustModalPlayer.iconUrl
                   ? <img src={adjustModalPlayer.iconUrl} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }}/>
                   : <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(242,169,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -2444,7 +2444,7 @@ export default function StorePage() {
                   <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', margin: 0 }}>
                     {adjustModalPlayer.name || '不明なプレイヤー'}
                   </p>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold-dk)', margin: '2px 0 0', fontVariantNumeric: 'tabular-nums' }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--gold-dk)', margin: '4px 0 0', fontVariantNumeric: 'tabular-nums' }}>
                     {fmtChip(liveAdjustPlayer?.balance ?? 0, store?.chipUnitLabel, store?.chipUnitBefore)}
                   </p>
                 </div>
@@ -2453,13 +2453,13 @@ export default function StorePage() {
             </div>
 
             {/* Body */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px 0' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 0' }}>
 
               {/* Amount input — Apple Cash／Wallet 風の大きな金額表示 */}
-              <div style={{ marginBottom: 20 }}>
+              <div style={{ marginBottom: 24 }}>
                 <div className="rr-input-shell" style={{
                   position: 'relative', background: 'var(--fill)', borderRadius: 18,
-                  padding: '22px 44px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 3,
+                  padding: '24px 48px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4,
                 }}>
                   {store?.chipUnitBefore && store?.chipUnitLabel && (
                     <span style={{ fontSize: 22, fontWeight: 700, color: adjustValue ? 'var(--label2)' : 'var(--label3)' }}>{store.chipUnitLabel}</span>
@@ -2517,7 +2517,7 @@ export default function StorePage() {
                   onClick={runPrizeAdjustment}
                   style={{
                     width: '100%', height: 52, borderRadius: 16, border: '1px solid var(--sep)', background: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, cursor: 'pointer', padding: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', padding: 0,
                     WebkitTapHighlightColor: 'transparent', transition: 'background 0.15s ease, transform 0.12s ease',
                   }}
                   onPointerDown={e => { e.currentTarget.style.background = 'var(--fill)'; e.currentTarget.style.transform = 'scale(0.98)' }}
@@ -2533,10 +2533,10 @@ export default function StorePage() {
 
               {/* 手動調整 */}
               <div style={{ borderTop: '1px solid var(--sep)', paddingTop: 16, marginBottom: 4 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 10px' }}>手動調整</p>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--label3)', margin: '0 0 8px' }}>手動調整</p>
 
                 {/* コメント */}
-                <div className="rr-input-shell" style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--fill)', borderRadius: 12, padding: '0 12px', marginBottom: 10 }}>
+                <div className="rr-input-shell" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--fill)', borderRadius: 12, padding: '0 16px', marginBottom: 8 }}>
                   <FiMessageSquare size={14} style={{ color: 'var(--label3)', flexShrink: 0 }}/>
                   <input
                     value={manualComment} onChange={e => setManualComment(e.target.value)}
@@ -2545,12 +2545,12 @@ export default function StorePage() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                   <ActionTile label="手動プラス" direction="add" icon={<FiPlus size={16} style={{ color: '#34C759' }}/>} onClick={() => runAdjustment('add', manualNetGain)} />
                   <ActionTile label="手動マイナス" direction="subtract" icon={<FiMinus size={16} style={{ color: '#FF3B30' }}/>} onClick={() => runAdjustment('subtract', manualNetGain)} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', background: 'var(--fill)', borderRadius: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px', background: 'var(--fill)', borderRadius: 14 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--label)' }}>純増値も更新</span>
                   <ToggleSwitch checked={manualNetGain} onChange={setManualNetGain} />
                 </div>
@@ -2568,17 +2568,17 @@ export default function StorePage() {
           onClick={() => setNegativeConfirmAction(null)}>
           <div style={{ width: '100%', maxWidth: 320, background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.25)' }}
             onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '28px 20px 16px', textAlign: 'center' }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+            <div style={{ padding: '32px 24px 16px', textAlign: 'center' }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(255,59,48,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <FiAlertTriangle size={24} style={{ color: '#FF3B30' }}/>
               </div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', marginBottom: 6 }}>バンクロールがマイナスになります</p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--label)', marginBottom: 8 }}>バンクロールがマイナスになります</p>
               <p style={{ fontSize: 13, color: 'var(--label2)', lineHeight: 1.5 }}>
                 変更後の残高: {fmtChip(negativeConfirmAction.resultingBalance, store?.chipUnitLabel, store?.chipUnitBefore)}
                 <br/>このまま続行しますか？
               </p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, padding: '0 16px 24px' }}>
               <button
                 onClick={() => setNegativeConfirmAction(null)}
                 className="rr-btn is-mute" style={{ minHeight: 48 }}
@@ -2621,7 +2621,7 @@ export default function StorePage() {
       {/* QR入店結果トースト */}
       {qrCheckinResult && (
         <div style={{ position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)', zIndex: 400, maxWidth: 320, width: 'calc(100% - 40px)' }}>
-          <div style={{ borderRadius: 20, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', animation: 'slideUp .35s cubic-bezier(.22,1,.36,1)', background: qrCheckinResult.success ? 'linear-gradient(135deg,#1C1C1E,#2C2C2E)' : 'linear-gradient(135deg,#FF3B30,#CC2200)' }}>
+          <div style={{ borderRadius: 20, padding: '16px 16px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', animation: 'slideUp .35s cubic-bezier(.22,1,.36,1)', background: qrCheckinResult.success ? 'linear-gradient(135deg,#1C1C1E,#2C2C2E)' : 'linear-gradient(135deg,#FF3B30,#CC2200)' }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: qrCheckinResult.success ? 'rgba(52,199,89,0.18)' : 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {qrCheckinResult.success
                 ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -2632,7 +2632,7 @@ export default function StorePage() {
               <p style={{ fontSize: 13, fontWeight: 700, color: 'white', letterSpacing: '-0.1px' }}>
                 {qrCheckinResult.success ? `${qrCheckinResult.name || 'プレイヤー'} が入店しました` : 'QRコードが無効です'}
               </p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 2 }}>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
                 {qrCheckinResult.success ? '入店が承認されました' : 'RRPokerのQRコードを読み取ってください'}
               </p>
             </div>

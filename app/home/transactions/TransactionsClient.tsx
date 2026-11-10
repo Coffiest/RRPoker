@@ -252,26 +252,26 @@ export default function TransactionsClient() {
     return (
       <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 100 }}>
+      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 104 }}>
         <style>{CSS}</style>
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
-        <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 20px' }}>
+        <div style={{ maxWidth: 390, margin: '0 auto', padding: '0 24px' }}>
           {/* Header row */}
-          <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 28 }}>
+          <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 32 }}>
             <BackButton />
             <h1 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E' }}>入店QRコード</h1>
             <div style={{ width: 36 }} />
           </div>
 
           {/* QR card */}
-          <div className="tx-slide-2" style={{ background: '#fff', borderRadius: 22, padding: '28px 24px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '5px 14px', marginBottom: 24 }}>
+          <div className="tx-slide-2" style={{ background: '#fff', borderRadius: 22, padding: '32px 24px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', textAlign: 'center' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.1)', border: '1px solid rgba(242,169,0,0.25)', borderRadius: 99, padding: '4px 16px', marginBottom: 24 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#F2A900', display: 'inline-block' }} />
               <span className="tech-label tech-label-bracket" style={{ fontSize: 11, color: '#D4910A' }}>入店QRコード</span>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-              <div style={{ position: 'relative', padding: 14, background: '#fff', borderRadius: 18, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', display: 'inline-block' }}>
+              <div style={{ position: 'relative', padding: 16, background: '#fff', borderRadius: 18, border: '1px solid rgba(0,0,0,0.07)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', display: 'inline-block' }}>
                 {qrValue ? (
                   <QRCodeSVG
                     value={qrValue}
@@ -291,7 +291,7 @@ export default function TransactionsClient() {
             </div>
 
             {/* Player info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#F2F2F7', borderRadius: 16, padding: '12px 16px', textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#F2F2F7', borderRadius: 16, padding: '16px 16px', textAlign: 'left' }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #F2A900', overflow: 'hidden', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {userIconUrl
                   ? <img src={userIconUrl} alt={userName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -300,7 +300,7 @@ export default function TransactionsClient() {
               </div>
               <div>
                 <p style={{ fontSize: 15, fontWeight: 700, color: '#1C1C1E', letterSpacing: '-0.2px' }}>{userName || 'プレイヤー'}</p>
-                <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 2 }}>このQRを店舗スタッフに見せてください</p>
+                <p style={{ fontSize: 11, color: 'var(--label3)', marginTop: 4 }}>このQRを店舗スタッフに見せてください</p>
               </div>
             </div>
           </div>
@@ -318,21 +318,21 @@ export default function TransactionsClient() {
   return (
     <>
       {/* 下地(方眼 + 金のにじみ)。ログイン画面と同じものを敷く。 */}
-      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 100 }}>
+      <main style={{ minHeight: '100svh', background: "transparent", position: 'relative', zIndex: 1, paddingBottom: 104 }}>
       <style>{CSS}</style>
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
       <div className="pc-page" style={{ maxWidth: 390, margin: '0 auto', padding: '0 16px' }}>
 
         {/* Header row */}
-        <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 20 }}>
+        <div className="tx-slide" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 24, marginBottom: 24 }}>
           <BackButton />
           <h1 className="term-prompt-arrow" style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', letterSpacing: '0.04em' }}>チップの預入・引出</h1>
           <div style={{ width: 36 }} />
         </div>
 
         {/* iOS Segmented Control */}
-        <div className="tx-slide-2" style={{ display: 'flex', background: '#E5E5EA', borderRadius: 11, padding: 3, marginBottom: 16 }}>
+        <div className="tx-slide-2" style={{ display: 'flex', background: '#E5E5EA', borderRadius: 11, padding: 4, marginBottom: 16 }}>
           {(['deposit', 'withdraw'] as const).map(m => (
             <button
               key={m}
@@ -345,7 +345,7 @@ export default function TransactionsClient() {
                 fontSize: 14, fontWeight: 600,
                 color: mode === m ? '#1C1C1E' : '#6C6C70',
                 transition: 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
               {m === 'deposit' ? <><FiArrowDownCircle size={14} />あずける</> : <><FiArrowUpCircle size={14} />ひきだす</>}
@@ -357,8 +357,8 @@ export default function TransactionsClient() {
         <div className="tx-slide-3 tech-corners" style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
 
           {/* Amount display */}
-          <div className="tech-dots" style={{ padding: '26px 20px 18px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center', backgroundPosition: 'center' }}>
-            <p className="tech-label tech-label-bracket" style={{ color: 'var(--label3)', marginBottom: 10 }}>
+          <div className="tech-dots" style={{ padding: '24px 24px 16px', borderBottom: '0.5px solid #F2F2F7', textAlign: 'center', backgroundPosition: 'center' }}>
+            <p className="tech-label tech-label-bracket" style={{ color: 'var(--label3)', marginBottom: 8 }}>
               {mode === 'deposit' ? 'あずけるチップ数' : 'ひきだすチップ数'}
             </p>
             {/* 入力した桁がそのまま並ぶので、等幅・桁揃えの数字で出す。
@@ -370,7 +370,7 @@ export default function TransactionsClient() {
             >
               {formattedAmount || (chipUnitBefore ? `${unitLabel}0` : `0${unitLabel}`)}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 8 }}>
               <span className="tech-label" style={{ color: 'var(--label3)' }}>BALANCE</span>
               <span className="tech-num" style={{ fontSize: 13, fontWeight: 700, color: '#3C3C43' }}>{fmtChip(balance)}</span>
               {useBb && <span className="tech-num" style={{ fontSize: 12, color: 'var(--label3)' }}>({formatBbValue(balance)}BB)</span>}
@@ -378,8 +378,8 @@ export default function TransactionsClient() {
           </div>
 
           {/* Keypad */}
-          <div style={{ padding: '16px 16px 20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ padding: '16px 16px 24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               {KEYPAD_ROWS.flat().map((key, i) => {
                 if (!key) return <div key={i} />
                 return (
@@ -409,7 +409,7 @@ export default function TransactionsClient() {
             <button
               type="button"
               onClick={clearAmount}
-              style={{ marginTop: 10, width: '100%', height: 44, borderRadius: 12, background: '#F2F2F7', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
+              style={{ marginTop: 8, width: '100%', height: 44, borderRadius: 12, background: '#F2F2F7', border: 'none', fontSize: 14, fontWeight: 500, color: '#6C6C70', cursor: 'pointer' }}
             >
               <span className="tech-label">CLEAR</span>
             </button>
@@ -417,13 +417,13 @@ export default function TransactionsClient() {
 
           {/* Error / Success */}
           {error && (
-            <div style={{ margin: '0 16px 12px', display: 'flex', alignItems: 'center', gap: 8, background: '#FFF2F2', borderRadius: 12, padding: '10px 14px' }}>
+            <div style={{ margin: '0 16px 16px', display: 'flex', alignItems: 'center', gap: 8, background: '#FFF2F2', borderRadius: 12, padding: '8px 16px' }}>
               <FiAlertCircle color="#FF3B30" size={16} style={{ flexShrink: 0 }} />
               <p style={{ fontSize: 13, fontWeight: 500, color: '#FF3B30' }}>{error}</p>
             </div>
           )}
           {message && (
-            <div style={{ margin: '0 16px 12px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.10)', borderRadius: 12, padding: '10px 14px' }}>
+            <div style={{ margin: '0 16px 16px', display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(242,169,0,0.10)', borderRadius: 12, padding: '8px 16px' }}>
               <FiCheckCircle color="#D4910A" size={16} style={{ flexShrink: 0 }} />
               <p style={{ fontSize: 13, fontWeight: 500, color: '#D4910A' }}>{message}</p>
             </div>
@@ -454,14 +454,14 @@ export default function TransactionsClient() {
           />
           <div ref={withdrawSheetDrag}
             className="tx-sheet"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 999, background: '#fff', borderRadius: '24px 24px 0 0', padding: '8px 20px 48px' }}
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 999, background: '#fff', borderRadius: '24px 24px 0 0', padding: '8px 24px 48px' }}
           >
             {/* Handle bar */}
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D1D6', margin: '8px auto 20px' }} />
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D1D6', margin: '8px auto 24px' }} />
 
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', textAlign: 'center', marginBottom: 20 }}>引き出し確認</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#1C1C1E', textAlign: 'center', marginBottom: 24 }}>引き出し確認</h2>
 
-            <div style={{ background: '#F9F9FB', borderRadius: 18, padding: '20px', textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ background: '#F9F9FB', borderRadius: 18, padding: '24px', textAlign: 'center', marginBottom: 24 }}>
               <p style={{ fontSize: 12, color: 'var(--label3)', marginBottom: 8, fontWeight: 500 }}>ディーラーに見せてください</p>
               <p style={{ fontSize: 52, fontWeight: 800, color: '#F2A900', letterSpacing: '-1.5px', lineHeight: 1.1 }}>
                 {fmtChip(Number(amount || 0))}
@@ -469,13 +469,13 @@ export default function TransactionsClient() {
             </div>
 
             {error && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF2F2', borderRadius: 12, padding: '10px 14px', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF2F2', borderRadius: 12, padding: '8px 16px', marginBottom: 16 }}>
                 <FiAlertCircle color="#FF3B30" size={16} style={{ flexShrink: 0 }} />
                 <p style={{ fontSize: 13, fontWeight: 500, color: '#FF3B30' }}>{error}</p>
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               <button
                 onClick={() => setIsWithdrawModalOpen(false)}
                 style={{ flex: 1, height: 52, borderRadius: 16, background: '#F2F2F7', border: 'none', fontSize: 15, fontWeight: 600, color: '#3C3C43', cursor: 'pointer' }}

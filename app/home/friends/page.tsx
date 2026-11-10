@@ -245,7 +245,7 @@ export default function FriendsPage() {
     <main className="min-h-screen pb-24">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
 
-      <div className="pc-page mx-auto max-w-sm px-5 pt-6">
+      <div className="pc-page mx-auto max-w-sm px-6 pt-6">
         {/* Search Bar */}
         <div className="flex gap-2">
           <input
@@ -254,13 +254,13 @@ export default function FriendsPage() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             onKeyPress={e => e.key === 'Enter' && searchPlayers()}
-            className="flex-1 h-12 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-gray-900 outline-none placeholder:text-gray-500 focus:border-gray-300"
+            className="flex-1 h-12 rounded-2xl border border-gray-200 bg-gray-50 px-4 text-[14px] text-label outline-none placeholder:text-gray-500 focus:border-gray-300"
           />
           <button
             type="button"
             onClick={searchPlayers}
             disabled={isSearching}
-            className="h-12 w-12 rounded-2xl bg-[#F2A900] flex items-center justify-center text-gray-900 disabled:opacity-60"
+            className="h-12 w-12 rounded-2xl bg-[#F2A900] flex items-center justify-center text-label disabled:opacity-60"
           >
             <FiSearch className="text-[16px]" />
           </button>
@@ -273,15 +273,15 @@ export default function FriendsPage() {
               <button
                 key={player.id}
                 onClick={() => setSelectedPlayer(player)}
-                className="w-full rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 text-left hover:border-gray-300 transition-colors"
+                className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 text-left hover:border-gray-300 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <PlayerAvatar src={player.iconUrl} size={40} alt={player.name} />
                   <div className="flex-1">
-                    <p className="text-[14px] font-semibold text-gray-900">{player.name}</p>
-                    <p className="text-[12px] text-gray-500">{player.playerId}</p>
+                    <p className="text-[14px] font-semibold text-label">{player.name}</p>
+                    <p className="text-[12px] text-label2">{player.playerId}</p>
                   </div>
-                  <p className="text-[13px] font-semibold text-gray-700">{player.rating.toLocaleString()}</p>
+                  <p className="text-[13px] font-semibold text-label">{player.rating.toLocaleString()}</p>
                 </div>
               </button>
             ))}
@@ -290,21 +290,21 @@ export default function FriendsPage() {
 
         {/* Player Detail Modal */}
         {selectedPlayer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
             <div className="w-full max-w-sm rounded-[24px] bg-white p-6">
               <div className="flex items-center justify-center mb-4">
                 <PlayerAvatar src={selectedPlayer.iconUrl} size={64} alt={selectedPlayer.name} />
               </div>
 
-              <h2 className="font-display text-center text-[18px] font-semibold text-gray-900">{selectedPlayer.name}</h2>
-              <p className="text-center text-[13px] text-gray-500 mt-1">{selectedPlayer.playerId}</p>
-              <p className="text-center text-[14px] font-semibold text-gray-700 mt-3">{selectedPlayer.rating.toLocaleString()} RR</p>
+              <h2 className="font-display text-center text-[18px] font-semibold text-label">{selectedPlayer.name}</h2>
+              <p className="text-center text-[13px] text-label2 mt-1">{selectedPlayer.playerId}</p>
+              <p className="text-center text-[14px] font-semibold text-label mt-4">{selectedPlayer.rating.toLocaleString()} RR</p>
 
               <button
                 type="button"
                 onClick={() => sendFriendRequest(selectedPlayer)}
                 disabled={loading}
-                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900 disabled:opacity-60"
+                className="mt-6 w-full h-[52px] rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-label disabled:opacity-60"
               >
                 フォローする
               </button>
@@ -316,7 +316,7 @@ export default function FriendsPage() {
                   setSearchInput('')
                   setSearchResults([])
                 }}
-                className="mt-2 w-full h-[52px] rounded-[24px] border border-gray-200 text-[15px] font-semibold text-gray-900"
+                className="mt-2 w-full h-[52px] rounded-[24px] border border-gray-200 text-[15px] font-semibold text-label"
               >
                 キャンセル
               </button>
@@ -338,20 +338,20 @@ export default function FriendsPage() {
         {/* Friend Requests */}
         {friendRequests.length > 0 && (
           <div className="mt-6">
-            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-gray-900 mb-3">フォローリクエスト</h3>
+            <h3 className="font-display term-prompt-arrow text-[16px] font-semibold text-label mb-4">フォローリクエスト</h3>
             <div className="space-y-2">
               {friendRequests.map(request => (
-                <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3">
+                <div key={request.id} className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 flex items-center gap-4">
                   {request.fromIcon ? (
                     <img src={request.fromIcon} alt={request.fromName} className="h-10 w-10 rounded-full object-cover" />
                   ) : (
-                    <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center text-[12px] text-gray-500">
+                    <div className="h-10 w-10 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center text-[12px] text-label2">
                       P
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-[14px] font-semibold text-gray-900">{request.fromName}</p>
-                    <p className="text-[12px] text-gray-500">{request.playerId}</p>
+                    <p className="text-[14px] font-semibold text-label">{request.fromName}</p>
+                    <p className="text-[12px] text-label2">{request.playerId}</p>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -385,7 +385,7 @@ export default function FriendsPage() {
             <button
               type="button"
               onClick={() => setShowFriendsList(!showFriendsList)}
-              className="w-full h-[52px] rounded-[24px] border border-gray-200 text-[15px] font-semibold text-gray-900"
+              className="w-full h-[52px] rounded-[24px] border border-gray-200 text-[15px] font-semibold text-label"
             >
               フレンド一覧（{friends.length}）
             </button>
@@ -395,14 +395,14 @@ export default function FriendsPage() {
                 {friends.map(friend => (
                   <div
                     key={friend.id}
-                    className="rounded-2xl border border-gray-200 bg-white/90 px-3 py-3 flex items-center gap-3"
+                    className="rounded-2xl border border-gray-200 bg-white/90 px-4 py-4 flex items-center gap-4"
                   >
                     <PlayerAvatar src={friend.iconUrl} size={40} alt={friend.name} />
                     <div className="flex-1">
-                      <p className="text-[14px] font-semibold text-gray-900">{friend.name}</p>
-                      <p className="text-[12px] text-gray-500">{friend.playerId}</p>
+                      <p className="text-[14px] font-semibold text-label">{friend.name}</p>
+                      <p className="text-[12px] text-label2">{friend.playerId}</p>
                     </div>
-                    <p className="text-[13px] font-semibold text-gray-700">{friend.rating.toLocaleString()}</p>
+                    <p className="text-[13px] font-semibold text-label">{friend.rating.toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -412,7 +412,7 @@ export default function FriendsPage() {
 
         {searchResults.length === 0 && friendRequests.length === 0 && friends.length === 0 && !selectedPlayer && (
           <div className="mt-12 text-center">
-            <p className="text-[14px] text-gray-500">プレイヤーIDを検索してフレンドを追加しましょう</p>
+            <p className="text-[14px] text-label2">プレイヤーIDを検索してフレンドを追加しましょう</p>
           </div>
         )}
       </div>
