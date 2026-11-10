@@ -92,8 +92,12 @@ service cloud.firestore {
         allow write: if isOwner(userId) || isSignedIn();
       }
 
+      // チケット。本人のほか、店舗が付与したチケット(storeId がその店舗)は店舗も読み書きできる(付与・使用済み・取り消し。2026-11-10)
       match /tickets/{ticketId} {
-        allow read, write: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId)
+          || (resource.data.get('storeId', null) is string && isStoreOwner(resource.data.storeId));
+        allow create: if isOwner(userId)
+          || (request.resource.data.get('storeId', null) is string && isStoreOwner(request.resource.data.storeId));
       }
 
       match /storeStamp/{storeId} {
@@ -168,6 +172,14 @@ service cloud.firestore {
       match /rakeEntries/{entryId} {
         allow read: if isSignedIn();
         allow write: if isStoreOwner(storeId);
+      }
+
+      // 店舗が作るチケットと付与の記録(2026-11-10。app/home/store/tickets)
+      match /ticketTemplates/{templateId} {
+        allow read, write: if isStoreOwner(storeId);
+      }
+      match /ticketGrants/{grantId} {
+        allow read, write: if isStoreOwner(storeId);
       }
     }
 
