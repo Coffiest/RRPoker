@@ -2,7 +2,7 @@
 
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from "react"
-import { collection, query, where, onSnapshot, orderBy, getDocs, writeBatch, doc } from "firebase/firestore"
+import { collection, query, where, onSnapshot, getDocs, writeBatch, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { FiX, FiArrowUp, FiArrowDown, FiTrash2, FiAlertTriangle } from "react-icons/fi"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
@@ -18,7 +18,10 @@ type Transaction = {
 
 type Props = {
   playerId: string
+  /** 残高の入れ物(系列店なら balanceGroupId、なければ店舗 ID) */
   storeId: string
+  /** 履歴を探す店舗(この店。系列店なら同じグループの店すべて)。省略すると storeId だけ */
+  storeIds?: string[]
   playerName?: string
   chipUnit?: string
   chipUnitBefore?: boolean
@@ -67,29 +70,37 @@ function fmtChip(amount: number, unit?: string, before?: boolean): string {
   return before ? `${unit}${amount.toLocaleString()}` : `${amount.toLocaleString()}${unit}`
 }
 
-export default function PlayerHistoryModal({ playerId, storeId, playerName, chipUnit, chipUnitBefore, onClose }: Props) {
+export default function PlayerHistoryModal({ playerId, storeId, storeIds, playerName, chipUnit, chipUnitBefore, onClose }: Props) {
   // 下から出る画面を指で下に引いて閉じられるように(見た目は元のまま)
   const sheetDrag = useDragToClose(() => onClose())
   const [history, setHistory] = useState<Transaction[]>([])
   const [wipeConfirmOpen, setWipeConfirmOpen] = useState(false)
   const [wiping, setWiping] = useState(false)
   const [wipeError, setWipeError] = useState("")
+  const [loadError, setLoadError] = useState("")
 
   useEffect(() => {
     if (!playerId || !storeId) return
+    // 以前は「並べ替え(orderBy createdAt)」付きで読んでいて、それに要る索引がプロジェクトに無く、
+    // 読み込みが失敗して 0 件に見えていた(失敗も画面に出ていなかった。2026-11-10)。
+    // 並べ替えはこちらで行い、索引の要らない読み方にする。系列店は同じグループの店の記録も出す
+    const ids = Array.from(new Set((storeIds && storeIds.length > 0 ? storeIds : [storeId]).filter(Boolean))).slice(0, 30)
     const q = query(
       collection(db, "transactions"),
       where("playerId", "==", playerId),
-      where("storeId", "==", storeId),
-      orderBy("createdAt", "desc")
+      ids.length === 1 ? where("storeId", "==", ids[0]) : where("storeId", "in", ids),
     )
+    const toMs = (t: any) => (typeof t?.toMillis === "function" ? t.toMillis() : typeof t?.seconds === "number" ? t.seconds * 1000 : 0)
     const unsub = onSnapshot(q, snap => {
       const list: Transaction[] = []
       snap.forEach(doc => list.push({ id: doc.id, ...(doc.data() as Omit<Transaction, "id">) }))
+      // 書いた直後は createdAt がまだ無い(サーバーの時刻待ち)ので、一番上に置く
+      list.sort((a, b) => (toMs(b.createdAt) || Number.MAX_SAFE_INTEGER) - (toMs(a.createdAt) || Number.MAX_SAFE_INTEGER))
       setHistory(list)
-    })
+      setLoadError("")
+    }, () => setLoadError("履歴を読み込めませんでした"))
     return () => unsub()
-  }, [playerId, storeId])
+  }, [playerId, storeId, (storeIds ?? []).join(",")])
 
   // 履歴とバンクロールをまとめて削除（個別削除は不可・全削除のみ）。
   // balance/netGainを同時にリセットすることで、チップ増減グラフとの不整合を防ぐ。
@@ -98,7 +109,8 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
     setWipeError("")
     try {
       const snap = await getDocs(
-        query(collection(db, "transactions"), where("playerId", "==", playerId), where("storeId", "==", storeId))
+        query(collection(db, "transactions"), where("playerId", "==", playerId),
+          (storeIds && storeIds.length > 1) ? where("storeId", "in", storeIds.slice(0, 30)) : where("storeId", "==", storeIds?.[0] ?? storeId))
       )
       const docs = snap.docs
       const CHUNK = 450
@@ -160,8 +172,8 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
               <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(120,120,128,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 4 }}>
                 <FiArrowUp size={20} style={{ color: 'var(--label3)' }}/>
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label3)', margin: 0 }}>履歴なし</p>
-              <p style={{ fontSize: 12, color: 'var(--label3)', margin: 0 }}>取引が記録されると表示されます</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: loadError ? '#C62828' : 'var(--label3)', margin: 0 }}>{loadError || '履歴なし'}</p>
+              <p style={{ fontSize: 12, color: 'var(--label3)', margin: 0 }}>{loadError ? '時間をおいて開き直してください' : '取引が記録されると表示されます'}</p>
             </div>
           ) : (
             history.map((item, idx) => {
@@ -202,7 +214,7 @@ export default function PlayerHistoryModal({ playerId, storeId, playerName, chip
                     fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.3px',
                     color: isAdd ? '#D4910A' : 'var(--label3)',
                   }}>
-                    {isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
+                    {(item.amount ?? 0) === 0 ? '' : isAdd ? '+' : '−'}{fmtChip(item.amount ?? 0, chipUnit, chipUnitBefore)}
                   </p>
                 </div>
               )
