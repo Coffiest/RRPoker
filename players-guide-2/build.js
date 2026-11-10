@@ -56,7 +56,7 @@ const cover = `
 const schedRows = (k) => D.tournaments.filter((t) => t.day === k).map((t) => `
   <tr class="${t.main ? 'hl' : ''}"><td>${t.start}</td><td>${t.schedOnly || t.day2 ? '-' : rcTime(t)}</td><td>${t.no}</td>
   <td class="nm">${t.name}${t.sub ? ` <em>${t.sub}</em>` : ''}</td>
-  <td>${t.schedOnly || t.day2 ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
+  <td>${t.day2 ? '施設利用料<br>1,000 のみ' : t.schedOnly ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
   <td>${t.schedOnly || t.day2 ? '-' : n(t.chips)}${t.cap ? `<small class="cap">${t.cap}</small>` : ''}</td></tr>`).join('');
 
 const schedule = `
@@ -68,7 +68,7 @@ const schedule = `
   ${Object.keys(D.days).map((k, i) => `
   <div class="day">DAY${i + 1} &nbsp;${D.days[k].label} <span>${D.days[k].dow}</span>${i === 0 ? '<em class="max">ALL TABLES 8-MAX<small>全席固定 8人テーブル(ディーラー含む)</small></em>' : ''}</div>
   <table class="sched"><tbody>${schedRows(k)}</tbody></table>`).join('')}
-  <p class="note">ENTRY は 学生 / 一般 の参加費です。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <p class="note">ENTRY は 学生 / 一般 の参加費です。MAIN EVENT Day2 の進出者は参加費不要、施設利用料 1,000 のみいただきます。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
   <div class="notice">
     <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>${n(D.event.facilityFee)}</b> をいただきます(参加費とは別)。</div>
     <div class="app"><img src="${QR}" alt="">
@@ -113,7 +113,7 @@ const tPage = (t) => {
   const dense = rows > 46 ? 'dense xdense' : rows > 36 ? 'dense' : '';
   return `
 <section class="page">
-  ${header(`${t.no} ${t.name}`, `${day(t.day)} ${t.start} START${t.sub ? ' &nbsp;/&nbsp; ' + t.sub : ''}${t.note && !t.main ? ' &nbsp;/&nbsp; ' + t.note : ''}`)}
+  ${header(`${t.no} ${t.name}${t.main ? ' ' + t.sub.toUpperCase().replace('DAY', 'DAY ') : ''}`, `${day(t.day)} ${t.start} START${t.sub && !t.main ? ' &nbsp;/&nbsp; ' + t.sub : ''}${t.note && !t.main ? ' &nbsp;/&nbsp; ' + t.note : ''}`)}
   <div class="grid">
     <table class="blind fit" style="--rh:${Math.min(19, Math.floor(880 / (rows + 1) * 10) / 10)}px">
       <thead><tr><th>Time</th><th>Lv</th><th>Blind</th><th>Ante</th><th>Min</th></tr></thead>
@@ -122,7 +122,7 @@ const tPage = (t) => {
     <aside>
 ${t.day2 ? `
       <div class="big">Entry</div>
-      <table class="prize entry"><tr><th>Day2</th><td>Day1 通過者</td></tr></table>
+      <table class="prize entry"><tr><th>Day2</th><td>Day1 通過者</td></tr><tr><th>施設利用料</th><td>1,000 のみ</td></tr></table>
       <dl><dt>Restart</dt><dd>Lv${t.lvStart} / ${t.start}</dd></dl>
 ` : day1Aside(t)}
       ${t.main ? `<div class="mnote">${t.note}</div>` : ''}
@@ -203,6 +203,7 @@ const style = base.replace('</style>', `
 .c6-foot .org { margin-top: 5mm; font-size: 12px; }
 .blind.fit td { height: var(--rh); padding: 0; line-height: 1; font-size: calc(var(--rh) * .66); }
 .blind.fit tr.brk td { font-size: calc(var(--rh) * .55); }
+.pno { position: absolute; bottom: 5mm; left: 0; right: 0; text-align: center; font-family: Oswald; font-weight: 700; font-size: 11px; letter-spacing: .2em; color: #fff; opacity: .9; }
 /* cover #2 (第1回の組み方) */
 .c7 { text-align: center; }
 .c7-tag { font-family: 'Noto Sans JP'; letter-spacing: .4em; font-size: 16px; margin-top: 2mm; }
@@ -282,19 +283,19 @@ const style = base.replace('</style>', `
 .tm-arrow { font-family: Anton; font-size: 28px; text-align: center; }
 .tm-table { background: #fff; color: var(--dark); }
 .tm-table img { width: 100%; height: 120px; object-fit: contain; }
-.tm-time { margin-top: 8mm; }
+.tm-time { margin-top: 5mm; }
 .tm-bar { position: relative; height: 28px; border-radius: 999px; background: linear-gradient(90deg, #fff 0 64%, var(--dark) 64% 100%); font-family: Oswald; font-weight: 700; font-size: 12px; letter-spacing: .1em; }
 .tm-bar .s { position: absolute; left: 12px; top: 6px; color: var(--dark); }
 .tm-bar .r { position: absolute; left: 64%; top: -6px; transform: translateX(-50%); background: #C2531A; color: #fff; border: 2px solid #fff; border-radius: 6px; padding: 6px 10px; }
 .tm-lab { display: grid; grid-template-columns: 64% 36%; font-family: 'Noto Sans JP'; font-size: 11px; font-weight: 700; margin-top: 4px; }
 .tm-lab .ng { color: var(--cream); padding-left: 8px; }
-.tm-rules { margin-top: 7mm; display: grid; gap: 3.5mm; }
-.tm-rules .r { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: start; background: rgba(36,16,10,.42); border-radius: 10px; padding: 12px 14px; font-family: 'Noto Sans JP'; font-size: 14px; font-weight: 500; line-height: 1.65; }
+.tm-rules { margin-top: 5mm; display: grid; gap: 2.5mm; }
+.tm-rules .r { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: start; background: rgba(36,16,10,.42); border-radius: 10px; padding: 9px 12px; font-family: 'Noto Sans JP'; font-size: 13px; font-weight: 500; line-height: 1.55; }
 .tm-rules .r span { font-family: Anton; font-size: 24px; line-height: 1.05; color: var(--cream); }
 .tm-rules .r b { color: var(--cream); font-weight: 900; }
 .tm-rules .r.warn { border: 2px solid var(--cream); }
-.tm-talk { margin-top: 7mm; display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; font-family: 'Noto Sans JP'; font-size: 13.5px; font-weight: 700; line-height: 1.55; }
-.tm-talk > div { border-radius: 10px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; }
+.tm-talk { margin-top: 5mm; display: grid; grid-template-columns: 1fr 1fr; gap: 3.5mm; font-family: 'Noto Sans JP'; font-size: 12.5px; font-weight: 700; line-height: 1.55; }
+.tm-talk > div { border-radius: 10px; padding: 9px 12px; display: flex; gap: 10px; align-items: flex-start; }
 .tm-talk > div:last-child { grid-column: 1 / -1; }
 .tm-talk .ok { background: #fff; color: var(--dark); }
 .tm-talk .ng { background: var(--dark); color: #fff; }
@@ -329,7 +330,7 @@ const style = base.replace('</style>', `
 .tm-bar { background: linear-gradient(90deg, #fff 0 64%, rgba(255,255,255,.35) 64% 100%) !important; }
 .tm-lab .ng { color: #fff !important; }
 .flow { display: grid; grid-template-columns: 1fr 70px 1fr 70px 1.3fr; align-items: stretch; gap: 2mm; margin-top: 2mm; }
-.flow .st { background: #fff; color: #24100A; border-radius: 12px; padding: 10px 8px; text-align: center; font-family: 'Noto Sans JP'; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 215px; }
+.flow .st { background: #fff; color: #24100A; border-radius: 12px; padding: 10px 8px; text-align: center; font-family: 'Noto Sans JP'; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 190px; }
 .flow .no { font-family: Oswald; font-weight: 700; letter-spacing: .2em; font-size: 11px; color: #C2531A; margin-bottom: auto; }
 .flow .pile { position: relative; width: 70px; height: 80px; }
 .flow .pile i { position: absolute; left: 0; width: 70px; height: 14px; border-radius: 50%; background: #F07A22; border: 2px solid #9C3A0C; box-shadow: inset 0 0 0 4px #FFD7A8; }
@@ -340,7 +341,7 @@ const style = base.replace('</style>', `
 .flow .tb img { width: 100%; height: 110px; object-fit: contain; }
 .flow .ar { display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Noto Sans JP'; font-weight: 900; font-size: 11px; text-align: center; }
 .flow .ar b { font-size: 13px; color: #FFE2B8; } .flow .ar span { font-family: Anton; font-size: 34px; line-height: 1; }
-.loop { margin-top: 4mm; background: rgba(255,255,255,.18); border: 2px dashed #fff; border-radius: 10px; padding: 9px 12px; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 13px; }
+.loop { margin-top: 3mm; background: rgba(255,255,255,.18); border: 2px dashed #fff; border-radius: 10px; padding: 9px 12px; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 13px; }
 .loop b { color: #FFE2B8; }
 </style>`);
 
@@ -349,9 +350,10 @@ const num = (t) => Number(t.no.replace('#', ''));
 for (const t of D.tournaments.filter((x) => !x.schedOnly).sort((x, y) => num(x) - num(y))) pages.push(tPage(t));
 pages.push(rules, thanks);
 
+const numbered = pages.map((p, i) => p.replace('</section>', `<div class="pno">${String(i + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}</div></section>`));
 const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@500;700&family=Noto+Sans+JP:wght@500;700;900&family=Noto+Serif+JP:wght@500&display=swap" rel="stylesheet">
-${style}</head><body>${pages.join('')}</body></html>`;
+${style}</head><body>${numbered.join('')}</body></html>`;
 
 (async () => {
   const out = path.join(__dirname, 'out');
