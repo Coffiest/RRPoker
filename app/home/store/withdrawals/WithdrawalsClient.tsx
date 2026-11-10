@@ -81,7 +81,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
         <h2 className="text-[16px] font-semibold text-label mb-1">チップ引出申請一覧</h2>
         <ChipDisclaimer className="mb-4" />
         {withdrawals.length === 0 ? (
-          <p className="text-[13px] text-label2">申請はありません</p>
+          <p className="rr-empty text-[13px] text-label2">申請はありません</p>
         ) : (
           <div className="space-y-4">
             {withdrawals.map(w => (

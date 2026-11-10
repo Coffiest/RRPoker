@@ -883,7 +883,7 @@ export default function StoreSettingsPage() {
             {rakeView === "history" && (
               <div>
                 {sortedRakeEntries.length === 0 ? (
-                  <p className="term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
+                  <p className="rr-empty term-comment text-center py-8 text-[13px]" style={{ color: CLR.gray3 }}>履歴がありません</p>
                 ) : (
                   <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
                     {sortedRakeEntries.map(entry => (

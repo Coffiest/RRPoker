@@ -1761,7 +1761,7 @@ export default function StorePage() {
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
                 <FiClock size={22} style={{ color: 'var(--label3)' }}/>
               </div>
-              <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
+              <p className="rr-empty term-comment" style={{ fontSize: 13, color: 'var(--label2)' }}>開催中のトーナメントはありません</p>
             </div>
           ) : (
             <MergeBoard items={mergeItems} editing={mergeEditing} setEditing={setMergeEditing} onMerge={mergeTimers}

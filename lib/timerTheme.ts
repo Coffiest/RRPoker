@@ -3,6 +3,7 @@
  * 複数のトナメを同時に進めるとき、背景の色でどのタイマーかすぐ分かるようにする。
  *
  * - 白(今まで)+ Apple の製品色に寄せた落ち着いた濃い色 9 つ = 10 色。蛍光色は使わない。
+ * - 波紋(白・夜)の模様 2 つ(2026-11-10)。
  * - 任意の画像も選べる(画像はそのまま敷く。文字は白にして影を付けて読めるようにする)。
  * - 大会ごとに選べる(tournaments/{id}.timerBg)。選んでいない大会は店舗のデフォルト(stores/{id}.timerBgDefault)。
  * - 文字の色は背景ごとに調整する。濃い色では白・明るい灰・明るい金(どの色の上でもコントラスト 4.5:1 以上)。
@@ -10,6 +11,7 @@
 
 export type TimerBgId =
   | 'white' | 'orange' | 'midnight' | 'navy' | 'alpine' | 'teal' | 'burgundy' | 'purple' | 'brown' | 'slate'
+  | 'ripple' | 'ripple-night'
 
 export type TimerTheme = {
   id: TimerBgId | 'image'
@@ -38,6 +40,9 @@ export const TIMER_COLORS: TimerTheme[] = [
   { id: 'purple', label: 'ディープパープル', bg: '#3E2D57', ...DARK },
   { id: 'brown', label: 'ブラウン', bg: '#4A3426', ...DARK },
   { id: 'slate', label: 'スレート', bg: '#4A5563', ...DARK },
+  // 波紋(オーナー指定・2026-11-10。空の状態の .rr-dots と同じ模様)。白地と濃紺地の 2 つ
+  { id: 'ripple', label: '波紋', bg: 'repeating-radial-gradient(circle, #fff, #fff 5px, rgba(28,28,30,0.07) 6px) 0 0 / 50px 100px, #fff', dark: false, fg: '#1C1C1E', sub: '#545458', accent: '#C8820A' },
+  { id: 'ripple-night', label: '波紋(夜)', bg: 'repeating-radial-gradient(circle, #1E2A3A, #1E2A3A 5px, rgba(255,255,255,0.08) 6px) 0 0 / 50px 100px, #1E2A3A', ...DARK },
 ]
 
 export const IMAGE_THEME: TimerTheme = { id: 'image', label: '画像', bg: '#1C1C1E', ...DARK }

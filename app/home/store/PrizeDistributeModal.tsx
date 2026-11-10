@@ -616,7 +616,7 @@ function PlayerPickerList({ participants, taken, value, onPick }: {
           <button type="button" onClick={() => onPick('')}
             style={{ width: '100%', minHeight: 36, padding: '0 8px', border: 'none', background: 'none', textAlign: 'left', fontSize: 12, color: '#C62828', cursor: 'pointer', fontFamily: 'inherit' }}>選択を外す</button>
         )}
-        {list.length === 0 && <p style={{ fontSize: 12, color: 'var(--label2)', padding: '8px' }}>エントリーしたプレイヤーが見つかりません</p>}
+        {list.length === 0 && <p className="rr-empty" style={{ fontSize: 12, color: 'var(--label2)', padding: '8px' }}>エントリーしたプレイヤーが見つかりません</p>}
         {list.map(p => {
           const used = taken.includes(p.id)
           return (

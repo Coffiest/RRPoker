@@ -385,14 +385,14 @@ function GrantSheet({ template, storeId, storeName, groupIds, usableStoreNames, 
             : results && (
               <div style={{ marginTop: 16 }}>
                 <p className="tech-label" style={{ fontSize: 10, color: 'var(--label2)', letterSpacing: '0.12em', margin: '0 0 4px' }}>SEARCH RESULT</p>
-                {results.length === 0 ? <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0' }}>見つかりませんでした</p>
+                {results.length === 0 ? <p className="rr-empty" style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0' }}>見つかりませんでした</p>
                   : results.map(p => <Row key={p.uid} p={p} />)}
               </div>
             )}
 
           <p className="tech-label" style={{ fontSize: 10, color: 'var(--label2)', letterSpacing: '0.12em', margin: '16px 0 4px' }}>来たことのある人</p>
           {visited === null ? <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}><Loader size={32} /></div>
-            : visited.length === 0 ? <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0' }}>まだいません。上の検索か QR で選べます。</p>
+            : visited.length === 0 ? <p className="rr-empty" style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0' }}>まだいません。上の検索か QR で選べます。</p>
             : visited.map(p => <Row key={p.uid} p={p} />)}
         </div>
       </AppleSheet>

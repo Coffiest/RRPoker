@@ -367,7 +367,7 @@ export default function TicketsPage() {
             {couponTab === "active" ? (
               activeCoupons.length === 0 ? (
                 <div style={{ background: "#fff", borderRadius: 20, padding: "24px 24px", textAlign: "center" }}>
-                  <p style={{ fontSize: 13, color: "var(--label3)" }}>未使用のクーポンはありません</p>
+                  <p className="rr-empty" style={{ fontSize: 13, color: "var(--label3)" }}>未使用のクーポンはありません</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -384,7 +384,7 @@ export default function TicketsPage() {
             ) : (
               usedCoupons.length === 0 ? (
                 <div style={{ background: "#fff", borderRadius: 20, padding: "24px 24px", textAlign: "center" }}>
-                  <p style={{ fontSize: 13, color: "var(--label3)" }}>使用済みのクーポンはありません</p>
+                  <p className="rr-empty" style={{ fontSize: 13, color: "var(--label3)" }}>使用済みのクーポンはありません</p>
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

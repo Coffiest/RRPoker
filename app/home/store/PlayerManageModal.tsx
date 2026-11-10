@@ -615,7 +615,7 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
               {/* プレイヤー。E と R が同じ大会は E だけ、アドオンが無い大会は A を出さない。
                    E・R・A を全部出すときは 1 列、それ以外は 2 列(2026-11-09) */}
               {allPlayers.length === 0 ? (
-                <p style={{ textAlign: 'center', color: 'var(--label3)', padding: '24px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
+                <p className="rr-empty" style={{ textAlign: 'center', color: 'var(--label3)', padding: '24px 0', fontSize: 13 }}>プレイヤーが見つかりません</p>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: twoCol ? '1fr 1fr' : '1fr', gap: 8 }}>
                   {allPlayers.map(player => {

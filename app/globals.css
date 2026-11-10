@@ -1678,3 +1678,9 @@ button:hover > .rr-expand, .rr-expand:hover { background: rgba(197,197,197,0.7) 
 :is(.section-card, .profile-card, .ios-card, .a-card, .sheet-card) :is(.section-card, .profile-card, .ios-card, .a-card) { box-shadow: none !important }
 .sp-card { box-shadow: inset 0 0 0 1px rgba(60,60,67,0.08) }
 .sp-card.is-selected { box-shadow: 0 0 0 2px rgba(242,169,0,0.55) }
+/* 空の状態の文(「○○はありません」など)。波紋(.rr-dots)の上に置く(オーナー指定・2026-11-10「もっと色んなところで」) */
+.rr-empty {
+  display: block; text-align: center; padding: 24px 16px !important; border-radius: 16px;
+  background: repeating-radial-gradient(circle, #fff, #fff 5px, rgba(28,28,30,0.045) 6px);
+  background-size: 50px 100px;
+}

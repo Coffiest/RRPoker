@@ -656,7 +656,7 @@ export default function HandHistoryModal({ userId, creatorName }: Props) {
                 ) : history.length===0 ? (
                   <div className="flex flex-col items-center py-16 text-center">
                     <span className="text-[44px] mb-4"></span>
-                    <p className="term-comment text-[15px] font-bold mb-1" style={{color:CLR.ink}}>まだ記録がありません</p>
+                    <p className="rr-empty term-comment text-[15px] font-bold mb-1" style={{color:CLR.ink}}>まだ記録がありません</p>
                     <p className="text-[12px] mb-6" style={{color:CLR.gray3}}>記録タブからハンドを作成できます</p>
                     <button type="button" onClick={() => setView("record")}
                       className="h-10 px-6 rounded-full text-[13px] font-bold active:scale-95"

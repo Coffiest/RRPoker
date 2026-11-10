@@ -151,7 +151,7 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
               )}
             </div>
 
-            {tournaments.length === 0 && <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px' }}>開催中のトーナメントはありません</p>}
+            {tournaments.length === 0 && <p className="rr-empty term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px' }}>開催中のトーナメントはありません</p>}
             {!player.loading && !player.inStore && tournaments.length > 0 && (
               <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 4px 8px' }}>エントリー等を ✓ で確定すると、入店も同時にします。</p>
             )}

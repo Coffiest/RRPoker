@@ -235,7 +235,7 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
 function BlindList({ t }: { t: LiveTournament }) {
   const levels: TimerLevel[] = t.customBlindLevels ?? []
   if (levels.length === 0) {
-    return <p style={{ fontSize: 13, color: 'var(--label3)', textAlign: 'center', padding: '24px 0' }}>ブラインド表がありません</p>
+    return <p className="rr-empty" style={{ fontSize: 13, color: 'var(--label3)', textAlign: 'center', padding: '24px 0' }}>ブラインド表がありません</p>
   }
   const live = computeLiveLevelState(
     t.currentLevelIndex, t.levelStartedAtMs, t.levelStartedRemaining ?? t.timeRemaining, levels, t.timerRunning, getServerNow(),

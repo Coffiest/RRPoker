@@ -130,7 +130,7 @@ function GraphShelf({
         <div key={page.key} className="flex h-[260px] flex-shrink-0 flex-col rounded-3xl border border-gray-100 bg-white p-4 shadow-sm" style={{ flex: "0 0 88%", scrollSnapAlign: "start" }}>
           <p className="text-[13px] font-semibold text-label">{page.label}</p>
           <div className="flex flex-1 items-center justify-center">
-            <p className="term-comment text-center text-[12px] text-label3">この期間のデータがありません</p>
+            <p className="rr-empty term-comment text-center text-[12px] text-label3">この期間のデータがありません</p>
           </div>
         </div>
       )
@@ -1689,7 +1689,7 @@ const medalClass = (rank: number) => {
       {/* ヘッダー（変更なし） */}
       <HomeHeader homePath="/home" myPagePath="/home/mypage" showNotifications menuItems={getCommonMenuItems(router, 'user')} />
 
-      <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-6${currentStoreId && currentStore ? " pd-checked" : ""}`}>
+      <div className={`pc-wide pc-dash mx-auto max-w-sm px-4 space-y-6 ${currentStoreId && currentStore ? "pd-checked" : ""}`}>
 
         {/* ════ 入店中(オーナー指定: ホームの最上段、偏差値カードの上) ════
              上下のカードと重ならないよう、自分の上下に余白を持つ */}
@@ -1982,8 +1982,8 @@ const medalClass = (rank: number) => {
         {currentStoreId && currentStore ? (
           <>
             {/* 退店ボタン。店舗が「退店を許可する」を OFF にしていたら出さない(既定は出す) */}
-            {/* このページの外枠の縦の間隔の指定(space-y の 5)は、クラス名の直後に ${ が続くため Tailwind に拾われず効いていない。
-                 退店ボタン・バンクロールカード・グラフの前は、それぞれ自分で 24px あける(くっついていた・2026-11-05) */}
+            {/* 外枠の縦の間隔(space-y-6)は、以前クラス名の直後に ${ が続いて Tailwind に拾われず、カード同士がくっついていた。
+                 クラス名の後ろに空白を入れて効くようにした(2026-11-10)。退店ボタン等の 24px はそのまま */}
             {checkoutAllowed && <button data-tutorial="checkout-btn" type="button" onClick={() => setIsLeaveConfirmOpen(true)} style={{ marginTop: 24 }}
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-white py-4 text-[14px] font-medium text-red-500 transition-all hover:bg-red-50 active:scale-[0.98]"
             >
@@ -2308,7 +2308,7 @@ const medalClass = (rank: number) => {
                       <div style={{ display: "flex", justifyContent: "center" }}><Loader size={40} /></div>
                     </div>
                   )
-                  if (list.length === 0) return <p className="term-comment text-center text-[13px] text-label3 py-4">データがありません</p>
+                  if (list.length === 0) return <p className="rr-empty term-comment text-center text-[13px] text-label3 py-4">データがありません</p>
                   return list.slice(0, 5).map((player, index) => (
                     <div key={player.id} className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-2 hover:bg-gray-100 transition-colors">
                       <div className="flex items-center gap-4">
@@ -2357,7 +2357,7 @@ const medalClass = (rank: number) => {
                   })}
                 </div>
               ) : (
-                <p className="term-comment text-[13px] text-label3 text-center py-4">入店したことのある店舗がありません</p>
+                <p className="rr-empty term-comment text-[13px] text-label3 text-center py-4">入店したことのある店舗がありません</p>
               )}
             </div>
 
@@ -2433,7 +2433,7 @@ const medalClass = (rank: number) => {
                 <div style={{ padding: '16px 16px 16px', minHeight: 100 }}>
                   {(scheduleEntries[calScheduleTab] ?? []).length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0 16px' }}>
-                      <p className="term-comment" style={{ fontSize: 13, color: 'var(--label3)', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
+                      <p className="rr-empty term-comment" style={{ fontSize: 13, color: 'var(--label3)', fontWeight: 500 }}>この日のトーナメント情報はありません</p>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
