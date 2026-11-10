@@ -55,7 +55,7 @@ const cover = `
 
 const schedRows = (k) => D.tournaments.filter((t) => t.day === k).map((t) => `
   <tr class="${t.main ? 'hl' : ''}"><td>${t.start}</td><td>${t.schedOnly || t.day2 ? '-' : rcTime(t)}</td><td>${t.no}</td>
-  <td class="nm">${t.name}${t.sub ? ` <em>${t.sub}</em>` : ''}</td>
+  <td class="nm">${t.name}${t.sub ? ` <em>${t.sub}</em>` : ''}${t.reserve ? '<small class="rv">予約必須</small>' : ''}</td>
   <td>${t.day2 ? '施設利用料<br>1,000 のみ' : t.schedOnly ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
   <td>${t.schedOnly || t.day2 ? '-' : n(t.chips)}${t.cap ? `<small class="cap">${t.cap}</small>` : ''}</td></tr>`).join('');
 
@@ -68,7 +68,7 @@ const schedule = `
   ${Object.keys(D.days).map((k, i) => `
   <div class="day">DAY${i + 1} &nbsp;${D.days[k].label} <span>${D.days[k].dow}</span>${i === 0 ? '<em class="max">ALL TABLES 8-MAX<small>全席固定 8人テーブル(ディーラー含む)</small></em>' : ''}</div>
   <table class="sched"><tbody>${schedRows(k)}</tbody></table>`).join('')}
-  <p class="note">ENTRY は 学生 / 一般 の参加費です。MAIN EVENT Day2 の進出者は参加費不要、施設利用料 1,000 のみいただきます。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
+  <p class="note"><b class="rvn">SUPER HIGH ROLLER と SIX TEAM MATCH(軍団戦)は予約必須です。</b>Instagram の RR 関係アカウント、または RRST 公式アカウントへの DM でご予約ください。<br>ENTRY は 学生 / 一般 の参加費です。MAIN EVENT Day2 の進出者は参加費不要、施設利用料 1,000 のみいただきます。CLOSE はレイトレジストレーション(参加受付)締切の目安です。進行により前後する場合があります。</p>
   <div class="notice">
     <div class="fee"><span class="pill">FEE</span>施設利用料として、お一人様 <b>${n(D.event.facilityFee)}</b> をいただきます(参加費とは別)。</div>
     <div class="app"><img src="${QR}" alt="">
@@ -126,6 +126,7 @@ ${t.day2 ? `
       <dl><dt>Restart</dt><dd>Lv${t.lvStart} / ${t.start}</dd></dl>
 ` : day1Aside(t)}
       ${t.main ? `<div class="mnote">${t.note}</div>` : ''}
+      ${t.reserve ? '<div class="rsv"><b>予約必須</b>Instagram の RR 関係アカウント、または RRST 公式アカウントへの DM でご予約ください。</div>' : ''}
       ${t.rules ? '<div class="mnote">ルールは協賛企業ページの前のページをご覧ください。</div>' : ''}
       <div class="big">Prize</div>
       ${t.main && !t.day2 ? '<p class="tbd">プライズは Day2 のページをご覧ください。</p>' : prizeBlock(t.prize)}
@@ -165,6 +166,33 @@ const rules = `
   </div>
 </section>`;
 
+// 協賛で賞金をまかなう仕組みを一目で見せるポスター。「合法」とは断定せず、事実(お金の流れ)だけを示す
+const legal = `
+<section class="page lg">
+  <div class="lg-k">HOW THE PRIZE WORKS</div>
+  <div class="lg-hook">賞金は、<br><span>100%</span> 協賛金。</div>
+  <div class="lg-sub">参加費は、1円も賞金に使いません。</div>
+  <div class="lg-flow">
+    <div class="lane a">
+      <div class="from">協賛企業 様</div>
+      <div class="arr">↓</div>
+      <div class="to">PRIZE<small>賞金・賞品</small></div>
+    </div>
+    <div class="wall"><span>別々に管理</span></div>
+    <div class="lane b">
+      <div class="from">参加費・施設利用料</div>
+      <div class="arr">↓</div>
+      <div class="to">運営費<small>会場費・備品など</small></div>
+    </div>
+  </div>
+  <div class="lg-points">
+    <div><b>01</b>プライズはすべて協賛企業様からのご提供です。</div>
+    <div><b>02</b>参加費・施設利用料は、会場費などの大会運営費にのみ使います。</div>
+    <div><b>03</b>賞金と参加費は口座・帳簿を分けて管理しています。</div>
+  </div>
+  <div class="lg-foot">安心して、全力で。<span>${logo(13)}</span></div>
+</section>`;
+
 const sp = (f) => 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'sponsors', f)).toString('base64');
 const thanks = `
 <section class="page">
@@ -183,7 +211,10 @@ const style = base.replace('</style>', `
 .sched td { padding: 9px 4px; font-size: 14.5px; }
 .sched td.nm em { font-style: normal; font-size: 11px; background: var(--dark); color: var(--cream); padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
 .day { font-size: 30px; margin: 4mm 0 1mm; }
-.notice { margin-top: 5mm; }
+.notice { margin-top: 3mm; gap: 2.5mm !important; }
+.venue-box { bottom: 9mm !important; }
+.notice .fee, .notice .app { padding: 8px 14px !important; }
+.notice .app img { width: 80px !important; height: 80px !important; }
 .mnote { font-family: 'Noto Sans JP'; font-size: 11.5px; font-weight: 700; background: rgba(36,16,10,.5); border-radius: 8px; padding: 8px 10px; margin-bottom: 5mm; line-height: 1.55; }
 .tbd { font-family: 'Noto Sans JP'; font-size: 11.5px; font-weight: 700; margin-top: 3mm; }
 .big small { font-family: 'Noto Sans JP'; font-size: 12px; }
@@ -203,7 +234,29 @@ const style = base.replace('</style>', `
 .c6-foot .org { margin-top: 5mm; font-size: 12px; }
 .blind.fit td { height: var(--rh); padding: 0; line-height: 1; font-size: calc(var(--rh) * .66); }
 .blind.fit tr.brk td { font-size: calc(var(--rh) * .55); }
+.rsv { background: #fff; color: #24100A; border-radius: 8px; padding: 8px 10px; margin-bottom: 5mm; font-family: 'Noto Sans JP'; font-size: 11.5px; font-weight: 700; line-height: 1.5; }
+.rsv b { display: block; color: #C2531A; font-size: 15px; font-weight: 900; }
+.sched td.nm .rv { display: block; font-family: 'Noto Sans JP'; font-size: 10px; font-weight: 900; color: #FFE2B8; }
+.note .rvn { color: #FFE2B8; font-weight: 900; }
 .pno { position: absolute; bottom: 5mm; left: 0; right: 0; text-align: center; font-family: Oswald; font-weight: 700; font-size: 11px; letter-spacing: .2em; color: #fff; opacity: .9; }
+.lg { text-align: center; }
+.lg-k { font-family: Oswald; font-weight: 700; letter-spacing: .5em; font-size: 14px; color: #FFE2B8; margin-top: 4mm; }
+.lg-hook { font-family: 'Noto Sans JP'; font-weight: 900; font-size: 62px; line-height: 1.15; margin-top: 8mm; letter-spacing: .02em; }
+.lg-hook span { font-family: Anton; font-weight: 400; font-size: 150px; line-height: .9; color: #fff; letter-spacing: -.02em; text-shadow: 0 6px 0 rgba(58,18,5,.35); }
+.lg-sub { display: inline-block; margin-top: 7mm; background: #fff; color: #C2531A; font-family: 'Noto Sans JP'; font-weight: 900; font-size: 22px; padding: 8px 20px; border-radius: 999px; }
+.lg-flow { display: grid; grid-template-columns: 1fr 28mm 1fr; gap: 3mm; margin-top: 12mm; align-items: stretch; }
+.lane { background: rgba(255,255,255,.18); border-radius: 14px; padding: 14px 10px; font-family: 'Noto Sans JP'; }
+.lane .from { font-weight: 900; font-size: 18px; }
+.lane .arr { font-family: Anton; font-size: 44px; line-height: 1.2; color: #FFE2B8; }
+.lane .to { background: #fff; color: #C2531A; border-radius: 10px; padding: 10px; font-family: Anton; font-size: 34px; line-height: 1.05; }
+.lane.b .to { font-family: 'Noto Sans JP'; font-weight: 900; font-size: 26px; }
+.lane .to small { display: block; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 12px; color: #6b3a1c; margin-top: 4px; }
+.wall { display: flex; align-items: center; justify-content: center; border-left: 3px dashed #fff; border-right: 3px dashed #fff; }
+.wall span { writing-mode: vertical-rl; font-family: 'Noto Sans JP'; font-weight: 900; font-size: 15px; letter-spacing: .3em; }
+.lg-points { margin-top: 10mm; display: grid; gap: 3mm; text-align: left; font-family: 'Noto Sans JP'; font-weight: 700; font-size: 15px; }
+.lg-points div { border-bottom: 1px solid rgba(255,255,255,.5); padding-bottom: 3mm; }
+.lg-points b { font-family: Anton; font-weight: 400; font-size: 22px; color: #FFE2B8; margin-right: 12px; }
+.lg-foot { position: absolute; left: 12mm; right: 12mm; bottom: 16mm; display: flex; justify-content: space-between; align-items: flex-end; font-family: 'Noto Sans JP'; font-weight: 900; font-size: 26px; letter-spacing: .2em; }
 /* cover #2 (第1回の組み方) */
 .c7 { text-align: center; }
 .c7-tag { font-family: 'Noto Sans JP'; letter-spacing: .4em; font-size: 16px; margin-top: 2mm; }
@@ -348,7 +401,7 @@ const style = base.replace('</style>', `
 const pages = [cover, schedule];
 const num = (t) => Number(t.no.replace('#', ''));
 for (const t of D.tournaments.filter((x) => !x.schedOnly).sort((x, y) => num(x) - num(y))) pages.push(tPage(t));
-pages.push(rules, thanks);
+pages.push(rules, legal, thanks);
 
 const numbered = pages.map((p, i) => p.replace('</section>', `<div class="pno">${String(i + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}</div></section>`));
 const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8">

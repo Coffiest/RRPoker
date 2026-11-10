@@ -54,11 +54,11 @@ module.exports = {
   ],
   // schedule 表示順 = この並び。chips はスタート点数、prize: null は未定
   tournaments: [
-    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '10:00', entry: { all: 50000 }, chips: 40000, cap: '30名限定', levels: blinds.shr, prize: { total: 900000, inMoney: 3, places: places([600000, 200000, 100000], 8) } },
+    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '10:00', entry: { all: 50000 }, chips: 40000, cap: '30名限定', reserve: true, levels: blinds.shr, prize: { total: 900000, inMoney: 3, places: places([600000, 200000, 100000], 8) } },
     { no: '#1', name: 'MAIN EVENT', sub: 'Day1', day: 'd1', start: '11:00', entry: sf(300, 1500), chips: 500, levels: blinds.main1, main: true, prize: null,
       note: '残り8名になるか、Lv20 終了の時点で Day1 終了。残ったプレイヤーが Day2 に進出します。' },
     { no: '#3', name: 'TAG TEAM', day: 'd1', start: '18:00', entry: sf(300, 1500), entryNote: '1人あたり', chips: 200, levels: blinds.tag, prize: { total: 25000, inMoney: 4, places: places([10000, 7000, 5000, 3000], 8) } },
-    { no: '#4', name: 'SIX TEAM MATCH', sub: '軍団戦', day: 'd2', start: '11:00', entry: sf(1000, 3000), entryNote: '1人あたり', chips: 15000, chipsNote: 'チームスタック', levels: blinds.team, prize: { total: 18000, inMoney: '1 team', places: [['WIN TEAM', '各 3,000 + ' + PLAT + '<br><small>(6名全員)</small>', false, []]] }, rules: true },
+    { no: '#4', name: 'SIX TEAM MATCH', sub: '軍団戦', day: 'd2', start: '11:00', entry: sf(1000, 3000), entryNote: '1人あたり', chips: 15000, chipsNote: 'チームスタック', reserve: true, levels: blinds.team, prize: { total: 18000, inMoney: '1 team', places: [['WIN TEAM', '各 3,000 + ' + PLAT + '<br><small>(6名全員)</small>', false, []]] }, rules: true },
     { no: '#5', name: 'RR CHAMPIONSHIP', day: 'd2', start: '11:00', entry: sf(300, 1500), chips: 500, levels: blinds.champ, prize: { total: 35000, inMoney: 6, places: places([15000, 7000, 5000, 3000, 3000, 2000], 8) } },
     { no: '#1', name: 'MAIN EVENT', sub: 'Day2', day: 'd2', start: '17:00', main: true, day2: true, lvStart: 21, levels: blinds.main2,
       note: 'Day1 通過者のみ参加。Day1 終了時のチップを持ち越し、Lv21 から再開します。Day2 は参加費不要、施設利用料 1,000 のみいただきます。',
