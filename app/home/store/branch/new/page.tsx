@@ -1,5 +1,6 @@
 'use client'
 
+import Loader from "@/components/Loader"
 import { useEffect, useRef, useState } from 'react'
 import BackButton from "@/components/BackButton"
 import { useRouter } from 'next/navigation'
@@ -132,6 +133,8 @@ export default function BranchStorePage() {
         ...subscriptionPayload,
         code,
         ownerUid: user.uid,
+        // 本店で権限を付けた人は系列店も操作できる(lib/storeAccess.ts)
+        ...(Array.isArray(parentData?.managerUids) && parentData.managerUids.length ? { managerUids: parentData.managerUids } : {}),
         balanceGroupId,
         createdAt: serverTimestamp(),
       }, { merge: true })
@@ -184,7 +187,7 @@ export default function BranchStorePage() {
         {/* アイコンピッカー */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()}
-            style={{ width: 90, height: 90, borderRadius: 28, background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)', border: 'none', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 0 3px rgba(242,169,0,0.25)' }}>
+            style={{ width: 90, height: 90, borderRadius: '50%', background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)', border: 'none', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: '0 0 0 3px rgba(242,169,0,0.25)' }}>
             {previewUrl ? (
               <img src={previewUrl} alt="store icon" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
             ) : (
@@ -274,7 +277,7 @@ export default function BranchStorePage() {
 
         <button type="button" disabled={loading} onClick={saveProfile} className="bs-btn">
           {loading ? (
-            <div style={{ width: 20, height: 20, border: '2.5px solid rgba(0,0,0,0.15)', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin .7s linear infinite' }}/>
+            <Loader size={26} />
           ) : (
             <>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#1a1a1a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>

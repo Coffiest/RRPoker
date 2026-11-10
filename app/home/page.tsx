@@ -1698,7 +1698,7 @@ const medalClass = (rank: number) => {
           {/* 入店中の店舗カード。下にプレイヤーズガイド(店舗が ON のとき。components/PlayerGuideStrip.tsx) */}
           <div className="rounded-2xl bg-white px-3.5 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.04]">
           <div className="flex items-center gap-3">
-            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[14px] bg-gray-100">
+            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-gray-100">
               {currentStore.iconUrl
                 ? <img src={currentStore.iconUrl} alt="" className="h-full w-full object-cover" />
                 : <div className="flex h-full w-full items-center justify-center"><FiHome className="text-label3" size={20} /></div>
@@ -1765,7 +1765,7 @@ const medalClass = (rank: number) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <div style={{ position: 'relative', flexShrink: 0 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 9, overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', overflow: 'hidden', border: `1.5px solid ${currentStoreId ? 'rgba(52,199,89,0.85)' : 'rgba(255,255,255,0.55)'}`, background: 'rgba(255,255,255,0.18)' }}>
                     {profile.iconUrl
                       ? <img src={profile.iconUrl} alt={profile.name ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <PlayerAvatar size={27} radius={0} />
@@ -2348,10 +2348,10 @@ const medalClass = (rank: number) => {
                       <button key={storeId} type="button" onClick={() => store && setSelectedStore(store)}
                         className={`flex-shrink-0 flex flex-col items-center gap-1.5 group`}
                       >
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-2xl border-2 bg-white shadow-sm transition-all active:scale-95 ${isFav ? "border-[#F2A900]" : "border-gray-200"}`}>
-                          {store?.iconUrl ? <img src={store.iconUrl} alt={store.name} className="h-12 w-12 rounded-xl object-cover" /> : <span className="text-[12px] text-label3">店</span>}
+                        <div className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border-2 bg-white shadow-sm transition-all active:scale-95 ${isFav ? "border-[#F2A900]" : "border-gray-200"}`}>
+                          {store?.iconUrl ? <img src={store.iconUrl} alt={store.name} className="h-12 w-12 rounded-full object-cover" /> : <span className="text-[12px] text-label3">店</span>}
                         </div>
-                        <span className="text-[10px] text-gray-500 max-w-[56px] truncate">{store?.name ?? ""}</span>
+                        <span className="text-[10px] text-label2 max-w-[56px] truncate">{store?.name ?? ""}</span>
                       </button>
                     )
                   })}
@@ -2862,13 +2862,11 @@ const medalClass = (rank: number) => {
                 className="a-btn a-btn-glass a-btn-icon" style={{ minHeight: 34, width: 34, color: 'var(--a-label-2)' }}
               ><FiX size={17} /></button>
               <h2 className="a-heading">店舗詳細</h2>
+              {/* お気に入り(Uiverse.io の andrew-demchenk0 の星。globals.css の .rr-fav) */}
               <button type="button" onClick={() => toggleFavoriteStore(selectedStore.id)}
-                aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)}
-                className="a-btn a-btn-icon"
-                style={favoriteStores.includes(selectedStore.id)
-                  ? { minHeight: 34, width: 34, background: 'rgba(242,169,0,0.16)', color: '#B57F00', boxShadow: 'inset 0 0 0 1px rgba(242,169,0,0.24)' }
-                  : { minHeight: 34, width: 34, background: 'rgba(255,255,255,0.6)', color: 'var(--a-label-3)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)' }}
-              ><FiStar size={15} /></button>
+                aria-label="お気に入り" aria-pressed={favoriteStores.includes(selectedStore.id)} className="rr-fav">
+                <svg viewBox="0 0 24 24" width={30} height={30} aria-hidden><path d="M12 2.5l2.94 6.1 6.66.9-4.86 4.64 1.2 6.62L12 17.6l-5.94 3.16 1.2-6.62L2.4 9.5l6.66-.9z" /></svg>
+              </button>
             </div>
 
             {/* スクロール可能なボディ。アクションボタンはこの下に固定で出すので、
@@ -2878,7 +2876,7 @@ const medalClass = (rank: number) => {
 
               {/* 店舗情報 */}
               <div className="flex items-center gap-4 mb-4 mt-2">
-                {selectedStore.iconUrl ? <img src={selectedStore.iconUrl} alt={selectedStore.name} className="h-16 w-16 rounded-2xl object-cover shadow-md flex-shrink-0" /> : <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-[13px] text-label3 flex-shrink-0">店舗</div>}
+                {selectedStore.iconUrl ? <img src={selectedStore.iconUrl} alt={selectedStore.name} className="h-16 w-16 rounded-full object-cover shadow-md flex-shrink-0" /> : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-[13px] text-label3 flex-shrink-0">店舗</div>}
                 <div>
                   <p className="text-[16px] font-semibold text-gray-900">{selectedStore.name}</p>
                   <p className="text-[12px] text-label3 mt-0.5">{selectedStore.address}</p>

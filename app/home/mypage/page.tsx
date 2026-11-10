@@ -1,5 +1,6 @@
 "use client"
 
+import Loader from "@/components/Loader"
 import { Clock, MapPin, Spade, Users } from 'lucide-react'
 import PlayerAvatar from "@/components/PlayerAvatar"
 import { useDragToClose } from "@/lib/useDragToClose"
@@ -539,7 +540,7 @@ export default function MyPage() {
             <button type="button" onClick={shareProfileCard} disabled={sharingProfile}
               style={{ position: 'absolute', top: 12, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.22)', border: '1px solid rgba(255,255,255,0.32)', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', backdropFilter: 'blur(8px)', zIndex: 1 }}>
               {sharingProfile
-                ? <div style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.8)', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
+                ? <Loader size={20} light />
                 : <FiShare2 size={13} style={{ color: '#fff' }} />
               }
               <span className="tech-label" style={{ fontSize: 9.5, color: '#fff' }}>SHARE</span>
@@ -572,7 +573,7 @@ export default function MyPage() {
                 }
                 {savingIcon && (
                   <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
-                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin .7s linear infinite' }} />
+                    <Loader size={26} light />
                   </div>
                 )}
               </div>
@@ -642,7 +643,7 @@ export default function MyPage() {
               {[
                 { icon: profile.affiliationIconUrl
                     // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
-                    ? <img src={profile.affiliationIconUrl} alt="" style={{ width: 16, height: 16, borderRadius: 4, objectFit: 'cover' }} />
+                    ? <img src={profile.affiliationIconUrl} alt="" style={{ width: 16, height: 16, borderRadius: '50%', objectFit: 'cover' }} />
                     : <Users size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '所属', value: profile.affiliation },
                 { icon: <MapPin size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: profile.region },
                 { icon: <Spade size={14} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: profile.favoriteHand },

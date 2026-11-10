@@ -230,7 +230,7 @@ export default function PlayerProfileModal({ uid, onClose }: Props) {
                   {[
                     { icon: player.affiliationIconUrl
                         // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
-                        ? <img src={player.affiliationIconUrl} alt="" style={{ width: 24, height: 24, borderRadius: 6, objectFit: 'cover' }} />
+                        ? <img src={player.affiliationIconUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
                         : <Users size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '所属', value: player.affiliation },
                     { icon: <MapPin size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '地域', value: player.region },
                     { icon: <Spade size={20} strokeWidth={2} color="#D4910A" aria-hidden />, label: '好きなハンド', value: player.favoriteHand },

@@ -119,7 +119,7 @@ export default function StoreSettingsPage() {
         </div>
 
         <div className="mt-6 rounded-[24px] border border-gray-200 p-4">
-          <label className="text-[12px] text-gray-500">店舗名</label>
+          <label className="text-[12px] text-label2">店舗名</label>
           <input
             type="text"
             value={name}
@@ -128,7 +128,7 @@ export default function StoreSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">店舗アイコン</label>
+          <label className="text-[12px] text-label2">店舗アイコン</label>
           <input
             type="file"
             accept="image/*"
@@ -137,7 +137,7 @@ export default function StoreSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">住所</label>
+          <label className="text-[12px] text-label2">住所</label>
           <input
             type="text"
             value={address}
@@ -146,16 +146,14 @@ export default function StoreSettingsPage() {
           />
 
           <div className="mt-4" />
-          <label className="text-[12px] text-gray-500">チップ単位</label>
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="text-[12px] text-label2">チップ単位</label>
+          <div className="mt-2 rr-seg" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
             {UNIT_OPTIONS.map(option => (
               <button
                 key={option}
                 type="button"
                 onClick={() => setUnit(option)}
-                className={`h-10 rounded-2xl border text-[14px] ${
-                  unit === option ? "border-[#F2A900] bg-[#FDF2D0]" : "border-gray-200"
-                }`}
+                aria-pressed={unit === option}
               >
                 {option}
               </button>
@@ -175,7 +173,7 @@ export default function StoreSettingsPage() {
           <button
             type="button"
             onClick={saveProfile}
-            className="mt-4 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="rr-btn is-solid is-block mt-4" style={{ minHeight: 48 }}
           >
             保存する
           </button>
@@ -207,7 +205,7 @@ export default function StoreSettingsPage() {
           <button
             type="button"
             onClick={changePassword}
-            className="mt-4 h-[48px] w-full rounded-[20px] border border-gray-200 text-[14px] font-semibold"
+            className="rr-btn is-gold is-block mt-4" style={{ minHeight: 48 }}
           >
             パスワードを変更
           </button>

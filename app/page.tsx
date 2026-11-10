@@ -339,6 +339,26 @@ export default function TopPage() {
 
         <div style={{ maxWidth:480, margin:'0 auto', position:'relative' }}>
 
+          {/* CTA(オーナー指定・2026-11-10): ヒーローの一番上に置き、手描き風のボタン(Uiverse.io の AatreyuShau。globals.css の .rr-hand) */}
+          <div className="d0" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10, marginBottom:28 }}>
+            <svg width="0" height="0" style={{ position:'absolute' }} aria-hidden focusable="false">
+              <filter id="handDrawnNoise"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" /></filter>
+              <filter id="handDrawnNoise2"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" /></filter>
+              <filter id="handDrawnNoiset"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" /></filter>
+              <filter id="handDrawnNoiset2"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="9" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" /></filter>
+            </svg>
+            <button type="button" className="rr-hand" onClick={() => router.push('/login')}>
+              <svg className="highlight" viewBox="0 0 220 64" preserveAspectRatio="none" aria-hidden>
+                <path d="M10 40 C 60 28, 120 50, 210 30" />
+              </svg>
+              <svg className="button-cosm" viewBox="0 0 24 24" aria-hidden>
+                <path d="M12 2l2.9 6.9L22 10l-5.5 4.8L18.2 22 12 18.3 5.8 22l1.7-7.2L2 10l7.1-1.1z" />
+              </svg>
+              <span>今すぐはじめる</span>
+            </button>
+            <p style={{ fontSize:11, color:'var(--label2)', fontWeight:500 }}>無料でご利用いただけます</p>
+          </div>
+
           {/* フローティングポーカーカード */}
           <div className="d0" style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:28 }}>
             {POKER_CARDS.map((c, i) => (
@@ -362,16 +382,6 @@ export default function TopPage() {
             </p>
           </div>
 
-          {/* CTA */}
-          <div className="d2" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginTop:26 }}>
-            <button className="cta-primary" onClick={() => router.push('/login')}
-              style={{ width:'100%', maxWidth:320, height:56, borderRadius:18, fontSize:17, fontWeight:800, color:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', gap:8, letterSpacing:'-0.2px' }}
-            >
-              今すぐはじめる
-              <span className="arrow-bounce">→</span>
-            </button>
-            <p style={{ fontSize:11, color:'var(--label3)', fontWeight:500 }}>無料でご利用いただけます</p>
-          </div>
         </div>
       </section>
 

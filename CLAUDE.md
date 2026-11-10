@@ -22,6 +22,7 @@
 - 配色は元の金(#F2A900)一色と白。ベージュの地・コバルトブルーの差し色は使わない(試したが元に戻した)。
 - デザインを全面的に作り直さない。機能を足すときは、元の画面の見た目(金・白・コンソール風)に合わせて足す。
 - **店舗側の「+」から開くトーナメント作成・ブラインド作成の画面(`app/home/store/tournaments/page.tsx` と `components/BlindLevelEditor.tsx`)は、デザインを含めて今のまま。一切手を加えない。**
+  - 例外(オーナー確定・2026-11-10): 共通の部品の統一(ボタン・入力欄・トグル・チェックボックス・切り替え・読み込み・閉じる・空の状態)はこの画面にも入れる。
   - 例外(オーナー確定・2026-11-03): PC 版の並べ方(外枠の幅・一覧を 2 列にする印)だけは足してよい。色・形・中身は変えない。
   - 例外(オーナー確定・2026-11-03): 「テンプレートで最後まで作る」の確認は、ブラウザ標準の小窓ではなくアプリの確認画面(`components/ConfirmDialog.tsx`)で出す。
   - 例外(オーナー確定・2026-11-03): ブラインドのテキストコピー、チラシ画像の入れ方(端末で縮めて data URL・ドラッグ・貼り付け)、RC ブレイク(行の操作から付け外し・金で目立たせる)を足した。
@@ -58,7 +59,9 @@
 
 ## 店舗の権限(managerUids)
 
-- オーナーはプレイヤーに店舗の権限を付けられる(`stores/{id}.managerUids`)。付いた人はオーナーと同じ操作ができる。権限の付け外し・店舗の削除・課金・系列店の追加・店舗マイページはオーナーだけ。仕組みは `lib/storeAccess.ts` の冒頭。
+- オーナーはプレイヤーに店舗の権限を付けられる(`stores/{id}.managerUids`)。付いた人はオーナーと同じ操作ができる。権限の付け外し・店舗の削除・課金・系列店の追加はオーナーだけ。仕組みは `lib/storeAccess.ts` の冒頭。
+- 権限は系列店(同じオーナーの店舗)すべてに付ける・外す(`addManager` / `removeManager` / `grantByStoreLogin`。系列店を作るときは本店の managerUids を写す)。以前 1 店舗だけに付けた分は、オーナーが店舗ホームを開くと `syncGroupManagers` でそろう。権限のある人の系列店の切り替え先は managerUids に自分が入っている同じオーナーの店舗(2026-11-10)。
+- 権限のある人も店舗のマイページを開ける(店舗の名前・アイコン等を編集できる)。サブスクリプションとアカウント削除は隠し、プレイヤー自身の users の名前・アイコンは書き換えない(2026-11-10)。
 - 店舗画面はどこも `users/{uid}.storeId` から店舗を決める。権限のあるプレイヤーが店舗画面を開くときは、そのプレイヤーの `users.storeId` に操作する店舗を入れる。**`users.storeId` だけを権限の根拠にしない**(誰でも書ける)。必ず `ownerUid` か `managerUids` を見る。課金の API はオーナーかを確かめる。
 - この仕組みは Firestore のルールと Cloud Functions の変更を含む。変えたら `firebase deploy --only firestore:rules,functions` も必要。
 
@@ -125,13 +128,29 @@
 - ファイルは Firebase Storage の `stores/{id}/guides/`(`storage.rules`。書けるのはオーナーと managerUids、PDF と画像だけ)。店舗の文書には `playerGuideEnabled` / `playerGuideFiles` だけ。ルールを変えたら `firebase deploy --only storage`。
 - 保存は `app/api/guide-file` を通す(Storage は別のドメインで、そのままでは保存にならない)。通すのはこのアプリの Storage の `stores/*/guides/*` だけ(`lib/playerGuide.ts` の `isAllowedGuideUrl`)。
 
-## 共通の部品(オーナー確定・2026-11-06。元は Uiverse.io。色は金と白、大きさはスマホに合わせた)
+## 共通の部品(オーナー確定・2026-11-06、2026-11-10 に更新。元は Uiverse.io。色は金と白、大きさはスマホに合わせた)
 
-- 読み込み中の表示はすべて `components/Loader.tsx`(12 本の棒)。金のボタンの中は `light`。
-- 文字を打つ欄は全画面で `globals.css` の立体の見た目(灰 #e8e8e8・影 8px・押すとへこむ)。枠で見た目を作っている画面は枠に `rr-input-shell`(または field-wrap 等)。タイマーの面・暗い面の欄は `rr-input-plain` で外す。管理者画面(`app/admin` の `admin-scope`)は対象外。
-- 戻るは `components/BackButton.tsx`(44px の輪。乗せる・押すと金の輪、矢印が抜ける)。ヘルプは `components/HelpButton.tsx`(金の丸・白い ?)。
+**今後どの画面を作る・直すときも、下の部品にそろえる(統一のルール)。** 一覧・元の CSS・まだ使っていない案は `docs/DESIGN_PARTS.md`。
+
+- 読み込み中の表示はすべて `components/Loader.tsx`(PriyanshuGupta28 の 10 本の棒。金、金のボタンの中は `light`)。輪のスピナーを自分で書かない。
+- 文字を打つ欄は全画面で `globals.css` の明るい欄(alexruix。薄い灰 #f3f3f4、乗せる・押すと白と金の輪)。枠で見た目を作っている画面は枠に `rr-input-shell`(または field-wrap 等)。タイマーの面・暗い面の欄は `rr-input-plain` で外す。管理者画面(`app/admin` の `admin-scope`)は対象外。
+- 文字のボタンは `.rr-btn`(Gaurav-WebDev。枠のカプセルで、乗せる・押すと左上から塗られる)。主な操作は `is-solid`(金・白い字)、金の枠は `is-gold`、取り消し・閉じるは `is-mute`、危ない操作は `is-danger` / `is-danger-solid`、承認は `is-green`。すでに動きのある部品(`a-btn`・`rr-pill`・`tp-press` 等)はそのまま。
+- 戻るは `components/BackButton.tsx`、閉じる・編集などの丸いアイコンのボタンは同じファイルの `RingButton`(karthik092726122003。44px の輪。乗せる・押すと金の輪、アイコンが抜ける)。ヘルプは `components/HelpButton.tsx`(金の丸・白い ?)。
+- トグルスイッチはすべて `.a-switch`(ErzenXz。緑 #05c46b、52×28)。
+- チェックボックスは `components/RrCheckbox.tsx`(Tsiangana。金で塗り、白いチェックが描かれる)。行全体を押す作りの中は `CheckMark`。
+- 2〜4 択の切り替えは `.rr-seg`(Yaya12085。選んだものに `aria-pressed` など)。
+- 開く・たたむの印は `components/ExpandIcon.tsx`(AbanoubMagdy1。+ が − になる)。
+- 何かを足すボタンは `components/AddButton.tsx`(mRcOol7。丸の +、乗せると回って金)。行の中は `AddIcon`。
+- お気に入りは `.rr-fav`(andrew-demchenk0 の星。選ぶと金)。
+- 空の状態の枠は `.rr-dots`(Yaya12085 の水玉を薄くしたもの)。画面全体の背景には使わない(背景は TechBackdrop)。
+- トップの「今すぐはじめる」だけ手描き風の `.rr-hand`(AatreyuShau)。ほかの画面には使わない。
 - 数の増減(エントリー・バスト・人数・スタンプなど)は `components/StepButton.tsx`(金の輪の + / −。乗せると回って金で塗る)。
 - 店舗側の二番手のボタンは `.rr-pill`(白い丸。押すと金・字の間が広がる)。ページ内の案内(ランキングを見る)は `components/LineButton.tsx`(金の線)。
+- 一覧の行のボタンは `.rr-row`(乗せると薄い金、押すと少し縮む)。
+
+## 画像のアイコンは丸(オーナー確定・2026-11-10)
+
+- プレイヤー・店舗の画像のアイコン(と、画像が無いときの代わりの絵)は角丸の四角ではなく丸(`borderRadius: '50%'` / `rounded-full`)。アプリのロゴ・チラシ・ガイドの画像は対象外。
 
 ## QR の画面(オーナー確定・2026-11-09。2026-11-07 の「1 回で確定」は廃止)
 

@@ -30,3 +30,27 @@ export default function BackButton({ onClick, href, label = '戻る', light = fa
     </button>
   )
 }
+
+/**
+ * 同じ輪の部品で、矢印以外のアイコンを出す(オーナー指定・2026-11-10「全てに適応」)。
+ * 閉じる(×)など丸いアイコンのボタンはこれ。乗せる・押すと金の輪になり、アイコンが横へ抜けて次が入る。
+ */
+export function RingButton({ icon, onClick, label, light = false, className = '', style, disabled }: {
+  icon: React.ReactNode
+  onClick: () => void
+  label: string
+  light?: boolean
+  className?: string
+  style?: React.CSSProperties
+  disabled?: boolean
+}) {
+  return (
+    <button type="button" aria-label={label} title={label} onClick={onClick} disabled={disabled}
+      className={`rr-back${light ? ' is-light' : ''}${className ? ` ${className}` : ''}`} style={style}>
+      <span className="rr-back-box" aria-hidden>
+        <span className="rr-back-elem rr-ring-ico">{icon}</span>
+        <span className="rr-back-elem rr-ring-ico">{icon}</span>
+      </span>
+    </button>
+  )
+}

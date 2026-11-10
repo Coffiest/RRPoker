@@ -1,5 +1,7 @@
 "use client"
 
+import { FiX } from "react-icons/fi"
+import { RingButton } from "@/components/BackButton"
 import { TriangleAlert } from 'lucide-react'
 import PlayerAvatar from "@/components/PlayerAvatar"
 import Loader from "@/components/Loader"
@@ -457,12 +459,9 @@ for (const p of payouts) {
 
         {/* ヘッダー */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 12px 8px', flexShrink: 0, borderBottom: '1px solid #F2F2F7' }}>
-          <button
-            onClick={onClose}
-            style={{ width: 34, height: 34, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1 }}
-          >×</button>
+          <RingButton label="閉じる" onClick={onClose} icon={<FiX />} />
           <span style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Pay Out</span>
-          <button
+          <button className="rr-ok"
             onClick={async () => { await saveDraft(); onClose() }}
             style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1 }}
           >✓</button>
@@ -525,11 +524,10 @@ for (const p of payouts) {
               </div>
 
               {/* 追加ボタン */}
-              <button
+              <button className="rr-btn is-gold is-block is-sm" style={{ marginBottom: 8 }}
                 type="button"
                 onClick={addRow}
                 disabled={submitting}
-                style={{ width: '100%', height: 40, borderRadius: 12, border: '1.5px dashed rgba(60,60,67,0.25)', background: 'transparent', color: 'var(--label2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', marginBottom: 8 }}
               >＋ 入賞者を追加</button>
 
               {/* コメント */}
@@ -549,11 +547,10 @@ for (const p of payouts) {
         {/* フッター: Pay Out ボタン */}
         <div style={{ padding: '12px 16px', paddingBottom: 'max(20px, env(safe-area-inset-bottom, 20px))', borderTop: '1px solid #F2F2F7', flexShrink: 0 }}>
           <ChipDisclaimer className="pb-2" />
-          <button
+          <button className="rr-btn is-solid is-block" style={{ minHeight: 52, fontSize: 14 }}
             type="button"
             onClick={() => { const v = validate(); if (v) { setError(v); return } setConfirmOpen(true) }}
             disabled={submitting}
-            style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1C1C1E', fontSize: 16, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', boxShadow: '0 4px 16px rgba(242,169,0,0.35)', opacity: submitting ? 0.6 : 1 }}
           >Pay Out</button>
         </div>
       </div>
@@ -568,17 +565,15 @@ for (const p of payouts) {
               <p style={{ fontSize: 13, color: 'var(--label3)', lineHeight: 1.6 }}>この操作は取り消せません</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
-              <button
+              <button className="rr-btn is-mute" style={{ minHeight: 48 }}
                 type="button"
                 onClick={() => setConfirmOpen(false)}
                 disabled={submitting}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: '#F2F2F7', color: '#1C1C1E', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
               >キャンセル</button>
-              <button
+              <button className="rr-btn is-danger-solid" style={{ minHeight: 48 }}
                 type="button"
                 onClick={async () => { setConfirmOpen(false); await submitFinish() }}
                 disabled={submitting}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: '#4A1010', color: '#fff', fontSize: 15, fontWeight: 700, cursor: submitting ? 'default' : 'pointer', opacity: submitting ? 0.6 : 1 }}
               >{submitting ? '実行中…' : '実行'}</button>
             </div>
           </div>

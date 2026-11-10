@@ -67,7 +67,7 @@ export default function AffiliationPicker({ value, onChange, joinedStoreIds }: {
     return (
       <button key={s.id} type="button" onClick={() => pick(s)}
         style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 48, padding: '4px 12px', border: 'none', borderRadius: 12, background: on ? 'rgba(242,169,0,0.12)' : 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-        <span style={{ width: 32, height: 32, borderRadius: 8, overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {s.iconUrl
             // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
             ? <img src={s.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

@@ -1,5 +1,6 @@
 "use client"
 
+import Loader from "@/components/Loader"
 import { useDragToClose } from "@/lib/useDragToClose"
 import BackButton from "@/components/BackButton"
 import { useEffect, useState } from "react"
@@ -507,7 +508,7 @@ export default function TournamentHistoryPage() {
               <button type="button" onClick={() => shareTournamentCard(selectedItem)} disabled={sharingCard}
                 style={{ width: '100%', height: 52, borderRadius: 16, background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', fontSize: 15, fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: sharingCard ? 0.7 : 1 }}>
                 {sharingCard
-                  ? <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2.5px solid rgba(255,255,255,0.6)', borderTopColor: '#fff', animation: 'spin .7s linear infinite' }} />
+                  ? <Loader size={24} light />
                   : <FiShare2 size={17} />
                 }
                 {sharingCard ? '生成中...' : 'この結果をシェア'}

@@ -139,17 +139,10 @@ export default function TournamentPurchaseLog({
             </span>
 
             {canRevoke && !row.revoked && (
-              <button
+              <button className="rr-btn is-danger is-sm" style={{ flexShrink: 0, letterSpacing: 1 }}
                 type="button"
                 onClick={() => void revoke(row.id)}
                 disabled={busyId === row.id}
-                className="con-btn"
-                style={{
-                  flexShrink: 0, height: 32, padding: '0 14px', borderRadius: 999,
-                  background: 'rgba(255,59,48,0.11)', border: 'none', boxShadow: 'inset 0 0 0 1px rgba(255,59,48,0.16)',
-                  color: '#FF3B30', fontSize: 10, fontWeight: 700, cursor: 'pointer',
-                  opacity: busyId === row.id ? 0.5 : 1,
-                }}
               >
                 取消
               </button>
