@@ -1,5 +1,7 @@
 "use client"
 
+import RrCheckbox from "@/components/RrCheckbox"
+import { RingButton } from "@/components/BackButton"
 import TimerBgDefaultSetting from "@/components/TimerBgDefaultSetting"
 import PlayerAvatar from "@/components/PlayerAvatar"
 import StepButton from "@/components/StepButton"
@@ -534,18 +536,13 @@ export default function StoreSettingsPage() {
           {/* ── 表示言語 ── */}
           <SectionCard>
             <SectionTitle title={t('settings.language')} subtitle={t('settings.languageNote')} />
-            <div className="flex gap-2">
+            <div className="rr-seg">
               {([{ v: 'ja' as Language, label: t('common.japanese') }, { v: 'en' as Language, label: t('common.english') }]).map(opt => (
                 <button
                   key={opt.v}
                   type="button"
                   onClick={() => setLanguage(opt.v)}
-                  className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-                  style={{
-                    background: language === opt.v ? CLR.gold : CLR.surface,
-                    color: language === opt.v ? '#fff' : CLR.gray2, /* 金の面の上の文字は白(CLAUDE.md) */
-                    border: `1.5px solid ${language === opt.v ? CLR.goldDk : CLR.border}`,
-                  }}
+                  aria-pressed={language === opt.v}
                 >
                   {opt.label}
                 </button>
@@ -661,15 +658,7 @@ export default function StoreSettingsPage() {
                     <option value="day">日</option>
                     <option value="month">ヶ月</option>
                   </select>
-                  <label className="flex items-center gap-1.5 shrink-0 text-[13px] cursor-pointer" style={{ color: CLR.gray2 }}>
-                    <input
-                      type="checkbox"
-                      checked={birthdayCouponUnlimited}
-                      onChange={e => setBirthdayCouponUnlimited(e.target.checked)}
-                      className="w-4 h-4 accent-[#F2A900]"
-                    />
-                    無期限
-                  </label>
+                  <RrCheckbox checked={birthdayCouponUnlimited} onChange={setBirthdayCouponUnlimited} className="shrink-0 text-[13px]" style={{ color: CLR.gray2 }}>無期限</RrCheckbox>
                 </div>
                 {birthdayCouponError && <FeedbackText text={birthdayCouponError} color="red" />}
                 {birthdayCouponSuccess && <FeedbackText text={birthdayCouponSuccess} color="green" />}
@@ -714,18 +703,13 @@ export default function StoreSettingsPage() {
               </div>
               <div>
                 <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>表示位置</p>
-                <div className="flex gap-3">
+                <div className="rr-seg">
                   {([{ v: true, label: "前（例: $500）" }, { v: false, label: "後（例: 500pt.）" }] as const).map(opt => (
                     <button
                       key={String(opt.v)}
                       type="button"
                       onClick={() => setChipUnitBefore(opt.v)}
-                      className="flex-1 h-10 rounded-2xl text-[13px] font-semibold transition-all"
-                      style={{
-                        background: chipUnitBefore === opt.v ? CLR.gold : CLR.surface,
-                        color: chipUnitBefore === opt.v ? CLR.ink : CLR.gray2,
-                        border: `1.5px solid ${chipUnitBefore === opt.v ? CLR.goldDk : CLR.border}`,
-                      }}
+                      aria-pressed={chipUnitBefore === opt.v}
                     >
                       {opt.label}
                     </button>
@@ -801,7 +785,7 @@ export default function StoreSettingsPage() {
             <div className="flex items-center justify-between mb-5">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>チップの有効期限設定</p>
               <button type="button" onClick={() => setIsChipExpiryModalOpen(false)}
-                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
+                className="rr-btn is-mute is-sm">閉じる</button>
             </div>
 
             <p className="text-[11px] font-semibold mb-2" style={{ color: CLR.gray2 }}>有効期限（ヶ月）　0で期限なし</p>
@@ -837,7 +821,7 @@ export default function StoreSettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>レーキ管理</p>
               <button type="button" onClick={() => setIsRakeModalOpen(false)}
-                className="text-[13px] font-medium" style={{ color: CLR.gray2 }}>閉じる</button>
+                className="rr-btn is-mute is-sm">閉じる</button>
             </div>
 
             {/* Total */}
@@ -888,8 +872,7 @@ export default function StoreSettingsPage() {
                         setRakeError("記録に失敗しました。権限を確認してください")
                       }
                     }}
-                    className="flex-1 h-11 rounded-2xl text-[14px] font-bold text-white active:scale-95 transition-all"
-                    style={{ background: "#15803D" }}
+                    className="rr-btn is-green" style={{ flex: 1 }}
                   >
                     記録する
                   </button>
@@ -953,9 +936,7 @@ export default function StoreSettingsPage() {
               <div className="w-9 h-[3px] rounded-full mx-auto mb-4" style={{ background: CLR.border }} />
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[17px] font-bold" style={{ color: CLR.ink }}>スタンプ管理</p>
-                <button type="button" onClick={() => setStampModalOpen(false)}>
-                  <FiX size={20} color={CLR.gray2} />
-                </button>
+                <RingButton label="閉じる" onClick={() => setStampModalOpen(false)} icon={<FiX />} />
               </div>
               {/* 検索 */}
               <div className="relative mb-3">
@@ -970,7 +951,7 @@ export default function StoreSettingsPage() {
                 />
               </div>
               {/* ソート */}
-              <div className="flex gap-2">
+              <div className="rr-seg" style={{ fontSize: 12 }}>
                 {([
                   { key: "recent", label: "最近入店" },
                   { key: "name",   label: "名前順" },
@@ -980,12 +961,7 @@ export default function StoreSettingsPage() {
                     key={opt.key}
                     type="button"
                     onClick={() => setStampSort(opt.key)}
-                    className="flex-1 h-8 rounded-xl text-[11px] font-semibold transition-all"
-                    style={{
-                      background: stampSort === opt.key ? CLR.gold : CLR.surface,
-                      color: stampSort === opt.key ? CLR.ink : CLR.gray2,
-                      border: `1px solid ${stampSort === opt.key ? CLR.goldDk : CLR.border}`,
-                    }}
+                    aria-pressed={stampSort === opt.key}
                   >
                     {opt.label}
                   </button>

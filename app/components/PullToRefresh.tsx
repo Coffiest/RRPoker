@@ -1,4 +1,5 @@
 'use client'
+import Loader from "@/components/Loader"
 import { ArrowDownIcon } from 'lucide-react'
 
 import { useEffect, useRef, useState } from 'react'
@@ -98,12 +99,7 @@ export default function PullToRefresh({ onRefresh }: { onRefresh: () => void }) 
         boxShadow: ready ? '0 4px 14px rgba(249,179,24,0.3)' : 'none',
       }}>
         {refreshing ? (
-          <div style={{
-            width: 18, height: 18, borderRadius: '50%',
-            border: '2.5px solid rgba(255,255,255,0.3)',
-            borderTopColor: '#fff',
-            animation: 'spin .8s linear infinite',
-          }} />
+          <Loader size={24} light />
         ) : (
           <ArrowDownIcon size={16} style={{
               transform: `rotate(${progress * 180}deg) ${ready ? 'scale(1.1)' : ''}`,

@@ -195,7 +195,7 @@ function BillingContent() {
                 <FiCheck className="text-green-600" size={32} />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">ご登録ありがとうございます！</h2>
-              <p className="text-sm text-gray-500">RRPokerへ移動します...</p>
+              <p className="text-sm text-label2">RRPokerへ移動します...</p>
             </>
           ) : (
             <>
@@ -203,18 +203,18 @@ function BillingContent() {
                 <Loader />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">処理中...</h2>
-              <p className="text-sm text-gray-500">お支払いを確認しています</p>
+              <p className="text-sm text-label2">お支払いを確認しています</p>
               {syncError && (
                 <>
                   <p className="text-sm text-red-600 mt-5 mb-3">{syncError}</p>
                   <button
                     onClick={handleRecover}
                     disabled={recovering}
-                    className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-3 text-[15px] disabled:opacity-60"
+                    className="rr-btn is-solid is-block" style={{ minHeight: 48 }}
                   >
                     {recovering ? "確認中..." : "お支払いを再確認する"}
                   </button>
-                  {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+                  {recoverMsg && <p className="text-xs text-label2 mt-3">{recoverMsg}</p>}
                 </>
               )}
             </>
@@ -262,19 +262,19 @@ function BillingContent() {
         <div className="flex mb-4"><BackButton href={"/home/store/mypage"} /></div>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">プランを選択</h1>
-          <p className="text-sm text-gray-500">店舗アカウントの利用にはサブスクリプションが必要です</p>
+          <p className="text-sm text-label2">店舗アカウントの利用にはサブスクリプションが必要です</p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 mb-8">
+        <div className="rr-seg mb-8" style={{ maxWidth: 320, margin: '0 auto 32px' }}>
           <button
             onClick={() => setBillingInterval("monthly")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "monthly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            aria-pressed={billingInterval === "monthly"}
           >
             月払い
           </button>
           <button
             onClick={() => setBillingInterval("yearly")}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billingInterval === "yearly" ? "bg-[#F2A900] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            aria-pressed={billingInterval === "yearly"}
           >
             年払い
             <span className="ml-2 text-[10px] font-bold bg-green-500 text-white rounded-full px-1.5 py-0.5">17%OFF</span>
@@ -301,20 +301,20 @@ function BillingContent() {
               </div>
               <div className="mb-4">
                 {billingInterval === "monthly" ? (
-                  <span className="text-2xl font-bold text-gray-900">¥{p.monthly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/月</span></span>
+                  <span className="text-2xl font-bold text-gray-900">¥{p.monthly.toLocaleString()}<span className="text-sm font-normal text-label2">/月</span></span>
                 ) : (
                   <div>
-                    <span className="text-2xl font-bold text-gray-900">¥{p.yearly.toLocaleString()}<span className="text-sm font-normal text-gray-500">/年</span></span>
-                    <div className="text-xs text-gray-500 mt-0.5">（¥{p.perMonth.toLocaleString()}/月換算）</div>
+                    <span className="text-2xl font-bold text-gray-900">¥{p.yearly.toLocaleString()}<span className="text-sm font-normal text-label2">/年</span></span>
+                    <div className="text-xs text-label2 mt-0.5">（¥{p.perMonth.toLocaleString()}/月換算）</div>
                     {iosNative && p.id === "standard" && (
-                      <span className="inline-block mt-1 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">App内では取扱なし</span>
+                      <span className="inline-block mt-1 text-[10px] font-bold bg-gray-100 text-label2 rounded-full px-2 py-0.5">App内では取扱なし</span>
                     )}
                   </div>
                 )}
               </div>
               <ul className="space-y-1.5">
                 {p.features.map(f => (
-                  <li key={f} className="flex items-start gap-2 text-[13px] text-gray-600">
+                  <li key={f} className="flex items-start gap-2 text-[13px] text-label2">
                     <FiCheck className="text-green-500 flex-shrink-0 mt-0.5" size={14} />
                     {f}
                   </li>
@@ -345,14 +345,14 @@ function BillingContent() {
         )}
 
         {iosWebOnlyPlan ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-[13px] text-gray-600 leading-relaxed">
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-[13px] text-label2 leading-relaxed">
             Standardの年額プランはこのAppでは取り扱っていません。月払いをお選びください。
           </div>
         ) : (
           <button
             onClick={handleSubscribe}
             disabled={loading}
-            className="w-full bg-[#F2A900] text-white font-bold rounded-2xl py-4 text-[16px] disabled:opacity-60 transition-opacity"
+            className="rr-btn is-solid is-block" style={{ minHeight: 56, fontSize: 15 }}
           >
             {loading ? "処理中..." : "サブスクリプションを開始する"}
           </button>
@@ -372,15 +372,15 @@ function BillingContent() {
 
         {/* すでに決済済みなのに反映されない場合の救済 */}
         <div className="mt-6 pt-5 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-500 mb-3">お支払い済みなのに反映されない場合</p>
+          <p className="text-xs text-label2 mb-3">お支払い済みなのに反映されない場合</p>
           <button
             onClick={handleRecover}
             disabled={recovering}
-            className="w-full bg-white border-2 border-gray-200 text-gray-900 font-semibold rounded-2xl py-3 text-[14px] hover:bg-gray-50 disabled:opacity-60 transition-all"
+            className="rr-btn is-gold is-block"
           >
             {recovering ? "確認中..." : "お支払いを確認して反映する"}
           </button>
-          {recoverMsg && <p className="text-xs text-gray-500 mt-3">{recoverMsg}</p>}
+          {recoverMsg && <p className="text-xs text-label2 mt-3">{recoverMsg}</p>}
         </div>
       </div>
     </div>

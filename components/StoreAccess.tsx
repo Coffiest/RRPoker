@@ -138,7 +138,7 @@ export function StoreChooserSheet({ open, onClose, stores, onPick }: { open: boo
         {stores.map(s => (
           <button key={s.id} type="button" className="gl-press" onClick={() => onPick(s.id)}
             style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 56, padding: '0 14px', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-            <span style={{ width: 36, height: 36, borderRadius: 10, overflow: 'hidden', background: 'var(--fill)', flexShrink: 0 }}>
+            <span style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', background: 'var(--fill)', flexShrink: 0 }}>
               {s.iconUrl && <img src={s.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </span>
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)' }}>{s.name}</span>

@@ -1,5 +1,6 @@
 "use client"
 
+import { RingButton } from "@/components/BackButton"
 import { showToast } from "@/lib/toast"
 import Loader from "@/components/Loader"
 import { useEffect, useRef, useState } from "react"
@@ -52,6 +53,8 @@ export default function StoreMyPage() {
   const [blindError, setBlindError] = useState("")
   const [blindSuccess, setBlindSuccess] = useState("")
   const [subscription, setSubscription] = useState<any>(null)
+  /** 権限を付けてもらったプレイヤーが開いている(オーナーではない) */
+  const [isManager, setIsManager] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [billingError, setBillingError] = useState("")
   const [billingSuccess, setBillingSuccess] = useState("")
@@ -75,8 +78,19 @@ export default function StoreMyPage() {
       if (!user) return
       const snap = await getDoc(doc(db, "users", user.uid))
       const data = snap.data() ?? {}
-      // 店舗のマイページ(アカウント削除・解約がある)はオーナーだけ。権限を付けたプレイヤーは自分のマイページへ
-      if (data.role !== "store") { router.replace("/home/mypage"); return }
+      // 権限を付けてもらったプレイヤー(managerUids)も店舗のマイページを開ける(オーナー指定・2026-11-10)。
+      // ただし解約・アカウント削除はオーナーだけなので隠し、プレイヤー自身の名前・アイコンは書き換えない(isManager)
+      if (data.role !== "store") {
+        const sid = typeof data.storeId === "string" ? data.storeId : null
+        const st = sid ? (await getDoc(doc(db, "stores", sid)).catch(() => null))?.data() : null
+        const ok = !!st && Array.isArray(st.managerUids) && st.managerUids.includes(user.uid)
+        if (!ok) { router.replace("/home/mypage"); return }
+        setIsManager(true)
+        setStoreId(sid)
+        setEmail(user.email ?? "")
+        setProfile({})
+        return
+      }
       setStoreId(data.storeId ?? null)
       setEmail(user.email ?? "")
       setProfile(data)
@@ -164,7 +178,7 @@ export default function StoreMyPage() {
 
       setPreviewUrl(dataUrl)
       await setDoc(doc(db, "stores", storeId), { iconUrl: dataUrl }, { merge: true })
-      await setDoc(doc(db, "users", user.uid), { iconUrl: dataUrl }, { merge: true })
+      if (!isManager) await setDoc(doc(db, "users", user.uid), { iconUrl: dataUrl }, { merge: true })
 
       setProfile(prev => ({ ...prev, iconUrl: dataUrl }))
       if (previewUrl && previewUrl.startsWith("blob:")) {
@@ -205,7 +219,7 @@ export default function StoreMyPage() {
       }
 
       await setDoc(doc(db, "stores", storeId), updatePayload, { merge: true })
-      await setDoc(doc(db, "users", user.uid), updatePayload, { merge: true })
+      if (!isManager) await setDoc(doc(db, "users", user.uid), updatePayload, { merge: true })
 
       setProfile(prev => ({ ...prev, ...updatePayload }))
       setEditingField(null)
@@ -488,15 +502,15 @@ export default function StoreMyPage() {
                   <img
                     src={previewUrl ?? profile.iconUrl}
                     alt="icon"
-                    className="h-20 w-20 rounded-2xl object-cover shadow-md border-2 border-white"
+                    className="h-20 w-20 rounded-full object-cover shadow-md border-2 border-white"
                   />
                 ) : (
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-gray-100 to-gray-50 text-[14px] text-label3 border-2 border-white shadow-md">
                     <FiUser size={32} />
                   </div>
                 )}
                 {savingIcon && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
                     <Loader size={32} light />
                   </div>
                 )}
@@ -530,14 +544,7 @@ export default function StoreMyPage() {
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[12px] font-medium text-gray-600">店舗名</p>
                   {editingField !== "name" && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingField("name")}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      aria-label="店舗名を編集"
-                    >
-                      <FiEdit2 size={14} />
-                    </button>
+                    <RingButton label="店舗名を編集" onClick={() => setEditingField("name")} icon={<FiEdit2 />} />
                   )}
                 </div>
                 {editingField === "name" ? (
@@ -561,14 +568,7 @@ export default function StoreMyPage() {
                     <p className="text-[12px] font-medium text-gray-600">店舗の説明</p>
                   </div>
                   {editingField !== "description" && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingField("description")}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      aria-label="店舗の説明を編集"
-                    >
-                      <FiEdit2 size={14} />
-                    </button>
+                    <RingButton label="店舗の説明を編集" onClick={() => setEditingField("description")} icon={<FiEdit2 />} />
                   )}
                 </div>
                 {editingField === "description" ? (
@@ -591,14 +591,7 @@ export default function StoreMyPage() {
                     <p className="text-[12px] font-medium text-gray-600">郵便番号</p>
                   </div>
                   {editingField !== "postalCode" && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingField("postalCode")}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      aria-label="郵便番号を編集"
-                    >
-                      <FiEdit2 size={14} />
-                    </button>
+                    <RingButton label="郵便番号を編集" onClick={() => setEditingField("postalCode")} icon={<FiEdit2 />} />
                   )}
                 </div>
                 {editingField === "postalCode" ? (
@@ -619,14 +612,7 @@ export default function StoreMyPage() {
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[12px] font-medium text-gray-600">住所、丁目</p>
                   {editingField !== "addressLine" && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingField("addressLine")}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      aria-label="住所を編集"
-                    >
-                      <FiEdit2 size={14} />
-                    </button>
+                    <RingButton label="住所を編集" onClick={() => setEditingField("addressLine")} icon={<FiEdit2 />} />
                   )}
                 </div>
                 {editingField === "addressLine" ? (
@@ -647,14 +633,7 @@ export default function StoreMyPage() {
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[12px] font-medium text-gray-600">番地、マンション名、号室など</p>
                   {editingField !== "addressDetail" && (
-                    <button
-                      type="button"
-                      onClick={() => setEditingField("addressDetail")}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                      aria-label="番地を編集"
-                    >
-                      <FiEdit2 size={14} />
-                    </button>
+                    <RingButton label="番地を編集" onClick={() => setEditingField("addressDetail")} icon={<FiEdit2 />} />
                   )}
                 </div>
                 {editingField === "addressDetail" ? (
@@ -774,7 +753,7 @@ export default function StoreMyPage() {
               type="button"
               onClick={saveSns}
               disabled={snsSaving}
-              className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
+              className="rr-btn is-gold is-block mt-4" style={{ minHeight: 48 }}
             >
               {snsSaving ? "保存中..." : "SNSリンクを保存"}
             </button>
@@ -832,14 +811,14 @@ export default function StoreMyPage() {
             <button
               type="button"
               onClick={saveBlindSettings}
-              className="mt-4 h-12 w-full rounded-2xl border-2 border-gray-200 bg-white text-[15px] font-semibold text-gray-900 hover:bg-gray-50 transition-all active:scale-98"
+              className="rr-btn is-gold is-block mt-4" style={{ minHeight: 48 }}
             >
               ブラインドを保存
             </button>
           </div>
 
           {/* Subscription Card */}
-          <div className="sm-sub mt-4 profile-card p-6 animate-slideUp">
+          <div className="sm-sub mt-4 profile-card p-6 animate-slideUp" style={isManager ? { display: 'none' } : undefined}>
             <div className="flex items-center gap-2 mb-4">
               <FiCreditCard className="text-[#F2A900]" size={18} />
               <p className="text-[16px] font-semibold text-gray-900">サブスクリプション</p>
@@ -938,7 +917,7 @@ export default function StoreMyPage() {
                         type="button"
                         onClick={openPortal}
                         disabled={billingLoading}
-                        className="h-11 w-full rounded-2xl border-2 border-gray-200 bg-white text-[14px] font-semibold text-gray-900 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                        className="rr-btn is-gold is-block"
                       >
                         {billingLoading ? "処理中..." : "カードを変更"}
                       </button>
@@ -947,7 +926,7 @@ export default function StoreMyPage() {
                           type="button"
                           onClick={() => setShowCancelConfirm(true)}
                           disabled={billingLoading}
-                          className="h-11 w-full rounded-2xl bg-red-50 border border-red-200 text-[14px] font-medium text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
+                          className="rr-btn is-danger is-block"
                         >
                           サブスクリプションをキャンセル
                         </button>
@@ -957,7 +936,7 @@ export default function StoreMyPage() {
                           type="button"
                           onClick={resumeSubscription}
                           disabled={billingLoading}
-                          className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                          className="rr-btn is-solid is-block"
                         >
                           {billingLoading ? "処理中..." : "サブスクリプションを再開"}
                         </button>
@@ -969,7 +948,7 @@ export default function StoreMyPage() {
                       type="button"
                       onClick={() => router.push("/home/store/billing")}
                       disabled={billingLoading}
-                      className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white hover:brightness-95 disabled:opacity-60 transition-all"
+                      className="rr-btn is-solid is-block"
                     >
                       プランを再開する
                     </button>
@@ -982,7 +961,7 @@ export default function StoreMyPage() {
                 <button
                   type="button"
                   onClick={() => router.push("/home/store/billing")}
-                  className="h-11 w-full rounded-2xl bg-[#F2A900] text-[14px] font-semibold text-white"
+                  className="rr-btn is-solid is-block"
                 >
                   プランを選択
                 </button>
@@ -1009,7 +988,7 @@ export default function StoreMyPage() {
                     type="button"
                     onClick={() => setShowCancelConfirm(false)}
                     disabled={billingLoading}
-                    className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all"
+                    className="rr-btn is-mute" style={{ flex: 1, minHeight: 48 }}
                   >
                     戻る
                   </button>
@@ -1017,7 +996,7 @@ export default function StoreMyPage() {
                     type="button"
                     onClick={cancelSubscription}
                     disabled={billingLoading}
-                    className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all"
+                    className="rr-btn is-danger-solid" style={{ flex: 1, minHeight: 48 }}
                   >
                     {billingLoading ? "処理中..." : "キャンセルする"}
                   </button>
@@ -1033,7 +1012,7 @@ export default function StoreMyPage() {
               <button
                 type="button"
                 onClick={() => router.push("/home/store/mypage/password")}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', borderBottom: '1px solid var(--sep)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+                className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', borderBottom: '1px solid var(--sep)', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
               >
                 <Lock size={18} strokeWidth={2} style={{ color: '#D4910A', flexShrink: 0 }} aria-hidden />
                 <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>パスワード変更</span>
@@ -1042,14 +1021,14 @@ export default function StoreMyPage() {
               <button
                 type="button"
                 onClick={logout}
-                style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
+                className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 56, padding: '0 24px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}
               >
                 <LogOut size={18} strokeWidth={2} style={{ color: '#D4910A', flexShrink: 0 }} aria-hidden />
                 <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--label)' }}>ログアウト</span>
                 <ChevronRight size={18} strokeWidth={2} style={{ color: 'var(--label3)' }} aria-hidden />
               </button>
             </div>
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <div style={{ textAlign: 'center', marginTop: 16, display: isManager ? 'none' : undefined }}>
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
@@ -1085,7 +1064,7 @@ export default function StoreMyPage() {
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all active:scale-98"
+                  className="rr-btn is-mute" style={{ flex: 1, minHeight: 48 }}
                 >
                   キャンセル
                 </button>
@@ -1093,7 +1072,7 @@ export default function StoreMyPage() {
                   type="button"
                   onClick={deleteAccount}
                   disabled={isDeleting}
-                  className="flex-1 h-12 rounded-2xl bg-red-500 text-[15px] font-semibold text-white hover:bg-red-600 disabled:opacity-60 shadow-md transition-all active:scale-98"
+                  className="rr-btn is-danger-solid" style={{ flex: 1, minHeight: 48 }}
                 >
                   {isDeleting ? "削除中..." : "削除する"}
                 </button>

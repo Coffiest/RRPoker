@@ -1022,28 +1022,21 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
             {/* Footer */}
             <div className="px-6 py-5 border-t border-gray-100 space-y-3">
               <div className="flex gap-2">
-                <button onClick={addLevel}
-                  className="flex-1 py-2.5 rounded-2xl text-[13px] font-semibold text-[#C8820A] transition-all hover:bg-[#C8820A]/5"
-                  style={{ border: "1.5px solid rgba(200,130,10,0.35)" }}
+                <button className="rr-btn is-gold is-sm" style={{ flex: 1 }} onClick={addLevel}
                 >
                   ＋ レベル追加
                 </button>
-                <button onClick={addBreak}
-                  className="flex-1 py-2.5 rounded-2xl text-[13px] font-semibold text-blue-500 transition-all hover:bg-blue-50"
-                  style={{ border: "1.5px solid rgba(59,130,246,0.3)" }}
+                <button className="rr-btn is-mute is-sm" style={{ flex: 1 }} onClick={addBreak}
                 >
                   ＋ ブレイク追加
                 </button>
               </div>
               <div className="flex gap-3">
-                <button onClick={savePreset}
-                  className="flex-1 py-3 rounded-2xl text-[14px] font-bold text-white transition-all"
-                  style={{ background: "linear-gradient(135deg,#C8820A,#D4910A)", boxShadow: "0 4px 14px rgba(200,130,10,0.28)" }}
+                <button className="rr-btn is-solid" style={{ flex: 1 }} onClick={savePreset}
                 >
                   保存
                 </button>
-                <button onClick={() => setIsPresetModalOpen(false)}
-                  className="flex-1 py-3 rounded-2xl text-[14px] font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+                <button className="rr-btn is-mute" style={{ flex: 1 }} onClick={() => setIsPresetModalOpen(false)}
                 >
                   キャンセル
                 </button>

@@ -85,7 +85,7 @@ export default function StorePasswordChangePage() {
             type="button"
             onClick={changePassword}
             disabled={loading}
-            className="mt-4 h-[52px] w-full rounded-[24px] bg-[#F2A900] text-[15px] font-semibold text-gray-900 disabled:opacity-60"
+            className="rr-btn is-solid is-block mt-4" style={{ minHeight: 52 }}
           >
             変更する
           </button>

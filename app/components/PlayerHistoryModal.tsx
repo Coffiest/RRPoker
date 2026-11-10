@@ -1,5 +1,6 @@
 "use client"
 
+import { RingButton } from "@/components/BackButton"
 import { useDragToClose } from "@/lib/useDragToClose"
 import { useEffect, useState } from "react"
 import { collection, query, where, onSnapshot, getDocs, writeBatch, doc } from "firebase/firestore"
@@ -157,12 +158,7 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
             <p style={{ fontSize: 11, color: 'var(--label3)', margin: '2px 0 0' }}>{history.length}件</p>
             <ChipDisclaimer className="mt-1" />
           </div>
-          <button
-            onClick={onClose}
-            style={{ width: 32, height: 32, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-          >
-            <FiX size={14} style={{ color: 'var(--label3)' }}/>
-          </button>
+          <RingButton label="閉じる" onClick={onClose} icon={<FiX />} />
         </div>
 
         {/* List */}
@@ -224,13 +220,8 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
 
         {/* Danger zone */}
         <div style={{ padding: '12px 18px 0', borderTop: '1px solid rgba(60,60,67,0.12)', flexShrink: 0 }}>
-          <button
+          <button className="rr-btn is-danger is-block is-sm"
             onClick={() => setWipeConfirmOpen(true)}
-            style={{
-              width: '100%', height: 44, borderRadius: 12, border: 'none', background: 'rgba(255,59,48,0.08)',
-              color: '#FF3B30', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-            }}
           >
             <FiTrash2 size={14} />
             履歴とチップを全て削除
@@ -263,15 +254,13 @@ export default function PlayerHistoryModal({ playerId, storeId, storeIds, player
               )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
-              <button
+              <button className="rr-btn is-mute" style={{ minHeight: 48 }}
                 onClick={() => setWipeConfirmOpen(false)}
                 disabled={wiping}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: 'rgba(120,120,128,0.12)', color: 'rgba(28,28,30,1)', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: wiping ? 0.6 : 1 }}
               >キャンセル</button>
-              <button
+              <button className="rr-btn is-danger-solid" style={{ minHeight: 48 }}
                 onClick={wipeHistoryAndBalance}
                 disabled={wiping}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.3)', opacity: wiping ? 0.6 : 1 }}
               >{wiping ? '削除中...' : '完全に削除する'}</button>
             </div>
           </div>

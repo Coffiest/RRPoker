@@ -718,36 +718,36 @@ body {
    つまみは押している間だけ横に伸び、離すと縮んで収まる。
    板の上の絵ではなく、掴んでいる物に見せる。
    -------------------------------------------------------------------------- */
+/* トグル(by ErzenXz。オーナー指定 2026-11-10: 緑・小さめ 52×28。全画面のスイッチはこれ) */
 .a-switch {
   position: relative;
   flex-shrink: 0;
-  width: 51px;
-  height: 31px;
-  border-radius: var(--a-capsule);
+  width: 52px;
+  height: 28px;
+  border-radius: 14px;
   border: none;
   padding: 0;
   cursor: pointer;
-  background: rgba(120, 120, 128, 0.16);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+  background: #ddd;
+  box-shadow: inset 0 0 0 2px #ccc;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 280ms var(--a-spring);
+  transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
-.a-switch[aria-checked="true"] { background: #34C759 }
+.a-switch[aria-checked="true"] { background: #05c46b; box-shadow: inset 0 0 0 2px #04b360 }
 .a-switch::after {
   content: "";
   position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 27px;
-  border-radius: var(--a-capsule);
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
   background: #fff;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16);
-  transition: transform 340ms var(--a-spring), width 170ms var(--a-spring);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
-.a-switch[aria-checked="true"]::after { transform: translateX(20px) }
-.a-switch:active::after { width: 33px }
-.a-switch[aria-checked="true"]:active::after { transform: translateX(14px) }
+.a-switch[aria-checked="true"]::after { transform: translateX(24px); box-shadow: 0 2px 5px rgba(0,0,0,0.2), 0 0 0 2px #05c46b }
+.a-switch:focus-visible { outline: 2px solid #05c46b; outline-offset: 2px }
 
 /* --------------------------------------------------------------------------
    4. 面と行
@@ -1294,57 +1294,67 @@ html.pc .pc-dash > .pd-full { grid-column: 1 / -1 }
  *   戻る .rr-back(components/BackButton.tsx)・白い丸ボタン .rr-pill・線のボタン .rr-line・増減 components/StepButton.tsx
  * ════════════════════════════════════════════════════════════════════════ */
 
-/* ── 読み込み(by david-mohseni) ── */
-.rr-loader { position: relative; width: 54px; height: 54px; border-radius: 10px; flex-shrink: 0 }
-.rr-loader > div {
-  width: 8%; height: 24%; background: var(--rr-loader-color, #808080);
-  position: absolute; left: 50%; top: 30%; opacity: 0; border-radius: 50px;
-  box-shadow: 0 0 3px rgba(0,0,0,0.2); animation: rr-fade 1s linear infinite;
+/* ── 読み込み(by PriyanshuGupta28。オーナー指定 2026-11-10。10 本の棒が順に外へ伸びる)。
+ *    大きさは外枠(.rr-loader)の幅に合わせ、中の芯(.rr-spin)は 1/6。色は金、金や濃い面の上は白(is-light) ── */
+.rr-loader { position: relative; width: 54px; height: 54px; flex-shrink: 0; display: inline-block }
+.rr-spin { position: absolute; left: 50%; top: 50%; width: 16.66%; height: 16.66%; transform: translate(-50%, -50%) }
+.rr-spin > i {
+  position: absolute; width: 50%; height: 150%; left: 25%; top: -25%; border-radius: 2px;
+  background: var(--rr-loader-color, #D4910A);
+  transform: rotate(var(--r)) translate(0, 150%);
+  animation: rr-spin-pulse 1s var(--d) infinite ease;
 }
-.rr-loader.is-light > div { --rr-loader-color: #fff; box-shadow: 0 0 3px rgba(0,0,0,0.12) }
-@keyframes rr-fade { from { opacity: 1 } to { opacity: 0.25 } }
-.rr-loader > div:nth-child(1)  { transform: rotate(0deg)   translate(0, -130%); animation-delay: 0s }
-.rr-loader > div:nth-child(2)  { transform: rotate(30deg)  translate(0, -130%); animation-delay: -1.1s }
-.rr-loader > div:nth-child(3)  { transform: rotate(60deg)  translate(0, -130%); animation-delay: -1s }
-.rr-loader > div:nth-child(4)  { transform: rotate(90deg)  translate(0, -130%); animation-delay: -0.9s }
-.rr-loader > div:nth-child(5)  { transform: rotate(120deg) translate(0, -130%); animation-delay: -0.8s }
-.rr-loader > div:nth-child(6)  { transform: rotate(150deg) translate(0, -130%); animation-delay: -0.7s }
-.rr-loader > div:nth-child(7)  { transform: rotate(180deg) translate(0, -130%); animation-delay: -0.6s }
-.rr-loader > div:nth-child(8)  { transform: rotate(210deg) translate(0, -130%); animation-delay: -0.5s }
-.rr-loader > div:nth-child(9)  { transform: rotate(240deg) translate(0, -130%); animation-delay: -0.4s }
-.rr-loader > div:nth-child(10) { transform: rotate(270deg) translate(0, -130%); animation-delay: -0.3s }
-.rr-loader > div:nth-child(11) { transform: rotate(300deg) translate(0, -130%); animation-delay: -0.2s }
-.rr-loader > div:nth-child(12) { transform: rotate(330deg) translate(0, -130%); animation-delay: -0.1s }
+.rr-loader.is-light .rr-spin > i { --rr-loader-color: #fff }
+@keyframes rr-spin-pulse {
+  0%, 100% { transform: rotate(var(--r)) translate(0, 150%) }
+  50% { transform: rotate(var(--r)) translate(0, 225%) }
+}
+.rr-spin > i:nth-child(1) { --d: 0.1s; --r: 36deg }
+.rr-spin > i:nth-child(2) { --d: 0.2s; --r: 72deg }
+.rr-spin > i:nth-child(3) { --d: 0.3s; --r: 108deg }
+.rr-spin > i:nth-child(4) { --d: 0.4s; --r: 144deg }
+.rr-spin > i:nth-child(5) { --d: 0.5s; --r: 180deg }
+.rr-spin > i:nth-child(6) { --d: 0.6s; --r: 216deg }
+.rr-spin > i:nth-child(7) { --d: 0.7s; --r: 252deg }
+.rr-spin > i:nth-child(8) { --d: 0.8s; --r: 288deg }
+.rr-spin > i:nth-child(9) { --d: 0.9s; --r: 324deg }
+.rr-spin > i:nth-child(10) { --d: 1.0s; --r: 360deg }
 
-/* ── 入力欄(by ercnersoy)。全画面の文字を打つ欄。影はスマホ向けに 60px → 8px に縮めた。
+/* ── 入力欄(by alexruix。オーナー指定 2026-11-10。以前の ercnersoy の立体の欄から置き換え)。全画面の文字を打つ欄。
+ *    薄い灰の面、乗せる・押すと白くなり金の枠と薄い金の輪。プレースホルダーは読める灰(--label2)のまま。
  *    画面ごとに書いた背景・枠より優先する(!important)。暗い面の上の欄は .rr-input-plain で外す ── */
 input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="tel"], [type="search"], [type="url"], [type="date"], [type="time"], [type="datetime-local"], :not([type])):not(.rr-input-plain),
-textarea:not(.rr-input-plain) {
-  border: none !important;
-  border-radius: 1rem !important;
-  background: #e8e8e8 !important;
-  box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff !important;
-  transition: box-shadow 0.3s, background 0.3s;
+textarea:not(.rr-input-plain),
+select:not(.rr-input-plain) {
+  border: 2px solid transparent !important;
+  border-radius: 8px !important;
+  background: #f3f3f4 !important;
+  box-shadow: none !important;
+  color: #0d0c22;
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
-input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="tel"], [type="search"], [type="url"], [type="date"], [type="time"], [type="datetime-local"], :not([type])):not(.rr-input-plain):focus,
-textarea:not(.rr-input-plain):focus {
+input:is([type="text"], [type="email"], [type="password"], [type="number"], [type="tel"], [type="search"], [type="url"], [type="date"], [type="time"], [type="datetime-local"], :not([type])):not(.rr-input-plain):is(:hover, :focus),
+textarea:not(.rr-input-plain):is(:hover, :focus),
+select:not(.rr-input-plain):is(:hover, :focus) {
   outline: none !important;
-  background: #e8e8e8 !important;
-  box-shadow: inset 6px 6px 12px #c5c5c5, inset -6px -6px 12px #ffffff !important;
+  border-color: rgba(242,169,0,0.45) !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(242,169,0,0.12) !important;
 }
 input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placeholder { color: var(--label2) !important; opacity: 1 }
 /* 入力欄を囲む枠で見た目を作っている画面(登録など)は、枠の側を同じ見た目にし、中の欄は素通しにする */
 .field-wrap, .sr-field, .bs-field, .so-field,
-.rr-input-shell { border: none !important; border-radius: 1rem !important; background: #e8e8e8 !important; box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff !important; transition: box-shadow 0.3s }
+.rr-input-shell { border: 2px solid transparent !important; border-radius: 8px !important; background: #f3f3f4 !important; box-shadow: none !important; transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease }
+.field-wrap:hover, .sr-field:hover, .bs-field:hover, .so-field:hover, .rr-input-shell:hover,
 .field-wrap.focused, .sr-field:focus-within, .bs-field:focus-within, .so-field:focus-within,
-.rr-input-shell:focus-within { box-shadow: inset 6px 6px 12px #c5c5c5, inset -6px -6px 12px #ffffff !important }
-.field-wrap.has-error { box-shadow: 0 0 0 2px #E53E3A, 6px 6px 12px #c5c5c5 !important }
-.field-wrap.has-ok { box-shadow: 0 0 0 2px #2E9E5B, 6px 6px 12px #c5c5c5 !important }
-:is(.field-wrap, .sr-field, .bs-field, .so-field, .rr-input-shell) :is(input[type], input:not([type]), textarea):not(.rr-input-plain),
-:is(.field-wrap, .sr-field, .bs-field, .so-field, .rr-input-shell) :is(input[type], input:not([type]), textarea):not(.rr-input-plain):focus { background: transparent !important; box-shadow: none !important; border-radius: 0 !important }
-.admin-scope :is(input[type], input:not([type]), textarea):not(.rr-input-plain),
-.admin-scope :is(input[type], input:not([type]), textarea):not(.rr-input-plain):focus,
-:is(input, textarea).rr-input-plain { background: revert-layer !important; border: revert-layer !important; border-radius: revert-layer !important; box-shadow: revert-layer !important }
+.rr-input-shell:focus-within { border-color: rgba(242,169,0,0.45) !important; background: #fff !important; box-shadow: 0 0 0 4px rgba(242,169,0,0.12) !important }
+.field-wrap.has-error { border-color: #E53E3A !important; box-shadow: 0 0 0 4px rgba(229,62,58,0.12) !important }
+.field-wrap.has-ok { border-color: #2E9E5B !important; box-shadow: 0 0 0 4px rgba(46,158,91,0.12) !important }
+:is(.field-wrap, .sr-field, .bs-field, .so-field, .rr-input-shell) :is(input[type], input:not([type]), textarea, select):not(.rr-input-plain),
+:is(.field-wrap, .sr-field, .bs-field, .so-field, .rr-input-shell) :is(input[type], input:not([type]), textarea, select):not(.rr-input-plain):is(:hover, :focus) { background: transparent !important; box-shadow: none !important; border-color: transparent !important; border-radius: 0 !important }
+.admin-scope :is(input[type], input:not([type]), textarea, select):not(.rr-input-plain),
+.admin-scope :is(input[type], input:not([type]), textarea, select):not(.rr-input-plain):is(:hover, :focus),
+:is(input, textarea, select).rr-input-plain { background: revert-layer !important; border: revert-layer !important; border-radius: revert-layer !important; box-shadow: revert-layer !important }
 
 /* ── ヘルプ(by vinodjangid07)。金の丸、白い ? ── */
 .rr-help {
@@ -1399,6 +1409,10 @@ input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placehol
 .rr-back:hover .rr-back-box, .rr-back:focus-visible .rr-back-box, .rr-back:active .rr-back-box { transition: 0.4s; transform: translateX(-44px) }
 .rr-back.is-light::before { border-color: #fff }
 .rr-back.is-light .rr-back-elem { color: #fff }
+/* RingButton(BackButton.tsx): 矢印以外のアイコン。アイコンは 18px の枠の真ん中 */
+.rr-back .rr-ring-ico { display: flex; align-items: center; justify-content: center }
+.rr-back .rr-ring-ico > svg { width: 18px; height: 18px; flex-shrink: 0 }
+.rr-back:disabled { opacity: 0.45; cursor: default }
 
 /* ── 白い丸ボタン(by barisdogansutcu)。押す・乗せると金になり、字の間が広がる ── */
 .rr-pill {
@@ -1437,7 +1451,7 @@ input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placehol
 .rr-line:hover::after, .rr-line:hover .rr-line__text::after, .rr-line:active::after, .rr-line:active .rr-line__text::after { width: calc(100% - 52px * 2 - 16px) }
 
 @media (prefers-reduced-motion: reduce) {
-  .rr-loader > div { animation-duration: 2s }
+  .rr-spin > i { animation-duration: 2s }
   .rr-help-hit:hover .rr-help svg, .rr-help-hit:active .rr-help svg { animation: none }
   .rr-back .rr-back-box, .rr-pill, .rr-line, .rr-line::before, .rr-line::after { transition: none !important }
 }
@@ -1475,3 +1489,178 @@ html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; p
 .rr-pill.sp-allout { min-height: 32px; padding: 0 12px; font-size: 11px; letter-spacing: 1px; color: #C62828; box-shadow: 0 0 0 1px rgba(60,60,67,0.10), 0 2px 6px -2px rgba(0,0,0,0.12) }
 .rr-pill.sp-allout:hover, .rr-pill.sp-allout:active { color: #fff; letter-spacing: 1.5px }
 @media (prefers-reduced-motion: reduce) { .sp-btn:active { transform: none } }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * 共通の部品 その 2(オーナー指定・2026-11-10。元は Uiverse.io。色は金・白・黒に合わせた)
+ *   元の CSS と使い道の一覧は docs/DESIGN_PARTS.md。新しく足す画面も必ずこの部品を使う。
+ *   .rr-btn(by Gaurav-WebDev)     文字のボタン。枠だけのカプセルで、乗せる・押すと左上の点が広がって塗られる
+ *   .ios-checkbox(by Tsiangana)   チェックボックス(components/RrCheckbox.tsx)
+ *   .rr-seg(by Yaya12085)         2〜4 択の切り替え(セグメント)
+ *   .rr-expand(by AbanoubMagdy1)  開く・たたむの印(components/ExpandIcon.tsx)
+ *   .rr-add(by mRcOol7)           丸の + ボタン(components/AddButton.tsx)
+ *   .rr-dots(by Yaya12085)        空の状態の下地(水玉)
+ *   .rr-hand(by AatreyuShau)      手描き風のボタン(トップの「今すぐはじめる」だけ)
+ * ════════════════════════════════════════════════════════════════════════ */
+
+/* ── 文字のボタン(by Gaurav-WebDev) ── */
+.rr-btn {
+  --rr-btn-c: #1C1C1E;            /* 枠と塗りの色 */
+  --rr-btn-fg: #1C1C1E;           /* ふだんの字の色 */
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 20px; border-radius: 30px;
+  border: 2px solid var(--rr-btn-c); background: transparent; color: var(--rr-btn-fg);
+  font-family: inherit; font-size: 13px; font-weight: 800; letter-spacing: 2px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: color 0.5s ease-in-out, box-shadow 0.5s ease-in-out, border-color 0.5s ease-in-out;
+}
+.rr-btn::after {
+  content: ""; position: absolute; left: 0; top: 0; z-index: -1;
+  width: 10px; height: 10px; border-radius: 30px; background: var(--rr-btn-c);
+  visibility: hidden; transition: transform 0.5s ease-in-out, visibility 0.5s;
+}
+.rr-btn:is(:hover, :active, :focus-visible):not(:disabled) { color: #fff; box-shadow: 0 8px 24px -8px var(--rr-btn-c); outline: none }
+.rr-btn:is(:hover, :active, :focus-visible):not(:disabled)::after { visibility: visible; transform: scale(100) translateX(2px) }
+.rr-btn:active:not(:disabled) { transition-duration: 0.15s }
+.rr-btn:active:not(:disabled)::after { transition-duration: 0.25s }
+.rr-btn:disabled { opacity: 0.45; cursor: default }
+.rr-btn.is-block { display: flex; width: 100% }
+.rr-btn.is-sm { min-height: 44px; padding: 0 16px; font-size: 12px; letter-spacing: 1.5px }
+/* 金: 字は黒、塗ると金に白い字(金の面の上の字は白) */
+.rr-btn.is-gold { --rr-btn-c: #F2A900; --rr-btn-fg: #1C1C1E }
+/* 金で塗ったまま(主な操作)。乗せると濃い金が広がる */
+.rr-btn.is-solid { --rr-btn-c: #B57F00; --rr-btn-fg: #fff; background: #F2A900; border-color: #F2A900 }
+.rr-btn.is-danger { --rr-btn-c: #C62828; --rr-btn-fg: #C62828 }
+.rr-btn.is-danger-solid { --rr-btn-c: #8E1B1B; --rr-btn-fg: #fff; background: #C62828; border-color: #C62828 }
+.rr-btn.is-green { --rr-btn-c: #1E7B34; --rr-btn-fg: #1E7B34 }
+.rr-btn.is-mute { --rr-btn-c: #545458; --rr-btn-fg: #545458; border-color: rgba(60,60,67,0.22) }
+/* 暗い面の上(タイマー等): 白の枠、塗ると白に黒い字 */
+.rr-btn.is-on-dark { --rr-btn-c: #fff; --rr-btn-fg: #fff }
+.rr-btn.is-on-dark:is(:hover, :active, :focus-visible):not(:disabled) { color: #1C1C1E }
+
+ /* 暗い操作バーの丸いアイコンボタン(店舗ホームのタイマー全画面): 乗せると金の輪、押すと縮む */
+.rr-ctl > div { transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.1s ease-out }
+.rr-ctl:hover > div { box-shadow: 0 0 0 2px #F2A900 }
+.rr-ctl:active > div { transform: scale(0.92) }
+
+/* 見出しの右の緑のチェック(確定): 乗せると少し大きく光り、押すと縮む */
+.rr-ok { transition: transform 0.15s ease-out, box-shadow 0.25s ease, filter 0.2s }
+.rr-ok:hover:not(:disabled) { transform: scale(1.08); box-shadow: 0 0 0 4px rgba(52,199,89,0.18), 0 4px 12px rgba(52,199,89,0.4) !important }
+.rr-ok:active:not(:disabled) { transform: scale(0.9) }
+
+/* ── チェックボックス(by Tsiangana)。金で塗り、白いチェックが描かれる ── */
+.ios-checkbox {
+  --checkbox-size: 24px; --checkbox-color: #F2A900; --checkbox-bg: rgba(242,169,0,0.18); --checkbox-border: #E2B64B;
+  position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.ios-checkbox input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none }
+.ios-checkbox .checkbox-wrapper { position: relative; width: var(--checkbox-size); height: var(--checkbox-size); border-radius: 8px; transition: transform 0.2s ease; flex-shrink: 0 }
+.ios-checkbox .checkbox-bg { position: absolute; inset: 0; border-radius: 8px; border: 2px solid var(--checkbox-border); background: #fff; transition: all 0.2s ease }
+.ios-checkbox .checkbox-icon { position: absolute; inset: 0; margin: auto; width: 80%; height: 80%; color: #fff; transform: scale(0); transition: all 0.2s ease }
+.ios-checkbox .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; transition: stroke-dashoffset 0.3s ease 0.1s }
+.ios-checkbox :is(input:checked + .checkbox-wrapper, .checkbox-wrapper.is-on) .checkbox-bg { background: var(--checkbox-color); border-color: var(--checkbox-color) }
+.ios-checkbox :is(input:checked + .checkbox-wrapper, .checkbox-wrapper.is-on) .checkbox-icon { transform: scale(1) }
+.ios-checkbox :is(input:checked + .checkbox-wrapper, .checkbox-wrapper.is-on) .check-path { stroke-dashoffset: 0 }
+.ios-checkbox:hover .checkbox-wrapper { transform: scale(1.05) }
+.ios-checkbox:active .checkbox-wrapper { transform: scale(0.95) }
+.ios-checkbox input:focus-visible + .checkbox-wrapper .checkbox-bg { box-shadow: 0 0 0 4px var(--checkbox-bg) }
+.ios-checkbox :is(input:checked + .checkbox-wrapper, .checkbox-wrapper.is-on) { animation: rr-check-bounce 0.3s cubic-bezier(0.4, 0, 0.2, 1) }
+.ios-checkbox.red { --checkbox-color: #C62828; --checkbox-bg: rgba(198,40,40,0.15); --checkbox-border: #E58C8C }
+.ios-checkbox.is-disabled { opacity: 0.45; cursor: default }
+@keyframes rr-check-bounce { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.1) } }
+
+/* ── 切り替え(by Yaya12085)。灰の溝の中で、選んだものだけ白い面と太字 ── */
+.rr-seg {
+  position: relative; display: flex; flex-wrap: wrap; gap: 0; box-sizing: border-box;
+  border-radius: 0.5rem; background: #EEE; box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+  padding: 0.25rem; width: 100%; font-size: 13px;
+}
+.rr-seg > button, .rr-seg > .rr-seg-item {
+  flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 0.5rem 0.5rem; border: none; border-radius: 0.5rem; background: transparent;
+  color: rgba(51,65,85,1); font-family: inherit; font-size: inherit; font-weight: 500; cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+.rr-seg > :is(button, .rr-seg-item):is([aria-pressed="true"], [aria-selected="true"], [aria-checked="true"], .is-on) {
+  background: #fff; font-weight: 700; color: #1C1C1E; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.rr-seg > button:active { transform: scale(0.98) }
+
+/* ── 開く・たたむの印(by AbanoubMagdy1)。たたんでいると +、開くと縦の線が倒れて − ── */
+.rr-expand { position: relative; display: inline-block; flex-shrink: 0; width: 26px; height: 26px; border-radius: 6px; background: rgba(216,216,216,0.6); transition: background 0.2s }
+button:hover > .rr-expand, .rr-expand:hover { background: rgba(197,197,197,0.7) }
+.rr-expand > i { position: absolute; left: 5px; top: 50%; width: calc(100% - 10px); height: 2.5px; border-radius: 2px; background: #3A3A3A; transform: translateY(-50%); transition: 0.7s transform cubic-bezier(0, 1, 0.33, 1.2), background 0.4s }
+.rr-expand > i + i { transform: translateY(-50%) rotate(90deg) }
+.rr-expand.is-open > i + i { transform: translateY(-50%) }
+.rr-expand.is-light { background: rgba(255,255,255,0.18) }
+.rr-expand.is-light > i { background: #fff }
+
+.rr-add-ico { display: inline-flex; flex-shrink: 0; transition: transform 0.3s }
+:is(button, a):is(:hover, :focus-visible) .rr-add-ico { transform: rotate(90deg) }
+:is(button, a):is(:hover, :focus-visible) .rr-add-ico svg { fill: #F2A900; stroke: #fff }
+:is(button, a):is(:hover, :focus-visible) .rr-add-ico svg path:first-child { stroke: #F2A900 }
+/* 一覧の行のボタン: 乗せると薄い金、押すと少し縮む */
+.rr-row { transition: background-color 0.18s ease, transform 0.1s ease-out }
+.rr-row:hover:not(:disabled) { background-color: rgba(242,169,0,0.07) !important }
+.rr-row:active:not(:disabled) { transform: scale(0.99); background-color: rgba(242,169,0,0.12) !important }
+
+/* ── 丸の + ボタン(by mRcOol7)。乗せると 90 度回って金で塗られ、+ は白 ── */
+.rr-add { display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; background: none; cursor: pointer; outline: none; transition: transform 0.3s; -webkit-tap-highlight-color: transparent }
+.rr-add svg { display: block; stroke: #D4910A; fill: none; transition: fill 0.3s, stroke 0.3s }
+.rr-add:is(:hover, :focus-visible) { transform: rotate(90deg) }
+.rr-add:is(:hover, :focus-visible) svg { fill: #F2A900; stroke: #fff }
+.rr-add:is(:hover, :focus-visible) svg path:first-child { stroke: #F2A900 }
+.rr-add:active svg { fill: #D4910A; stroke: #fff; transition-duration: 0s }
+.rr-add:disabled { opacity: 0.45; cursor: default; transform: none }
+
+/* ── お気に入りの星(by andrew-demchenk0)。灰の星、選ぶと金。乗せると少し大きく ── */
+.rr-fav { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border: none; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent }
+.rr-fav svg { fill: #8E8E93; transition: all 0.3s }
+.rr-fav:hover svg, .rr-fav:focus-visible svg { transform: scale(1.1) }
+.rr-fav[aria-pressed="true"] svg { fill: #F2A900 }
+.rr-fav:active svg { transform: scale(0.9) }
+
+/* ── 空の状態の下地(by Yaya12085 の水玉。白黒を薄くした) ── */
+.rr-dots {
+  background: repeating-radial-gradient(circle, #fff, #fff 5px, rgba(28,28,30,0.045) 6px);
+  background-size: 50px 100px; border-radius: 16px;
+}
+
+/* ── 手描き風のボタン(by AatreyuShau)。トップの「今すぐはじめる」だけ(app/page.tsx)。
+ *    書体はアプリの等幅(JetBrains Mono)、蛍光ペンは金。揺れはゆっくり ── */
+.rr-hand {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  text-align: center; cursor: pointer; user-select: none; background: #fff; color: #1C1C1E;
+  font-family: var(--stack-mono); font-size: 20px; font-weight: 800; letter-spacing: 0.02em;
+  padding: 0.9em 1.4em 0.9em 2.4em; border: 0; border-radius: 2rem;
+  box-shadow: #1C1C1E66 4px 4px 0 1px; filter: url(#handDrawnNoise);
+  transition: 0.3s ease-in-out; animation: rr-hand-idle 1s infinite ease-in-out;
+}
+.rr-hand .highlight {
+  position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: rgba(242,169,0,0.5);
+  stroke-width: 10; stroke-linecap: round; pointer-events: none; stroke-dasharray: 1000; stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+.rr-hand .button-cosm { position: absolute; left: 14px; top: 50%; width: 22px; height: 22px; margin-top: -11px; fill: #1C1C1E66; transition: 0.3s ease-out }
+.rr-hand > span { position: relative }
+.rr-hand:hover { rotate: -2.5deg; animation: rr-hand-hover 2.5s infinite ease-in-out }
+.rr-hand:hover .highlight { stroke-dashoffset: 0 }
+.rr-hand:hover .button-cosm { rotate: -15deg }
+.rr-hand:active { box-shadow: inset #1C1C1Ef1 4px 4px 0 1px; rotate: -2.5deg; animation: rr-hand-active 1s infinite ease-in-out }
+.rr-hand:active .highlight { stroke-dashoffset: 1000; animation: rr-hand-hl 5s infinite, rr-hand-col 0.5s forwards; stroke: rgba(212,145,10,0.5) }
+.rr-hand:active .button-cosm { fill: #1C1C1Ef1; rotate: -135deg; animation: none }
+@keyframes rr-hand-idle { 0% { filter: url(#handDrawnNoise) } 50% { rotate: 2.5deg; filter: url(#handDrawnNoise2) } 100% { filter: url(#handDrawnNoise) } }
+@keyframes rr-hand-col { 0% { stroke: rgba(242,169,0,0.5) } 100% { stroke: rgba(212,145,10,0.6) } }
+@keyframes rr-hand-hl { 0% { stroke-dashoffset: 0 } 25% { stroke-dashoffset: 1000 } 50% { stroke-dashoffset: 1000 } 100% { stroke-dashoffset: 0 } }
+@keyframes rr-hand-hover {
+  0% { rotate: 0deg; filter: url(#handDrawnNoise); translate: 0 0 } 25% { rotate: -1deg; filter: url(#handDrawnNoise2); translate: 0 -2px }
+  50% { rotate: 0deg; filter: url(#handDrawnNoise); translate: 0 2px } 75% { rotate: -1deg; filter: url(#handDrawnNoise2); translate: 0 -2px }
+  100% { rotate: 0deg; filter: url(#handDrawnNoise); translate: 0 0 }
+}
+@keyframes rr-hand-active { 0% { filter: url(#handDrawnNoiset); translate: 0 -1px } 25% { rotate: -3deg } 50% { filter: url(#handDrawnNoiset2); translate: 0 1px } 66% { rotate: 1.5deg } 100% { filter: url(#handDrawnNoiset); translate: 0 -1px } }
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-btn, .rr-btn::after, .ios-checkbox *, .rr-seg > button, .rr-expand > i, .rr-add, .rr-add svg { transition-duration: 1ms !important; animation: none !important }
+  .rr-hand, .rr-hand:hover, .rr-hand:active { animation: none !important; rotate: 0deg !important }
+}

@@ -10,6 +10,8 @@
  * 記録の付け方は lib/quickEntry.ts(Player 画面の保存と同じ)。入店していない人は ✓ で入店も行う。
  */
 
+import { FiX } from "react-icons/fi"
+import { RingButton } from "@/components/BackButton"
 import { useEffect, useState } from 'react'
 import { FiLogIn, FiLogOut } from 'react-icons/fi'
 import AppleSheet from '@/components/AppleSheet'
@@ -116,10 +118,9 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
       <AppleSheet open={!!player} onClose={onClose} maxWidth={480} maxHeightVh={94}
         title={player && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button type="button" onClick={onClose} aria-label="閉じる"
-              style={{ width: 34, height: 34, borderRadius: 999, background: 'rgba(255,255,255,0.6)', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.5), 0 1px 4px rgba(0,0,0,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 20, color: '#3C3C43', lineHeight: 1, flexShrink: 0 }}>×</button>
+            <RingButton label="閉じる" onClick={onClose} icon={<FiX />} />
             <span style={{ flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 700, color: '#1C1C1E' }}>Players</span>
-            <button type="button" onClick={() => void save()} disabled={saving} aria-label="確定"
+            <button className="rr-ok" type="button" onClick={() => void save()} disabled={saving} aria-label="確定"
               style={{ width: 34, height: 34, borderRadius: '50%', background: saving ? '#E5E5EA' : 'linear-gradient(135deg,#34C759,#2DAD4D)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: saving ? 'default' : 'pointer', boxShadow: saving ? 'none' : '0 2px 8px rgba(52,199,89,0.35)', fontSize: 18, color: '#fff', lineHeight: 1, flexShrink: 0 }}>{saving ? '…' : '✓'}</button>
           </div>
         )}>
@@ -140,13 +141,11 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
                 </p>
               </div>
               {player.loading ? <Loader size={24} /> : player.inStore ? (
-                <button type="button" onClick={() => void onCheckOut()} disabled={busy}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px', borderRadius: 10, border: 'none', background: 'rgba(255,59,48,0.1)', color: '#C62828', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: busy ? 0.5 : 1 }}>
+                <button className="rr-btn is-danger is-sm" style={{ padding: '0 12px', letterSpacing: 1 }} type="button" onClick={() => void onCheckOut()} disabled={busy}>
                   <FiLogOut size={13} /> 退店
                 </button>
               ) : (
-                <button type="button" onClick={() => void onCheckIn()} disabled={busy}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px', borderRadius: 10, border: 'none', background: 'rgba(52,199,89,0.12)', color: '#1E7B34', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', opacity: busy ? 0.5 : 1 }}>
+                <button className="rr-btn is-green is-sm" style={{ padding: '0 12px', letterSpacing: 1 }} type="button" onClick={() => void onCheckIn()} disabled={busy}>
                   <FiLogIn size={13} /> 入店
                 </button>
               )}

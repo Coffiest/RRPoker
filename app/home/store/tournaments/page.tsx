@@ -1,6 +1,7 @@
 "use client"
 import { AwardIcon, CalendarIcon, CameraIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, CoffeeIcon, CopyIcon, CopyPlusIcon, PencilIcon, PlayIcon, PlusIcon, RepeatIcon, SearchIcon, Trash2Icon, TrophyIcon, XIcon, ZapIcon } from 'lucide-react'
-import BackButton from "@/components/BackButton"
+import BackButton, { RingButton } from "@/components/BackButton"
+import { AddIcon } from "@/components/AddButton"
 
 import { useEffect, useRef, useState } from "react"
 import {
@@ -611,18 +612,13 @@ export default function TournamentsPage() {
 
         {/* 週間スケジュール */}
         <GroupLabel>WEEKLY SCHEDULE</GroupLabel>
-        <div role="tablist" aria-label="曜日" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gap: 4, padding: 4, background: 'rgba(118,118,128,0.12)', borderRadius: 16, marginBottom: 16 }}>
+        <div role="tablist" aria-label="曜日" className="rr-seg" style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', marginBottom: 16 }}>
           {([...DAYS, "履歴"] as string[]).map(tab => {
             const isAct = activeTab === tab
             const isToday = tab !== "履歴" && DAYS.indexOf(tab as DayChar) === new Date().getDay()
             return (
-              <button key={tab} type="button" role="tab" aria-selected={isAct} onClick={() => setActiveTab(tab)} className="tp-press"
-                style={{
-                  minHeight: 44, borderRadius: 12, border: 'none', position: 'relative',
-                  background: isAct ? '#fff' : 'transparent',
-                  boxShadow: isAct ? '0 1px 3px rgba(0,0,0,0.12)' : 'none',
-                  color: 'var(--label)', fontSize: tab === "履歴" ? 13 : 15, fontWeight: isAct ? 700 : 500,
-                }}>
+              <button key={tab} type="button" role="tab" aria-selected={isAct} onClick={() => setActiveTab(tab)}
+                style={{ minHeight: 44, position: 'relative', padding: 0, fontSize: tab === "履歴" ? 12 : 14 }}>
                 {tab}
                 {isToday && <span aria-label="今日" style={{ position: 'absolute', bottom: 4, left: '50%', width: 4, height: 4, marginLeft: -2, borderRadius: 2, background: 'var(--gold)' }} />}
               </button>
@@ -804,7 +800,7 @@ export default function TournamentsPage() {
             )
           })}
           <button type="button" onClick={() => { setIsBlindModalOpen(true); openNewBlindPreset() }} className="tp-row" style={{ ...listRow, borderTop: '1px solid var(--sep)', color: 'var(--gold-dk)', fontWeight: 600 }}>
-            <PlusIcon size={20} /> 新しいブラインドを作る
+            <AddIcon size={26} /> 新しいブラインドを作る
           </button>
         </div>
 
@@ -1084,9 +1080,7 @@ function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: stri
         <p style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
         {sub && <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
       </div>
-      <button type="button" onClick={onClose} className="tp-press" aria-label="閉じる" style={{ ...btn.icon, width: 44, minHeight: 44, marginRight: -8 }}>
-        <XIcon size={20} />
-      </button>
+      <RingButton label="閉じる" onClick={onClose} icon={<XIcon />} style={{ marginRight: -8 }} />
     </div>
   )
 }
@@ -1137,7 +1131,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 function EmptyCard({ icon, title, body, flat }: { icon: React.ReactNode; title: string; body?: string; flat?: boolean }) {
   return (
-    <div style={{ ...(flat ? {} : card), padding: '32px 24px', textAlign: 'center', marginBottom: 32 }}>
+    <div className="rr-dots" style={{ ...(flat ? {} : card), background: undefined, padding: '32px 24px', textAlign: 'center', marginBottom: 32 }}>
       <div style={{ color: 'var(--label3)', display: 'flex', justifyContent: 'center', marginBottom: 8 }}>{icon}</div>
       <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{title}</p>
       {body && <p style={{ fontSize: 13, color: 'var(--label2)', margin: '8px 0 0' }}>{body}</p>}

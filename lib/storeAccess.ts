@@ -13,7 +13,7 @@
 
 import { deleteApp, getApp, initializeApp } from 'firebase/app'
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth'
-import { arrayRemove, arrayUnion, collection, connectFirestoreEmulator, doc, getDoc, getFirestore, onSnapshot, query, updateDoc, where } from 'firebase/firestore'
+import { arrayRemove, arrayUnion, collection, connectFirestoreEmulator, doc, getDoc, getDocs, getFirestore, onSnapshot, query, updateDoc, where, type Firestore } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db } from './firebase'
 
@@ -48,7 +48,9 @@ export async function grantByStoreLogin(email: string, password: string, playerU
     const s = (await getDoc(storeRef)).data()
     if (!s || s.ownerUid !== cred.user.uid) throw new Error('not_owner')
     if (cred.user.uid === playerUid) throw new Error('self')
-    await updateDoc(storeRef, { managerUids: arrayUnion(playerUid) })
+    // 権限は系列店(同じオーナーの店舗)すべてに付ける(2026-11-10。以前は 1 店舗だけで、系列店に入れなかった)
+    const ids = await ownerStoreIds(cred.user.uid, db2)
+    await Promise.all((ids.length ? ids : [u.storeId]).map(id => updateDoc(doc(db2, 'stores', id), { managerUids: arrayUnion(playerUid) })))
     await signOut(auth2)
     return { storeId: u.storeId, name: s.name ?? '店舗' }
   } finally {
@@ -56,9 +58,39 @@ export async function grantByStoreLogin(email: string, password: string, playerU
   }
 }
 
-/** オーナーが店舗側から権限を付ける / 外す。 */
-export const addManager = (storeId: string, uid: string) => updateDoc(doc(db, 'stores', storeId), { managerUids: arrayUnion(uid) })
-export const removeManager = (storeId: string, uid: string) => updateDoc(doc(db, 'stores', storeId), { managerUids: arrayRemove(uid) })
+/** 同じオーナーの店舗(本店と系列店)の id。 */
+async function ownerStoreIds(ownerUid: string, database: Firestore = db): Promise<string[]> {
+  const snap = await getDocs(query(collection(database, 'stores'), where('ownerUid', '==', ownerUid)))
+  return snap.docs.map(d => d.id)
+}
+
+/** 店舗とその系列店すべてに同じ変更をする(権限は系列店で共通。2026-11-10) */
+async function forGroup(storeId: string, data: Record<string, unknown>) {
+  const owner = (await getDoc(doc(db, 'stores', storeId))).data()?.ownerUid as string | undefined
+  const ids = owner ? await ownerStoreIds(owner) : []
+  await Promise.all((ids.includes(storeId) ? ids : [storeId, ...ids]).map(id => updateDoc(doc(db, 'stores', id), data)))
+}
+
+/** オーナーが店舗側から権限を付ける / 外す。系列店すべてに付け外しする。 */
+export const addManager = (storeId: string, uid: string) => forGroup(storeId, { managerUids: arrayUnion(uid) })
+export const removeManager = (storeId: string, uid: string) => forGroup(storeId, { managerUids: arrayRemove(uid) })
+
+/**
+ * 以前に 1 店舗だけへ付けた権限を、系列店すべてにそろえる(オーナーが店舗ホームを開いたときに走る)。
+ * 権限の欄はオーナーしか書けない(firestore.rules)ので、オーナーの画面から行う。
+ */
+export async function syncGroupManagers(ownerUid: string) {
+  const snap = await getDocs(query(collection(db, 'stores'), where('ownerUid', '==', ownerUid)))
+  if (snap.size < 2) return
+  const all = new Set<string>()
+  snap.docs.forEach(d => ((d.data().managerUids ?? []) as string[]).forEach(u => all.add(u)))
+  if (all.size === 0) return
+  await Promise.all(snap.docs.map(d => {
+    const has = new Set((d.data().managerUids ?? []) as string[])
+    const missing = [...all].filter(u => !has.has(u))
+    return missing.length ? updateDoc(d.ref, { managerUids: arrayUnion(...missing) }) : null
+  }))
+}
 
 /** プレイヤーが権限のある店舗の画面へ切り替える(操作する店舗を users.storeId に入れる)。 */
 export const switchToStore = (uid: string, storeId: string) => updateDoc(doc(db, 'users', uid), { storeId })

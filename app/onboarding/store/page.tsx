@@ -335,7 +335,7 @@ export default function StoreOnboardingPage() {
             onClick={handlePickImage}
             className="so-icon-ring"
             style={{
-              width: 90, height: 90, borderRadius: 28,
+              width: 90, height: 90, borderRadius: '50%',
               background: previewUrl ? 'transparent' : 'rgba(242,169,0,0.1)',
               border: 'none', cursor: 'pointer', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',

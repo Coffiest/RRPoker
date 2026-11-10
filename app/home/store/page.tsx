@@ -38,6 +38,12 @@ import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
 import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
+import { RingButton } from "@/components/BackButton"
+import { syncGroupManagers } from "@/lib/storeAccess"
+import ExpandIcon from "@/components/ExpandIcon"
+import AddButton, { AddIcon } from "@/components/AddButton"
+import { CheckMark } from "@/components/RrCheckbox"
+import RrCheckbox from "@/components/RrCheckbox"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, getDocs, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch,
@@ -492,6 +498,7 @@ export default function StorePage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [qrCheckinResult, setQrCheckinResult] = useState<{ success: boolean; name?: string } | null>(null)
   const [ownedStores, setOwnedStores] = useState<OwnedStore[]>([])
+  const [isTrueOwner, setIsTrueOwner] = useState(false)
   const [switcherOpen, setSwitcherOpen] = useState(false)
   const [showStorePicker, setShowStorePicker] = useState(false)
   // 店舗切替メニューは、後ろのカード(動きの指定で重なり順が別になる)に隠れないよう body 直下に出す
@@ -604,7 +611,19 @@ export default function StorePage() {
         }
       }
 
-      const ownedIds: string[] = data.ownedStoreIds ?? (sid ? [sid] : [])
+      // 権限を付けてもらったプレイヤー(オーナーではない人)は、権限のある店舗(系列店を含む)を切り替え先にする(2026-11-10)
+      const curOwner = sid ? ((await getDoc(doc(db, "stores", sid))).data()?.ownerUid as string | undefined) : undefined
+      const trueOwner = !!curOwner && curOwner === user.uid
+      setIsTrueOwner(trueOwner)
+      let ownedIds: string[] = data.ownedStoreIds ?? (sid ? [sid] : [])
+      if (trueOwner) {
+        // 以前 1 店舗だけに付けた権限を系列店にもそろえる
+        syncGroupManagers(user.uid).catch(() => {})
+      } else if (sid) {
+        const ms = await getDocs(query(collection(db, "stores"), where("managerUids", "array-contains", user.uid))).catch(() => null)
+        const ids = (ms?.docs ?? []).filter(x => !curOwner || x.data().ownerUid === curOwner).map(x => x.id)
+        ownedIds = ids.includes(sid) ? ids : [sid, ...ids]
+      }
       if (ownedIds.length > 0) {
         const infos = await Promise.all(
           ownedIds.map(async (id: string) => {
@@ -1158,7 +1177,7 @@ export default function StorePage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: open ? 10 : 0, gap: 10 }}>
           <button type="button" onClick={() => toggleCard(t.id)} aria-expanded={open} aria-label={`${t.name}を${open ? 'たたむ' : '開く'}`}
             style={{ flex: 1, minWidth: 0, minHeight: 44, margin: '-10px 0', display: 'flex', alignItems: 'center', gap: 6, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-            <FiChevronDown size={18} aria-hidden style={{ color: 'var(--label2)', flexShrink: 0, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 160ms ease-out' }} />
+            <ExpandIcon open={open} size={22} />
             <p className="tech-caret" style={{ fontFamily: 'var(--stack-mono)', fontSize: 15.5, fontWeight: 800, color: 'var(--label)', letterSpacing: '0.01em', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
           </button>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -1295,8 +1314,7 @@ export default function StorePage() {
             ))}
           </div>
           {ts.length > 1 && (
-            <button type="button" onClick={() => unmergeTimers(ids)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 36, padding: '0 14px', borderRadius: 999, border: '1.5px solid rgba(242,169,0,0.5)', background: '#fff', color: '#D4910A', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer' }}>
+            <button type="button" onClick={() => unmergeTimers(ids)} className="rr-btn is-gold is-sm">
               <FiLink2 size={14} /> 分離
             </button>
           )}
@@ -1366,7 +1384,7 @@ export default function StorePage() {
 
   if (role === null) return (
     <div style={{ minHeight: '100dvh', background: "transparent", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid rgba(242,169,0,0.2)', borderTopColor: '#F2A900', animation: 'spin .7s linear infinite' }}/>
+      <Loader size={38} />
     </div>
   )
   if (role !== "store") return null
@@ -1552,14 +1570,12 @@ export default function StorePage() {
             const on = splitIds.includes(t.id)
             const full = !on && splitIds.length >= 4
             return (
-              <button key={t.id} type="button" role="checkbox" aria-checked={on} disabled={full}
+              <button key={t.id} type="button" role="checkbox" aria-checked={on} disabled={full} className="rr-row"
                 onClick={() => setSplitIds(ids => on ? ids.filter(x => x !== t.id) : [...ids, t.id])}
                 style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 52, padding: '8px 16px', border: 'none', borderTop: i ? '1px solid var(--sep)' : 'none', background: 'none', fontFamily: 'inherit', textAlign: 'left', cursor: full ? 'default' : 'pointer', opacity: full ? 0.5 : 1 }}>
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>{t.name || '名称なし'}</span>
                 <span className="tech-label" style={{ fontSize: 8.5, color: timerRunning[t.id] ? '#34C759' : 'var(--label3)' }}>{timerRunning[t.id] ? 'RUNNING' : 'PAUSED'}</span>
-                <span style={{ width: 22, height: 22, borderRadius: 11, border: on ? 'none' : '2px solid var(--label3)', background: on ? '#F2A900' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {on && <FiCheck size={14} style={{ color: '#fff' }} />}
-                </span>
+                <CheckMark on={on} />
               </button>
             )
           })}
@@ -1612,12 +1628,12 @@ export default function StorePage() {
                   onTouchEnd={cancelLongPress}
                   onTouchMove={cancelLongPress}
                 >
-                  <img src={store.iconUrl} alt={store.name} style={{ width: 60, height: 60, borderRadius: 18, objectFit: 'cover', boxShadow: '0 3px 10px rgba(0,0,0,0.1)' }}/>
+                  <img src={store.iconUrl} alt={store.name} style={{ width: 60, height: 60, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 3px 10px rgba(0,0,0,0.1)' }}/>
                   <div style={{ position: 'absolute', bottom: 2, right: 2, width: 12, height: 12, borderRadius: '50%', background: '#34C759', border: '2px solid white' }} className="pulse"/>
                 </div>
               ) : (
                 <div
-                  style={{ width: 60, height: 60, borderRadius: 18, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)', cursor: 'pointer' }}
+                  style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: 'white', fontWeight: 800, flexShrink: 0, boxShadow: '0 3px 10px rgba(242,169,0,0.28)', cursor: 'pointer' }}
                   onClick={handleIconTap}
                   onTouchStart={startLongPress}
                   onTouchEnd={cancelLongPress}
@@ -1674,17 +1690,15 @@ export default function StorePage() {
             <div style={{ maxHeight: switcherOpen ? 80 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.4,0,0.2,1)' }}>
               <div style={{ borderTop: '1px solid var(--sep)', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 18px' }}>
                 {ownedStores.map(s => (
-                  <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: 14, padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F2A900' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
+                  <button key={s.id} onClick={() => switchStore(s.id)} style={{ width: 46, height: 46, borderRadius: '50%', padding: 0, border: 'none', cursor: 'pointer', flexShrink: 0, outline: s.id === storeId ? '2.5px solid #F2A900' : '2px solid transparent', outlineOffset: 2, background: 'transparent', transition: 'outline .15s' }}>
                     {s.iconUrl
-                      ? <img src={s.iconUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }}/>
-                      : <div style={{ width: '100%', height: '100%', borderRadius: 14, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
+                      ? <img src={s.iconUrl} alt={s.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}/>
+                      : <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'white', fontWeight: 800 }}>店</div>
                     }
                   </button>
                 ))}
-                <button onClick={() => router.push('/home/store/branch/new')} style={{ width: 46, height: 46, borderRadius: 14, border: '2px dashed rgba(60,60,67,0.25)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <FiPlus size={18} style={{ color: 'var(--label2)' }}/>
-                </button>
-                <span style={{ fontSize: 11, color: 'var(--label3)', marginLeft: 4 }}>系列店を切替 / 追加</span>
+                {isTrueOwner && <AddButton onClick={() => router.push('/home/store/branch/new')} label="系列店を追加" size={38} style={{ flexShrink: 0 }} />}
+                <span style={{ fontSize: 11, color: 'var(--label3)', marginLeft: 4 }}>{isTrueOwner ? '系列店を切替 / 追加' : '系列店を切替'}</span>
               </div>
             </div>
           </div>
@@ -1697,10 +1711,10 @@ export default function StorePage() {
                 <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--label2)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 12 }}>アカウント切替</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {ownedStores.map(s => (
-                    <button key={s.id} onClick={() => switchStore(s.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left' }}>
+                    <button key={s.id} onClick={() => switchStore(s.id)} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 10, background: s.id === storeId ? 'rgba(242,169,0,0.08)' : 'transparent', border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left' }}>
                       {s.iconUrl
-                        ? <img src={s.iconUrl} style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }}/>
-                        : <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
+                        ? <img src={s.iconUrl} alt={s.name} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}/>
+                        : <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: 'white', fontWeight: 800, flexShrink: 0 }}>店</div>
                       }
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</p>
@@ -1711,12 +1725,11 @@ export default function StorePage() {
                   ))}
                 </div>
                 <div style={{ height: 1, background: 'var(--sep)', margin: '10px 0' }}/>
-                <button onClick={() => { setShowStorePicker(false); router.push('/home/store/branch/new') }} style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left', background: 'transparent' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <FiPlus size={16} style={{ color: 'var(--label2)' }}/>
-                  </div>
+{isTrueOwner && (
+                <button onClick={() => { setShowStorePicker(false); router.push('/home/store/branch/new') }} className="rr-row" style={{ display: 'flex', alignItems: 'center', gap: 10, border: 'none', cursor: 'pointer', borderRadius: 12, padding: '8px 10px', width: '100%', textAlign: 'left', background: 'transparent' }}>
+                  <span style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><AddIcon size={32} /></span>
                   <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--label)' }}>系列店を追加</p>
-                </button>
+                </button>)}
               </div>
             </>,
             document.body,
@@ -1730,7 +1743,7 @@ export default function StorePage() {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             {activeTournaments.length >= 2 && (
               <button type="button" onClick={() => { setSplitIds(activeTournaments.slice(0, 4).map(t => t.id)); setSplitOpen(true) }}
-                className="con-mono" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#D4910A', background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', borderRadius: 8, padding: '3px 9px', cursor: 'pointer', fontFamily: 'var(--stack-mono)' }}>
+                className="rr-btn is-gold is-sm" style={{ fontFamily: 'var(--stack-mono)', fontSize: 11 }}>
                 <FiGrid size={12} /> SPLIT
               </button>
             )}
@@ -1778,8 +1791,8 @@ export default function StorePage() {
                     borderTop: '1px solid rgba(255,255,255,0.10)', padding: '10px 16px 14px', display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto',
                   }}>
                     <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                      <button aria-label="閉じる" onClick={close} style={circle()}><FiX size={16} style={{ color: '#fff' }} /></button>
-                      <button aria-label="操作を隠す" onClick={() => setExpandSplitCtrl(false)} style={circle()}><FiChevronDown size={16} style={{ color: '#fff' }} /></button>
+                      <RingButton light label="閉じる" onClick={close} icon={<FiX />} />
+                      <RingButton light label="操作を隠す" onClick={() => setExpandSplitCtrl(false)} icon={<FiChevronDown />} />
                     </div>
                     {/* タイマーごとの操作(画面の並びと同じ順) */}
                     {ets.map(et => (
@@ -1845,13 +1858,13 @@ export default function StorePage() {
                   }}>
                     {/* 左: CLOSE + HIDE */}
                     <div style={{ display: 'flex', gap: 10 }}>
-                      <button onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }} style={btnBase}>
+                      <button onClick={() => { setExpandedTimerId(null); setExpandCtrlVisible(false) }} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiX size={17} style={{ color: '#fff' }} />
                         </div>
                         <span style={labelStyle}>CLOSE</span>
                       </button>
-                      <button onClick={() => setExpandCtrlVisible(false)} style={btnBase}>
+                      <button onClick={() => setExpandCtrlVisible(false)} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiChevronDown size={17} style={{ color: '#fff' }} />
                         </div>
@@ -1861,13 +1874,13 @@ export default function StorePage() {
 
                     {/* 中央: タイマー制御 */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <button className="timer-btn" onClick={() => prevLevel(et.id)} style={btnBase}>
+                      <button className="timer-btn rr-ctl" onClick={() => prevLevel(et.id)} style={btnBase}>
                         <div style={iconCircle()}>
                           <FiSkipBack size={17} style={{ color: '#fff' }} />
                         </div>
                         <span style={labelStyle}>PREV</span>
                       </button>
-                      <button className="timer-btn" onClick={() => toggleTimer(et.id)} style={btnBase}>
+                      <button className="timer-btn rr-ctl" onClick={() => toggleTimer(et.id)} style={btnBase}>
                         <div style={iconCircle(true)}>
                           {timerRunning[et.id]
                             ? <FiPause size={20} style={{ color: '#fff' }} />
@@ -1877,7 +1890,7 @@ export default function StorePage() {
                           {timerRunning[et.id] ? 'PAUSE' : 'START'}
                         </span>
                       </button>
-                      <button className="timer-btn" onClick={() => nextLevel(et.id)} style={btnBase}>
+                      <button className="timer-btn rr-ctl" onClick={() => nextLevel(et.id)} style={btnBase}>
                         <div style={iconCircle()}>
                           <FiSkipForward size={17} style={{ color: '#fff' }} />
                         </div>
@@ -1887,19 +1900,19 @@ export default function StorePage() {
 
                     {/* 右: アクション */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: getLiveLevelState(et).remainingSec })); setExpandAdjustOpen(true) }} style={btnBase}>
+                      <button onClick={() => { setAdjustSeconds(p => ({ ...p, [et.id]: getLiveLevelState(et).remainingSec })); setExpandAdjustOpen(true) }} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiEdit3 size={15} style={{ color: '#fff' }} />
                         </div>
                         <span style={labelStyle}>ADJUST</span>
                       </button>
-                      <button onClick={() => setExpandPlayerOpen(true)} style={btnBase}>
+                      <button onClick={() => setExpandPlayerOpen(true)} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiUsers size={15} style={{ color: '#fff' }} />
                         </div>
                         <span style={labelStyle}>PLAYERS</span>
                       </button>
-                      <button onClick={() => setExpandPrizeOpen(true)} style={btnBase}>
+                      <button onClick={() => setExpandPrizeOpen(true)} style={btnBase} className="rr-ctl">
                         <div style={iconCircle()}>
                           <FiDollarSign size={15} style={{ color: '#fff' }} />
                         </div>
@@ -1930,11 +1943,9 @@ export default function StorePage() {
                   <p style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1E', margin: 0 }}>タイム調整</p>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => { setExpandAdjustOpen(false); setExpandedTimerId(null); router.push(`/home/store/tournaments?edit=${et.id}`) }}
-                      style={{ height: 34, padding: '0 12px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                      className="rr-btn is-gold is-sm"
                     ><FiEdit2 size={13}/> 詳細</button>
-                    <button onClick={() => setExpandAdjustOpen(false)}
-                      style={{ width: 34, height: 34, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.18s ease-out' }}
-                    ><FiX size={16} style={{ color: '#3C3C43' }}/></button>
+                    <RingButton label="閉じる" onClick={() => setExpandAdjustOpen(false)} icon={<FiX />} />
                     <button onClick={async () => { await confirmAdjustTime(et.id); setExpandAdjustOpen(false) }}
                       style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#F2A900,#D4910A)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)', transition: 'all 0.18s ease-out' }}
                     ><FiCheck size={16} style={{ color: '#fff' }}/></button>
@@ -2023,9 +2034,7 @@ export default function StorePage() {
           const tab = adjustTab[t.id] ?? 'time'
           const adjLvs = (adjustBlindLevels[t.id] ?? []) as Level[]
           const segBtn = (tb: 'time' | 'blind', label: string) => (
-            <button key={tb} type="button" onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))} aria-pressed={tab === tb}
-              style={{ flex: 1, minHeight: 36, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-                background: tab === tb ? '#fff' : 'transparent', color: tab === tb ? 'var(--label)' : 'var(--label2)', boxShadow: tab === tb ? '0 1px 4px rgba(0,0,0,0.10)' : 'none' }}>{label}</button>
+            <button key={tb} type="button" onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))} aria-pressed={tab === tb}>{label}</button>
           )
           return (
             <AppleSheet key={`adj-${t.id}`} open={!!adjustModalOpen[t.id]} onClose={() => closeAdjustModal(t.id)} maxWidth={640} maxHeightVh={94} zIndex={300}
@@ -2037,16 +2046,14 @@ export default function StorePage() {
                   </div>
                   {/* 名称・参加費とスタック・開催日・開始時刻・自動スタート・毎週 は、作成画面と同じ編集画面で変える */}
                   <button type="button" onClick={() => { closeAdjustModal(t.id); router.push(`/home/store/tournaments?edit=${t.id}`) }}
-                    style={{ minHeight: 44, padding: '0 14px', borderRadius: 999, background: 'rgba(242,169,0,0.10)', border: '1px solid rgba(242,169,0,0.3)', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#D4910A', fontFamily: 'inherit' }}
+                    className="rr-btn is-gold is-sm"
                   ><FiEdit2 size={13}/> 詳細</button>
-                  <button type="button" aria-label="閉じる" onClick={() => closeAdjustModal(t.id)}
-                    style={{ width: 44, height: 44, borderRadius: '50%', background: '#F2F2F7', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                  ><FiX size={18} style={{ color: 'var(--label)' }}/></button>
+                  <RingButton label="閉じる" onClick={() => closeAdjustModal(t.id)} icon={<FiX />} />
                 </div>
               }
               footer={
                 <button type="button" onClick={() => tab === 'time' ? confirmAdjustTime(t.id) : confirmAdjustBlinds(t.id)}
-                  style={{ width: '100%', minHeight: 48, borderRadius: 999, border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: 15, fontWeight: 700, color: '#fff', background: 'linear-gradient(135deg,#F2A900,#D4910A)', boxShadow: '0 4px 14px rgba(242,169,0,0.3)' }}>
+                  className="rr-btn is-solid is-block" style={{ minHeight: 48, fontSize: 14 }}>
                   {tab === 'time' ? 'この時間にする' : '保存する'}
                 </button>
               }
@@ -2068,10 +2075,7 @@ export default function StorePage() {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     {[{ label: '-1分', diff: -60 }, { label: '+1分', diff: 60 }, { label: '-10秒', diff: -10 }, { label: '+10秒', diff: 10 }].map(b => (
                       <button key={b.label} type="button" onClick={() => updateAdjustTime(t.id, b.diff)}
-                        style={{ minHeight: 48, borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
-                          /* 金の面の上の文字は白(CLAUDE.md) */
-                          background: b.diff > 0 ? 'linear-gradient(135deg,#F2A900,#D4910A)' : '#fff', color: b.diff > 0 ? '#fff' : 'var(--label)',
-                          boxShadow: b.diff > 0 ? '0 2px 8px rgba(242,169,0,0.25)' : 'inset 0 0 0 1px rgba(60,60,67,0.12)' }}
+                        className={`rr-btn ${b.diff > 0 ? 'is-solid' : 'is-mute'}`} style={{ minHeight: 48, padding: 0, letterSpacing: 1 }}
                       >{b.label}</button>
                     ))}
                   </div>
@@ -2120,16 +2124,13 @@ export default function StorePage() {
                   </div>
                   {withdrawOtherOpenId === req.id && (
                     <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
-                        <input type="checkbox" checked={withdrawOtherNetGain} onChange={e => setWithdrawOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
-                        純増する
-                      </label>
+                      <RrCheckbox checked={withdrawOtherNetGain} onChange={setWithdrawOtherNetGain} style={{ fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>純増する</RrCheckbox>
                       <input value={withdrawOtherComment} onChange={e => setWithdrawOtherComment(e.target.value)}
                         style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveWithdrawWithType(req, "other")}
-                        style={{ height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        className="rr-btn is-solid is-sm"
                       >確定する</button>
                     </div>
                   )}
@@ -2177,16 +2178,13 @@ export default function StorePage() {
                   </div>
                   {depositOtherOpenId === req.id && (
                     <div style={{ marginTop: 10, background: 'rgba(242,169,0,0.07)', border: '1px solid rgba(242,169,0,0.2)', borderRadius: 14, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>
-                        <input type="checkbox" checked={depositOtherNetGain} onChange={e => setDepositOtherNetGain(e.target.checked)} style={{ accentColor: '#F2A900' }}/>
-                        純増する
-                      </label>
+                      <RrCheckbox checked={depositOtherNetGain} onChange={setDepositOtherNetGain} style={{ fontSize: 13, color: 'var(--label)', fontWeight: 500 }}>純増する</RrCheckbox>
                       <input value={depositOtherComment} onChange={e => setDepositOtherComment(e.target.value)}
                         style={{ height: 40, borderRadius: 10, border: '1.5px solid var(--sep)', background: '#fff', padding: '0 12px', fontSize: 14, outline: 'none', color: 'var(--label)' }}
                         placeholder="コメントを入力"
                       />
                       <button onClick={() => approveDepositWithType(req, "other")}
-                        style={{ height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#F2A900,#D4910A)', color: '#1a1a1a', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(242,169,0,0.25)' }}
+                        className="rr-btn is-solid is-sm"
                       >確定する</button>
                     </div>
                   )}
@@ -2215,10 +2213,10 @@ export default function StorePage() {
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => approvePlayer(player.id)}
-                      style={{ height: 32, width: 52, borderRadius: 10, background: '#34C759', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}
+                      className="rr-btn is-green is-sm" style={{ padding: '0 12px' }}
                     >許可</button>
                     <button onClick={() => rejectPlayer(player.id)}
-                      style={{ height: 32, width: 52, borderRadius: 10, background: 'var(--fill)', color: 'var(--label2)', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                      className="rr-btn is-mute is-sm" style={{ padding: '0 12px' }}
                     >却下</button>
                   </div>
                 </div>
@@ -2295,15 +2293,9 @@ export default function StorePage() {
 
             {/* Segmented tabs */}
             <div style={{ padding: '8px 10px 8px' }}>
-              <div style={{ display: 'flex', background: 'var(--fill)', borderRadius: 13, padding: 3, gap: 3 }}>
+              <div className="rr-seg">
                 {(['in', 'out'] as const).map(tab => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} style={{
-                    flex: 1, height: 30, borderRadius: 11, border: 'none', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 700, transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    background: activeTab === tab ? '#fff' : 'transparent',
-                    color: activeTab === tab ? 'var(--label)' : 'var(--label2)',
-                    boxShadow: activeTab === tab ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-                  }}>
+                  <button key={tab} type="button" onClick={() => setActiveTab(tab)} aria-pressed={activeTab === tab}>
                     {tab === 'in' ? `在店中 ${inPlayers.length}` : `退店済 ${outPlayers.length}`}
                   </button>
                 ))}
@@ -2384,8 +2376,8 @@ export default function StorePage() {
                   })}
                   </div>
                   {merged.length === 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 10 }}>
-                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--fill)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="rr-dots" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 24px', gap: 10, margin: 8 }}>
+                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <FiUsers size={24} style={{ color: 'var(--label2)' }}/>
                       </div>
                       <p style={{ fontSize: 14, color: 'var(--label)', margin: 0, fontWeight: 600 }}>
@@ -2443,7 +2435,7 @@ export default function StorePage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 12px', borderBottom: '1px solid var(--sep)', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {adjustModalPlayer.iconUrl
-                  ? <img src={adjustModalPlayer.iconUrl} style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'cover' }}/>
+                  ? <img src={adjustModalPlayer.iconUrl} alt="" style={{ width: 38, height: 38, borderRadius: '50%', objectFit: 'cover' }}/>
                   : <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(242,169,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <FiUser size={16} style={{ color: 'var(--gold)' }}/>
                     </div>
@@ -2457,9 +2449,7 @@ export default function StorePage() {
                   </p>
                 </div>
               </div>
-              <button onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError(""); setManualComment("") }}
-                style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--fill)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-              ><FiX size={14} style={{ color: 'var(--label3)' }}/></button>
+              <RingButton label="閉じる" onClick={() => { setAdjustModalPlayer(null); setAdjustValue(""); setAdjustError(""); setManualComment("") }} icon={<FiX />} />
             </div>
 
             {/* Body */}
@@ -2591,11 +2581,11 @@ export default function StorePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px 20px' }}>
               <button
                 onClick={() => setNegativeConfirmAction(null)}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: 'var(--fill)', color: 'var(--label)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                className="rr-btn is-mute" style={{ minHeight: 48 }}
               >キャンセル</button>
               <button
                 onClick={() => { const action = negativeConfirmAction; setNegativeConfirmAction(null); action?.run() }}
-                style={{ height: 48, borderRadius: 12, border: 'none', background: '#FF3B30', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(255,59,48,0.3)' }}
+                className="rr-btn is-danger-solid" style={{ minHeight: 48 }}
               >続行</button>
             </div>
           </div>
