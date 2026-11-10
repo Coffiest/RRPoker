@@ -339,6 +339,17 @@ export default function HomeHeader({
 							<ArrowLeftRight size={18} strokeWidth={2} aria-hidden />
 						</button>
 					)}
+					{/* 店舗のチケット(作る・付与する。app/home/store/tickets。2026-11-10)。プレイヤーと同じ位置・同じアイコン */}
+					{!isUserVariant && (
+						<button
+							type="button"
+							onClick={() => router.push('/home/store/tickets')}
+							aria-label="チケット" title="チケット"
+							className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 hover:border-gray-300 transition-colors"
+						>
+							<FiCreditCard className="text-[18px]" />
+						</button>
+					)}
 					{isUserVariant && (
 						<button
 							type="button"

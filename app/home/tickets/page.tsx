@@ -2,6 +2,7 @@
 
 import { Ticket } from 'lucide-react'
 import Loader from "@/components/Loader"
+import RrCheckbox from "@/components/RrCheckbox"
 import HomeHeader from "@/components/HomeHeader"
 import PlayerBottomNav from "@/components/PlayerBottomNav"
 import { useRouter } from "next/navigation"
@@ -29,6 +30,10 @@ type Coupon = {
   expiresAt?: any
   storeId?: string
   createdAt?: any
+  /** 店舗が付与したチケット(lib/tickets.ts)の詳細・付与した店・使える店 */
+  description?: string | null
+  storeName?: string
+  usableStoreNames?: string[]
 }
 
 function formatDate(d: Date | null): string {
@@ -126,6 +131,16 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
             }}>
               {coupon.name}
             </p>
+            {coupon.description && (
+              <p style={{ fontSize: 12, color: isUsed ? "var(--label3)" : "var(--label2)", marginTop: 3, lineHeight: 1.45, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {coupon.description}
+              </p>
+            )}
+            {(coupon.usableStoreNames?.length || coupon.storeName) && (
+              <p style={{ fontSize: 11, color: "var(--label3)", marginTop: 3 }}>
+                使える店: {(coupon.usableStoreNames?.length ? coupon.usableStoreNames : [coupon.storeName]).join(" / ")}
+              </p>
+            )}
             {coupon.expiresAt && !isUsed && (
               <p style={{ fontSize: 11, color: "var(--label3)", marginTop: 3 }}>
                 期限: {coupon.expiresAt.toDate().toLocaleDateString("ja-JP", { year: "numeric", month: "numeric", day: "numeric" })}
@@ -138,7 +153,7 @@ function CouponCard({ coupon, onUse, isUsed }: { coupon: Coupon; onUse: () => vo
               style={{
                 height: 36, padding: "0 14px", borderRadius: 99, border: "none",
                 background: "linear-gradient(135deg, #F2A900, #D4910A)",
-                color: "#1C1C1E", fontSize: 12, fontWeight: 700,
+                color: "#fff", fontSize: 12, fontWeight: 700, /* 金の面の上の文字は白(CLAUDE.md) */
                 cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
               }}
             >
@@ -284,7 +299,7 @@ export default function TicketsPage() {
                             flexShrink: 0, opacity: claiming === card.storeId ? 0.6 : 1,
                           }}
                         >
-                          <p style={{ fontSize: 11, color: "#1C1C1E", fontWeight: 700, letterSpacing: 0.3, whiteSpace: "nowrap" }}>
+                          <p style={{ fontSize: 11, color: "#fff", fontWeight: 700, letterSpacing: 0.3, whiteSpace: "nowrap" }}>
                             {claiming === card.storeId ? "取得中…" : "クーポンを獲得する"}
                           </p>
                         </button>
@@ -408,19 +423,22 @@ export default function TicketsPage() {
             <p className="font-display" style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", textAlign: "center", marginBottom: 6 }}>
               {selectedCoupon.name}
             </p>
+            {selectedCoupon.description && (
+              <p style={{ fontSize: 13, color: "var(--label2)", textAlign: "center", marginBottom: 8, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{selectedCoupon.description}</p>
+            )}
+            {(selectedCoupon.usableStoreNames?.length || selectedCoupon.storeName) && (
+              <p style={{ fontSize: 12, color: "var(--label2)", textAlign: "center", marginBottom: 8 }}>
+                使える店: {(selectedCoupon.usableStoreNames?.length ? selectedCoupon.usableStoreNames : [selectedCoupon.storeName]).join(" / ")}
+              </p>
+            )}
             <p className="term-comment" style={{ fontSize: 13, color: "var(--label3)", textAlign: "center", marginBottom: 24, lineHeight: 1.5 }}>
               スタッフにこの画面を見せてください
             </p>
 
-            <label style={{ display: "flex", alignItems: "center", gap: 12, background: "#F2F2F7", borderRadius: 14, padding: "14px 16px", cursor: "pointer", marginBottom: 16 }}>
-              <input
-                type="checkbox"
-                checked={isChecked}
-                onChange={e => setIsChecked(e.target.checked)}
-                style={{ width: 20, height: 20, accentColor: "#D4910A" }}
-              />
+            <RrCheckbox checked={isChecked} onChange={setIsChecked}
+              style={{ display: "flex", gap: 12, background: "#F2F2F7", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
               <span style={{ fontSize: 14, fontWeight: 500, color: "#1C1C1E" }}>スタッフが確認しました</span>
-            </label>
+            </RrCheckbox>
 
             <button
               disabled={!isChecked}
@@ -435,7 +453,7 @@ export default function TicketsPage() {
               style={{
                 width: "100%", height: 52, borderRadius: 14, border: "none", cursor: isChecked ? "pointer" : "default",
                 background: isChecked ? "linear-gradient(135deg,#F2A900,#D4910A)" : "#E5E5EA",
-                color: isChecked ? "#1C1C1E" : "var(--label3)",
+                color: isChecked ? "#fff" : "var(--label3)",
                 fontSize: 16, fontWeight: 700,
                 boxShadow: isChecked ? "0 4px 14px rgba(200,130,10,0.30)" : "none",
                 transition: "all 0.2s ease",
