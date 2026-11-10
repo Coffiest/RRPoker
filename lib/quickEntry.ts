@@ -46,7 +46,8 @@ export async function commitQuick(a: QuickArgs, sign: 1 | -1 = 1) {
     if (purchase > 0) {
       batch.set(doc(collection(db, 'transactions')), { storeId: a.storeId, playerId: a.playerId, playerName: a.playerName || null, amount: purchase, direction: 'add', type: 'store_chip_purchase', tournamentId: a.tournamentId, createdAt: serverTimestamp() })
     }
-    batch.set(doc(collection(db, 'transactions')), { storeId: a.storeId, playerId: a.playerId, playerName: a.playerName || null, amount: a.fee, direction: sign === 1 ? 'subtract' : 'add', type: TX[a.action], tournamentId: a.tournamentId, createdAt: serverTimestamp() })
   }
+  // 参加の記録は参加費が 0 でも残す(店舗の「チップ履歴」・プレイヤーの履歴に、すべての参加が出るように。2026-11-10)
+  batch.set(doc(collection(db, 'transactions')), { storeId: a.storeId, playerId: a.playerId, playerName: a.playerName || null, amount: a.fee, direction: sign === 1 ? 'subtract' : 'add', type: TX[a.action], tournamentId: a.tournamentId, createdAt: serverTimestamp() })
   await batch.commit()
 }

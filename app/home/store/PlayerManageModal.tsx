@@ -398,7 +398,8 @@ export default function PlayerManageModal({ tournamentId, storeId, balanceGroupI
           { diff: addonDiff,   fee: addonFee,   type: "store_tournament_addon" },
         ]
         for (const tx of txDefs) {
-          if (tx.diff === 0 || tx.fee === 0) continue
+          // 参加費が 0 でも参加の記録は残す(チップ履歴にすべての参加が出るように。2026-11-10)
+          if (tx.diff === 0) continue
           const txRef = doc(collection(db, "transactions"))
           const txData = { storeId, playerId: player.id, playerName: player.name ?? null, amount: Math.abs(tx.diff) * tx.fee, direction: tx.diff > 0 ? "subtract" : "add", type: tx.type, tournamentId, createdAt: serverTimestamp() }
           ops.push(b => b.set(txRef, txData))

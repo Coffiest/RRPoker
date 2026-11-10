@@ -38,7 +38,7 @@ import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
 import {
-  arrayUnion, collection, doc, deleteField, getDoc, increment,
+  arrayUnion, collection, doc, deleteField, getDoc, getDocs, increment,
   onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
   Timestamp,
 } from "firebase/firestore"
@@ -435,6 +435,16 @@ export default function StorePage() {
 
   const [store, setStore] = useState<StoreInfo | null>(null)
   const balGroupId = store?.balanceGroupId ?? storeId
+  // 履歴を探す店(2026-11-10)。取引の記録には実際の店舗 ID が入るので、系列店(balanceGroupId)は同じグループの店すべてを探す
+  const [historyStoreIds, setHistoryStoreIds] = useState<string[]>([])
+  useEffect(() => {
+    if (!storeId) return
+    const group = store?.balanceGroupId
+    if (!group) { setHistoryStoreIds([storeId]); return }
+    getDocs(query(collection(db, "stores"), where("balanceGroupId", "==", group)))
+      .then(snap => setHistoryStoreIds(Array.from(new Set([storeId, group, ...snap.docs.map(d => d.id)]))))
+      .catch(() => setHistoryStoreIds([storeId, group]))
+  }, [storeId, store?.balanceGroupId])
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([])
   const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
   const [players, setPlayers] = useState<PlayerInfo[]>([])
@@ -1547,7 +1557,7 @@ export default function StorePage() {
 
       {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
-      {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
+      {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} storeIds={historyStoreIds} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
       <div className="pc-wide" style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>

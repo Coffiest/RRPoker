@@ -153,3 +153,8 @@
 ## 数字の入力欄(オーナー確定・2026-11-09)
 
 - 数字の欄(type="number")は打ち込み以外で値を変えない。ホイール・トラックパッドのスワイプでは選択を外すだけ、上下キー・PageUp/Down は無効(`components/NumberInputGuard.tsx`。app/layout.tsx に 1 つ)。上下の矢印ボタンも出さない(globals.css)。
+
+## チップ履歴(オーナー確定・2026-11-10)
+
+- 店舗の「チップ履歴」(`app/components/PlayerHistoryModal.tsx`)は、並べ替え(orderBy)を付けずに読み、こちらで新しい順に並べる。以前は orderBy に要る索引がプロジェクトに無く、読み込みが失敗して 0 件に見えていた。読めないときは赤字で知らせる。系列店は同じグループの店すべての記録を出す(`storeIds`)。
+- 参加(エントリー・リエントリー・アドオン)は参加費が 0 でも取引の記録(transactions、金額 0)を残す。QR・Player 画面の両方(`lib/quickEntry.ts`・`PlayerManageModal`)。0 のときは符号を付けない。
