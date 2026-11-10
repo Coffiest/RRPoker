@@ -1447,9 +1447,9 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0 }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield }
 
-/* ── 店舗ホームの Players のカード(オーナー指定・2026-11-09)。スマホは 1 列、PC は 2 列。1 人 1 行 ── */
+/* ── 店舗ホームの Players のカード(オーナー指定・2026-11-09)。スマホは 1 列、PC は 3 列(2026-11-10)。1 人 1 行 ── */
 .sp-grid { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 8px; background: rgba(120,120,128,0.06) }
-html.pc .sp-grid { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px }
+html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px }
 .sp-card {
   display: flex; align-items: center; gap: 10px; min-width: 0;
   padding: 8px 8px 8px 10px; border-radius: 16px; background: #fff;
@@ -1458,11 +1458,20 @@ html.pc .sp-grid { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px }
 }
 .sp-card.is-selected { box-shadow: 0 0 0 2px rgba(242,169,0,0.55), 0 4px 12px -6px rgba(0,0,0,0.10) }
 .sp-hit { display: block; padding: 0; border: none; background: none; cursor: pointer; font-family: inherit; color: inherit }
+/* 操作ボタンは白い丸(.rr-pill と同じ考え・オーナー確定 2026-11-10)。アイコンの色で区別し、乗せる・押すと金で塗ってアイコンは白 */
 .sp-btn {
-  width: 36px; height: 36px; border-radius: 11px; border: none; padding: 0; cursor: pointer;
+  width: 38px; height: 38px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  transition: transform 0.1s ease-out, filter 0.15s ease;
+  background: #fff; color: var(--label2);
+  box-shadow: 0 0 0 1px rgba(60,60,67,0.10), 0 2px 6px -2px rgba(0,0,0,0.12);
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.1s ease-out;
 }
-.sp-btn:hover { filter: brightness(0.96) }
-.sp-btn:active { transform: scale(0.92) }
+.sp-btn.is-gold { color: #D4910A }
+.sp-btn.is-red { color: #C62828 }
+.sp-btn.is-green { color: #1E7B34 }
+.sp-btn:hover, .sp-btn:focus-visible { background: #F2A900; color: #fff; box-shadow: 0 6px 16px -4px rgba(212,145,10,0.55); outline: none }
+.sp-btn:active { background: #F2A900; color: #fff; transform: scale(0.92); box-shadow: 0 0 0 0 rgba(212,145,10,0); transition: 100ms }
+/* 全員退店(Players の見出しの右)。白い丸、赤い字。押す・乗せると金 */
+.rr-pill.sp-allout { min-height: 32px; padding: 0 12px; font-size: 11px; letter-spacing: 1px; color: #C62828; box-shadow: 0 0 0 1px rgba(60,60,67,0.10), 0 2px 6px -2px rgba(0,0,0,0.12) }
+.rr-pill.sp-allout:hover, .rr-pill.sp-allout:active { color: #fff; letter-spacing: 1.5px }
 @media (prefers-reduced-motion: reduce) { .sp-btn:active { transform: none } }

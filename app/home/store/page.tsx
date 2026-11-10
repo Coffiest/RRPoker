@@ -37,9 +37,10 @@ import TournamentPurchaseLog from "@/components/TournamentPurchaseLog"
 import PlayerManageModal from "./PlayerManageModal"
 import PrizeDistributeModal from "./PrizeDistributeModal"
 import ChipDisclaimer from "@/components/ChipDisclaimer"
+import ConfirmDialog, { type ConfirmRequest } from "@/components/ConfirmDialog"
 import {
   arrayUnion, collection, doc, deleteField, getDoc, getDocs, increment,
-  onSnapshot, query, serverTimestamp, setDoc, updateDoc, where,
+  onSnapshot, query, serverTimestamp, setDoc, updateDoc, where, writeBatch,
   Timestamp,
 } from "firebase/firestore"
 import {
@@ -464,6 +465,21 @@ export default function StorePage() {
   const playerMetaRef = useRef<Record<string, any>>({})
   const balanceSubsRef = useRef<Record<string, () => void>>({})
   const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
+  const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
+  const [allOutBusy, setAllOutBusy] = useState(false)
+  /** 在店中のプレイヤーを全員まとめて退店(1 人ずつの退店と同じ書き方。1 回の書き込みは 450 人まで) */
+  const checkoutAll = async (ids: string[]) => {
+    if (ids.length === 0) return
+    setAllOutBusy(true)
+    try {
+      for (let i = 0; i < ids.length; i += 450) {
+        const batch = writeBatch(db)
+        for (const id of ids.slice(i, i + 450)) batch.set(doc(db, "users", id), { currentStoreId: deleteField(), checkinStatus: "none", pendingStoreId: null }, { merge: true })
+        await batch.commit()
+      }
+      showToast(`${ids.length} 人を退店にしました`)
+    } catch { showToast("退店できませんでした") } finally { setAllOutBusy(false) }
+  }
   const [adjustModalPlayer, setAdjustModalPlayer] = useState<any | null>(null)
   const [profileUid, setProfileUid] = useState<string | null>(null)
   const [depositOtherOpenId, setDepositOtherOpenId] = useState<string | null>(null)
@@ -1557,6 +1573,7 @@ export default function StorePage() {
 
       {showPlayerModal && <PlayerManageModal tournamentId={showPlayerModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPlayerModal(null)} />}
       {showPrizeModal && <PrizeDistributeModal tournamentId={showPrizeModal} storeId={storeId} balanceGroupId={store?.balanceGroupId ?? storeId ?? undefined} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setShowPrizeModal(null)} />}
+      <ConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
       {historyPlayerId && balGroupId && <PlayerHistoryModal playerId={historyPlayerId} storeId={balGroupId} storeIds={historyStoreIds} playerName={storePlayers.find(p => p.id === historyPlayerId)?.name} chipUnit={store?.chipUnitLabel} chipUnitBefore={store?.chipUnitBefore} onClose={() => setHistoryPlayerId(null)} />}
       <PlayerProfileModal uid={profileUid} onClose={() => setProfileUid(null)} />
 
@@ -2223,6 +2240,18 @@ export default function StorePage() {
                   合計 {fmtChip(inPlayers.reduce((s, p) => s + (p.balance ?? 0), 0), store?.chipUnitLabel, store?.chipUnitBefore)}
                 </span>
               )}
+              {/* 在店中のプレイヤーを全員まとめて退店(オーナー指定・2026-11-10。確認画面のあとに実行) */}
+              {inPlayers.length > 0 && (
+                <button type="button" className="rr-pill sp-allout" disabled={allOutBusy}
+                  onClick={() => setConfirmReq({
+                    title: '全員を退店させますか?',
+                    message: `在店中の ${inPlayers.length} 人をまとめて退店にします。残高はそのまま残ります。`,
+                    action: '全員退店', destructive: true,
+                    run: () => checkoutAll(inPlayers.map(p => p.id)),
+                  })}>
+                  {allOutBusy ? <Loader size={14} /> : <FiLogOut size={13} aria-hidden />}全員退店
+                </button>
+              )}
               {/* In-store count badge */}
               <span style={{ fontSize: 12, fontWeight: 800, background: 'linear-gradient(135deg, #34C759 0%, #30B452 100%)', color: '#fff', borderRadius: 99, padding: '4px 10px', boxShadow: '0 2px 8px rgba(52,199,89,0.25)' }}>
                 {inPlayers.length}名
@@ -2297,7 +2326,7 @@ export default function StorePage() {
               ]
               return (
                 <>
-                  {/* プレイヤーのカード(2026-11-09)。スマホは 1 列、PC は 2 列(globals.css の .sp-grid)。1 人 1 行 */}
+                  {/* プレイヤーのカード(2026-11-09)。スマホは 1 列、PC は 3 列(globals.css の .sp-grid)。1 人 1 行 */}
                   <div className="sp-grid">
                   {merged.map(player => {
                     const pid = String(player.playerId ?? '').replace(/^@+/, '')
@@ -2329,13 +2358,11 @@ export default function StorePage() {
                       </button>
 
                       {/* 操作: 履歴・チップの増減・退店(入店) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                        <button type="button" className="sp-btn" onClick={() => setHistoryPlayerId(player.id)} aria-label="履歴" title="履歴"
-                          style={{ background: 'rgba(120,120,128,0.12)' }}><FiClock size={15} style={{ color: 'var(--label2)' }}/></button>
-                        <button type="button" className="sp-btn" onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }} aria-label="チップを増減" title="チップを増減"
-                          style={{ background: 'linear-gradient(135deg, #F2A900 0%, #D4910A 100%)', boxShadow: '0 2px 6px rgba(242,169,0,0.30)' }}><FiDollarSign size={16} style={{ color: '#fff' }}/></button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <button type="button" className="sp-btn" onClick={() => setHistoryPlayerId(player.id)} aria-label="履歴" title="履歴"><FiClock size={16} aria-hidden /></button>
+                        <button type="button" className="sp-btn is-gold" onClick={() => { setAdjustModalPlayer(player); setAdjustError("") }} aria-label="チップを増減" title="チップを増減"><FiDollarSign size={17} strokeWidth={2.4} aria-hidden /></button>
                         {player.isInStore ? (
-                          <button type="button" className="sp-btn" aria-label="退店" title="退店"
+                          <button type="button" className="sp-btn is-red" aria-label="退店" title="退店"
                             onClick={async () => {
                               setRemovingAdjustmentPlayerIds(p => [...p, player.id])
                               setTimeout(async () => {
@@ -2343,15 +2370,13 @@ export default function StorePage() {
                                 setRemovingAdjustmentPlayerIds(p => p.filter(id => id !== player.id))
                               }, 280)
                             }}
-                            style={{ background: 'rgba(255,59,48,0.10)' }}
-                          ><FiLogOut size={15} style={{ color: '#C62828' }}/></button>
+                          ><FiLogOut size={16} aria-hidden /></button>
                         ) : activeTab === "out" && storeId && (
-                          <button type="button" className="sp-btn" aria-label="入店" title="入店"
+                          <button type="button" className="sp-btn is-green" aria-label="入店" title="入店"
                             onClick={async () => {
                               await setDoc(doc(db, "users", player.id), { currentStoreId: storeId, checkinStatus: "approved", pendingStoreId: null }, { merge: true })
                             }}
-                            style={{ background: 'rgba(52,199,89,0.12)' }}
-                          ><FiLogIn size={15} style={{ color: '#1E7B34' }}/></button>
+                          ><FiLogIn size={16} aria-hidden /></button>
                         )}
                       </div>
                     </div>
