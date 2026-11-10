@@ -136,14 +136,14 @@ export default function HistoryPage() {
 
   if (!storeId) {
     return (
-      <main className="min-h-screen px-5">
+      <main className="min-h-screen px-6">
         <HomeHeader homePath="/home" myPagePath="/home/mypage" />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
-          <p className="term-comment text-[14px] text-gray-500">入店中の店舗がありません</p>
+          <p className="rr-empty term-comment text-[14px] text-label2">入店中の店舗がありません</p>
           <button
             type="button"
             onClick={() => router.replace("/home")}
-            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-gray-900"
+            className="mt-6 h-[48px] w-full rounded-[20px] bg-[#F2A900] text-[14px] font-semibold text-label"
           >
             ホームへ戻る
           </button>
@@ -153,22 +153,22 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen px-5">
+    <main className="min-h-screen px-6">
       <HomeHeader homePath="/home" myPagePath="/home/mypage" />
       <div className="pc-page mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="font-display term-prompt-arrow text-[22px] font-semibold text-gray-900">チップ移動履歴</h1>
+          <h1 className="font-display term-prompt-arrow text-[22px] font-semibold text-label">チップ移動履歴</h1>
         </div>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-4">
           {sortedItems.length === 0 ? (
-            <p className="term-comment text-center text-[13px] text-gray-500">履歴がありません</p>
+            <p className="rr-empty term-comment text-center text-[13px] text-label2">履歴がありません</p>
           ) : (
             sortedItems.map(item => (
-              <div key={item.id} className="rounded-[20px] border border-gray-200 p-3">
+              <div key={item.id} className="rounded-[20px] border border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <p className={`text-[14px] font-semibold ${getColor(item)}`}>{getLabel(item)}</p>
-                  <p className="text-[14px] font-semibold text-gray-900">{getAmountLabel(item)}</p>
+                  <p className="text-[14px] font-semibold text-label">{getAmountLabel(item)}</p>
                 </div>
               </div>
             ))

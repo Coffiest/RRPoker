@@ -207,7 +207,7 @@ export default function TopPage() {
 
         .header-cta{
           background:linear-gradient(135deg,#F2A900,#D4910A);
-          border:none; border-radius:20px; padding:7px 14px;
+          border:none; border-radius:20px; padding:8px 16px;
           color:white; font-size:13px; font-weight:700;
           cursor:pointer; box-shadow:0 2px 8px rgba(242,169,0,0.3);
           white-space:nowrap; transition:transform .12s, opacity .12s;
@@ -223,7 +223,7 @@ export default function TopPage() {
 
         .stat-row{
           display:flex; align-items:center; justify-content:space-between;
-          padding:13px 16px; background:#fff; transition:background .12s;
+          padding:16px 16px; background:#fff; transition:background .12s;
         }
         .stat-row:not(:last-child){ border-bottom:1px solid var(--sep); }
         .stat-row:active{ background:#F2F2F7; }
@@ -240,7 +240,7 @@ export default function TopPage() {
         .section-hd{
           font-family:var(--stack-mono);
           font-size:11px; font-weight:700; letter-spacing:.16em;
-          text-transform:uppercase; color:var(--label2); margin-bottom:10px; padding:0 2px;
+          text-transform:uppercase; color:var(--label2); margin-bottom:8px; padding: 0 4px;
         }
         /* 見出しの前に付く計器風のインデックス記号 */
         .section-hd::before{ content:'//'; opacity:.4; margin-right:.55em; }
@@ -259,17 +259,17 @@ export default function TopPage() {
           transition: 'background .2s, border-color .2s',
         }}
       >
-        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 20px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ maxWidth:480, margin: '0 auto', padding: '0 24px', minHeight:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           {/* 左：ロゴ */}
           <button type="button" onClick={() => {}}
-            style={{ display:'flex', alignItems:'center', gap:0, background:'none', border:'none', cursor:'default', padding:0 }}
+            style={{ display:'flex', alignItems:'center', gap: 0, background:'none', border:'none', cursor:'default', padding: 0 }}
           >
             <img src="/logo.png" alt="RRPoker logo" style={{ height:60, width:60 }} />
             <span className="font-display" style={{ fontSize:18, fontWeight:700, color:'#1C1C1E', letterSpacing:'-0.2px' }}>RRPOKER</span>
           </button>
 
           {/* 右：ログインボタン + ハンバーガー */}
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 8 }}>
             {/* ログインボタン（ヘッダー右） */}
             <button className="header-cta" onClick={() => router.push('/login')}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -303,20 +303,20 @@ export default function TopPage() {
           display:'flex', flexDirection:'column',
         }}
       >
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'16px 20px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding: '16px 24px', borderBottom:'1px solid rgba(60,60,67,0.08)' }}>
           <p style={{ fontSize:14, fontWeight:700, color:'var(--label)' }}>メニュー</p>
-          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding:'4px 8px' }}>閉じる</button>
+          <button onClick={() => setMenuOpen(false)} style={{ fontSize:13, color:'var(--label2)', background:'none', border:'none', cursor:'pointer', padding: '4px 8px' }}>閉じる</button>
         </div>
-        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
+        <div style={{ padding: '16px 24px', display:'flex', flexDirection:'column', gap: 8 }}>
           <button onClick={() => { setMenuOpen(false); router.push('/login') }}
-            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(242,169,0,0.4)', background:'rgba(242,169,0,0.06)', padding:'13px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#D4910A', cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}
+            style={{ width:'100%', borderRadius:14, border:'1.5px solid rgba(242,169,0,0.4)', background:'rgba(242,169,0,0.06)', padding: '16px 16px', textAlign:'left', fontSize:14, fontWeight:700, color:'#D4910A', cursor:'pointer', display:'flex', alignItems:'center', gap: 8 }}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="#D4910A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             ログイン / 新規登録
           </button>
           {['このアプリについて', 'RR Ratingとは？', 'よくある質問'].map(label => (
             <button key={label}
-              style={{ width:'100%', borderRadius:14, border:'1px solid rgba(60,60,67,0.12)', background:'none', padding:'13px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:'var(--label)', cursor:'pointer' }}
+              style={{ width:'100%', borderRadius:14, border:'1px solid rgba(60,60,67,0.12)', background:'none', padding: '16px 16px', textAlign:'left', fontSize:14, fontWeight:600, color:'var(--label)', cursor:'pointer' }}
             >{label}</button>
           ))}
         </div>
@@ -326,7 +326,7 @@ export default function TopPage() {
           HERO
       ════════════════════════════════ */}
       <section style={{
-        paddingTop:32, paddingBottom:40, paddingLeft:20, paddingRight:20,
+        paddingTop: 32, paddingBottom: 40, paddingLeft: 24, paddingRight: 24,
         position:'relative', overflow:'hidden',
         background:'linear-gradient(180deg,#FFFBF0 0%,#F2F2F7 100%)',
       }}>
@@ -337,10 +337,10 @@ export default function TopPage() {
         <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out infinite', pointerEvents:'none' }}/>
         <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s infinite', pointerEvents:'none' }}/>
 
-        <div style={{ maxWidth:480, margin:'0 auto', position:'relative' }}>
+        <div style={{ maxWidth:480, margin: '0 auto', position:'relative' }}>
 
           {/* CTA(オーナー指定・2026-11-10): ヒーローの一番上に置き、手描き風のボタン(Uiverse.io の AatreyuShau。globals.css の .rr-hand) */}
-          <div className="d0" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10, marginBottom:28 }}>
+          <div className="d0" style={{ display:'flex', flexDirection:'column', alignItems:'center', gap: 8, marginBottom: 32 }}>
             <svg width="0" height="0" style={{ position:'absolute' }} aria-hidden focusable="false">
               <filter id="handDrawnNoise"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" /></filter>
               <filter id="handDrawnNoise2"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="7" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5" /></filter>
@@ -360,7 +360,7 @@ export default function TopPage() {
           </div>
 
           {/* フローティングポーカーカード */}
-          <div className="d0" style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:28 }}>
+          <div className="d0" style={{ display:'flex', justifyContent:'center', gap: 8, marginBottom: 32 }}>
             {POKER_CARDS.map((c, i) => (
               <div key={c} className={`pcard pcard-${i}`}>
                 <PlayingCard card={c} height={70}/>
@@ -369,15 +369,15 @@ export default function TopPage() {
           </div>
 
           {/* テキスト */}
-          <div className="d1" style={{ textAlign:'center', marginBottom:6 }}>
-            <p className="term-prompt tech-caret" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--gold)', marginBottom:10 }}>
+          <div className="d1" style={{ textAlign:'center', marginBottom: 8 }}>
+            <p className="term-prompt tech-caret" style={{ fontFamily:'var(--stack-mono)', fontSize:11, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'var(--gold)', marginBottom: 8 }}>
               The Poker Management App
             </p>
-            <h1 className="font-display" style={{ fontSize:33, fontWeight:900, letterSpacing:'-0.8px', color:'var(--label)', lineHeight:1.22, marginBottom:10 }}>
+            <h1 className="font-display" style={{ fontSize:33, fontWeight:900, letterSpacing:'-0.8px', color:'var(--label)', lineHeight:1.22, marginBottom: 8 }}>
               ポーカーライフを、<br/>
               <span className="shimmer-text">次のレベルへ。</span>
             </h1>
-            <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.72, maxWidth:300, margin:'0 auto' }}>
+            <p style={{ fontSize:14, color:'var(--label2)', lineHeight:1.72, maxWidth:300, margin: '0 auto' }}>
               チップ管理・ランキング・<br/>トーナメント統計をひとつのアプリで。
             </p>
           </div>
@@ -388,16 +388,16 @@ export default function TopPage() {
       {/* ════════════════════════════════
           スタットストリップ
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
-        <div className="d3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+      <section style={{ padding: '0 24px 16px', maxWidth:480, margin: '0 auto' }}>
+        <div className="d3" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap: 8 }}>
           {[
             { icon:<Zap size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'残高管理', sub:'リアルタイム' },
             { icon:<Medal size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'ランキング', sub:'自動更新' },
             { icon:<NotebookPen size={22} strokeWidth={2} color="#D4910A" aria-hidden />, label:'トナメ記録', sub:'自動保存' },
           ].map((s, i) => (
-            <div key={i} className="ios-card tech-corners" style={{ padding:'14px 8px', textAlign:'center' }}>
-              <div style={{ display:'flex', justifyContent:'center', marginBottom:5 }}>{s.icon}</div>
-              <p style={{ fontSize:11, fontWeight:700, color:'var(--label)', marginBottom:2 }}>{s.label}</p>
+            <div key={i} className="ios-card tech-corners" style={{ padding: '16px 8px', textAlign:'center' }}>
+              <div style={{ display:'flex', justifyContent:'center', marginBottom: 4 }}>{s.icon}</div>
+              <p style={{ fontSize:11, fontWeight:700, color:'var(--label)', marginBottom: 4 }}>{s.label}</p>
               <p className="tech-label" style={{ color:'var(--gold-dk)' }}>{s.sub}</p>
             </div>
           ))}
@@ -407,23 +407,23 @@ export default function TopPage() {
       {/* ════════════════════════════════
           機能スポットライト
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
+      <section style={{ padding: '0 24px 16px', maxWidth:480, margin: '0 auto' }}>
         <p className="section-hd d3">できること</p>
         <div className="d4">
           {/* ハイライトカード */}
-          <div className="ios-card feature-spotlight" style={{ overflow:'hidden', marginBottom:10 }}>
+          <div className="ios-card feature-spotlight" style={{ overflow:'hidden', marginBottom: 8 }}>
             {/* カード上端の色の線は禁止(CLAUDE.md)。以前ここに 3px の帯があった */}
-            <div style={{ padding:20 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:14, marginBottom:14 }}>
+            <div style={{ padding: 24 }}>
+              <div style={{ display:'flex', alignItems:'center', gap: 16, marginBottom: 16 }}>
                 <div style={{ width:54, height:54, borderRadius:16, background:f.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:26, flexShrink:0, border:`1.5px solid ${f.accent}22` }}>
                   {f.emoji}
                 </div>
                 <div>
                   <p style={{ fontSize:17, fontWeight:700, color:'var(--label)', letterSpacing:'-0.2px' }}>{f.title}</p>
-                  <p style={{ fontSize:13, color:'var(--label2)', marginTop:3, lineHeight:1.55 }}>{f.desc}</p>
+                  <p style={{ fontSize:13, color:'var(--label2)', marginTop: 4, lineHeight:1.55 }}>{f.desc}</p>
                 </div>
               </div>
-              <div style={{ display:'flex', justifyContent:'center', gap:6 }}>
+              <div style={{ display:'flex', justifyContent:'center', gap: 8 }}>
                 {FEATURES.map((_, i) => (
                   <div key={i} className="dot-ind" style={{ background: i===featureIndex ? f.accent : 'var(--sep)', transform: i===featureIndex ? 'scale(1.4)' : 'scale(1)' }}/>
                 ))}
@@ -435,16 +435,16 @@ export default function TopPage() {
           <div className="ios-card" style={{ overflow:'hidden' }}>
             {FEATURES.map((feat, i) => (
               <div key={i} className="stat-row">
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ display:'flex', alignItems:'center', gap: 16 }}>
                   <div style={{ width:38, height:38, borderRadius:11, background:feat.bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>
                     {feat.emoji}
                   </div>
                   <div>
                     <p style={{ fontSize:14, fontWeight:600, color:'var(--label)' }}>{feat.title}</p>
-                    <p style={{ fontSize:11, color:'var(--label2)', marginTop:1, lineHeight:1.4 }}>{feat.desc}</p>
+                    <p style={{ fontSize:11, color:'var(--label2)', marginTop: 4, lineHeight:1.4 }}>{feat.desc}</p>
                   </div>
                 </div>
-                <div style={{ width:8, height:8, borderRadius:'50%', background:feat.accent, flexShrink:0, marginLeft:10, opacity:0.7 }}/>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:feat.accent, flexShrink:0, marginLeft: 8, opacity:0.7 }}/>
               </div>
             ))}
           </div>
@@ -454,24 +454,24 @@ export default function TopPage() {
       {/* ════════════════════════════════
           バンクロールプレビュー
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
+      <section style={{ padding: '0 24px 16px', maxWidth:480, margin: '0 auto' }}>
         <p className="section-hd d5">バンクロール</p>
         <div className="d5" style={{
-          borderRadius:22, padding:22, position:'relative', overflow:'hidden',
+          borderRadius:22, padding: 24, position:'relative', overflow:'hidden',
           background:'linear-gradient(145deg,#1C1C1E 0%,#2C2C2E 60%,#1C1C1E 100%)',
           boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
         }}>
           <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse at 20% 10%,rgba(242,169,0,0.17) 0%,transparent 60%)', pointerEvents:'none' }}/>
           <div style={{ position:'relative', zIndex:1 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:4 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 4 }}>
               <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)' }}>Bank Roll</p>
-              <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding:'2px 8px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
+              <span style={{ background:'rgba(52,199,89,0.2)', borderRadius:99, padding: '4px 8px', fontSize:9, fontWeight:700, color:'rgba(52,199,89,0.9)', letterSpacing:'0.05em' }}>● LIVE</span>
             </div>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom:18, fontWeight:500 }}>○○ ポーカークラブ</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.32)', marginBottom: 16, fontWeight:500 }}>○○ ポーカークラブ</p>
             <p style={{ fontSize:38, fontWeight:900, color:'white', letterSpacing:'-0.5px', lineHeight:1 }}>24,500</p>
-            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop:8 }}>+ 4,500</p>
-            <div style={{ marginTop:16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
-            <p style={{ marginTop:10, fontSize:9, color:'rgba(255,255,255,0.25)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
+            <p style={{ fontSize:14, fontWeight:700, color:'#6EE7B7', marginTop: 8 }}>+ 4,500</p>
+            <div style={{ marginTop: 16, height:1, background:'linear-gradient(90deg,transparent,rgba(242,169,0,0.4),transparent)' }}/>
+            <p style={{ marginTop: 8, fontSize:9, color:'rgba(255,255,255,0.25)', fontWeight:500 }}>※ これはイメージです。実際の残高が表示されます。</p>
           </div>
         </div>
       </section>
@@ -479,26 +479,26 @@ export default function TopPage() {
       {/* ════════════════════════════════
           RR Rating プレビュー
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
+      <section style={{ padding: '0 24px 16px', maxWidth:480, margin: '0 auto' }}>
         <p className="section-hd d5">RR Rating（トナメ偏差値）</p>
         <div className="d6 ios-card" style={{ overflow:'hidden' }}>
-          <div style={{ background:'linear-gradient(135deg,#F2A900,#D4910A)', padding:'20px', position:'relative', overflow:'hidden' }}>
+          <div style={{ background:'linear-gradient(135deg,#F2A900,#D4910A)', padding: '24px', position:'relative', overflow:'hidden' }}>
             <div style={{ position:'absolute', top:'-40%', right:'-10%', width:160, height:160, borderRadius:'50%', background:'radial-gradient(circle,rgba(255,255,255,0.16) 0%,transparent 70%)' }}/>
             <div style={{ position:'absolute', bottom:'-20px', left:'-20px', width:100, height:100, borderRadius:'50%', background:'radial-gradient(circle,rgba(0,0,0,0.07) 0%,transparent 70%)' }}/>
-            <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom:4, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
-            <div style={{ display:'flex', alignItems:'flex-end', gap:10, position:'relative', zIndex:1 }}>
+            <p style={{ fontSize:10, fontWeight:700, letterSpacing: '0.16em', textTransform:'uppercase', color:'rgba(255,255,255,0.72)', marginBottom: 4, position:'relative', zIndex:1 }}>あなたのトナメ偏差値</p>
+            <div style={{ display:'flex', alignItems:'flex-end', gap: 8, position:'relative', zIndex:1 }}>
               <p style={{ fontSize:40, fontWeight:900, color:'white', letterSpacing:'-1px', lineHeight:1 }}>65.75</p>
-              <div style={{ background:'rgba(255,255,255,0.22)', borderRadius:99, padding:'3px 9px', marginBottom:4 }}>
+              <div style={{ background:'rgba(255,255,255,0.22)', borderRadius:99, padding: '4px 8px', marginBottom: 4 }}>
                 <p style={{ fontSize:11, fontWeight:700, color:'white' }}>全国 12位</p>
               </div>
             </div>
-            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop:5, position:'relative', zIndex:1 }}>ROI: 122.4% · インマネ率: 34.2%</p>
+            <p style={{ fontSize:11, color:'rgba(255,255,255,0.65)', marginTop: 4, position:'relative', zIndex:1 }}>ROI: 122.4% · インマネ率: 34.2%</p>
           </div>
-          <div style={{ padding:'14px 16px' }}>
+          <div style={{ padding: '16px 16px' }}>
             <p style={{ fontSize:12, color:'var(--label2)', lineHeight:1.65 }}>
               ROIとインマネ率から計算されるトーナメントの実力指数。参加した回数が増えるほど精度が上がります。
             </p>
-            <p style={{ fontSize:10, color:'var(--gold-dk)', fontWeight:600, marginTop:6, marginBottom:4 }}>※ これはイメージです</p>
+            <p style={{ fontSize:10, color:'var(--gold-dk)', fontWeight:600, marginTop: 8, marginBottom: 4 }}>※ これはイメージです</p>
           </div>
         </div>
       </section>
@@ -506,9 +506,9 @@ export default function TopPage() {
       {/* ════════════════════════════════
           Tips ローテーター
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 16px', maxWidth:480, margin:'0 auto' }}>
-        <div className="d6 ios-card" style={{ padding:'14px 16px', display:'flex', alignItems:'flex-start', gap:10 }}>
-          <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(242,169,0,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+      <section style={{ padding: '0 24px 16px', maxWidth:480, margin: '0 auto' }}>
+        <div className="d6 ios-card" style={{ padding: '16px 16px', display:'flex', alignItems:'flex-start', gap: 8 }}>
+          <div style={{ width:30, height:30, borderRadius:'50%', background:'rgba(242,169,0,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop: 4 }}>
             <Lightbulb size={16} strokeWidth={2} color="#D4910A" aria-hidden />
           </div>
           <p className="tip-txt" style={{ fontSize:13, color:'#8a6200', lineHeight:1.65, fontWeight:500 }}>
@@ -520,19 +520,19 @@ export default function TopPage() {
       {/* ════════════════════════════════
           Final CTA
       ════════════════════════════════ */}
-      <section style={{ padding:'0 20px 48px', maxWidth:480, margin:'0 auto' }}>
-        <div className="d7 ios-card" style={{ padding:24, textAlign:'center' }}>
-          <div style={{ display:'flex', justifyContent:'center', marginBottom:14 }}>
+      <section style={{ padding: '0 24px 48px', maxWidth:480, margin: '0 auto' }}>
+        <div className="d7 ios-card" style={{ padding: 24, textAlign:'center' }}>
+          <div style={{ display:'flex', justifyContent:'center', marginBottom: 16 }}>
             <img src="/logo.png" alt="RRPoker" className="pop" style={{ width:64, height:64, borderRadius:18, objectFit:'cover', boxShadow:'0 6px 20px rgba(242,169,0,0.28)' }}/>
           </div>
-          <h2 style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom:6 }}>
+          <h2 style={{ fontSize:20, fontWeight:800, color:'var(--label)', letterSpacing:'-0.4px', marginBottom: 8 }}>
             RRPokerをはじめよう
           </h2>
-          <p style={{ fontSize:13, color:'var(--label2)', lineHeight:1.7, marginBottom:20 }}>
+          <p style={{ fontSize:13, color:'var(--label2)', lineHeight:1.7, marginBottom: 24 }}>
             店舗チェックイン・バンクロール管理・RR Rating・<br/>ランキングをすべて無料で。
           </p>
           <button className="cta-primary" onClick={() => router.push('/login')}
-            style={{ width:'100%', height:52, borderRadius:16, fontSize:16, fontWeight:800, color:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}
+            style={{ width:'100%', height:52, borderRadius:16, fontSize:16, fontWeight:800, color:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', gap: 8 }}
           >
             ログイン / 新規登録
             <span className="arrow-bounce">→</span>
@@ -543,18 +543,18 @@ export default function TopPage() {
       {/* ════════════════════════════════
           フッター
       ════════════════════════════════ */}
-      <footer style={{ padding:'0 20px 44px', textAlign:'center', maxWidth:480, margin:'0 auto' }}>
-        <div style={{ height:1, background:'var(--sep)', marginBottom:20 }}/>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:12 }}>
+      <footer style={{ padding: '0 24px 48px', textAlign:'center', maxWidth:480, margin: '0 auto' }}>
+        <div style={{ height:1, background:'var(--sep)', marginBottom: 24 }}/>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap: 8, marginBottom: 16 }}>
           <img src="/logo.png" alt="RRPoker" style={{ width:28, height:28, borderRadius:8, objectFit:'cover' }}/>
           <span style={{ fontSize:13, fontWeight:700, color:'var(--label2)' }}>RRPOKER</span>
         </div>
-        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>ver 1.11.0</p>
-        <p style={{ fontSize:10, color:'var(--label3)', marginBottom:3 }}>RRPoker by Runner Runner</p>
+        <p style={{ fontSize:10, color:'var(--label3)', marginBottom: 4 }}>ver 1.11.0</p>
+        <p style={{ fontSize:10, color:'var(--label3)', marginBottom: 4 }}>RRPoker by Runner Runner</p>
         <p style={{ fontSize:10, color:'var(--label3)' }}>製作者 : なおゆき</p>
-        <div style={{ marginTop:16 }}>
+        <div style={{ marginTop: 16 }}>
           <button type="button" onClick={() => router.push('/store-register')}
-            style={{ fontSize:12, color:'var(--label3)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding:'7px 16px', display:'inline-flex', alignItems:'center', gap:5 }}
+            style={{ fontSize:12, color:'var(--label3)', background:'rgba(60,60,67,0.05)', border:'1px solid rgba(60,60,67,0.1)', borderRadius:99, cursor:'pointer', padding: '8px 16px', display:'inline-flex', alignItems:'center', gap: 4 }}
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             店舗の方はこちら

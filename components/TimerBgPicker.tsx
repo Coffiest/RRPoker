@@ -31,7 +31,7 @@ export function TimerBgSwatches({ value, onPick, onImage, busy, defaultLabel }: 
   if (value === 'spacegray') value = 'orange'
   const sw = (key: string, selected: boolean, onClick: () => void, inner: React.ReactNode, bg: string, label: string) => (
     <button key={key} type="button" onClick={onClick} aria-label={label} aria-pressed={selected} title={label}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minHeight: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minHeight: 44, padding: 0, border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
       <span style={{ width: 48, height: 48, borderRadius: 24, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: selected ? '0 0 0 3px #fff, 0 0 0 5px #F2A900' : 'inset 0 0 0 1px rgba(60,60,67,0.18)' }}>
         {inner}
       </span>

@@ -131,7 +131,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
         {levels.map((lv, idx) => (
           <li key={idx} style={{ background: lv.type === 'break' && lv.rc ? 'rgba(242,169,0,0.18)' : idx === endIdx ? 'rgba(249,179,24,0.12)' : lv.type === 'break' ? 'rgba(10,108,214,0.06)' : '#fff', borderRadius: 16, padding: 8, boxShadow: lv.type === 'break' && lv.rc ? 'inset 0 0 0 2px #D4910A' : idx === endIdx ? 'inset 0 0 0 2px #F9B318' : '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
             {idx === endIdx && (
-              <p style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '0 0 6px 4px', fontSize: 11, fontWeight: 700, color: '#995C00' }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 8px 4px', fontSize: 11, fontWeight: 700, color: '#995C00' }}>
                 <FlagIcon size={14} /> 終了予定(ヘッズアップのアベレージが 10BB を切る)
               </p>
             )}
@@ -151,7 +151,7 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
                   {lv.rc ? (
                     <span style={{ gridColumn: '2 / span 3', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 800, color: '#995C00', paddingLeft: 8 }}>
                       {/* 金の面の上の文字は白(CLAUDE.md) */}
-                      <span style={{ background: '#F2A900', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em' }}>RC</span>
+                      <span style={{ background: '#F2A900', color: '#fff', borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 800, letterSpacing: '0.06em' }}>RC</span>
                       RC ブレイク
                     </span>
                   ) : (

@@ -87,7 +87,7 @@ export default function HandPage() {
   if (!hand) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "transparent" }}>
       <div className="text-center px-6">
-        <div className="mb-3 flex justify-center"><Spade size={40} strokeWidth={2} color="#6E6E73" aria-hidden /></div>
+        <div className="mb-4 flex justify-center"><Spade size={40} strokeWidth={2} color="#6E6E73" aria-hidden /></div>
         <p className="term-comment text-[18px] font-semibold" style={{ color: CLR.ink }}>ハンドが見つかりません</p>
         <p className="text-[13px] mt-1" style={{ color: CLR.gray3 }}>このリンクは無効です</p>
       </div>
@@ -122,17 +122,17 @@ export default function HandPage() {
       <div className="mx-auto max-w-sm px-4 pt-6">
 
         {/* Header */}
-        <div className="flex items-start justify-between mb-4 gap-3">
+        <div className="flex items-start justify-between mb-4 gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-[20px] font-bold truncate" style={{ color: CLR.ink }}>
               {hand.title || "ハンドレビュー"}
             </h1>
-            <p className="text-[12px] mt-0.5" style={{ color: CLR.gray3 }}>
+            <p className="text-[12px] mt-1" style={{ color: CLR.gray3 }}>
               {hand.creatorName} · {formatDate(hand.createdAt?.seconds)}
             </p>
           </div>
           <button onClick={share}
-            className="shrink-0 flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-[13px] font-semibold text-white shadow-md active:scale-95 transition-all"
+            className="shrink-0 flex items-center gap-2 rounded-2xl px-4 py-2 text-[13px] font-semibold text-white shadow-md active:scale-95 transition-all"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})` }}>
             <FiShare2 size={14} />
             {copied ? "コピー完了" : "シェア"}
@@ -141,14 +141,14 @@ export default function HandPage() {
 
         {/* Info badges */}
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[11px] font-bold rounded-full px-2.5 py-1"
+          <span className="text-[11px] font-bold rounded-full px-2 py-1"
             style={{ background: "#FFF8E7", color: CLR.goldDk }}>{hand.heroPosition}</span>
-          <span className="text-[11px] rounded-full px-2.5 py-1"
+          <span className="text-[11px] rounded-full px-2 py-1"
             style={{ background: CLR.surface, color: CLR.gray2 }}>{rPositions.length}人</span>
         </div>
 
         {/* 卓(ハンド記録と同じ。PokerART の卓を金・白で。components/HandTable.tsx) */}
-        <div className="mb-3 -mx-2">
+        <div className="mb-4 -mx-2">
           <HandTable
             height={360}
             anchorPos={hand.heroPosition || "BTN"}
@@ -172,7 +172,7 @@ export default function HandPage() {
         </div>
 
         {/* Replay controls */}
-        <div className="flex items-center justify-center gap-3 mb-4">
+        <div className="flex items-center justify-center gap-4 mb-4">
           <button onClick={() => { setReplayStep(0); setReplayPlaying(false) }}
             className="w-8 h-8 rounded-full flex items-center justify-center active:scale-95"
             style={{ background: CLR.surface, color: CLR.gray2, fontSize: 13 }}>⟪</button>
@@ -194,13 +194,13 @@ export default function HandPage() {
         </div>
 
         {/* Action text list — all shown, current highlighted */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {streets.map(st => {
             const stActs  = allActs.filter(a => a.street === st)
             const stLabel = { preflop: "プリフロップ", flop: "フロップ", turn: "ターン", river: "リバー" }[st]
             return (
               <div key={st}>
-                <p className="text-[10px] font-bold mb-1.5" style={{ color: CLR.gray3 }}>{stLabel}</p>
+                <p className="text-[10px] font-bold mb-2" style={{ color: CLR.gray3 }}>{stLabel}</p>
                 <div className="space-y-1">
                   {stActs.map((a, i) => {
                     const globalIdx = allActs.indexOf(a)
@@ -208,7 +208,7 @@ export default function HandPage() {
                     const isFuture  = globalIdx > replayStep - 1
                     const isHeroAct = a.position === hand.heroPosition
                     return (
-                      <div key={i} className="flex items-center gap-2 rounded-2xl px-3 py-2 transition-all"
+                      <div key={i} className="flex items-center gap-2 rounded-2xl px-4 py-2 transition-all"
                         style={{
                           background: isCurrent ? "#FFF8E7" : CLR.white,
                           border: isCurrent ? `1.5px solid ${CLR.gold}` : `1px solid ${CLR.surface}`,
@@ -223,7 +223,7 @@ export default function HandPage() {
                           {ACT_JP[a.action]}{a.amount != null ? ` ${a.amount} BB` : ""}
                         </span>
                         {isCurrent && (
-                          <span className="ml-auto text-[9px] font-bold rounded-full px-1.5 py-px"
+                          <span className="ml-auto text-[9px] font-bold rounded-full px-2 py-px"
                             style={{ background: CLR.gold, color: "#fff" }}>NOW</span>
                         )}
                       </div>
@@ -240,7 +240,7 @@ export default function HandPage() {
           <p className="text-[13px] mb-1 font-semibold" style={{ color: CLR.ink }}>このハンドはRRPOKERで記録されました</p>
           <p className="text-[12px] mb-4" style={{ color: CLR.gray2 }}>ポーカーのハンドを記録・共有しよう</p>
           <a href="/home"
-            className="inline-flex items-center gap-1.5 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition-all"
+            className="inline-flex items-center gap-2 h-11 px-6 rounded-full text-[14px] font-bold active:scale-95 transition-all"
             style={{ background: `linear-gradient(135deg,${CLR.gold},${CLR.goldDk})`, color: "#fff", textDecoration: "none", boxShadow: "0 3px 14px rgba(242,169,0,0.4)" }}>
             RRPOKERを使ってみる ›
           </a>

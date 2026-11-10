@@ -90,6 +90,7 @@ html, body {
   --label2: #545458;
   --label3: #6E6E73;
 }
+.text-label { color: var(--label); }
 .text-label2 { color: var(--label2); }
 .text-label3 { color: var(--label3); }
 
@@ -477,8 +478,8 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--label3);
-  padding: 0 0 7px;
-  margin-bottom: 12px;
+  padding: 0 0 8px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -641,7 +642,7 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 52px;
-  padding: 0 22px;
+  padding: 0 24px;
   border: none;
   border-radius: var(--a-capsule);
   font-family: var(--stack-mono);
@@ -771,10 +772,10 @@ body {
 .a-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   min-height: 54px;
-  padding: 13px 18px;
+  padding: 16px 16px;
   background: transparent;
   border: none;
   text-align: left;
@@ -793,7 +794,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--a-label-3);
-  padding: 0 6px 8px;
+  padding: 0 8px 8px;
 }
 
 /* --------------------------------------------------------------------------
@@ -842,7 +843,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
   height: 5px;
   border-radius: var(--a-capsule);
   background: rgba(60, 60, 67, 0.20);
-  margin: 9px auto 0;
+  margin: 8px auto 0;
   flex-shrink: 0;
 }
 
@@ -932,7 +933,7 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
     0 2px 8px rgba(0, 0, 0, 0.03),
     0 14px 38px rgba(0, 0, 0, 0.07);
   border-radius: 30px;
-  padding: 20px;
+  padding: 24px;
 }
 
 /* 主の操作。カプセルにして、押した瞬間に沈む */
@@ -1174,7 +1175,7 @@ html.pc .pc-sidebar {
 .pc-side-brand-name { font-family: var(--stack-display); font-size: 16px; font-weight: 700; color: var(--label) }
 .pc-side-brand-sub { font-size: 9px; color: #D4910A; margin-top: 4px }
 .pc-side-section { font-size: 10px; color: var(--label3); padding: 0 8px; margin: 16px 0 4px; font-family: var(--stack-mono) }
-.pc-side-list { display: flex; flex-direction: column; gap: 2px }
+.pc-side-list { display: flex; flex-direction: column; gap: 4px }
 .pc-side-item {
   display: flex; align-items: center; gap: 16px; width: 100%; min-height: 48px;
   padding: 0 16px; border: none; border-radius: 12px; background: none;
@@ -1419,7 +1420,7 @@ input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placehol
   padding: 0 24px; min-height: 44px; border-radius: 50px; cursor: pointer; border: 0;
   background-color: #fff; color: var(--label); box-shadow: rgb(0 0 0 / 5%) 0 0 8px;
   letter-spacing: 1.5px; text-transform: uppercase; font-size: 12px; font-weight: 700;
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   transition: all 0.5s ease;
 }
 .rr-pill:hover { letter-spacing: 3px; background-color: #F2A900; color: #fff; box-shadow: rgb(212 145 10 / 55%) 0px 7px 29px 0px }
@@ -1432,7 +1433,7 @@ input:not(.rr-input-plain)::placeholder, textarea:not(.rr-input-plain)::placehol
   text-decoration: none; font-size: 13px; font-weight: bold; color: var(--line_color); letter-spacing: 2px;
   transition: all 0.3s ease; background: none; border: none; padding: 0; cursor: pointer; font-family: inherit;
 }
-.rr-line .rr-line__text { display: flex; justify-content: center; align-items: center; gap: 6px; width: 100%; height: 100% }
+.rr-line .rr-line__text { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; height: 100% }
 .rr-line::before, .rr-line::after, .rr-line .rr-line__text::before, .rr-line .rr-line__text::after {
   content: ""; position: absolute; height: 3px; border-radius: 2px; background: var(--line_color); transition: all 0.5s ease;
 }
@@ -1462,11 +1463,11 @@ input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; marg
 input[type="number"] { -moz-appearance: textfield; appearance: textfield }
 
 /* ── 店舗ホームの Players のカード(オーナー指定・2026-11-09)。スマホは 1 列、PC は 3 列(2026-11-10)。1 人 1 行 ── */
-.sp-grid { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 8px; background: rgba(120,120,128,0.06) }
-html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 10px }
+.sp-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 8px; background: rgba(120,120,128,0.06) }
+html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px }
 .sp-card {
-  display: flex; align-items: center; gap: 10px; min-width: 0;
-  padding: 8px 8px 8px 10px; border-radius: 16px; background: #fff;
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 8px 8px 8px 8px; border-radius: 16px; background: #fff;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px -6px rgba(0,0,0,0.10);
   transition: opacity 0.28s ease, box-shadow 0.18s ease, transform 0.12s ease;
 }
@@ -1486,7 +1487,7 @@ html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; p
 .sp-btn:hover, .sp-btn:focus-visible { background: #F2A900; color: #fff; box-shadow: 0 6px 16px -4px rgba(212,145,10,0.55); outline: none }
 .sp-btn:active { background: #F2A900; color: #fff; transform: scale(0.92); box-shadow: 0 0 0 0 rgba(212,145,10,0); transition: 100ms }
 /* 全員退店(Players の見出しの右)。白い丸、赤い字。押す・乗せると金 */
-.rr-pill.sp-allout { min-height: 32px; padding: 0 12px; font-size: 11px; letter-spacing: 1px; color: #C62828; box-shadow: 0 0 0 1px rgba(60,60,67,0.10), 0 2px 6px -2px rgba(0,0,0,0.12) }
+.rr-pill.sp-allout { min-height: 32px; padding: 0 16px; font-size: 11px; letter-spacing: 1px; color: #C62828; box-shadow: 0 0 0 1px rgba(60,60,67,0.10), 0 2px 6px -2px rgba(0,0,0,0.12) }
 .rr-pill.sp-allout:hover, .rr-pill.sp-allout:active { color: #fff; letter-spacing: 1.5px }
 @media (prefers-reduced-motion: reduce) { .sp-btn:active { transform: none } }
 
@@ -1508,7 +1509,7 @@ html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; p
   --rr-btn-fg: #1C1C1E;           /* ふだんの字の色 */
   position: relative; isolation: isolate; overflow: hidden;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  min-height: 44px; padding: 0 20px; border-radius: 30px;
+  min-height: 44px; padding: 0 24px; border-radius: 30px;
   border: 2px solid var(--rr-btn-c); background: transparent; color: var(--rr-btn-fg);
   font-family: inherit; font-size: 13px; font-weight: 800; letter-spacing: 2px;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
@@ -1577,7 +1578,7 @@ html.pc .sp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; p
   padding: 0.25rem; width: 100%; font-size: 13px;
 }
 .rr-seg > button, .rr-seg > .rr-seg-item {
-  flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 36px; padding: 0.5rem 0.5rem; border: none; border-radius: 0.5rem; background: transparent;
   color: rgba(51,65,85,1); font-family: inherit; font-size: inherit; font-weight: 500; cursor: pointer;
   transition: all 0.15s ease-in-out;
@@ -1630,7 +1631,7 @@ button:hover > .rr-expand, .rr-expand:hover { background: rgba(197,197,197,0.7) 
 /* ── 手描き風のボタン(by AatreyuShau)。トップの「今すぐはじめる」だけ(app/page.tsx)。
  *    書体はアプリの等幅(JetBrains Mono)、蛍光ペンは金。揺れはゆっくり ── */
 .rr-hand {
-  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   text-align: center; cursor: pointer; user-select: none; background: #fff; color: #1C1C1E;
   font-family: var(--stack-mono); font-size: 20px; font-weight: 800; letter-spacing: 0.02em;
   padding: 0.9em 1.4em 0.9em 2.4em; border: 0; border-radius: 2rem;
@@ -1663,4 +1664,23 @@ button:hover > .rr-expand, .rr-expand:hover { background: rgba(197,197,197,0.7) 
 @media (prefers-reduced-motion: reduce) {
   .rr-btn, .rr-btn::after, .ios-checkbox *, .rr-seg > button, .rr-expand > i, .rr-add, .rr-add svg { transition-duration: 1ms !important; animation: none !important }
   .rr-hand, .rr-hand:hover, .rr-hand:active { animation: none !important; rotate: 0deg !important }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+ * 「AI っぽさ」を消す 4 つの決まり(オーナー指定・2026-11-10。CLAUDE.md の「余白・揃え・濃淡・カード」)
+ *   02 余白は 8 の倍数(最小の刻みだけ 4)。03 文字の頭をそろえる。05 強弱は濃淡(label / label2 / label3)。
+ *   06 カードは控えめに: カードの中のカードは影を外し、面の色だけで分ける。
+ * ════════════════════════════════════════════════════════════════════════ */
+/* 03: 見出しの「//」は左へぶら下げ、見出しの文字の頭をカードの端にそろえる */
+.section-hd, .con-hd { position: relative }
+.section-hd::before, .con-hd::before { position: absolute; right: 100%; margin-right: 4px }
+/* 06: 入れ子のカードは影を外す(面の重なりは 1 段まで) */
+:is(.section-card, .profile-card, .ios-card, .a-card, .sheet-card) :is(.section-card, .profile-card, .ios-card, .a-card) { box-shadow: none !important }
+.sp-card { box-shadow: inset 0 0 0 1px rgba(60,60,67,0.08) }
+.sp-card.is-selected { box-shadow: 0 0 0 2px rgba(242,169,0,0.55) }
+/* 空の状態の文(「○○はありません」など)。波紋(.rr-dots)の上に置く(オーナー指定・2026-11-10「もっと色んなところで」) */
+.rr-empty {
+  display: block; text-align: center; padding: 24px 16px !important; border-radius: 16px;
+  background: repeating-radial-gradient(circle, #fff, #fff 5px, rgba(28,28,30,0.045) 6px);
+  background-size: 50px 100px;
 }

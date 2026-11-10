@@ -122,13 +122,13 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
   return (
     <div
       className="section-card home-boot pd-live"
-      style={{ marginTop: 20, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
+      style={{ marginTop: 24, ['--tech-reveal-delay' as string]: '0.07s' } as React.CSSProperties}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <p className="tech-label" style={{ fontSize: 10.5, color: '#1C1C1E', letterSpacing: '0.16em' }}>
           現在進行中のトナメ
         </p>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="tech-status-dot" style={{ background: '#34C759' }} />
           <span className="tech-label" style={{ fontSize: 9, color: '#34C759' }}>LIVE</span>
         </span>
@@ -146,7 +146,7 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
                 style={{ flex: 1, minWidth: 0, minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
                 <ChevronDown size={18} strokeWidth={2} color="var(--label2)" aria-hidden style={{ flexShrink: 0, transform: open ? 'none' : 'rotate(-90deg)', transition: 'transform 160ms ease-out' }} />
                 {/* 大会名の下の行に、開始・RC・終了をいつも横に並べる(components/ClockRow.tsx) */}
-                <span className="con-mono" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '6px 0' }}>
+                <span className="con-mono" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '8px 0' }}>
                   <span style={{ fontWeight: 700, color: 'var(--label)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{t.name}</span>
                   <ClockRow clocks={clk} />
                 </span>
@@ -235,7 +235,7 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
 function BlindList({ t }: { t: LiveTournament }) {
   const levels: TimerLevel[] = t.customBlindLevels ?? []
   if (levels.length === 0) {
-    return <p style={{ fontSize: 13, color: 'var(--label3)', textAlign: 'center', padding: '24px 0' }}>ブラインド表がありません</p>
+    return <p className="rr-empty" style={{ fontSize: 13, color: 'var(--label3)', textAlign: 'center', padding: '24px 0' }}>ブラインド表がありません</p>
   }
   const live = computeLiveLevelState(
     t.currentLevelIndex, t.levelStartedAtMs, t.levelStartedRemaining ?? t.timeRemaining, levels, t.timerRunning, getServerNow(),
@@ -258,7 +258,7 @@ function BlindList({ t }: { t: LiveTournament }) {
         const now = i === live
         return (
           <div key={i} style={{
-            display: 'flex', alignItems: 'center', gap: 12, minHeight: 40, padding: '0 12px', borderRadius: 10,
+            display: 'flex', alignItems: 'center', gap: 16, minHeight: 40, padding: '0 16px', borderRadius: 10,
             background: now ? 'rgba(242,169,0,0.12)' : isBreak ? 'var(--fill)' : 'transparent',
             fontFamily: 'var(--stack-mono)', fontSize: 13, color: 'var(--label)',
           }}>
@@ -287,12 +287,12 @@ function PrizeList({ t }: { t: LiveTournament }) {
   const MEDAL: Record<number, string> = { 1: 'linear-gradient(135deg,#FFD700,#E8A000)', 2: 'linear-gradient(135deg,#D4D4D4,#A8A8A8)', 3: 'linear-gradient(135deg,#CD7F32,#9A5E24)' }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingBottom: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '8px 12px', marginBottom: 4, borderRadius: 12, background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '8px 16px', marginBottom: 4, borderRadius: 12, background: 'linear-gradient(135deg,#FFFBF0,#FFF3CC)' }}>
         <span className="tech-label" style={{ fontSize: 10, color: '#D4910A' }}>PRIZE POOL</span>
         <span className="tech-num" style={{ fontSize: 20, fontWeight: 800, color: 'var(--label)' }}>{total.toLocaleString()}</span>
       </div>
       {prizes.map(p => (
-        <div key={p.place} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, padding: '6px 12px', borderRadius: 10, background: p.place <= 3 ? 'rgba(242,169,0,0.06)' : 'transparent' }}>
+        <div key={p.place} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 44, padding: '8px 16px', borderRadius: 10, background: p.place <= 3 ? 'rgba(242,169,0,0.06)' : 'transparent' }}>
           <span style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: MEDAL[p.place] ?? '#6E6E73', fontSize: 12, fontWeight: 800, color: '#fff' }}>{p.place}</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             {p.amount > 0 && <span className="tech-num" style={{ display: 'block', fontSize: 16, fontWeight: 800, color: 'var(--label)' }}>{p.amount.toLocaleString()}</span>}

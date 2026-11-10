@@ -13,7 +13,7 @@ import ConfirmDialog, { type ConfirmRequest } from '@/components/ConfirmDialog'
 import { addManager, grantByStoreLogin, removeManager, type ManagedStore } from '@/lib/storeAccess'
 
 const input: React.CSSProperties = {
-  width: '100%', height: 44, borderRadius: 12, border: '1px solid var(--sep)', padding: '0 14px',
+  width: '100%', height: 44, borderRadius: 12, border: '1px solid var(--sep)', padding: '0 16px',
   fontSize: 14, color: 'var(--label)', background: '#fff', outline: 'none', fontFamily: 'inherit',
 }
 const goldBtn: React.CSSProperties = {
@@ -51,7 +51,7 @@ export function GrantAccessSheet({ open, onClose, uid }: { open: boolean; onClos
   return (
     <AppleSheet open={open} onClose={onClose} zIndex={1300}
       title={<span className="tech-label" style={{ fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>権限を追加</span>}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={note}>店舗のアカウントで一度だけログインすると、その店舗の画面をこのアカウントから使えるようになる。パスワードは保存しない。</p>
         <input style={input} type="email" autoComplete="off" placeholder="店舗のメールアドレス" value={email} onChange={e => setEmail(e.target.value)} />
         <input style={input} type="password" autoComplete="off" placeholder="店舗のパスワード" value={password} onChange={e => setPassword(e.target.value)} />
@@ -101,11 +101,11 @@ export function ManageAccessSheet({ open, onClose, storeId }: { open: boolean; o
     <AppleSheet open={open} onClose={onClose} zIndex={1300}
       title={<span className="tech-label" style={{ fontSize: 11, color: 'var(--label)', letterSpacing: '0.14em' }}>権限を管理</span>}>
       <ConfirmDialog request={confirm} onClose={() => setConfirm(null)} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
         <p style={note}>権限を付けたプレイヤーは、この店舗の画面をオーナーと同じように使える。権限の付け外し・店舗の削除・解約はオーナーだけ。</p>
         {members.length === 0 && <p style={{ ...note, textAlign: 'center', padding: '8px 0' }}>権限を付けた人はいない</p>}
         {members.map(m => (
-          <div key={m.uid} style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 52, padding: '0 4px 0 14px', borderRadius: 12, background: 'var(--fill)' }}>
+          <div key={m.uid} style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 52, padding: '0 4px 0 16px', borderRadius: 12, background: 'var(--fill)' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--label)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</p>
               {m.playerId && <p className="con-mono" style={{ fontSize: 11, color: 'var(--label3)' }}>ID {m.playerId}</p>}
@@ -113,7 +113,7 @@ export function ManageAccessSheet({ open, onClose, storeId }: { open: boolean; o
             <button type="button" className="gl-press" onClick={() => setConfirm({
               title: '権限を外す', message: `${m.name} の権限を外しますか?`, action: '外す', destructive: true,
               run: async () => { if (storeId) await removeManager(storeId, m.uid) },
-            })} style={{ minHeight: 44, padding: '0 14px', border: 'none', background: 'none', color: '#E53E3A', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            })} style={{ minHeight: 44, padding: '0 16px', border: 'none', background: 'none', color: '#E53E3A', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
               外す
             </button>
           </div>
@@ -137,7 +137,7 @@ export function StoreChooserSheet({ open, onClose, stores, onPick }: { open: boo
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 24 }}>
         {stores.map(s => (
           <button key={s.id} type="button" className="gl-press" onClick={() => onPick(s.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 56, padding: '0 14px', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '0 16px', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
             <span style={{ width: 36, height: 36, borderRadius: '50%', overflow: 'hidden', background: 'var(--fill)', flexShrink: 0 }}>
               {s.iconUrl && <img src={s.iconUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </span>

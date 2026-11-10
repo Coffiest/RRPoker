@@ -46,14 +46,14 @@ export default function Page() {
 
   if (!storeIdParam) {
     return (
-      <main className="min-h-screen px-5">
+      <main className="min-h-screen px-6">
         <HomeHeader
           homePath="/home"
           myPagePath="/home/mypage"
           menuItems={getCommonMenuItems(router, 'user')}
         />
         <div className="mx-auto max-w-sm pt-[72px] text-center">
-          <p className="text-[14px] text-gray-500">店舗が選択されていません</p>
+          <p className="text-[14px] text-label2">店舗が選択されていません</p>
           <div className="flex justify-center mt-6"><BackButton /></div>
         </div>
       </main>
@@ -61,7 +61,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen px-5">
+    <main className="min-h-screen px-6">
       <HomeHeader
         homePath="/home"
         myPagePath="/home/mypage"
@@ -69,17 +69,17 @@ export default function Page() {
       />
       <div className="pc-page mx-auto max-w-sm">
         <div className="pt-[56px] text-center">
-          <h1 className="text-[22px] font-semibold text-gray-900">入店中プレイヤー</h1>
+          <h1 className="text-[22px] font-semibold text-label">入店中プレイヤー</h1>
         </div>
 
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-4">
           {players.length === 0 ? (
-            <p className="text-center text-[13px] text-gray-500">入店中のプレイヤーがいません</p>
+            <p className="text-center text-[13px] text-label2">入店中のプレイヤーがいません</p>
           ) : (
             players.map(player => (
-              <div key={player.id} className="flex items-center gap-3 rounded-[20px] border border-gray-200 p-3">
+              <div key={player.id} className="flex items-center gap-4 rounded-[20px] border border-gray-200 p-4">
                 <PlayerAvatar src={player.iconUrl} size={40} alt={player.name} />
-                <p className="text-[14px] font-semibold text-gray-900">{player.name ?? player.id}</p>
+                <p className="text-[14px] font-semibold text-label">{player.name ?? player.id}</p>
               </div>
             ))
           )}

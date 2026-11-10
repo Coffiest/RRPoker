@@ -70,7 +70,7 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
   }
 
   return (
-    <main className="min-h-screen px-5 pb-28">
+    <main className="min-h-screen px-6 pb-28">
       <HomeHeader
         homePath="/home/store"
         myPagePath="/home/store/mypage"
@@ -78,22 +78,22 @@ export default function WithdrawalsClient({ storeId }: { storeId: string }) {
         menuItems={getCommonMenuItems(router, "store")}
       />
       <div className="pc-page mx-auto max-w-sm mt-6">
-        <h2 className="text-[16px] font-semibold text-gray-900 mb-1">チップ引出申請一覧</h2>
+        <h2 className="text-[16px] font-semibold text-label mb-1">チップ引出申請一覧</h2>
         <ChipDisclaimer className="mb-4" />
         {withdrawals.length === 0 ? (
-          <p className="text-[13px] text-label2">申請はありません</p>
+          <p className="rr-empty text-[13px] text-label2">申請はありません</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {withdrawals.map(w => (
-              <div key={w.id} className="rounded-2xl border border-gray-200 p-3">
+              <div key={w.id} className="rounded-2xl border border-gray-200 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[14px] font-semibold text-gray-900">{players[w.playerId]?.name ?? w.playerId}</p>
+                    <p className="text-[14px] font-semibold text-label">{players[w.playerId]?.name ?? w.playerId}</p>
                     <p className="text-[12px] text-label2">{w.comment || "コメントなし"}</p>
                   </div>
-                  <p className="text-[16px] font-semibold text-gray-900">{w.amount}</p>
+                  <p className="text-[16px] font-semibold text-label">{w.amount}</p>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-4 flex gap-2">
                   <button type="button" onClick={() => approveWithdrawal(w)} className="rr-btn is-green is-sm" style={{ flex: 1 }}>承認</button>
                   <button type="button" onClick={() => rejectWithdrawal(w)} className="rr-btn is-danger is-sm" style={{ flex: 1 }}>却下</button>
                 </div>

@@ -45,7 +45,7 @@ export function ConsolePanel({
       {/* タイトルバー */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '9px 12px',
+        padding: '8px 16px',
         background: bar,
         borderBottom: `1px solid ${line}`,
       }}>

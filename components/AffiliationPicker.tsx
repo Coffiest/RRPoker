@@ -66,7 +66,7 @@ export default function AffiliationPicker({ value, onChange, joinedStoreIds }: {
     const on = value.affiliationStoreId === s.id
     return (
       <button key={s.id} type="button" onClick={() => pick(s)}
-        style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', minHeight: 48, padding: '4px 12px', border: 'none', borderRadius: 12, background: on ? 'rgba(242,169,0,0.12)' : 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+        style={{ display: 'flex', alignItems: 'center', gap: 16, width: '100%', minHeight: 48, padding: '4px 16px', border: 'none', borderRadius: 12, background: on ? 'rgba(242,169,0,0.12)' : 'transparent', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
         <span style={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', background: '#F2F2F7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           {s.iconUrl
             // eslint-disable-next-line @next/next/no-img-element -- 店舗のアイコン(data URL)
@@ -80,7 +80,7 @@ export default function AffiliationPicker({ value, onChange, joinedStoreIds }: {
   }
 
   const head = (label: string, Icon: typeof Store) => (
-    <p className="tech-label" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: 'var(--label3)', margin: '12px 4px 4px' }}>
+    <p className="tech-label" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10, color: 'var(--label3)', margin: '16px 4px 4px' }}>
       <Icon size={12} strokeWidth={2} aria-hidden /> {label}
     </p>
   )
@@ -90,9 +90,9 @@ export default function AffiliationPicker({ value, onChange, joinedStoreIds }: {
       <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 0 8px', lineHeight: 1.5 }}>所属しているサークル、もしくはよく行く店舗、所属している店舗など</p>
       <input type="text" value={text} maxLength={40} placeholder="自由に入力(例: 〇〇大学ポーカーサークル)"
         onChange={e => { setText(e.target.value); onChange({ affiliation: e.target.value, affiliationStoreId: null, affiliationIconUrl: null }) }}
-        style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 14px', fontSize: 16, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+        style={{ width: '100%', height: 44, borderRadius: 12, border: '1.5px solid rgba(0,0,0,0.12)', padding: '0 16px', fontSize: 16, color: '#1C1C1E', background: '#F2F2F7', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
       {value.affiliationStoreId && (
-        <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--label2)', margin: '8px 4px 0' }}>
+        <p style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--label2)', margin: '8px 4px 0' }}>
           <Users size={12} strokeWidth={2} aria-hidden /> 選択中: <strong style={{ color: 'var(--label)' }}>{value.affiliation}</strong>
           <button type="button" onClick={() => onChange({ affiliation: '', affiliationStoreId: null, affiliationIconUrl: null })}
             style={{ marginLeft: 'auto', minHeight: 32, padding: '0 8px', border: 'none', background: 'none', color: '#C62828', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>外す</button>

@@ -63,7 +63,7 @@ export default function StoreBottomNav() {
     <nav className="pc-hide fixed bottom-5 left-4 right-4 z-[80]">
       <div
         className="mx-auto max-w-sm relative grid grid-cols-3 items-center"
-        style={{ ...GLASS, padding: '12px 28px' }}
+        style={{ ...GLASS, padding: '16px 32px' }}
       >
         {/* Sliding indicator */}
         <div style={{

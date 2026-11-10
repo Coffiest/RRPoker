@@ -127,7 +127,7 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
         {player && (
           <div style={{ paddingBottom: 16 }}>
             {/* プレイヤー: 名前・入店・残高(確定後の残高も) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px', background: '#fff', borderRadius: 12, boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: 8 }}>
               <PlayerAvatar src={player.iconUrl} size={32} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontSize: 13, fontWeight: 700, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{player.loading ? '読み込み中' : player.name || '名前未設定'}</p>
@@ -141,22 +141,22 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
                 </p>
               </div>
               {player.loading ? <Loader size={24} /> : player.inStore ? (
-                <button className="rr-btn is-danger is-sm" style={{ padding: '0 12px', letterSpacing: 1 }} type="button" onClick={() => void onCheckOut()} disabled={busy}>
+                <button className="rr-btn is-danger is-sm" style={{ padding: '0 16px', letterSpacing: 1 }} type="button" onClick={() => void onCheckOut()} disabled={busy}>
                   <FiLogOut size={13} /> 退店
                 </button>
               ) : (
-                <button className="rr-btn is-green is-sm" style={{ padding: '0 12px', letterSpacing: 1 }} type="button" onClick={() => void onCheckIn()} disabled={busy}>
+                <button className="rr-btn is-green is-sm" style={{ padding: '0 16px', letterSpacing: 1 }} type="button" onClick={() => void onCheckIn()} disabled={busy}>
                   <FiLogIn size={13} /> 入店
                 </button>
               )}
             </div>
 
-            {tournaments.length === 0 && <p className="term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px' }}>開催中のトーナメントはありません</p>}
+            {tournaments.length === 0 && <p className="rr-empty term-comment" style={{ fontSize: 13, color: 'var(--label2)', padding: '8px 4px' }}>開催中のトーナメントはありません</p>}
             {!player.loading && !player.inStore && tournaments.length > 0 && (
-              <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 4px 6px' }}>エントリー等を ✓ で確定すると、入店も同時にします。</p>
+              <p style={{ fontSize: 11, color: 'var(--label2)', margin: '0 4px 8px' }}>エントリー等を ✓ で確定すると、入店も同時にします。</p>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {tournaments.map(t => {
                 const b = base(t.id), x = d(t.id)
                 const eqER = Number(t.entryFee ?? 0) === Number(t.reentryFee ?? 0) && Number(t.entryStack ?? 0) === Number(t.reentryStack ?? 0)
@@ -172,8 +172,8 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
                 ]
                 const bustWas = Number(t.bustCount ?? 0), bustNow = bustWas + x.bust
                 return (
-                  <div key={t.id} style={{ background: '#fff', borderRadius: 12, padding: '6px 8px 10px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <div key={t.id} style={{ background: '#fff', borderRadius: 12, padding: '8px 8px 8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                       <p style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</p>
                       {/* Bust(大会全体の数。Player 画面と同じ) */}
                       <span className="tech-label" style={{ fontSize: 9, color: 'var(--label2)' }}>Bust</span>
@@ -183,7 +183,7 @@ export default function QrPlayerSheet({ player, tournaments, entriesLive, storeI
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${fields.length}, 1fr)` }}>
                       {fields.map(f => (
-                        <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                        <div key={f.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                           <span className="tech-label" style={{ fontSize: 9, color: 'var(--label2)', width: 12 }}>{f.key}</span>
                           <StepButton kind="minus" label={`${f.label}を減らす`} size={26} hit={32} disabled={f.now <= 0} onClick={f.minus} />
                           <Num now={f.now} was={f.was} />

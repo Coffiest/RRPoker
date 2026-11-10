@@ -696,7 +696,7 @@ export default function TournamentsPage() {
                       <RepeatIcon size={20} style={{ color: 'var(--gold-dk)', flexShrink: 0 }} />
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{t.name}</span>
-                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>次回 {t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>次回 {t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
                       </span>
                       <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
                     </button>
@@ -712,7 +712,7 @@ export default function TournamentsPage() {
                     <div key={t.id} style={{ ...listRow, cursor: 'default', borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 14, fontWeight: 600 }}>{t.name}</span>
-                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>{t.date}{t.startTime ? ` ${t.startTime}` : ""}</span>
                       </span>
                       <StatusBadge status={t.status} />
                     </div>
@@ -793,7 +793,7 @@ export default function TournamentsPage() {
               <button key={p.id || 'none'} type="button" role="radio" aria-checked={sel} onClick={() => setBlindPresetId(p.id)} className="tp-row" style={{ ...listRow, borderTop: i ? '1px solid var(--sep)' : 'none' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14 }}>{p.name}</span>
-                  {p.id && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{lv} レベル</span>}
+                  {p.id && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>{lv} レベル</span>}
                 </span>
                 {sel && <CheckMark />}
               </button>
@@ -822,7 +822,7 @@ export default function TournamentsPage() {
               <CameraIcon size={24} style={{ color: 'var(--label2)', flexShrink: 0 }} />
               <span style={{ flex: 1 }}>
                 <span style={{ display: 'block', fontSize: 14 }}>{imageBusy ? "画像を読み込んでいます…" : "画像を選ぶ"}</span>
-                <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>プレイヤーの予定に表示されます(任意)。ドラッグ・貼り付けでも入れられます</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>プレイヤーの予定に表示されます(任意)。ドラッグ・貼り付けでも入れられます</span>
               </span>
               <ChevronRightIcon size={20} style={{ color: 'var(--label3)' }} />
               <input type="file" accept="image/*" hidden disabled={imageBusy} onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void handleImageSelect(f) }} />
@@ -891,7 +891,7 @@ export default function TournamentsPage() {
                     <button type="button" onClick={() => openEditBlindPreset(preset)} className="tp-row" style={{ ...listRow, flex: 1 }}>
                       <span style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 14, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{preset.name}</span>
-                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>
                           {lvCount} レベル ・ ブレイク {brkCount} 回 ・ {fmtMinutes(mins)}
                         </span>
                       </span>
@@ -1078,7 +1078,7 @@ function SheetTitle({ title, sub, onClose, onBack }: { title: string; sub?: stri
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', margin: 0, lineHeight: 1.27 }}>{title}</p>
-        {sub && <p style={{ fontSize: 11, color: 'var(--label2)', margin: '2px 0 0' }}>{sub}</p>}
+        {sub && <p style={{ fontSize: 11, color: 'var(--label2)', margin: '4px 0 0' }}>{sub}</p>}
       </div>
       <RingButton label="閉じる" onClick={onClose} icon={<XIcon />} style={{ marginRight: -8 }} />
     </div>
@@ -1090,7 +1090,7 @@ function FormRow({ label, hint, children, last }: { label: string; hint?: string
     <label style={{ display: 'flex', alignItems: 'center', gap: 16, minHeight: 56, padding: '4px 16px', borderBottom: last ? 'none' : '1px solid var(--sep)' }}>
       <span style={{ flexShrink: 0, maxWidth: '55%' }}>
         <span style={{ display: 'block', fontSize: 14, color: 'var(--label)' }}>{label}</span>
-        {hint && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 2 }}>{hint}</span>}
+        {hint && <span style={{ display: 'block', fontSize: 11, color: 'var(--label2)', marginTop: 4 }}>{hint}</span>}
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'flex-end' }}>{children}</span>
     </label>
