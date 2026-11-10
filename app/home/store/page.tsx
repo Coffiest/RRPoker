@@ -432,6 +432,9 @@ export default function StorePage() {
           rcEstimate: data.rcEstimate ?? null,
         })
       }
+      // 表示順は開始日 → 開始時刻が早い順(オーナー指定・2026-11-10)。日付・時刻が無い大会は最後
+      const key = (t: any) => `${t.date || '9999-99-99'} ${t.startTime || '99:99'}`
+      list.sort((a: any, b: any) => key(a).localeCompare(key(b)) || String(a.name ?? '').localeCompare(String(b.name ?? ''), 'ja'))
       setActiveTournaments(list)
       const map: Record<string, boolean> = {}
       list.forEach(t => { map[t.id] = t.timerRunning ?? false })
