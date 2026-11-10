@@ -54,10 +54,10 @@ const cover = `
 </section>`;
 
 const schedRows = (k) => D.tournaments.filter((t) => t.day === k).map((t) => `
-  <tr class="${t.main ? 'hl' : ''}"><td>${t.start}</td><td>${t.schedOnly ? '-' : rcTime(t)}</td><td>${t.no}</td>
+  <tr class="${t.main ? 'hl' : ''}"><td>${t.start}</td><td>${t.schedOnly || t.day2 ? '-' : rcTime(t)}</td><td>${t.no}</td>
   <td class="nm">${t.name}${t.sub ? ` <em>${t.sub}</em>` : ''}</td>
-  <td>${t.schedOnly ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
-  <td>${t.schedOnly ? '-' : n(t.chips)}${t.cap ? `<small class="cap">${t.cap}</small>` : ''}</td></tr>`).join('');
+  <td>${t.schedOnly || t.day2 ? '-' : entryText(t.entry)}${t.entryNote ? `<small class="cap">${t.entryNote}</small>` : ''}</td>
+  <td>${t.schedOnly || t.day2 ? '-' : n(t.chips)}${t.cap ? `<small class="cap">${t.cap}</small>` : ''}</td></tr>`).join('');
 
 const schedule = `
 <section class="page">
@@ -79,7 +79,7 @@ const schedule = `
 </section>`;
 
 const blindRows = (t) => {
-  let time = t.start, lv = 0;
+  let time = t.start, lv = (t.lvStart || 1) - 1;
   return t.levels.map((l) => {
     if (!Array.isArray(l)) {
       const extra = [l.rc && 'Registration Close', l.note].filter(Boolean).join(' &nbsp;/&nbsp; ');
@@ -100,6 +100,14 @@ const prizeBlock = (p) => !p ? `
   <table class="prize"><tr><th>Total</th><td>${n(p.total)}</td></tr><tr><th>In Money</th><td>${typeof p.inMoney === 'number' ? p.inMoney + (['', 'st', 'nd', 'rd'][p.inMoney] || 'th') : p.inMoney}</td></tr></table>
   <table class="places">${p.places.map((r) => `<tr><th>${r[0]}</th><td>${r[1].replace(/PokerART Platinum 1ヶ月/, '<span class="plat">PokerART Platinum 1ヶ月</span>')}${r[2] ? '<span class="tro">+ Trophy</span>' : ''}${(r[3] || []).map((x) => `<span class="tkt">+ ${x}</span>`).join('')}</td></tr>`).join('')}</table>`;
 
+const day1Aside = (t) => `
+      <div class="big">Entry${t.entryNote ? `<small> (${t.entryNote})</small>` : ''}</div>
+      <table class="prize entry">${t.entry.all != null ? `<tr><th>All</th><td>${n(t.entry.all)}</td></tr>` : `<tr><th>学生</th><td>${n(t.entry.student)}</td></tr><tr><th>一般</th><td>${n(t.entry.adult)}</td></tr>`}</table>
+      <dl>
+        <dt>Starting Chips</dt><dd>${n(t.chips)}${t.chipsNote ? ` <small>(${t.chipsNote})</small>` : ''}</dd>
+        <dt>Late Reg</dt><dd>${rcTime(t)}</dd>${t.cap ? `<dt>Cap</dt><dd>${t.cap}</dd>` : ''}
+      </dl>`;
+
 const tPage = (t) => {
   const rows = t.levels.length;
   const dense = rows > 46 ? 'dense xdense' : rows > 36 ? 'dense' : '';
@@ -112,16 +120,15 @@ const tPage = (t) => {
       <tbody>${blindRows(t)}</tbody>
     </table>
     <aside>
-      <div class="big">Entry${t.entryNote ? `<small> (${t.entryNote})</small>` : ''}</div>
-      <table class="prize entry">${t.entry.all != null ? `<tr><th>All</th><td>${n(t.entry.all)}</td></tr>` : `<tr><th>学生</th><td>${n(t.entry.student)}</td></tr><tr><th>一般</th><td>${n(t.entry.adult)}</td></tr>`}</table>
-      <dl>
-        <dt>Starting Chips</dt><dd>${n(t.chips)}${t.chipsNote ? ` <small>(${t.chipsNote})</small>` : ''}</dd>
-        <dt>Late Reg</dt><dd>${rcTime(t)}</dd>${t.cap ? `<dt>Cap</dt><dd>${t.cap}</dd>` : ''}
-      </dl>
+${t.day2 ? `
+      <div class="big">Entry</div>
+      <table class="prize entry"><tr><th>Day2</th><td>Day1 通過者</td></tr></table>
+      <dl><dt>Restart</dt><dd>Lv${t.lvStart} / ${t.start}</dd></dl>
+` : day1Aside(t)}
       ${t.main ? `<div class="mnote">${t.note}</div>` : ''}
       ${t.rules ? '<div class="mnote">ルールは協賛企業ページの前のページをご覧ください。</div>' : ''}
       <div class="big">Prize</div>
-      ${prizeBlock(t.prize)}
+      ${t.main && !t.day2 ? '<p class="tbd">プライズは Day2 のページをご覧ください。</p>' : prizeBlock(t.prize)}
     </aside>
   </div>
 </section>`;
