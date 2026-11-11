@@ -1684,3 +1684,12 @@ button:hover > .rr-expand, .rr-expand:hover { background: rgba(197,197,197,0.7) 
   background: repeating-radial-gradient(circle, #fff, #fff 5px, rgba(28,28,30,0.045) 6px);
   background-size: 50px 100px;
 }
+
+/* 横向き全画面(components/RotatedFullscreen.tsx)の操作バー・閉じるボタン。
+ * 縦持ちで 90 度回すと、画面の左端は端末の上端(時計・ダイナミックアイランド)、右端は下端(ホームバー)になる。
+ * そこは押せない・押しにくいので、安全な範囲まで内側へ寄せる(以前は CLOSE が上端に隠れて押せなかった。2026-11-11) */
+.rf-bar {
+  padding-left: calc(16px + max(env(safe-area-inset-top, 0px), env(safe-area-inset-left, 0px))) !important;
+  padding-right: calc(16px + max(env(safe-area-inset-bottom, 0px), env(safe-area-inset-right, 0px))) !important;
+}
+.rf-close { right: calc(12px + max(env(safe-area-inset-bottom, 0px), env(safe-area-inset-right, 0px))) }

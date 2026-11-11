@@ -1789,7 +1789,7 @@ export default function StorePage() {
                     style={{ position: 'absolute', inset: 0, background: 'transparent', border: 'none', cursor: 'default' }} />
                 )}
                 {expandSplitCtrl && (
-                  <div onPointerDown={() => setExpandSplitTouch(n => n + 1)} style={{
+                  <div className="rf-bar" onPointerDown={() => setExpandSplitTouch(n => n + 1)} style={{
                     position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
                     borderTop: '1px solid rgba(255,255,255,0.10)', padding: '8px 16px 16px', display: 'flex', alignItems: 'center', gap: 16, overflowX: 'auto',
                   }}>
@@ -1847,7 +1847,7 @@ export default function StorePage() {
 
                 {/* コントロールバー */}
                 {et && expandCtrlVisible && (
-                  <div onPointerDown={() => setExpandCtrlTouch(n => n + 1)} style={{
+                  <div className="rf-bar" onPointerDown={() => setExpandCtrlTouch(n => n + 1)} style={{
                     position: 'absolute',
                     bottom: 0, left: 0, right: 0,
                     background: 'rgba(0,0,0,0.72)',
