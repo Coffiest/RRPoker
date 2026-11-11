@@ -209,8 +209,8 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
         <RotatedFullscreen zIndex={9999} portal>
           <iframe src={`/home/store/timer/${fullId}?store=${encodeURIComponent(storeId)}&view=1`} title="timer-fullscreen" tabIndex={-1}
             style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }} />
-          <button type="button" onClick={() => setFullId(null)} aria-label="閉じる"
-            style={{ position: 'absolute', top: 12, right: 12, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'none', cursor: 'pointer', zIndex: 2 }}>
+          <button type="button" onClick={() => setFullId(null)} aria-label="閉じる" className="rf-close"
+            style={{ position: 'absolute', top: 12, width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'none', cursor: 'pointer', zIndex: 2 }}>
             <span style={{ width: 40, height: 40, borderRadius: 20, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={20} strokeWidth={2.25} color="#fff" aria-hidden />
             </span>
