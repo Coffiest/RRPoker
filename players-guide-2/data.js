@@ -50,7 +50,7 @@ module.exports = {
     { name: 'XPT', logo: 'xpt.png', dark: true },
     { name: 'FST', logo: 'fst.png', dark: true },
     { name: 'Runner Runner', logo: 'rr.png' },
-    { name: 'こうだい(仮)', logo: 'koudai.png', photo: true },
+    { name: '晃大', logo: 'koudai2.png', photo: true },
   ],
   // schedule 表示順 = この並び。chips はスタート点数、prize: null は未定
   tournaments: [
