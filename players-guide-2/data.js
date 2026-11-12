@@ -54,7 +54,7 @@ module.exports = {
   ],
   // schedule 表示順 = この並び。chips はスタート点数、prize: null は未定
   tournaments: [
-    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '10:00', entry: { all: 50000 }, chips: 40000, cap: '30名限定', reserve: true, levels: blinds.shr, prize: { total: 900000, inMoney: 3, places: places([600000, 200000, 100000], 8) } },
+    { no: '#2', name: 'SUPER HIGH ROLLER', day: 'd1', start: '10:00', entry: { all: 50000 }, chips: 40000, cap: '30名限定', reserve: true, levels: blinds.shr, prize: { total: 1100000, inMoney: 4, places: places([600000, 250000, 150000, 100000], 8) } },
     { no: '#1', name: 'MAIN EVENT', sub: 'Day1', day: 'd1', start: '11:00', entry: sf(300, 1500), chips: 500, levels: blinds.main1, main: true, prize: null,
       note: '残り8名になるか、Lv20 終了の時点で Day1 終了。残ったプレイヤーが Day2 に進出します。' },
     { no: '#3', name: 'TAG TEAM', day: 'd1', start: '18:00', entry: sf(300, 1500), entryNote: '1人あたり', chips: 200, levels: blinds.tag, prize: { total: 25000, inMoney: 4, places: places([10000, 7000, 5000, 3000], 8) } },
