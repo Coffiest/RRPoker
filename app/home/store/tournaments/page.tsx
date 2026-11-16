@@ -525,7 +525,7 @@ export default function TournamentsPage() {
         .no-spin::-webkit-inner-spin-button, .no-spin::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .no-spin { -moz-appearance: textfield; }
         .tp-input:focus { box-shadow: inset 0 0 0 2px var(--gold); background: #fff; }
-        .tp-live { animation: tpLive 2s ease-in-out infinite; }
+        .tp-live { animation: tpLive 2s ease-in-out 3; }
         @keyframes tpLive { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
         @media (prefers-reduced-motion: reduce) { .tp-live { animation: none } .tp-press:active { transform: none } }
       `}</style>

@@ -106,7 +106,9 @@ export default function TimerClient() {
   // 店舗ホームのカードなどに縮めて埋め込んだ表示(?embed=1)。音は鳴らさない(電池対策・2026-11-16)
   const embedded = viewOnly || searchParams.get("embed") === "1"
   // 埋め込みでは音の装置を作らない(見るだけの表示で音声回路を起こさない)
-  useEffect(() => { soundOff = embedded; if (!embedded) loadAudioFiles() }, [embedded])
+  // ?mute=1: 全画面などで表示はそのまま(点滅あり)、音だけ親の画面(lib/timerSounds.ts)に任せる
+  const muted = embedded || searchParams.get("mute") === "1"
+  useEffect(() => { soundOff = muted; if (!muted) loadAudioFiles() }, [muted])
   const tournamentId = params.tournamentId as string
 
   const [storeId, setStoreId] = useState<string | null>(null)

@@ -259,7 +259,7 @@ export default function LoginPage() {
           background: linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          background-clip:text; animation:shimmer 3s linear infinite;
+          background-clip:text; animation:shimmer 3s linear 3;
         }
 
         /* ── Cards ── */
@@ -643,7 +643,7 @@ export default function LoginPage() {
           <p className="section-hd" style={{ marginBottom: 8 }}>{t('login.homePreview')}</p>
           {/* 実際のホーム(app/home/page.tsx の統合カード)と同じ金の面・同じ並び。
               以前は黒いバンクロールのカードで、ログイン後の画面と違っていた。 */}
-          <div className="section-card" style={{ padding: 0, overflow:'hidden', animation:'card-float 4.5s ease-in-out infinite' }}>
+          <div className="section-card" style={{ padding: 0, overflow:'hidden', animation:'card-float 4.5s ease-in-out 3' }}>
             <div style={{ background:'linear-gradient(135deg,#F2A900 0%,#C97D00 100%)', padding: '16px 24px 24px', position:'relative', overflow:'hidden' }}>
               <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.14, pointerEvents:'none' }} />
               <div className="tech-dots" style={{ position:'absolute', inset:0, opacity:0.10, pointerEvents:'none' }} />

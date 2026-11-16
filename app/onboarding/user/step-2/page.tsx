@@ -147,7 +147,7 @@ export default function UserWelcomePage() {
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: shimmer 2.4s linear infinite;
+          animation: shimmer 2.4s linear 3;
         }
         .btn-primary {
           background: linear-gradient(135deg,#F2A900 0%,#D4910A 100%);

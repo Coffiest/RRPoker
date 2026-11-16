@@ -103,27 +103,27 @@ export default function StoreWelcomePage() {
         .sw-d9 { animation-delay: 1.65s; }
         .sw-badge-anim { animation: sw-badge-drop .72s cubic-bezier(.22,1,.36,1) .1s both; }
         .sw-name-anim  { animation: sw-name-in .55s cubic-bezier(.22,1,.36,1) .7s both; }
-        .sw-ring1 { position:absolute; inset:-14px; border-radius:50%; border:1.5px solid rgba(242,169,0,0.35); animation: sw-ring-expand 2.4s ease-out .3s infinite; }
-        .sw-ring2 { position:absolute; inset:-14px; border-radius:50%; border:1.5px solid rgba(242,169,0,0.2);  animation: sw-ring-expand 2.4s ease-out 1.0s infinite; }
+        .sw-ring1 { position:absolute; inset:-14px; border-radius:50%; border:1.5px solid rgba(242,169,0,0.35); animation: sw-ring-expand 2.4s ease-out .3s 3; }
+        .sw-ring2 { position:absolute; inset:-14px; border-radius:50%; border:1.5px solid rgba(242,169,0,0.2);  animation: sw-ring-expand 2.4s ease-out 1.0s 3; }
         .sw-btn {
           width:100%; height:58px; border-radius:18px; border:none; cursor:pointer;
           background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
           font-size:17px; font-weight:900; color:#fff;
           display:flex; align-items:center; justify-content:center; gap:8px;
-          animation: sw-btn-pulse 2.6s ease-in-out 1.8s infinite;
+          animation: sw-btn-pulse 2.6s ease-in-out 1.8s 3;
           transition:transform .13s, opacity .13s;
           font-family:inherit; letter-spacing:-.2px;
         }
         .sw-btn:active { transform:scale(0.97); opacity:.88; }
-        .sw-live-dot { animation: sw-dot-blink 1.8s ease-in-out infinite; }
+        .sw-live-dot { animation: sw-dot-blink 1.8s ease-in-out 3; }
         button { -webkit-tap-highlight-color:transparent; }
       `}</style>
 
       {/* 背景 orb */}
       <div style={{ position:'fixed', inset:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
-        <div style={{ position:'absolute', top:`calc(4% + ${orb1y}px)`, right:`calc(-5% + ${orb1x}px)`, width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.14) 0%,transparent 65%)', animation:'sw-glow-pulse 6s ease-in-out infinite' }}/>
-        <div style={{ position:'absolute', bottom:`calc(12% + ${orb2y}px)`, left:`calc(-8% + ${orb2x}px)`, width:320, height:320, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 65%)', animation:'sw-glow-pulse 8s ease-in-out 2s infinite' }}/>
-        <div style={{ position:'absolute', top:`calc(42% + ${orb3y}px)`, left:`calc(28% + ${orb3x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(212,145,10,0.07) 0%,transparent 65%)', animation:'sw-glow-pulse 10s ease-in-out 4s infinite' }}/>
+        <div style={{ position:'absolute', top:`calc(4% + ${orb1y}px)`, right:`calc(-5% + ${orb1x}px)`, width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.14) 0%,transparent 65%)', animation:'sw-glow-pulse 6s ease-in-out 3' }}/>
+        <div style={{ position:'absolute', bottom:`calc(12% + ${orb2y}px)`, left:`calc(-8% + ${orb2x}px)`, width:320, height:320, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 65%)', animation:'sw-glow-pulse 8s ease-in-out 2s 3' }}/>
+        <div style={{ position:'absolute', top:`calc(42% + ${orb3y}px)`, left:`calc(28% + ${orb3x}px)`, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(212,145,10,0.07) 0%,transparent 65%)', animation:'sw-glow-pulse 10s ease-in-out 4s 3' }}/>
       </div>
 
       <div style={{ position:'relative', zIndex:1, maxWidth:440, margin: '0 auto', padding: '0 24px 80px' }}>

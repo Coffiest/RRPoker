@@ -179,7 +179,7 @@ export default function TopPage() {
           background:linear-gradient(90deg,#D4910A 0%,#F2A900 35%,#FFE07A 50%,#F2A900 65%,#D4910A 100%);
           background-size:200% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          background-clip:text; animation:shimmer 2.6s linear infinite;
+          background-clip:text; animation:shimmer 2.6s linear 3;
         }
 
         .ios-card{
@@ -199,7 +199,7 @@ export default function TopPage() {
 
         .cta-primary{
           background:linear-gradient(135deg,#F2A900 0%,#D4910A 100%);
-          animation:pulse-glow 2.4s ease-in-out 1.4s infinite;
+          animation:pulse-glow 2.4s ease-in-out 1.4s 3;
           transition:transform .13s ease, opacity .13s ease;
           border:none; cursor:pointer;
         }
@@ -216,10 +216,10 @@ export default function TopPage() {
         .header-cta:active{ transform:scale(0.95); opacity:.85; }
 
         .pcard{ display:flex; filter:drop-shadow(0 5px 10px rgba(0,0,0,0.13)); }
-        .pcard-0{ animation:float-a 3.2s ease-in-out infinite; }
-        .pcard-1{ animation:float-b 3.8s ease-in-out .5s infinite; }
-        .pcard-2{ animation:float-c 3.5s ease-in-out .9s infinite; }
-        .pcard-3{ animation:float-d 4.0s ease-in-out 1.3s infinite; }
+        .pcard-0{ animation:float-a 3.2s ease-in-out 3; }
+        .pcard-1{ animation:float-b 3.8s ease-in-out .5s 3; }
+        .pcard-2{ animation:float-c 3.5s ease-in-out .9s 3; }
+        .pcard-3{ animation:float-d 4.0s ease-in-out 1.3s 3; }
 
         .stat-row{
           display:flex; align-items:center; justify-content:space-between;
@@ -233,7 +233,7 @@ export default function TopPage() {
           transition:background .25s, transform .25s;
         }
 
-        .arrow-bounce{ display:inline-block; animation:bounce-x 1.3s ease-in-out infinite; }
+        .arrow-bounce{ display:inline-block; animation:bounce-x 1.3s ease-in-out 3; }
 
         .menu-slide{ animation:slide-in-right .28s cubic-bezier(.22,1,.36,1); }
 
@@ -334,8 +334,8 @@ export default function TopPage() {
         <div className="tech-grid" style={{ position:'absolute', inset:0, opacity:0.55, pointerEvents:'none' }}/>
 
         {/* 背景 orb */}
-        <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out infinite', pointerEvents:'none' }}/>
-        <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s infinite', pointerEvents:'none' }}/>
+        <div style={{ position:'absolute', top:-60, right:-40, width:240, height:240, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.15) 0%,transparent 70%)', animation:'orb-drift 9s ease-in-out 3', pointerEvents:'none' }}/>
+        <div style={{ position:'absolute', bottom:-20, left:-60, width:190, height:190, borderRadius:'50%', background:'radial-gradient(circle,rgba(242,169,0,0.09) 0%,transparent 70%)', animation:'orb-drift 12s ease-in-out 3s 3', pointerEvents:'none' }}/>
 
         <div style={{ maxWidth:480, margin: '0 auto', position:'relative' }}>
 

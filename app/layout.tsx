@@ -5,6 +5,7 @@ import AuthGuard from '@/components/AuthGuard'
 import CapacitorBoot from '@/components/CapacitorBoot'
 import TechBackdrop from '@/components/TechBackdrop'
 import Toaster from '@/components/Toaster'
+import BackgroundSaver from "@/components/BackgroundSaver"
 import NumberInputGuard from '@/components/NumberInputGuard'
 import { LanguageProvider } from '@/lib/i18n'
 import "./globals.css"
@@ -105,6 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CapacitorBoot />
         <Toaster />
         <NumberInputGuard />
+        <BackgroundSaver />
         <LanguageProvider>
           <AuthGuard>
             <div className="flex flex-col min-h-[100dvh] min-h-[100svh] w-full flex-1">

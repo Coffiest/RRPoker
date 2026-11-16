@@ -1,5 +1,6 @@
 'use client'
 
+import { useTimerSounds } from '@/lib/timerSounds'
 import WhenVisible from "@/components/WhenVisible"
 import { useEffect, useState } from 'react'
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
@@ -117,6 +118,13 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
   const ordered = lastTid ? [...tournaments.filter(t => t.id === lastTid), ...tournaments.filter(t => t.id !== lastTid)] : tournaments
   // 横向き全画面(スマホだけ)。見るだけ: 操作ボタンは置かず、閉じる × だけ
   const [fullId, setFullId] = useState<string | null>(null)
+
+  // 表示しているタイマー(開いている・全画面)の音をこの画面で鳴らす(lib/timerSounds.ts。埋め込みの中では鳴らさない)
+  useTimerSounds(tournaments.filter(t => openMap[t.id] || fullId === t.id).map(t => ({
+    id: t.id, running: t.timerRunning, currentLevelIndex: t.currentLevelIndex,
+    levelStartedAtMs: t.levelStartedAtMs, levelStartedRemaining: t.levelStartedRemaining, timeRemaining: t.timeRemaining,
+    levels: t.customBlindLevels ?? [],
+  })))
 
   if (tournaments.length === 0) return null
 
