@@ -83,6 +83,7 @@ export default function UserWelcomePage() {
   // Tip rotator
   useEffect(() => {
     const id = setInterval(() => {
+      if (document.hidden) return  // 隠れている間は回さない(電池対策)
       setTipVisible(false)
       setTimeout(() => {
         setTipIndex(i => (i + 1) % TIPS.length)
@@ -95,6 +96,7 @@ export default function UserWelcomePage() {
   // Feature highlight rotator
   useEffect(() => {
     const id = setInterval(() => {
+      if (document.hidden) return
       setFeatureIndex(i => (i + 1) % FEATURES.length)
     }, 2200)
     return () => clearInterval(id)

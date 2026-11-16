@@ -41,8 +41,13 @@ export default function QRScanner({ onScan, onClose }: Props) {
         video.setAttribute('playsinline', 'true')
         await video.play()
 
+        // 解析は 0.1 秒に 1 回(以前は毎コマ = 1 秒に 60 回。読み取りの速さはほぼ同じで、電池の消費が大きく減る。2026-11-16)
+        let lastDecode = 0
         function tick() {
           if (!active || scannedRef.current) return
+          const nowMs = performance.now()
+          if (nowMs - lastDecode < 100) { rafRef.current = requestAnimationFrame(tick); return }
+          lastDecode = nowMs
           const v = videoRef.current
           const c = canvasRef.current
           if (!v || !c || v.readyState < v.HAVE_ENOUGH_DATA) {
