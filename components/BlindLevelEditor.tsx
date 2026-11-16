@@ -2,6 +2,9 @@
 
 import { buildTemplateLevels, nextTemplateBlind } from "@/lib/blindTemplate"
 import { useState } from 'react'
+import StepButton from '@/components/StepButton'
+import { hapticTap } from '@/lib/haptics'
+import { canGrow, canShrink, scaleBlinds, shiftLabel } from '@/lib/blindScale'
 import { createPortal } from 'react-dom'
 import ConfirmDialog, { type ConfirmRequest } from '@/components/ConfirmDialog'
 import { ArrowDownIcon, ArrowUpIcon, CoffeeIcon, EllipsisIcon, MessageSquareIcon, PlusIcon, Trash2Icon, LayersIcon, FlagIcon } from 'lucide-react'
@@ -80,6 +83,17 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
   const [commentIdx, setCommentIdx] = useState<number | null>(null)
   // 確認はブラウザ標準の小窓ではなく、アプリの確認画面で出す(オーナー確定・2026-11-03)
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
+  // ブラインドの単位(lib/blindScale.ts)。開いてから何桁変えたか(+ で 0 を付けた数、− で外した数)
+  const [shift, setShift] = useState(0)
+  const hasBlinds = levels.some(l => l.type === 'level' && ((l.smallBlind ?? 0) > 0 || (l.bigBlind ?? 0) > 0))
+  const shrinkOk = canShrink(levels), growOk = canGrow(levels)
+  const firstLv = levels.find(l => l.type === 'level') as BlindLevel | undefined
+  const scale = (dir: 1 | -1) => {
+    if (dir === -1 ? !shrinkOk : !growOk) return
+    hapticTap()
+    onChange(scaleBlinds(levels, dir))
+    setShift(n => n + dir)
+  }
 
   const levelNo = (idx: number) => levels.slice(0, idx + 1).filter(l => l.type === 'level').length
   const update = (fn: (ls: Level[]) => Level[]) => onChange(fn(levels))
@@ -118,6 +132,36 @@ export default function BlindLevelEditor({ levels, onChange, showAddButtons = fa
 
   return (
     <>
+      {/* ブラインドの単位を一括で変える(オーナー指定・2026-11-16)。100/200 で組んだ表を 1/2 にする、などをワンタップで。
+          押した瞬間に全レベルの SB・BB・アンティが変わり、真ん中に開いてからの倍率、左に 1 レベル目の見本を出す。
+          − は全部の数が 10 で割り切れるときだけ押せるので、逆のボタンで必ず元に戻る。時間・ブレイク・スタックは変えない */}
+      {hasBlinds && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 16px', borderRadius: 16, background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--label)' }}>ブラインドの単位</p>
+              <p className="tech-num" style={{ margin: '4px 0 0', fontSize: 11, color: 'var(--label2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                Lv1 {firstLv?.smallBlind ?? '—'} / {firstLv?.bigBlind ?? '—'}
+              </p>
+            </div>
+            <StepButton kind="minus" label="0 を 1 つ外す(10 分の 1)" disabled={!shrinkOk} onClick={() => scale(-1)} />
+            <span key={shift} className="tech-num ble-pop" aria-live="polite"
+              style={{ minWidth: 64, textAlign: 'center', fontSize: 12, fontWeight: 700, color: shift === 0 ? 'var(--label2)' : '#995C00' }}>
+              {shiftLabel(shift)}
+            </span>
+            <StepButton kind="plus" label="0 を 1 つ付ける(10 倍)" disabled={!growOk} onClick={() => scale(1)} />
+          </div>
+          {!shrinkOk && shift < 0 && (
+            <p style={{ margin: '8px 4px 0', fontSize: 11, color: 'var(--label2)' }}>これ以上は外せません(1 の位まである数があるため)</p>
+          )}
+        </div>
+      )}
+      <style>{`
+        .ble-pop { display: inline-block; animation: blePop 0.24s ease-out }
+        @keyframes blePop { 0% { transform: scale(1.18) } 100% { transform: scale(1) } }
+        @media (prefers-reduced-motion: reduce) { .ble-pop { animation: none } }
+      `}</style>
+
       {/* 列の見出し(行の入力欄と同じ並び) */}
       <div style={{ display: 'grid', gridTemplateColumns: GRID, gap: 8, padding: '0 8px 8px', fontSize: 11, fontWeight: 600, color: 'var(--label2)', textAlign: 'center' }}>
         <span>Lv</span><span>SB</span><span>BB</span><span>Ante</span><span>分</span><span />

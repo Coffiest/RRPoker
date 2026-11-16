@@ -70,6 +70,7 @@ export default function TopPage() {
 
   useEffect(() => {
     const id = setInterval(() => {
+      if (document.hidden) return  // 隠れている間は回さない(電池対策)
       setFeatureVisible(false)
       setTimeout(() => { setFeatureIndex(i => (i + 1) % FEATURES.length); setFeatureVisible(true) }, 300)
     }, 3200)
@@ -78,6 +79,7 @@ export default function TopPage() {
 
   useEffect(() => {
     const id = setInterval(() => {
+      if (document.hidden) return
       setTipVisible(false)
       setTimeout(() => { setTipIndex(i => (i + 1) % TIPS.length); setTipVisible(true) }, 350)
     }, 4000)

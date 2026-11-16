@@ -33,7 +33,8 @@ export function ensureClockCalibrated(): void {
   if (!calibrating) calibrating = calibrate().finally(() => { calibrating = null })
   if (!intervalStarted && typeof window !== "undefined") {
     intervalStarted = true
-    window.setInterval(() => { void calibrate() }, RECALIBRATE_INTERVAL_MS)
+    // 画面が隠れている間は時計合わせの通信をしない(電池対策・2026-11-16)
+    window.setInterval(() => { if (!document.hidden) void calibrate() }, RECALIBRATE_INTERVAL_MS)
   }
 }
 
