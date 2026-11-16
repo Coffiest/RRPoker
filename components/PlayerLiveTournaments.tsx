@@ -1,5 +1,6 @@
 'use client'
 
+import WhenVisible from "@/components/WhenVisible"
 import { useEffect, useState } from 'react'
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -164,12 +165,14 @@ export default function PlayerLiveTournaments({ storeId }: Props) {
             {open && (<>
             {/* 店舗のタイマー画面(1440×900)を、幅に合わせてそのまま縮める */}
             <div style={{ position: 'relative', width: '100%', aspectRatio: `${DESIGN_W} / ${DESIGN_H}`, overflow: 'hidden', borderRadius: 12, border: '1px solid var(--sep)', background: '#fff' }}>
-              <iframe
+              <WhenVisible>
+                <iframe
                 src={`/home/store/timer/${t.id}?store=${encodeURIComponent(storeId)}&view=1`}
                 title={`timer-${t.name}`}
                 tabIndex={-1}
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
               />
+              </WhenVisible>
             </div>
             {/* BLINDS と PRIZES を横に並べる(どちらも見るだけ。2026-11-09) */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>

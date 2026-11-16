@@ -1,7 +1,9 @@
 'use client'
 
 /**
- * 画面の下地。方眼(ブループリント)と、ゆっくり息づく金色のにじみ。
+ * 画面の下地。方眼(ブループリント)と、金色のにじみ。
+ * にじみは以前ゆっくり動かしていたが、全画面でずっと描き直し、上に重なるぼかし(ヘッダー・下のナビ)も
+ * 毎コマ計算し直すため電池を減らしていた。位置を止めた(見た目の位置と色は同じ。電池対策・2026-11-16)。
  *
  * ログイン画面と同じ下地を、ホーム・マイページ・入出金でも使う。
  * 各画面で書くと必ずズレていくので、1か所にまとめて同じものを敷く。
@@ -35,7 +37,6 @@ export default function TechBackdrop({ base = '#F2F2F7' }: { base?: string }) {
         style={{
           position: 'absolute', top: '6%', right: '-8%', width: 280, height: 280, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(242,169,0,0.11) 0%, transparent 70%)',
-          animation: 'techOrbDrift 14s ease-in-out infinite',
         }}
       />
       <div
@@ -43,8 +44,6 @@ export default function TechBackdrop({ base = '#F2F2F7' }: { base?: string }) {
         style={{
           position: 'absolute', bottom: '12%', left: '-10%', width: 220, height: 220, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(242,169,0,0.07) 0%, transparent 70%)',
-          animation: 'techOrbDrift 18s ease-in-out infinite',
-          animationDelay: '-6s',
         }}
       />
       <div
@@ -52,8 +51,6 @@ export default function TechBackdrop({ base = '#F2F2F7' }: { base?: string }) {
         style={{
           position: 'absolute', top: '44%', left: '38%', width: 160, height: 160, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(242,169,0,0.06) 0%, transparent 70%)',
-          animation: 'techOrbDrift 22s ease-in-out infinite',
-          animationDelay: '-11s',
         }}
       />
     </div>

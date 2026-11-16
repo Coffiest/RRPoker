@@ -1,5 +1,6 @@
 "use client"
 
+import WhenVisible from "@/components/WhenVisible"
 import { hasWaiting, keepWaiting, withoutWaiting } from "@/lib/waitingLevel"
 import { showToast } from "@/lib/toast"
 import TimerBgPicker from "@/components/TimerBgPicker"
@@ -1065,12 +1066,18 @@ export default function StorePage() {
     if (!storeId) return
     let pending: any[] = []
     const q = query(collection(db, "stores", storeId, "tournaments"), where("autoStart", "==", true))
-    const unsub = onSnapshot(q, snap => { pending = snap.docs.map(d => ({ id: d.id, ...d.data() })) })
-    const tick = setInterval(() => {
-      const now = getServerNow()
-      for (const t of pending) if (isAutoStartDue(t, now)) void autoStartTournament(storeId, t.id)
-    }, 1000)
-    return () => { unsub(); clearInterval(tick) }
+    // 見張るのは「開始時刻にタイマースタート」の大会があるときだけ(無いときに毎秒起きない。電池対策・2026-11-16)
+    let tick: ReturnType<typeof setInterval> | null = null
+    const unsub = onSnapshot(q, snap => {
+      pending = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      if (pending.length > 0 && !tick) {
+        tick = setInterval(() => {
+          const now = getServerNow()
+          for (const t of pending) if (isAutoStartDue(t, now)) void autoStartTournament(storeId, t.id)
+        }, 1000)
+      } else if (pending.length === 0 && tick) { clearInterval(tick); tick = null }
+    })
+    return () => { unsub(); if (tick) clearInterval(tick) }
   }, [storeId])
 
   // タイマーの合体(店舗の文書 timerGroups に保存。どの端末でも同じ並び)
@@ -1146,6 +1153,8 @@ export default function StorePage() {
       }
     }
     run()
+    // RC 後の終了予定をまだ書いていない、動いている大会があるときだけ見張る(電池対策・2026-11-16)
+    if (!activeTournaments.some(t => !t.rcEstimate && t.timerRunning)) return
     const id = setInterval(run, 5000)
     return () => clearInterval(id)
   }, [storeId, activeTournaments, presetMap])
@@ -1228,8 +1237,9 @@ export default function StorePage() {
           border: '1px solid var(--sep)',
           background: '#fff',
         }}>
-          <iframe
-            src={`/home/store/timer/${t.id}`}
+          <WhenVisible>
+            <iframe
+            src={`/home/store/timer/${t.id}?embed=1`}
             style={{
               position: 'absolute',
               top: 0,
@@ -1242,6 +1252,7 @@ export default function StorePage() {
               pointerEvents: 'none',
             }}
           />
+          </WhenVisible>
           {/* タイマーの背景(lib/timerTheme.ts)のペイントボタンは、プレビューの右上に重ねる(2026-11-09) */}
           {storeId && (
             <div style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}>
@@ -1344,8 +1355,10 @@ export default function StorePage() {
           </div>
           {/* 分割表示そのものを縮小して見せる */}
           <div style={{ position: 'relative', width: '100%', height: 224, overflow: 'hidden', borderRadius: 12, marginBottom: 16, border: '1px solid var(--sep)', background: '#000' }}>
-            <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
+            <WhenVisible>
+              <iframe src={`/home/store/timer/split?ids=${ts.map(t => t.id).join(',')}&preview=1`} title="split-preview"
               style={{ position: 'absolute', top: 0, left: 0, width: '1200px', height: '800px', transform: 'scale(0.28)', transformOrigin: 'top left', border: 'none', pointerEvents: 'none' }} />
+            </WhenVisible>
           </div>
           {/* 合体したタイマーの拡大は、ここの 1 つだけ(分割のまま全画面で見る) */}
           {/* TIMER · SPLIT は PC 版だけ、拡大ボタンはスマホ版だけ(オーナー指定)。 */}
@@ -1556,7 +1569,7 @@ export default function StorePage() {
         .adj-btn-sub  { background:rgba(255,59,48,0.1); color:#FF3B30; border:1.5px solid rgba(255,59,48,0.2); }
 
         .divider { height:1px; background:var(--sep); }
-        .pulse { animation:pulse-dot 1.8s ease-in-out infinite; }
+        .pulse { animation:pulse-dot 1.8s ease-in-out infinite; will-change: transform, opacity; }
         button { -webkit-tap-highlight-color:transparent; }
       `}</style>
 

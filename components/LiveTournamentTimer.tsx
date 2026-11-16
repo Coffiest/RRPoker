@@ -154,11 +154,23 @@ export default function LiveTournamentTimer({ tournament }: { tournament: LiveTo
   const [, setTick] = useState(0)
   const runningRef = useRef(tournament.timerRunning)
   runningRef.current = tournament.timerRunning
+  // 残り秒数が 1 つ減る瞬間に合わせて 1 秒に 1 回だけ描き直す(以前は 250ms ごと)。隠れている間は止める(電池対策・2026-11-16)
+  const startedAt = tournament.levelStartedAtMs
   useEffect(() => {
     if (!tournament.timerRunning) return
-    const id = setInterval(() => setTick(n => n + 1), 250)
-    return () => clearInterval(id)
-  }, [tournament.timerRunning])
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const step = () => {
+      timer = null
+      if (document.hidden) return
+      setTick(n => n + 1)
+      const now = getServerNow()
+      timer = setTimeout(step, startedAt == null ? 1000 : 1000 - (((now - startedAt) % 1000) + 1000) % 1000 + 15)
+    }
+    const onVis = () => { if (!document.hidden && timer === null) step() }
+    document.addEventListener('visibilitychange', onVis)
+    step()
+    return () => { if (timer) clearTimeout(timer); document.removeEventListener('visibilitychange', onVis) }
+  }, [tournament.timerRunning, startedAt])
 
   const levels =
     tournament.customBlindLevels && tournament.customBlindLevels.length > 0
