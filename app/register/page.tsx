@@ -197,7 +197,7 @@ export default function RegisterPage() {
           background:linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          background-clip:text; animation:shimmer 3s linear infinite;
+          background-clip:text; animation:shimmer 3s linear 3;
         }
 
         .ios-card{

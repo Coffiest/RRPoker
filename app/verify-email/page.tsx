@@ -125,13 +125,13 @@ export default function VerifyEmailPage() {
           background:linear-gradient(90deg,#D4910A 0%,#F2A900 30%,#FFE07A 48%,#F2A900 66%,#D4910A 100%);
           background-size:300% auto;
           -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-          background-clip:text; animation:shimmer 3s linear infinite;
+          background-clip:text; animation:shimmer 3s linear 3;
         }
         .ios-card {
           background:#fff; border-radius:20px;
           box-shadow:0 2px 12px rgba(0,0,0,0.065), 0 1px 2px rgba(0,0,0,0.04);
         }
-        .envelope-anim { animation:envelope-float 3.6s ease-in-out infinite; }
+        .envelope-anim { animation:envelope-float 3.6s ease-in-out 3; }
         .pop { animation:pop-in .55s cubic-bezier(.22,1,.36,1) .08s both; }
         .btn-gold {
           width:100%; height:54px; border-radius:16px; border:none; cursor:pointer;
@@ -140,7 +140,7 @@ export default function VerifyEmailPage() {
           box-shadow:0 4px 18px rgba(242,169,0,0.32);
           display:flex; align-items:center; justify-content:center; gap:8px;
           transition:transform .13s ease, opacity .13s ease;
-          animation:pulse-ring 2.6s ease-in-out 1s infinite;
+          animation:pulse-ring 2.6s ease-in-out 1s 3;
           position:relative; overflow:hidden;
         }
         .btn-gold::before {
@@ -172,9 +172,9 @@ export default function VerifyEmailPage() {
         .dot-loader span {
           display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--label2); margin: 0 4px;
         }
-        .dot-loader span:nth-child(1){ animation:dot-pulse 1.2s ease-in-out 0s infinite; }
-        .dot-loader span:nth-child(2){ animation:dot-pulse 1.2s ease-in-out .2s infinite; }
-        .dot-loader span:nth-child(3){ animation:dot-pulse 1.2s ease-in-out .4s infinite; }
+        .dot-loader span:nth-child(1){ animation:dot-pulse 1.2s ease-in-out 0s 3; }
+        .dot-loader span:nth-child(2){ animation:dot-pulse 1.2s ease-in-out .2s 3; }
+        .dot-loader span:nth-child(3){ animation:dot-pulse 1.2s ease-in-out .4s 3; }
         button { -webkit-tap-highlight-color:transparent; }
       `}</style>
 

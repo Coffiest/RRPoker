@@ -34,7 +34,7 @@ export default function PlayerQRModal({ uid, name, iconUrl, onClose }: Props) {
         .qr-scan-line {
           position: absolute; left: 4px; right: 4px; height: 2px;
           background: linear-gradient(90deg, transparent, #F2A900, transparent);
-          animation: qr-scan-line 2.2s ease-in-out infinite;
+          animation: qr-scan-line 2.2s ease-in-out 3;
           border-radius: 2px;
         }
       `}</style>

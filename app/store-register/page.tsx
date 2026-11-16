@@ -215,9 +215,9 @@ export default function StoreRegisterPage() {
 
       {/* 背景 orb */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: `calc(5% + ${orb1y}px)`, right: `calc(0% + ${orb1x}px)`, width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(242,169,0,0.14) 0%, transparent 65%)', animation: 'sr-glow-pulse 6s ease-in-out infinite' }} />
-        <div style={{ position: 'absolute', bottom: `calc(10% + ${orb2y}px)`, left: `calc(-5% + ${orb2x}px)`, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(242,169,0,0.09) 0%, transparent 65%)', animation: 'sr-glow-pulse 8s ease-in-out 2s infinite' }} />
-        <div style={{ position: 'absolute', top: `calc(40% + ${orb3y}px)`, left: `calc(35% + ${orb3x}px)`, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,145,10,0.07) 0%, transparent 65%)', animation: 'sr-glow-pulse 10s ease-in-out 4s infinite' }} />
+        <div style={{ position: 'absolute', top: `calc(5% + ${orb1y}px)`, right: `calc(0% + ${orb1x}px)`, width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle, rgba(242,169,0,0.14) 0%, transparent 65%)', animation: 'sr-glow-pulse 6s ease-in-out 3' }} />
+        <div style={{ position: 'absolute', bottom: `calc(10% + ${orb2y}px)`, left: `calc(-5% + ${orb2x}px)`, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(242,169,0,0.09) 0%, transparent 65%)', animation: 'sr-glow-pulse 8s ease-in-out 2s 3' }} />
+        <div style={{ position: 'absolute', top: `calc(40% + ${orb3y}px)`, left: `calc(35% + ${orb3x}px)`, width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,145,10,0.07) 0%, transparent 65%)', animation: 'sr-glow-pulse 10s ease-in-out 4s 3' }} />
         {/* 上部グロー帯 */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, rgba(242,169,0,0.3), transparent)' }} />
       </div>

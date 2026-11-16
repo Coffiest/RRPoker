@@ -21,6 +21,7 @@ import PlayerAvatar from "@/components/PlayerAvatar"
 import Loader from "@/components/Loader"
 import QrPlayerSheet from "@/components/QrPlayerSheet"
 import { levelsOf, maybeWriteRcEstimate } from "@/lib/rcEstimateWriter"
+import { useTimerSounds } from "@/lib/timerSounds"
 import { autoStartTournament, isAutoStartDue } from "@/lib/autoStart"
 import MergeBoard, { MAX_MERGE, MergeGrip, type MergeItem } from "@/components/MergeBoard"
 import { createPortal } from "react-dom"
@@ -474,6 +475,8 @@ export default function StorePage() {
   const [storePlayers, setStorePlayers] = useState<any[]>([])
   const playerMetaRef = useRef<Record<string, any>>({})
   const balanceSubsRef = useRef<Record<string, () => void>>({})
+  /** 在店中でない人の残高を読み直す(見張っていないので、店舗が増減したあと・退店済のタブを開いたときに読む) */
+  const refreshBalRef = useRef<(ids: string[]) => void>(() => {})
   const [removingAdjustmentPlayerIds, setRemovingAdjustmentPlayerIds] = useState<string[]>([])
   const [confirmReq, setConfirmReq] = useState<ConfirmRequest | null>(null)
   const [allOutBusy, setAllOutBusy] = useState(false)
@@ -531,10 +534,32 @@ export default function StorePage() {
     if (!storeId || !store) return
     const balKey = (store.balanceGroupId ?? storeId)!
 
+    // 並べ直しは 1 回にまとめる(以前は残高 1 件ごとに全員を並べ直して描き直していた。電池対策・2026-11-16)
+    let rebuildTimer: ReturnType<typeof setTimeout> | null = null
     function rebuild() {
-      const results = Object.values(playerMetaRef.current).map(p => ({ ...p }))
-      results.sort((a: any, b: any) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
-      setStorePlayers(results)
+      if (rebuildTimer) return
+      rebuildTimer = setTimeout(() => {
+        rebuildTimer = null
+        const results = Object.values(playerMetaRef.current).map(p => ({ ...p }))
+        results.sort((a: any, b: any) => (b.lastVisitedAt?.getTime() ?? 0) - (a.lastVisitedAt?.getTime() ?? 0))
+        setStorePlayers(results)
+      }, 80)
+    }
+    const applyBal = (id: string, bal: Record<string, any>) => {
+      playerMetaRef.current[id] = {
+        ...playerMetaRef.current[id],
+        balance: bal.balance ?? 0,
+        netGain: bal.netGain ?? 0,
+        lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
+      }
+      rebuild()
+    }
+    const loadedOnce = new Set<string>()
+    refreshBalRef.current = (ids: string[]) => {
+      for (const id of ids) {
+        if (balanceSubsRef.current[id]) continue  // 見張っている人は最新
+        getDoc(doc(db, "users", id, "storeBalances", balKey)).then(b => applyBal(id, b.exists() ? b.data() : {})).catch(() => {})
+      }
     }
 
     const q = query(collection(db, "users"), where("joinedStores", "array-contains", storeId))
@@ -563,19 +588,18 @@ export default function StorePage() {
           isInStore: data.currentStoreId === storeId,
         }
 
-        // Subscribe to balance doc if not already subscribed
-        if (!balanceSubsRef.current[d.id]) {
-          const balRef = doc(db, "users", d.id, "storeBalances", balKey)
-          balanceSubsRef.current[d.id] = onSnapshot(balRef, balSnap => {
-            const bal = balSnap.exists() ? balSnap.data() : {}
-            playerMetaRef.current[d.id] = {
-              ...playerMetaRef.current[d.id],
-              balance: bal.balance ?? 0,
-              netGain: bal.netGain ?? 0,
-              lastVisitedAt: bal.lastVisitedAt?.toDate?.() ?? null,
-            }
-            rebuild()
-          }, () => {})
+        // 残高の見張りは在店中の人だけ。来たことのある人全員(数百人になる)を見張り続けると、
+        // そのぶん通信と描き直しが続く。在店中でない人は 1 回だけ読む(電池対策・2026-11-16)
+        const balRef = doc(db, "users", d.id, "storeBalances", balKey)
+        const inStore = data.currentStoreId === storeId
+        if (inStore && !balanceSubsRef.current[d.id]) {
+          balanceSubsRef.current[d.id] = onSnapshot(balRef, balSnap => applyBal(d.id, balSnap.exists() ? balSnap.data() : {}), () => {})
+        } else if (!inStore) {
+          if (balanceSubsRef.current[d.id]) { balanceSubsRef.current[d.id](); delete balanceSubsRef.current[d.id] }
+          if (!loadedOnce.has(d.id)) {
+            loadedOnce.add(d.id)
+            getDoc(balRef).then(b => applyBal(d.id, b.exists() ? b.data() : {})).catch(() => {})
+          }
         }
       })
 
@@ -584,6 +608,7 @@ export default function StorePage() {
 
     return () => {
       userUnsub()
+      if (rebuildTimer) clearTimeout(rebuildTimer)
       Object.values(balanceSubsRef.current).forEach(u => u())
       balanceSubsRef.current = {}
       playerMetaRef.current = {}
@@ -753,6 +778,7 @@ export default function StorePage() {
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
+    if (balRef.parent.parent) refreshBalRef.current([balRef.parent.parent.id])
     await updateDoc(doc(db, "depositRequests", req.id), { status: "approved" })
     await setDoc(doc(collection(db, "transactions")), {
       storeId: balGroupId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
@@ -773,6 +799,7 @@ export default function StorePage() {
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
+    if (balRef.parent.parent) refreshBalRef.current([balRef.parent.parent.id])
     await updateDoc(doc(db, "withdrawRequests", req.id), { status: "approved" })
     await setDoc(doc(collection(db, "transactions")), {
       storeId: balGroupId, playerId: req.playerId, playerName: playerMap[req.playerId]?.name ?? null,
@@ -810,6 +837,8 @@ export default function StorePage() {
       const updates: Record<string, any> = { balance: increment(direction === "add" ? amount : -amount) }
       if (isNetGain) updates.netGain = increment(direction === "add" ? amount : -amount)
       await updateDoc(balRef, updates)
+      if (balRef.parent.parent) refreshBalRef.current([balRef.parent.parent.id])
+    if (balRef.parent.parent) refreshBalRef.current([balRef.parent.parent.id])
       setSelectedPlayerBalance(resultingBalance)
       if (isNetGain) setSelectedPlayerNetGain(direction === "add" ? currentNG + amount : currentNG - amount)
     }
@@ -818,6 +847,7 @@ export default function StorePage() {
       type: isNetGain ? "manual_adjustment_net_gain" : "manual_adjustment",
       comment: manualComment.trim() || null, createdAt: serverTimestamp(),
     })
+    if (adjustModalPlayer?.id) refreshBalRef.current([adjustModalPlayer.id])
     setAdjustValue(""); setAdjustModalPlayer(null); setManualComment("")
   }
 
@@ -853,7 +883,9 @@ export default function StorePage() {
     const updates: any = { balance: increment(bDiff) }
     if (nDiff !== 0) updates.netGain = increment(nDiff)
     await updateDoc(balRef, updates)
+    if (balRef.parent.parent) refreshBalRef.current([balRef.parent.parent.id])
     await setDoc(doc(collection(db, "transactions")), { storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null, amount, direction, type, createdAt: serverTimestamp() })
+    if (adjustModalPlayer?.id) refreshBalRef.current([adjustModalPlayer.id])
     setAdjustModalPlayer(null); setAdjustValue(""); setManualComment("")
   }
 
@@ -870,6 +902,7 @@ export default function StorePage() {
       storeId: balGroupId, playerId: pid, playerName: adjustModalPlayer.name ?? null,
       amount, direction: "add", type: "tournament_payout", createdAt: serverTimestamp(),
     })
+    refreshBalRef.current([pid])
     setAdjustModalPlayer(null)
     setAdjustValue("")
     setManualComment("")
@@ -1172,6 +1205,23 @@ export default function StorePage() {
     setCardClosed(m)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTournaments.map(t => t.id).join(',')])
+  // 表示しているタイマー(たたんでいないカード・全画面・分割の全画面)の音をこの画面で鳴らす(lib/timerSounds.ts)。
+  // 埋め込みのタイマー(?embed=1 / ?mute=1)は鳴らさないので、二重には鳴らない
+  useTimerSounds(activeTournaments
+    .filter(t => !cardClosed[t.id] || expandedTimerId === t.id || (expandedSplitIds ?? []).includes(t.id))
+    .map(t => ({
+      id: t.id, running: !!t.timerRunning, currentLevelIndex: t.currentLevelIndex ?? 0,
+      levelStartedAtMs: t.levelStartedAtMs ?? null, levelStartedRemaining: t.levelStartedRemaining ?? null, timeRemaining: t.timeRemaining ?? 0,
+      levels: levelsOf(t, presetMap[t.blindPresetId]?.levels) as any,
+    })))
+
+  // 退店済のタブを開いたら、その人たちの残高を読み直す(見張っていないため)
+  useEffect(() => {
+    if (activeTab !== "out") return
+    refreshBalRef.current(storePlayers.filter(p => !p.isInStore).map(p => p.id))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
   const toggleCard = (id: string) => setCardClosed(m => {
     const closed = !m[id]
     try { localStorage.setItem(`rrpoker.storeTimerOpen.${id}`, closed ? '0' : '1') } catch {}
@@ -1847,7 +1897,7 @@ export default function StorePage() {
           return (
             <RotatedFullscreen>
                 <iframe
-                  src={`/home/store/timer/${expandedTimerId}`}
+                  src={`/home/store/timer/${expandedTimerId}?mute=1`}
                   style={{ width: '100%', height: '100%', border: 'none', display: 'block', pointerEvents: 'none' }}
                   allow="autoplay"
                 />
@@ -2050,7 +2100,7 @@ export default function StorePage() {
           const tab = adjustTab[t.id] ?? 'time'
           const adjLvs = (adjustBlindLevels[t.id] ?? []) as Level[]
           const segBtn = (tb: 'time' | 'blind', label: string) => (
-            <button key={tb} type="button" onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))} aria-pressed={tab === tb}>{label}</button>
+            <button key={tb} type="button" role="tab" onClick={() => setAdjustTab(p => ({ ...p, [t.id]: tb }))} aria-pressed={tab === tb} aria-selected={tab === tb} style={{ minHeight: 44, fontSize: 14 }}>{label}</button>
           )
           return (
             <AppleSheet key={`adj-${t.id}`} open={!!adjustModalOpen[t.id]} onClose={() => closeAdjustModal(t.id)} maxWidth={640} maxHeightVh={94} zIndex={300}
@@ -2074,7 +2124,8 @@ export default function StorePage() {
                 </button>
               }
             >
-              <div style={{ display: 'flex', gap: 4, background: '#F2F2F7', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+              {/* タブ(.rr-seg)。以前は枠だけ灰色で、中のボタンに見た目が無くただの文字に見えていた(2026-11-16) */}
+              <div className="rr-seg" role="tablist" style={{ marginBottom: 16 }}>
                 {segBtn('time', 'タイム調整')}{segBtn('blind', 'ブラインド設定')}
               </div>
               {tab === 'time' ? (

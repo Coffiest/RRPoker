@@ -241,8 +241,8 @@ export default function StoreOnboardingPage() {
         .so-d3 { animation-delay: .22s; }
         .so-d4 { animation-delay: .30s; }
         .so-d5 { animation-delay: .38s; }
-        .so-badge { animation: so-badge-pulse 2.4s ease-in-out 0.8s infinite; }
-        .so-icon-ring { animation: so-icon-ring 3s ease-in-out infinite; }
+        .so-badge { animation: so-badge-pulse 2.4s ease-in-out 0.8s 3; }
+        .so-icon-ring { animation: so-icon-ring 3s ease-in-out 3; }
         .so-field {
           position: relative; display: flex; align-items: center;
           background: #FAFAFA; border: 1.5px solid var(--sep);
@@ -305,8 +305,8 @@ export default function StoreOnboardingPage() {
 
         {/* Hero */}
         <div className="so-appear so-d1" style={{ textAlign: 'center', padding: '32px 0 24px', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out infinite' }} />
-          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s infinite' }} />
+          <div style={{ position: 'absolute', top: 10, left: '50%', transform: `translate(calc(-50% + ${orb1x}px), ${orb1y}px)`, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.13) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 6s ease-in-out 3' }} />
+          <div style={{ position: 'absolute', top: 40, left: '50%', transform: `translate(calc(-50% + ${orb2x}px), ${orb2y}px)`, width: 150, height: 150, borderRadius: '50%', background: 'radial-gradient(circle,rgba(242,169,0,0.08) 0%,transparent 70%)', pointerEvents: 'none', animation: 'so-orb 8s ease-in-out 2s 3' }} />
 
           <div className="so-badge" style={{ width: 68, height: 68, borderRadius: 22, background: 'linear-gradient(135deg,#F2A900 0%,#D4910A 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', position: 'relative', zIndex: 1 }}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
