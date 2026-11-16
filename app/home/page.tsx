@@ -1632,7 +1632,8 @@ const medalClass = (rank: number) => {
         .section-label {
           font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--label3);
         }
-        .pulse-dot { animation:pulseGlow 2s ease-in-out infinite; }
+        /* 入店中の緑の点。以前は影(box-shadow)をずっと動かして毎コマ描き直していたので止めた(電池対策・2026-11-16) */
+        .pulse-dot { }
         .shimmer-num {
           background:linear-gradient(90deg,#D4910A 0%,#F2A900 40%,#ffe577 55%,#F2A900 70%,#D4910A 100%);
           background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;

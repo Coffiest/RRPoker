@@ -46,17 +46,30 @@ function loadAudioFiles() {
   })
 }
 
+// 音を鳴らしていない間は音の装置を眠らせる(電池対策・2026-11-16)。
+// AudioContext は動いている(running)間ずっと端末の音声回路を起こしたままにする。鳴らし終えて 4 秒で suspend する
+let audioIdleTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleAudioSleep() {
+  if (audioIdleTimer) clearTimeout(audioIdleTimer)
+  audioIdleTimer = setTimeout(() => { if (audioCtx && audioCtx.state === "running") void audioCtx.suspend().catch(() => {}) }, 4000)
+}
+
+// 埋め込み表示(見るだけ・縮小のプレビュー)では音を鳴らさず、音の装置も作らない
+let soundOff = false
+
 async function playSound(name: string) {
+  if (soundOff) return
   const ctx = getAudio()
   if (!ctx) return
   try {
     if (ctx.state === "suspended") await ctx.resume()
     const buffer = audioBuffers[name]
-    if (!buffer) return
+    if (!buffer) { scheduleAudioSleep(); return }
     const src = ctx.createBufferSource()
     src.buffer = buffer
     src.connect(ctx.destination)
     src.start(0)
+    scheduleAudioSleep()
   } catch { }
 }
 
@@ -72,7 +85,7 @@ export default function TimerClient() {
   const [audioUnlocked, setAudioUnlocked] = useState(false)
 
   function unlockAudio() {
-    if (audioUnlocked) return
+    if (audioUnlocked || soundOff) return
     const ctx = getAudio()
     if (!ctx) return
     ctx.resume().then(() => {
@@ -80,10 +93,9 @@ export default function TimerClient() {
       const src = ctx.createBufferSource()
       src.buffer = buf; src.connect(ctx.destination); src.start(0)
       setAudioUnlocked(true)
+      scheduleAudioSleep()
     })
   }
-
-  useEffect(() => { loadAudioFiles() }, [])
   useEffect(() => { ensureClockCalibrated() }, [])
 
   const params = useParams()
@@ -91,6 +103,10 @@ export default function TimerClient() {
   const searchParams = useSearchParams()
   const viewStoreId = searchParams.get("store")
   const viewOnly = searchParams.get("view") === "1"
+  // 店舗ホームのカードなどに縮めて埋め込んだ表示(?embed=1)。音は鳴らさない(電池対策・2026-11-16)
+  const embedded = viewOnly || searchParams.get("embed") === "1"
+  // 埋め込みでは音の装置を作らない(見るだけの表示で音声回路を起こさない)
+  useEffect(() => { soundOff = embedded; if (!embedded) loadAudioFiles() }, [embedded])
   const tournamentId = params.tournamentId as string
 
   const [storeId, setStoreId] = useState<string | null>(null)
@@ -367,13 +383,21 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   useEffect(() => { levelsToUseRef.current = levelsToUse }, [levelsToUse])
 
   // ── Wall-clock tick interval: display updates only (level advance now server-driven) ─
+  // 表示は 1 秒ごとにしか変わらないので、秒の切り替わり(サーバー時刻)に合わせて 1 秒に 1 回だけ描き直す。
+  // 以前は 250ms ごと(1 秒に 4 回)描き直していた。画面が隠れている間は止め、戻ったらすぐ描く(電池対策・2026-11-16)
   useEffect(() => {
     if (!isRunning || !storeId) return
 
-    const id = setInterval(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const step = () => {
+      timer = null
+      if (typeof document !== "undefined" && document.hidden) return
       setTickNow(Date.now())
       const lsAt = levelStartedAtMsRef.current
-      if (lsAt === null) return
+      const now0 = getServerNow()
+      // 次に描くのは、残り秒数が 1 つ減る瞬間(レベルの始まりからの経過が整数秒になる所)
+      timer = setTimeout(step, lsAt === null ? 1000 : 1000 - (((now0 - lsAt) % 1000) + 1000) % 1000 + 15)
+      if (lsAt === null || embedded) return
 
       // Same catch-up computation as the render-time display, so the warning sounds
       // (10/3/2/1 sec) fire for the correct level even exactly at a level boundary.
@@ -390,10 +414,12 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
         if (ds === 3 || ds === 2 || ds === 1) void playSound("countdown")
         lastSoundSecRef.current = ds
       }
-    }, 250)
-
-    return () => clearInterval(id)
-  }, [isRunning, storeId, tournamentId])
+    }
+    const onVis = () => { if (!document.hidden && timer === null) step() }
+    document.addEventListener("visibilitychange", onVis)
+    step()
+    return () => { if (timer) clearTimeout(timer); document.removeEventListener("visibilitychange", onVis) }
+  }, [isRunning, storeId, tournamentId, embedded])
 
   // ── Recover from background/sleep: re-render immediately ─
   // When returning from background, force a display update so the clock
@@ -528,13 +554,15 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden", background: bgImage ? "#1C1C1E" : theme.bg }} onClick={unlockAudio} onTouchStart={unlockAudio}>
       <div style={{ width: DESIGN_W, height: DESIGN_H, marginLeft: scaleOffset.x, marginTop: scaleOffset.y, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-      <main className={`overflow-hidden relative${theme.dark ? " tt-dark" : ""}${theme.id === "image" ? " tt-image" : ""}`} style={{ ...themeStyle, width: DESIGN_W, height: DESIGN_H }}>
+      <main className={`overflow-hidden relative${theme.dark ? " tt-dark" : ""}${theme.id === "image" ? " tt-image" : ""}${embedded ? " tt-embedded" : ""}`} style={{ ...themeStyle, width: DESIGN_W, height: DESIGN_H }}>
         {/* 方眼の下地。投影時に計器盤らしい奥行きを与える */}
         <div className="tech-grid" aria-hidden style={{ position: "absolute", inset: 0, opacity: 0.5, pointerEvents: "none", backgroundSize: "48px 48px" }} />
         <style>{`
           @keyframes colonBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
           @keyframes pauseFadeIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
           .colon-blink { animation: colonBlink 1s step-start infinite; }
+          /* 縮小の埋め込み(店舗ホームのカード・プレイヤーのタイマー)では点滅させない(電池対策・2026-11-16) */
+          .tt-embedded .colon-blink { animation: none; }
           .pause-badge { animation: pauseFadeIn 0.18s ease-out; }
           .timer-num { font-variant-numeric:tabular-nums slashed-zero; font-feature-settings:"zero" 1, "tnum" 1; }
           .prize-input::-webkit-inner-spin-button,
@@ -652,9 +680,11 @@ const [isPresetModalOpen, setIsPresetModalOpen] = useState(false)
               {/* Progress bar */}
               {isPresetSelected && (
                 <div className="w-full rounded-full overflow-hidden" style={{ height: "3px", background: "#F0F0F0", marginTop: "4px" }}>
+                  {/* 幅(width)を毎秒アニメさせると、1 秒間ずっと毎コマ配置の計算(レイアウト)が走る。
+                      横に縮める(transform: scaleX)だけにして、合成だけで動かす(電池対策・2026-11-16) */}
                   <div
-                    className="h-full rounded-full transition-all duration-1000"
-                    style={{ width: `${progress}%`, background: "linear-gradient(90deg,#A06500,#C8820A)" }}
+                    className="h-full w-full"
+                    style={{ transform: `scaleX(${Math.max(0, Math.min(100, progress)) / 100})`, transformOrigin: "left center", transition: "transform 1s linear", willChange: "transform", background: "linear-gradient(90deg,#A06500,#C8820A)" }}
                   />
                 </div>
               )}

@@ -192,7 +192,8 @@ body {
   margin-left: 0.15em;
   vertical-align: -0.16em;
   background: var(--tech-gold);
-  animation: techCaretBlink 1.05s steps(1) infinite;
+  /* 点滅は最初の 10 回だけ。その後は点いたまま(ずっと点滅させると画面が毎秒描き直され電池を減らす。電池対策・2026-11-16) */
+  animation: techCaretBlink 1.05s steps(1) 10;
 }
 
 /* カード四隅のトンボ（クロップマーク） */
@@ -225,12 +226,27 @@ body {
 /* 稼働状態インジケータ。脈打つドット */
 .tech-status-dot {
   display: inline-block;
+  position: relative;
   width: 6px;
   height: 6px;
   border-radius: 9999px;
   background: var(--tech-gold);
-  box-shadow: 0 0 0 0 rgba(242, 169, 0, 0.55);
-  animation: techPulse 1.9s ease-out infinite;
+}
+/* 脈打つ輪は ::after の拡大と透明度だけで動かす(合成だけで済み、毎コマ描き直さない。以前は box-shadow を動かしていた。電池対策・2026-11-16) */
+.tech-status-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  opacity: 0.55;
+  animation: techPulseRing 1.9s ease-out 5;
+  will-change: transform, opacity;
+}
+@keyframes techPulseRing {
+  0%   { transform: scale(1); opacity: 0.55 }
+  70%  { transform: scale(3.3); opacity: 0 }
+  100% { transform: scale(3.3); opacity: 0 }
 }
 
 /* 走査線のスイープ。読み込み中の面に重ねる */
@@ -533,7 +549,8 @@ body {
     transparent 100%
   );
   transform: translateY(-100%);
-  animation: techScan 3.4s linear infinite;
+  /* 走査線は 3 回流したら止める(電池対策・2026-11-16) */
+  animation: techScan 3.4s linear 3 forwards;
 }
 
 /* 押せる場所。等幅・字間広め、押すと沈む */
@@ -1115,7 +1132,8 @@ button.a-row:active { background: rgba(60, 60, 67, 0.07) }
    進行中のタイマーだけ、面がごくゆっくり明滅する。止まっているものと、
    動いているものを、数字を読まずに見分けられるようにする。
    -------------------------------------------------------------------------- */
-.a-breathe { animation: aBreathe 3.6s ease-in-out infinite }
+/* 動いている大会の面。以前は影(box-shadow)をずっと動かしていて、毎コマ描き直していた。止めて、金の光を常に出す(電池対策・2026-11-16) */
+.a-breathe { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(242,169,0,0.10), 0 14px 42px rgba(242,169,0,0.16) }
 @keyframes aBreathe {
   0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(0,0,0,0.03), 0 14px 38px rgba(0,0,0,0.07) }
   50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 8px rgba(242,169,0,0.10), 0 14px 42px rgba(242,169,0,0.16) }
